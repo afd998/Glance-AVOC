@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event";
 import FilterPanel from "./components/FilterPanel";
-import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
+import { useEvents } from "./hooks/useEvents";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -38,7 +39,7 @@ const rooms = [
   "GH 4101", "GH 4301", "GH 4302", "GH 5101", "GH 5201", "GH 5301"
 ];
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function AppContent() {
   const [startHour, setStartHour] = useState(7);
@@ -58,26 +59,7 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: events, isLoading, error, refetch } = useQuery({
-    queryKey: ['events', selectedDate],
-    queryFn: async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/availability?date=${selectedDate.toISOString().split('T')[0]}`);
-        const text = await response.text();
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = JSON.parse(text);
-        console.log('Raw events data:', data);
-        console.log('Sample event:', data.data?.[0]);
-        return data.data;
-      } catch (error) {
-        throw error;
-      }
-    }
-  });
+  const { data: events, isLoading, error, refetch } = useEvents(selectedDate);
 
   const totalMinutes = (endHour - startHour) * 60;
   const totalWidth = totalMinutes * pixelsPerMinute;
