@@ -38,11 +38,11 @@ const rooms = [
   "GH 4101", "GH 4301", "GH 4302", "GH 5101", "GH 5201", "GH 5301"
 ];
 
-const API_BASE_URL = 'http://localhost:3002';
+const API_BASE_URL = 'http://localhost:3000';
 
 function AppContent() {
   const [startHour, setStartHour] = useState(7);
-  const [endHour, setEndHour] = useState(17);
+  const [endHour, setEndHour] = useState(23);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedRooms, setSelectedRooms] = useState(rooms);
   const [showFilters, setShowFilters] = useState(false);
@@ -175,6 +175,9 @@ function AppContent() {
               })()}
               {selectedRooms.map((room, index) => {
                 const roomEvents = events?.filter(event => {
+                  // Skip events with '&' in the name
+                  if (event.subject_itemName?.includes('&')) return false;
+                  
                   const roomName = event.subject_itemName?.match(/K(GH\d+[AB]?)/)?.[1]?.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
                   return roomName === room;
                 });
@@ -186,20 +189,22 @@ function AppContent() {
                 const isFloorBreak = currentFloor !== nextFloor;
 
                 return (
-                  <div key={room} className="relative h-24 border-b border-gray-200">
-                    <div className="sticky left-0 w-24 h-full bg-gray-50 border-r border-gray-200 flex items-center justify-center z-10">
+                  <div key={room} className="relative h-24 border-b border-gray-200 flex">
+                    <div className="sticky left-0 w-24 h-24 bg-gray-50 border-r border-gray-200 flex items-center justify-center z-10">
                       {room}
                     </div>
-                    <div className="ml-24 relative h-full" style={{ height: '96px' }}>
-                      {roomEvents?.map((event) => (
-                        <Event
-                          key={`${event.subject_itemName}-${event.start}-${event.end}`}
-                          event={event}
-                          startHour={startHour}
-                          pixelsPerMinute={pixelsPerMinute}
-                          rooms={rooms}
-                        />
-                      ))}
+                    <div className="flex-1 h-24">
+                      <div className="relative h-full w-full">
+                        {roomEvents?.map((event) => (
+                          <Event
+                            key={`${event.subject_itemName}-${event.start}-${event.end}`}
+                            event={event}
+                            startHour={startHour}
+                            pixelsPerMinute={pixelsPerMinute}
+                            rooms={rooms}
+                          />
+                        ))}
+                      </div>
                     </div>
                     {isFloorBreak && (
                       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-500"></div>

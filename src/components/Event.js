@@ -155,8 +155,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
   const adjustedEndTime = endTime - 1;
   
   // Calculate minutes from start of day
-  const startMinutes = Math.round((adjustedStartTime - startHour) * 60);
-  const endMinutes = Math.round((adjustedEndTime - startHour) * 60);
+  const startMinutes = Math.round((adjustedStartTime - startHour) * 60) + 10;
+  const endMinutes = Math.round((adjustedEndTime - startHour) * 60) + 10;
   const durationMinutes = endMinutes - startMinutes;
   const eventMargin = 1;
 
@@ -211,7 +211,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
     <div
       className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1 hover:opacity-90 transition-all cursor-pointer group`}
       style={{
-        top: '8px',
+        top: '0',
         left: `${startMinutes * pixelsPerMinute + eventMargin}px`,
         width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`,
         height: '80px',
