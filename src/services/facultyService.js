@@ -7,7 +7,7 @@ let facultyCache = null;
 export const fetchFacultyDirectory = async () => {
   try {
     // Always fetch fresh data from API
-    const response = await fetch('http://localhost:3003/api/faculty');
+    const response = await fetch('http://localhost:3000/api/faculty');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
