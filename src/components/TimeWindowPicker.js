@@ -1,42 +1,46 @@
-import React from "react";
+import React from 'react';
 
-export default function TimeWindowPicker({ startHour, endHour, onStartHourChange, onEndHourChange, hourOnly }) {
-  const generateHourOptions = () => {
-    const options = [];
-    for (let h = 0; h < 24; h++) {
-      const label = `${h.toString().padStart(2, '0')}:00`;
-      options.push(
-        <option key={h} value={h}>
-          {label}
-        </option>
-      );
-    }
-    return options;
+function TimeWindowPicker({ startHour, endHour, onStartHourChange, onEndHourChange }) {
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  const formatHour = (hour) => {
+    const displayHour = hour > 12 ? hour - 12 : hour;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    return `${displayHour}:00 ${ampm}`;
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <label className="flex flex-col">
-        Start Hour
+    <div className="flex items-center space-x-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
         <select
-          className="border px-2 py-1 rounded"
           value={startHour}
-          onChange={(e) => onStartHourChange(parseInt(e.target.value))}
+          onChange={(e) => onStartHourChange(Number(e.target.value))}
+          className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
-          {generateHourOptions()}
+          {hours.map((hour) => (
+            <option key={hour} value={hour}>
+              {formatHour(hour)}
+            </option>
+          ))}
         </select>
-      </label>
-
-      <label className="flex flex-col">
-        End Hour
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
         <select
-          className="border px-2 py-1 rounded"
           value={endHour}
-          onChange={(e) => onEndHourChange(parseInt(e.target.value))}
+          onChange={(e) => onEndHourChange(Number(e.target.value))}
+          className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
-          {generateHourOptions()}
+          {hours.map((hour) => (
+            <option key={hour} value={hour}>
+              {formatHour(hour)}
+            </option>
+          ))}
         </select>
-      </label>
+      </div>
     </div>
   );
 }
+
+export default TimeWindowPicker;
