@@ -26,12 +26,37 @@ const fetchEvents = async ({ queryKey }) => {
     if (!response.ok) {
       throw new Error('Failed to fetch events');
     }
+    
+    // Log the raw response
+    console.log('Raw response:', response);
+    
     const data = await response.json();
-    console.log('Raw events data:', data);
-    console.log('Sample event:', data.data?.[0]);
+    // Log the parsed data
+    console.log('Parsed response data:', data);
+    console.log('Data type:', typeof data);
+    console.log('Data structure:', {
+      hasData: !!data.data,
+      dataLength: data.data?.length,
+      firstItem: data.data?.[0],
+      keys: Object.keys(data)
+    });
+
+    // Log all room names from events
+    console.log('All room names in events:', data.data?.map(event => ({
+      subject_itemName: event.subject_itemName,
+      containsL: event.subject_itemName?.includes('L'),
+      containsGH: event.subject_itemName?.includes('GH'),
+      fullString: JSON.stringify(event.subject_itemName)
+    })));
+    
     return data.data;
   } catch (error) {
     console.error('Error fetching events:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     // Fallback to local data if API fails
     return null;
   }

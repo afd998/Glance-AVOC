@@ -20,9 +20,18 @@ const queryClient = new QueryClient({
   },
 });
 
-// Create a persister
+// Create a persister with proper serialization
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
+  serialize: (data) => JSON.stringify(data),
+  deserialize: (data) => {
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Error deserializing cache:', error);
+      return null;
+    }
+  },
 });
 
 // Persist the cache
@@ -30,6 +39,7 @@ persistQueryClient({
   queryClient,
   persister,
   maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  buster: 'v1', // Add a cache buster to force a fresh cache
 });
 
 const rooms = [
@@ -160,7 +170,35 @@ function AppContent() {
                   // Skip events with '&' in the name
                   if (event.subject_itemName?.includes('&')) return false;
                   
-                  const roomName = event.subject_itemName?.match(/K(GH\d+[AB]?)/)?.[1]?.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
+                  console.log('Filtering event:', {
+                    room: room,
+                    eventName: event.subject_itemName,
+                    containsL: event.subject_itemName?.includes('L'),
+                    containsGH: event.subject_itemName?.includes('GH')
+                  });
+                  
+                  // First try to match L-prefixed rooms (KGHL110 format)
+                  const lMatch = event.subject_itemName?.match(/K(GHL\d+)/);
+                  console.log('L-prefix match:', {
+                    match: lMatch,
+                    expected: room,
+                    isMatch: lMatch?.[1]?.replace(/(GH)(L)(\d+)/, 'GH $2$3') === room
+                  });
+                  if (lMatch) {
+                    const parsedRoom = lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
+                    return parsedRoom === room;
+                  }
+                  
+                  // Then try to match regular rooms
+                  const match = event.subject_itemName?.match(/K(GH\d+[AB]?)/);
+                  console.log('Regular match:', {
+                    match: match,
+                    expected: room,
+                    isMatch: match?.[1]?.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3') === room
+                  });
+                  if (!match) return false;
+                  
+                  const roomName = match[1].replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
                   return roomName === room;
                 });
 

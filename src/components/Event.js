@@ -33,7 +33,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
   }, []);
 
   const handleMouseEnter = (e) => {
-    console.log('Mouse Enter');
+
     isHoveringRef.current = true;
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -42,12 +42,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
     const container = e.currentTarget.closest('.overflow-x-auto');
     const containerRect = container.getBoundingClientRect();
     
-    console.log('Positions:', {
-      rect,
-      containerRect,
-      scrollLeft: container.scrollLeft,
-      scrollTop: container.scrollTop
-    });
+   
     
     setHoverPosition({
       x: rect.left - containerRect.left + container.scrollLeft,
@@ -57,7 +52,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
   };
 
   const handleMouseLeave = () => {
-    console.log('Mouse Leave');
+   
     isHoveringRef.current = false;
     // Add a small delay before hiding the card
     hoverTimeoutRef.current = setTimeout(() => {
@@ -79,9 +74,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
     setShowHoverCard(false);
   };
 
-  // Parse room name from format "KGH1110 (70)" to "GH 1110"
+  // Parse room name from format "KGH1110 (70)" to "GH 1110" or "KGHL110" to "GH L110"
   const parseRoomName = (subjectItemName) => {
-    // Remove the 'K' prefix and anything after the room number
+    // First try to match L-prefixed rooms (KGHL110 format)
+    const lMatch = subjectItemName.match(/K(GHL\d+)/);
+    if (lMatch) {
+      return lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
+    }
+    
+    // Then try to match regular rooms
     const match = subjectItemName.match(/K(GH\d+[AB]?)/);
     if (!match) return null;
     
@@ -139,6 +140,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms }) {
   };
 
   const roomName = parseRoomName(event.subject_itemName);
+ 
   const roomIndex = rooms.indexOf(roomName);
   if (roomIndex === -1) return null;
 
