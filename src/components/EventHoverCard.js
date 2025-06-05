@@ -23,27 +23,21 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
   };
 
   return (
-    <div 
-      className="bg-white rounded-lg shadow-xl p-4 min-w-[300px] max-w-[400px] border border-gray-200"
-      style={style}
-    >
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="border-b pb-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 whitespace-normal break-words overflow-wrap-anywhere">{event.itemName}</h3>
-              {lectureTitle && (
-                <p className="text-sm text-gray-700 whitespace-normal break-words overflow-wrap-anywhere">{lectureTitle}</p>
-              )}
-              <p className="text-sm text-gray-600">{formatDate(event.subject_item_date)}</p>
-            </div>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-80 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 relative">
+      <div className="absolute inset-0 bg-white dark:bg-gray-800 -z-10"></div>
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{event.itemName}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(event.subject_item_date)}</p>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
             {event.eventUrl && (
               <a 
                 href={event.eventUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 whitespace-nowrap"
                 title="View in 25Live"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -56,31 +50,14 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
           </div>
         </div>
 
-        {/* Time */}
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 flex-shrink-0">🕒</span>
-          <span className="text-gray-700 whitespace-normal break-words overflow-wrap-anywhere">
-            {formatTime(event.start)} - {formatTime(event.end)}
-          </span>
-        </div>
-
-        {/* Room */}
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 flex-shrink-0">🏢</span>
-          <span className="text-gray-700 whitespace-normal break-words overflow-wrap-anywhere">{event.subject_itemName}</span>
-        </div>
-
-        {/* Event Type */}
-        {eventType && (
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 flex-shrink-0">📋</span>
-            <span className="text-gray-700 whitespace-normal break-words overflow-wrap-anywhere">{eventType}</span>
+        {lectureTitle && (
+          <div className="mb-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 break-words">{lectureTitle}</p>
           </div>
         )}
 
-        {/* Instructor */}
         {instructorName && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 mb-2">
             {facultyMember?.imageUrl ? (
               <a 
                 href={facultyMember?.bioUrl}
@@ -92,7 +69,7 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
                 <img 
                   src={facultyMember.imageUrl} 
                   alt={instructorName}
-                  className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition-opacity"
+                  className="h-10 w-10 rounded-full object-cover"
                   onError={(e) => {
                     console.error('Error loading faculty image:', facultyMember.imageUrl);
                     e.target.style.display = 'none';
@@ -100,26 +77,12 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
                 />
               </a>
             ) : (
-              <span className="text-gray-500 flex-shrink-0">👤</span>
+              <span className="text-sm">👤</span>
             )}
-            <div className="min-w-0 flex-1">
-              {facultyMember?.bioUrl ? (
-                <a 
-                  href={facultyMember.bioUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-700 block whitespace-normal break-words overflow-wrap-anywhere hover:text-blue-600 transition-colors cursor-pointer"
-                  title={`View ${instructorName}'s bio`}
-                >
-                  {instructorName}
-                </a>
-              ) : (
-                <span className="text-gray-700 block whitespace-normal break-words overflow-wrap-anywhere">
-                  {instructorName}
-                </span>
-              )}
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{instructorName}</p>
               {facultyMember?.title && (
-                <p className="text-xs text-gray-500 whitespace-normal break-words overflow-wrap-anywhere">{facultyMember.title}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{facultyMember.title}</p>
               )}
               {isFacultyLoading && (
                 <span className="text-xs text-gray-400">(Loading faculty info...)</span>
@@ -128,35 +91,33 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
           </div>
         )}
 
-        {/* Resources */}
-        {matchingReservation.res && matchingReservation.res.length > 0 && (
-          <div className="border-t pt-2">
-            <h4 className="text-sm font-medium text-gray-700 mb-1">Resources:</h4>
-            <ul className="space-y-1">
-              {matchingReservation.res.map((resource, index) => (
-                <li key={index} className="text-sm text-gray-600 flex items-center gap-2">
-                  <div className="flex-shrink-0">
-                    {(resource.itemName === "KSM-KGH-VIDEO-Recording (POST TO CANVAS)" || 
-                      resource.itemName === "KSM-KGH-VIDEO-Recording (PRIVATE LINK)" ||
-                      resource.itemName === "KSM-KGH-VIDEO-Recording") && (
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                    )}
-                    {resource.itemName === "KSM-KGH-AV-Staff Assistance" && (
-                      <span>🚶</span>
-                    )}
-                    {resource.itemName === "KSM-KGH-AV-Handheld Microphone" && (
-                      <span>🎤</span>
-                    )}
-                    {resource.itemName === "KSM-KGH-AV-Web Conference" && (
+        {eventType && (
+          <div className="mb-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Type: {eventType}</p>
+          </div>
+        )}
+
+        {matchingReservation?.res?.length > 0 && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Resources:</h4>
+            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+              {matchingReservation.res.map((item, index) => (
+                <li key={index} className="flex items-center gap-1">
+                  <span className="flex-shrink-0">
+                    {item.itemName === "KSM-KGH-VIDEO-Recording (POST TO CANVAS)" && "📹"}
+                    {item.itemName === "KSM-KGH-VIDEO-Recording (PRIVATE LINK)" && "🔗"}
+                    {item.itemName === "KSM-KGH-VIDEO-Recording" && "📹"}
+                    {item.itemName === "KSM-KGH-AV-Handheld Microphone" && "🎤"}
+                    {item.itemName === "KSM-KGH-AV-Staff Assistance" && "🚶"}
+                    {item.itemName === "KSM-KGH-AV-Web Conference" && (
                       <img 
                         src="/zoomicon.png" 
                         alt="Web Conference" 
-                        className="w-4 h-4 object-contain"
-                        title="Web Conference"
+                        className="w-4 h-4 object-contain dark:invert"
                       />
                     )}
-                  </div>
-                  <span className="whitespace-normal break-words overflow-wrap-anywhere">{resource.itemName}</span>
+                  </span>
+                  <span className="truncate">{item.itemName}</span>
                 </li>
               ))}
             </ul>
