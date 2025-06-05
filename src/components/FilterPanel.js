@@ -1,14 +1,9 @@
 import React from 'react';
 import DatePicker from "react-datepicker";
-import TimeWindowPicker from "./TimeWindowPicker";
 
 function FilterPanel({ 
   selectedDate, 
   setSelectedDate, 
-  startHour, 
-  endHour, 
-  onStartHourChange, 
-  onEndHourChange,
   rooms,
   selectedRooms,
   setSelectedRooms
@@ -24,12 +19,6 @@ function FilterPanel({
           dateFormat="MMM d, yyyy"
         />
       </div>
-      <TimeWindowPicker
-        startHour={startHour}
-        endHour={endHour}
-        onStartHourChange={onStartHourChange}
-        onEndHourChange={onEndHourChange}
-      />
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Filter Rooms</label>
         <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-white">

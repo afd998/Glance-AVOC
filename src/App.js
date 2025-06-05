@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event";
 import FilterPanel from "./components/FilterPanel";
+import DarkModeToggle from "./components/DarkModeToggle";
+import TimeGrid from "./components/TimeGrid";
+import CurrentTimeIndicator from "./components/CurrentTimeIndicator";
+import RoomRow from "./components/RoomRow";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -43,22 +47,31 @@ persistQueryClient({
 });
 
 const rooms = [
-  "GH L110", "GH L120", "GH L130", "GH L070", "GH 1110", "GH 1120", "GH 1130",
-  "GH 1420", "GH 1430", "GH 2110", "GH 2120", "GH 2130", "GH 2410", "GH 2420",
+  "GH L129", "GH L110", "GH L120", "GH L130", "GH L070", "GH 1110", "GH 1120", "GH 1130",
+  "GH 1420", "GH 1430", "GH 2110", "GH 2120", "GH 2130",
   "GH 2410A", "GH 2410B", "GH 2420A", "GH 2420B", "GH 2430A", "GH 2430B",
   "GH 4101", "GH 4301", "GH 4302", "GH 5101", "GH 5201", "GH 5301"
 ];
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function AppContent() {
-  const [startHour, setStartHour] = useState(7);
-  const [endHour, setEndHour] = useState(23);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedRooms, setSelectedRooms] = useState(rooms);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode !== null) {
+      return savedMode === 'true';
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const pixelsPerMinute = 2;
+
+  // Fixed time window
+  const startHour = 6;
+  const endHour = 23;
+  const {events, isLoading, error } = useEvents(selectedDate);
 
   // Update current time every minute
   React.useEffect(() => {
@@ -69,44 +82,25 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: events, isLoading, error, refetch } = useEvents(selectedDate);
 
   const totalMinutes = (endHour - startHour) * 60;
   const totalWidth = totalMinutes * pixelsPerMinute;
 
-  // Generate hour labels and grid lines
-  const hourLabels = [];
-  for (let hour = startHour; hour <= endHour; hour++) {
-    const minutes = (hour - startHour) * 60;
-    const left = minutes * pixelsPerMinute;
-    const displayHour = hour > 12 ? hour - 12 : hour;
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hourLabels.push(
-      <div
-        key={hour}
-        className="absolute top-0 text-sm text-gray-600 -translate-x-1/2"
-        style={{ left: left }}
-      >
-        {displayHour}:00 {ampm}
-      </div>
-    );
-  }
-
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen dark:bg-gray-900 dark:text-white">Loading...</div>;
   }
 
   if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
+    return <div className="flex items-center justify-center h-screen text-red-500 dark:bg-gray-900">Error: {error.message}</div>;
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 dark:bg-gray-900 min-h-screen">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
@@ -117,119 +111,58 @@ function AppContent() {
             <FilterPanel
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
-              startHour={startHour}
-              endHour={endHour}
-              onStartHourChange={setStartHour}
-              onEndHourChange={setEndHour}
               rooms={rooms}
               selectedRooms={selectedRooms}
               setSelectedRooms={setSelectedRooms}
             />
           )}
         </div>
-        <button
-          onClick={() => refetch()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Refresh Data
-        </button>
+        <DarkModeToggle isDarkMode={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
       </div>
       <div className="mt-4 h-[calc(100vh-8rem)]">
         <div className="mt-8 relative h-full">
-          <div className="overflow-x-auto h-full">
-            <div style={{ width: totalWidth, position: 'relative' }}>
-              <div className="sticky top-0 left-0 right-0 bg-white z-10 pb-2">
-                {hourLabels}
-              </div>
-              {/* Current time indicator */}
-              {(() => {
-                const now = currentTime;
-                const currentHour = now.getHours();
-                const currentMinute = now.getMinutes();
-                const totalCurrentMinutes = (currentHour - startHour) * 60 + currentMinute;
-                const currentPosition = totalCurrentMinutes * pixelsPerMinute;
-
-                // Only show if within the visible time range
-                if (currentHour >= startHour && currentHour <= endHour) {
-                  return (
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"
-                      style={{ 
-                        left: currentPosition,
-                        animation: 'pulse 2s infinite'
-                      }}
-                    >
-                      <div className="absolute -top-1.5 -translate-x-[4.5px] w-3 h-3 bg-red-500 rounded-full" />
-                    </div>
-                  );
-                }
-                return null;
-              })()}
+          <div className="overflow-x-auto h-full py-5" style={{ width: totalWidth, position: 'relative' }}>
+            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+            
+            <div className="relative">
+              <CurrentTimeIndicator 
+                currentTime={currentTime}
+                startHour={startHour}
+                endHour={endHour}
+                pixelsPerMinute={pixelsPerMinute}
+              />
               {selectedRooms.map((room, index) => {
                 const roomEvents = events?.filter(event => {
-                  // Skip events with '&' in the name
                   if (event.subject_itemName?.includes('&')) return false;
                   
-                  console.log('Filtering event:', {
-                    room: room,
-                    eventName: event.subject_itemName,
-                    containsL: event.subject_itemName?.includes('L'),
-                    containsGH: event.subject_itemName?.includes('GH')
-                  });
-                  
-                  // First try to match L-prefixed rooms (KGHL110 format)
                   const lMatch = event.subject_itemName?.match(/K(GHL\d+)/);
-                  console.log('L-prefix match:', {
-                    match: lMatch,
-                    expected: room,
-                    isMatch: lMatch?.[1]?.replace(/(GH)(L)(\d+)/, 'GH $2$3') === room
-                  });
                   if (lMatch) {
                     const parsedRoom = lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
                     return parsedRoom === room;
                   }
                   
-                  // Then try to match regular rooms
                   const match = event.subject_itemName?.match(/K(GH\d+[AB]?)/);
-                  console.log('Regular match:', {
-                    match: match,
-                    expected: room,
-                    isMatch: match?.[1]?.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3') === room
-                  });
                   if (!match) return false;
                   
                   const roomName = match[1].replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
                   return roomName === room;
                 });
 
-                // Get the floor number (first digit after GH)
                 const currentFloor = room.match(/GH (\d)/)?.[1];
                 const nextRoom = selectedRooms[index + 1];
                 const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
                 const isFloorBreak = currentFloor !== nextFloor;
 
                 return (
-                  <div key={room} className="relative h-24 border-b border-gray-200 flex">
-                    <div className="sticky left-0 w-24 h-24 bg-gray-50 border-r border-gray-200 flex items-center justify-center z-10">
-                      {room}
-                    </div>
-                    <div className="flex-1 h-24">
-                      <div className="relative h-full w-full">
-                        {roomEvents?.map((event) => (
-                          <Event
-                            key={`${event.subject_itemName}-${event.start}-${event.end}`}
-                            event={event}
-                            startHour={startHour}
-                            pixelsPerMinute={pixelsPerMinute}
-                            rooms={rooms}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {isFloorBreak && (
-                      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-500"></div>
-                    )}
-                  </div>
+                  <RoomRow
+                    key={room}
+                    room={room}
+                    roomEvents={roomEvents}
+                    startHour={startHour}
+                    pixelsPerMinute={pixelsPerMinute}
+                    rooms={rooms}
+                    isFloorBreak={isFloorBreak}
+                  />
                 );
               })}
             </div>
