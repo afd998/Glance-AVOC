@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event";
 import FilterPanel from "./components/FilterPanel";
-import DarkModeToggle from "./components/DarkModeToggle";
 import TimeGrid from "./components/TimeGrid";
 import CurrentTimeIndicator from "./components/CurrentTimeIndicator";
 import RoomRow from "./components/RoomRow";
+import VerticalLines from "./components/VerticalLines";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -13,6 +13,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -59,18 +60,11 @@ function AppContent() {
   const [selectedRooms, setSelectedRooms] = useState(rooms);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode !== null) {
-      return savedMode === 'true';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-  const pixelsPerMinute = 2;
 
-  // Fixed time window
+  const pixelsPerMinute = 2;
   const startHour = 6;
   const endHour = 23;
+  
   const {events, isLoading, error } = useEvents(selectedDate);
 
   // Update current time every minute
@@ -95,9 +89,17 @@ function AppContent() {
   }
 
   return (
-    <div className="p-4 dark:bg-gray-900 min-h-screen">
+    // Main container - Sets the overall page background and padding
+    <div className=" flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+      {/* Wildcat background image */}
+      <div className=" self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
+        <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
+      </div>
+
+      {/* Header section - Contains the filters button and filter panel */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-4">
+          {/* Filter toggle button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -107,6 +109,7 @@ function AppContent() {
             </svg>
             <span>Filters</span>
           </button>
+          {/* Filter panel - Shows/hides based on showFilters state */}
           {showFilters && (
             <FilterPanel
               selectedDate={selectedDate}
@@ -117,67 +120,75 @@ function AppContent() {
             />
           )}
         </div>
-        <DarkModeToggle isDarkMode={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
       </div>
-      <div className="mt-4 h-[calc(100vh-8rem)]">
-        <div className="mt-8 relative h-full">
-          <div className="overflow-x-auto h-full py-5" style={{ width: totalWidth, position: 'relative' }}>
-            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-            
-            <div className="relative">
-              <CurrentTimeIndicator 
-                currentTime={currentTime}
+
+      {/* Main content area - Contains the time grid and room rows */}
+      <div className="mt-4 h-[calc(100vh-8rem)]  4 overflow-x-auto py-5 rounded-md">
+        {/* Time grid component - Renders the time markers and vertical lines */}
+        <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+        
+        {/* Current time indicator container */}
+        <div className="relative">
+          {/* Current time indicator - Shows the current time line */}
+          <CurrentTimeIndicator 
+            currentTime={currentTime}
+            startHour={startHour}
+            endHour={endHour}
+            pixelsPerMinute={pixelsPerMinute}
+          />
+        </div>
+
+        {/* Room rows container - Contains room rows */}
+        <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
+          <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+          {/* Room rows - Maps through selected rooms to create room rows */}
+          {selectedRooms.map((room, index) => {
+            const roomEvents = events?.filter(event => {
+              if (event.subject_itemName?.includes('&')) return false;
+              
+              const lMatch = event.subject_itemName?.match(/K(GHL\d+)/);
+              if (lMatch) {
+                const parsedRoom = lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
+                return parsedRoom === room;
+              }
+              
+              const match = event.subject_itemName?.match(/K(GH\d+[AB]?)/);
+              if (!match) return false;
+              
+              const roomName = match[1].replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
+              return roomName === room;
+            });
+
+            const currentFloor = room.match(/GH (\d)/)?.[1];
+            const nextRoom = selectedRooms[index + 1];
+            const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
+            const isFloorBreak = currentFloor !== nextFloor;
+
+            return (
+              <RoomRow
+                key={room}
+                room={room}
+                roomEvents={roomEvents}
                 startHour={startHour}
-                endHour={endHour}
                 pixelsPerMinute={pixelsPerMinute}
+                rooms={rooms}
+                isFloorBreak={isFloorBreak}
               />
-              {selectedRooms.map((room, index) => {
-                const roomEvents = events?.filter(event => {
-                  if (event.subject_itemName?.includes('&')) return false;
-                  
-                  const lMatch = event.subject_itemName?.match(/K(GHL\d+)/);
-                  if (lMatch) {
-                    const parsedRoom = lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
-                    return parsedRoom === room;
-                  }
-                  
-                  const match = event.subject_itemName?.match(/K(GH\d+[AB]?)/);
-                  if (!match) return false;
-                  
-                  const roomName = match[1].replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
-                  return roomName === room;
-                });
-
-                const currentFloor = room.match(/GH (\d)/)?.[1];
-                const nextRoom = selectedRooms[index + 1];
-                const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
-                const isFloorBreak = currentFloor !== nextFloor;
-
-                return (
-                  <RoomRow
-                    key={room}
-                    room={room}
-                    roomEvents={roomEvents}
-                    startHour={startHour}
-                    pixelsPerMinute={pixelsPerMinute}
-                    rooms={rooms}
-                    isFloorBreak={isFloorBreak}
-                  />
-                );
-              })}
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-// Wrap the app with QueryClientProvider
+// Wrap the app with QueryClientProvider and ThemeProvider
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
