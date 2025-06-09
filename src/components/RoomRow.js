@@ -4,13 +4,13 @@ import Event from './Event';
 export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak }) {
   return (
     <div 
-      className={`relative h-24 border-b border-gray-200 dark:border-gray-700 flex ${
-        parseInt(room.match(/GH (\d)/)?.[1] || '0') % 2 === 0 
-          ? 'bg-white dark:bg-gray-800' 
-          : 'bg-gray-100 dark:bg-gray-900'
+      className={`relative h-24 border-b border-gray-200 dark:border-gray-700 ${
+        parseInt(room.match(/GH (\d{1,2})/)?.[1] || '0') % 2 === 0 
+          ? 'bg-gray-100 dark:bg-gray-800' 
+          : 'bg-gray-200 dark:bg-gray-900'
       }`}
     >
-      <div className="sticky left-0 w-24 h-24 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center z-10">
+      <div className=" sticky left-0 w-24 h-24 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center " style={{ zIndex: 50 }}>
         {room}
       </div>
       <div className="flex-1 h-24">

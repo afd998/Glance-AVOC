@@ -1,5 +1,4 @@
 import React from 'react';
-import DepartmentTag from './DepartmentTag';
 
 export default function EventContent({ 
   event, 
@@ -30,39 +29,68 @@ export default function EventContent({
   }
 
   return (
-    <div className="flex gap-2 mt-0.5">
-      {instructorName && facultyMember?.imageUrl && (
-        <img 
-          src={facultyMember.imageUrl} 
-          alt={instructorName}
-          className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-      )}
-      <div className="flex flex-col min-w-0">
-        <div className="flex items-center">
-          {isLecture && <DepartmentTag code={departmentCode} />}
-          <span className="truncate font-medium">
-            {mainEventName}
-            {isLecture && additionalInfo && (
-              <span className="text-xs text-gray-400 ml-1">{additionalInfo}</span>
+    <div className=" flex gap-2 relative">
+      {isLecture ? (
+        // Lecture event layout
+        <div className="flex flex-row bg-[#6b5b95] h-16 w-full rounded absolute inset-0 p-1">
+          {instructorName && (
+            <div className="flex flex-col items-center justify-center gap-0.5 py-0.5 bg-[#3d3659] rounded p-1 h-14 z-10">
+              {facultyMember?.imageUrl ? (
+                <div className="relative">
+                  <img 
+                    src={facultyMember.imageUrl} 
+                    alt={instructorName}
+                    className="h-8 w-8 rounded-full object-cover filter grayscale opacity-80"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
+                </div>
+              ) : (
+                <span className="text-sm">👤</span>
+              )}
+              <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-16 -mt-0.5 line-clamp-2">{instructorName}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col min-w-0 pl-1 flex-1 gap-0.5">
+            <div className="flex items-center">
+              <span className="text-xs text-white mr-1">{departmentCode}</span>
+              <span className="truncate font-medium text-white">
+                {mainEventName}
+                {additionalInfo && (
+                  <span className="text-xs text-gray-400 ml-1">{additionalInfo}</span>
+                )}
+              </span>
+            </div>
+            {lectureTitle && (
+              <span className="text-[11px] text-white opacity-90 whitespace-normal break-words leading-tight">{lectureTitle}</span>
             )}
-          </span>
-        </div>
-        {lectureTitle && (
-          <span className="text-xs opacity-90 truncate">{lectureTitle}</span>
-        )}
-        {instructorName && (
-          <div className="flex items-center gap-1">
-            {!facultyMember?.imageUrl && (
-              <span className="text-sm">👤</span>
-            )}
-            <span className="text-xs font-medium opacity-90 truncate">{instructorName}</span>
           </div>
-        )}
-      </div>
+        </div>
+      ) : event.eventType === 'Exam' ? (
+        // Exam event layout
+        <div className="absolute inset-0 bg-red-600 rounded p-1.5">
+          <div className="flex items-center justify-center h-full">
+            <span className="text-sm font-medium text-white truncate px-2">{mainEventName}</span>
+          </div>
+        </div>
+      ) : event.eventType === 'Lab' ? (
+        // Lab event layout
+        <div className="absolute inset-0 bg-green-600 rounded p-1.5">
+          <div className="flex items-center justify-center h-full">
+            <span className="text-sm font-medium text-white truncate px-2">{mainEventName}</span>
+          </div>
+        </div>
+      ) : (
+        // Default event layout (no background)
+        <div className="absolute inset-0 rounded p-1.5">
+          <div className="flex items-center justify-center h-full">
+            <span className="text-sm font-medium text-white truncate px-2">{mainEventName}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

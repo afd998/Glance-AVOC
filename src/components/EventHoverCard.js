@@ -23,9 +23,12 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-80 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 relative">
-      <div className="absolute inset-0 bg-white dark:bg-gray-800 -z-10"></div>
-      <div className="relative z-10">
+    <div 
+      className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg p-4 w-80 border border-gray-200 dark:border-gray-700 overflow-hidden relative animate-[slideDown_0.3s_ease-out]" 
+      style={{ zIndex:60 }}
+    >
+      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800"></div>
+      <div className="relative animate-[scaleUp_0.3s_ease-out]">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{event.itemName}</h3>

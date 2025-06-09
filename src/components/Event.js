@@ -113,21 +113,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const startTime = parseFloat(event.start);
   const endTime = parseFloat(event.end);
   
-  // Adjust for timezone (subtract 1 hour)
-  const adjustedStartTime = startTime - 1;
-  const adjustedEndTime = endTime - 1;
-  
   // Calculate minutes from start of day
-  const startMinutes = Math.round((adjustedStartTime - startHour) * 60) + 10;
-  const endMinutes = Math.round((adjustedEndTime - startHour) * 60) + 10;
+  const startMinutes = Math.round((startTime - startHour) * 60);
+  const endMinutes = Math.round((endTime - startHour) * 60);
   const durationMinutes = endMinutes - startMinutes;
   const eventMargin = 1;
 
   console.log('Time calculations:', {
     startTime,
     endTime,
-    adjustedStartTime,
-    adjustedEndTime,
     startMinutes,
     endMinutes,
     durationMinutes
@@ -158,26 +152,25 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const isClass = event.itemName?.includes("Class");
   const isSpecial = event.itemName?.includes("Workshop") || event.itemName?.includes("Summit");
   
-  let bgColor = "bg-blue-500";
-  if (isStudentEvent) bgColor = "bg-amber-700";
-  else if (isFacStaffEvent) bgColor = "bg-purple-700";
-  else if (isClass) bgColor = "bg-indigo-500";
-  else if (isSpecial) bgColor = "bg-purple-500";
+  let bgColor = "noise-bg";
+  if (isStudentEvent) bgColor = "bg-[#b8a68a]";
+  else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
+  else if (isClass) bgColor = "noise-bg";
+  else if (isSpecial) bgColor = "bg-[#9b8ba5]";
 
   return (
     <div
-      className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1 hover:opacity-90 transition-all cursor-pointer group`}
+      className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1  transition-all cursor-pointer group`}
       style={{
-        top: '0',
+        top: '4px',
         left: `${startMinutes * pixelsPerMinute + eventMargin}px`,
         width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`,
-        height: '80px',
+        height: '88px',
         overflow: 'visible',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        boxShadow: hasVideoRecording ? '0 0 0 3px rgba(239, 68, 68, 0.9)' : 'none',
         minWidth: '120px',
-        zIndex: showHoverCard ? 50 : 1
+        zIndex: showHoverCard ? 50 : 49
       }}
       title={event.itemName}
       onMouseEnter={handleMouseEnter}
