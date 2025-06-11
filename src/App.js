@@ -64,9 +64,18 @@ function AppContent() {
   
   // Parse date from URL or use current date
   const selectedDate = React.useMemo(() => {
-    if (!date) return new Date();
-    const parsedDate = new Date(date);
-    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    console.log('URL date param:', date);
+    if (!date) {
+      console.log('No date in URL, using current date');
+      return new Date();
+    }
+    // Parse the date and set it to noon to avoid timezone issues
+    const [year, month, day] = date.split('-').map(Number);
+    const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
+    console.log('Parsed date from URL:', parsedDate);
+    const result = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    console.log('Final selected date:', result);
+    return result;
   }, [date]);
   
   const pixelsPerMinute = 2;
@@ -77,28 +86,41 @@ function AppContent() {
 
   // Update current time every minute
   React.useEffect(() => {
+    console.log('Setting up current time interval');
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      const newTime = new Date();
+      console.log('Current time updated:', newTime);
+      setCurrentTime(newTime);
     }, 60000);
 
-    return () => clearInterval(timer);
+    return () => {
+      console.log('Cleaning up current time interval');
+      clearInterval(timer);
+    };
   }, []);
 
   const handleDateChange = (newDate) => {
+    console.log('handleDateChange called with:', newDate);
     // Create a new date object and set it to midnight in local time
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
+    console.log('Local date after setting to midnight:', localDate);
     const formattedDate = localDate.toISOString().split('T')[0];
+    console.log('Formatted date for URL:', formattedDate);
     navigate(`/${formattedDate}`);
   };
 
   // If we're on the root path and have a date, redirect to the date URL
   React.useEffect(() => {
+    console.log('URL effect - Current date param:', date);
+    console.log('URL effect - Current selectedDate:', selectedDate);
     if (!date && selectedDate) {
       // Create a new date object and set it to midnight in local time
       const localDate = new Date(selectedDate);
       localDate.setHours(0, 0, 0, 0);
+      console.log('URL effect - Local date after setting to midnight:', localDate);
       const formattedDate = localDate.toISOString().split('T')[0];
+      console.log('URL effect - Formatted date for redirect:', formattedDate);
       navigate(`/${formattedDate}`, { replace: true });
     }
   }, [date, selectedDate, navigate]);
