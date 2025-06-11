@@ -18,7 +18,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     return (
       <div
         key={hour}
-        className="absolute text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap bg-white border-r border-gray-200 rounded px-1 dark:border-gray-700"
+        className="absolute text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-r border-gray-200 rounded px-1 dark:border-gray-700"
         style={{ 
           left: left,
           top: '0px',

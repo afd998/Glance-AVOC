@@ -1,79 +1,74 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
 
 // Fetch events from the API
 const fetchEvents = async ({ queryKey }) => {
   const [_, date] = queryKey;
-  console.log('useEvents - Date received:', {
-    date,
-    type: typeof date,
-    isDate: date instanceof Date,
-    isoString: date?.toISOString(),
-    dateString: date?.toDateString()
-  });
-  
-  try {
-    // Log the specific environment variable we're looking for
-    console.log('Environment check:', {
-      NODE_ENV: process.env.NODE_ENV,
-      REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-      'process.env keys': Object.keys(process.env)
-    });
-    
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-    // Format date in local timezone to prevent UTC shift
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-    
-    const url = `${apiUrl}/api/availability?date=${formattedDate}`;
-    console.log('Using API URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch events');
-    }
-    
-    // Log the raw response
-    console.log('Raw response:', response);
-    
-    const data = await response.json();
-    // Log the parsed data
-    console.log('Parsed response data:', data);
-    console.log('Data type:', typeof data);
-    console.log('Data structure:', {
-      hasData: !!data.data,
-      dataLength: data.data?.length,
-      firstItem: data.data?.[0],
-      keys: Object.keys(data)
-    });
 
-    // Log all room names from events
-    console.log('All room names in events:', data.data?.map(event => ({
-      subject_itemName: event.subject_itemName,
-      containsL: event.subject_itemName?.includes('L'),
-      containsGH: event.subject_itemName?.includes('GH'),
-      fullString: JSON.stringify(event.subject_itemName)
-    })));
+  try {
+    // Calculate date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    return data.data;
+    const fortyDaysAgo = new Date(today);
+    fortyDaysAgo.setDate(today.getDate() - 40);
+    
+    const fortyDaysAhead = new Date(today);
+    fortyDaysAhead.setDate(today.getDate() + 40);
+    
+    // Check if date is within range
+    const isWithinRange = date >= fortyDaysAgo && date <= fortyDaysAhead;
+    
+    if (isWithinRange) {
+      // Use Supabase for recent dates
+      const { data, error } = await supabase
+        .from('25liveData')
+        .select('events_data')
+        .eq('scraped_date', date.toISOString().split('T')[0]);
+        
+      if (error) throw error;
+      
+      console.log('Supabase response:', data);
+      console.log('Events data type:', typeof data?.[0]?.events_data);
+      console.log('Events data:', data?.[0]?.events_data);
+      
+      // If events_data is a string, parse it
+      const eventsData = typeof data?.[0]?.events_data === 'string' 
+        ? JSON.parse(data[0].events_data)
+        : data?.[0]?.events_data || [];
+        
+      console.log('Parsed events data:', eventsData);
+      
+      return eventsData;
+    } else {
+      // Use existing server API for older/future dates
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      
+      const url = `${apiUrl}/api/availability?date=${formattedDate}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      const data = await response.json();
+      return data;
+    }
   } catch (error) {
     console.error('Error fetching events:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    // Fallback to local data if API fails
-    return null;
+    throw error;
   }
 };
 
@@ -144,7 +139,11 @@ export function useEvents(startDate, endDate) {
 
   useEffect(() => {
     if (eventsData) {
-      const processedEvents = eventsData.map(event => ({
+      // Ensure we have an array to work with
+      const eventsArray = Array.isArray(eventsData) ? eventsData : 
+                         (eventsData.events || eventsData.data || []);
+      
+      const processedEvents = eventsArray.map(event => ({
         ...event,
         eventType: getEventType(event),
         instructorName: getInstructorName(event),
