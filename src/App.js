@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event";
 import FilterPanel from "./components/FilterPanel";
@@ -6,10 +7,11 @@ import TimeGrid from "./components/TimeGrid";
 import CurrentTimeIndicator from "./components/CurrentTimeIndicator";
 import RoomRow from "./components/RoomRow";
 import VerticalLines from "./components/VerticalLines";
+import DatePickerComponent from "./components/DatePickerComponent";
+import Footer from "./components/Footer";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
@@ -54,13 +56,19 @@ const rooms = [
   "GH 4101", "GH 4301", "GH 4302", "GH 5101", "GH 5201", "GH 5301"
 ];
 
-
 function AppContent() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedRooms, setSelectedRooms] = useState(rooms);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
+  const navigate = useNavigate();
+  const { date } = useParams();
+  
+  // Parse date from URL or use current date
+  const selectedDate = React.useMemo(() => {
+    if (!date) return new Date();
+    const parsedDate = new Date(date);
+    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+  }, [date]);
+  
   const pixelsPerMinute = 2;
   const startHour = 6;
   const endHour = 23;
@@ -71,17 +79,86 @@ function AppContent() {
   React.useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => clearInterval(timer);
   }, []);
 
+  const handleDateChange = (newDate) => {
+    // Create a new date object and set it to midnight in local time
+    const localDate = new Date(newDate);
+    localDate.setHours(0, 0, 0, 0);
+    const formattedDate = localDate.toISOString().split('T')[0];
+    navigate(`/${formattedDate}`);
+  };
 
-  const totalMinutes = (endHour - startHour) * 60;
-  const totalWidth = totalMinutes * pixelsPerMinute;
+  // If we're on the root path and have a date, redirect to the date URL
+  React.useEffect(() => {
+    if (!date && selectedDate) {
+      // Create a new date object and set it to midnight in local time
+      const localDate = new Date(selectedDate);
+      localDate.setHours(0, 0, 0, 0);
+      const formattedDate = localDate.toISOString().split('T')[0];
+      navigate(`/${formattedDate}`, { replace: true });
+    }
+  }, [date, selectedDate, navigate]);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen dark:bg-gray-900 dark:text-white">Loading...</div>;
+    // Check if the date is outside the 80-day window
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fortyDaysAgo = new Date(today);
+    fortyDaysAgo.setDate(today.getDate() - 40);
+    const fortyDaysAhead = new Date(today);
+    fortyDaysAhead.setDate(today.getDate() + 40);
+    
+    const isOutsideRange = selectedDate < fortyDaysAgo || selectedDate > fortyDaysAhead;
+    
+    if (isOutsideRange) {
+      return (
+        <div className="flex flex-col items-center justify-center h-screen dark:bg-gray-900 dark:text-white gap-4">
+          <div className="text-xl">Loading...</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            You requested a day outside the 80-day window. Data may take up to 2 minutes to load.
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+        <div className="self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
+          <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
+        </div>
+
+        {/* Header with controls */}
+        <div className="flex justify-between items-center">
+          <FilterPanel
+            rooms={rooms}
+            selectedRooms={selectedRooms}
+            setSelectedRooms={setSelectedRooms}
+          />
+          <DatePickerComponent 
+            selectedDate={selectedDate}
+            setSelectedDate={handleDateChange}
+          />
+        </div>
+
+        <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
+          <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
+            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+            
+            {/* Loading spinner overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          </div>
+        </div>
+
+        <Footer />
+      </div>
+    );
   }
 
   if (error) {
@@ -89,59 +166,40 @@ function AppContent() {
   }
 
   return (
-    // Main container - Sets the overall page background and padding
-    <div className=" flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-      {/* Wildcat background image */}
-      <div className=" self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
+    <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+      <div className="self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
         <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
       </div>
 
-      {/* Header section - Contains the filters button and filter panel */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-4">
-          {/* Filter toggle button */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
-            </svg>
-            <span>Filters</span>
-          </button>
-          {/* Filter panel - Shows/hides based on showFilters state */}
-          {showFilters && (
-            <FilterPanel
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              rooms={rooms}
-              selectedRooms={selectedRooms}
-              setSelectedRooms={setSelectedRooms}
-            />
-          )}
-        </div>
+      {/* Header with controls */}
+      <div className="flex justify-between items-center ">
+       
+        <FilterPanel
+          rooms={rooms}
+          selectedRooms={selectedRooms}
+          setSelectedRooms={setSelectedRooms}
+        />
+         <DatePickerComponent 
+          selectedDate={selectedDate}
+          setSelectedDate={handleDateChange}
+        />
       </div>
 
-      {/* Main content area - Contains the time grid and room rows */}
-      <div className="mt-4 h-[calc(100vh-8rem)]  4 overflow-x-auto py-5 rounded-md">
-        {/* Time grid component - Renders the time markers and vertical lines */}
-        <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-        
-        {/* Current time indicator container */}
-        <div className="relative">
-          {/* Current time indicator - Shows the current time line */}
-          <CurrentTimeIndicator 
-            currentTime={currentTime}
-            startHour={startHour}
-            endHour={endHour}
-            pixelsPerMinute={pixelsPerMinute}
-          />
-        </div>
-
-        {/* Room rows container - Contains room rows */}
+      <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
+          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          {/* Room rows - Maps through selected rooms to create room rows */}
+          
+          {/* Current time indicator positioned absolutely over the content */}
+          <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+            <CurrentTimeIndicator 
+              currentTime={currentTime}
+              startHour={startHour}
+              endHour={endHour}
+              pixelsPerMinute={pixelsPerMinute}
+            />
+          </div>
+
           {selectedRooms.map((room, index) => {
             const roomEvents = events?.filter(event => {
               if (event.subject_itemName?.includes('&')) return false;
@@ -178,6 +236,8 @@ function AppContent() {
           })}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
@@ -187,7 +247,12 @@ export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AppContent />
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/:date" element={<AppContent />} />
+          </Routes>
+        </Router>
       </QueryClientProvider>
     </ThemeProvider>
   );

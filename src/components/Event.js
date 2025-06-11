@@ -5,14 +5,6 @@ import EventContent from "./EventContent";
 import { useFacultyDirectory, findFacultyMember } from "../services/facultyService";
 
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }) {
-  console.log('Event component rendered with:', { 
-    event, 
-    startHour, 
-    pixelsPerMinute, 
-    rooms,
-    eventName: event?.itemName,
-    subjectName: event?.subject_itemName
-  });
 
   const [showHoverCard, setShowHoverCard] = useState(false);
   const [isHoveringCard, setIsHoveringCard] = useState(false);
@@ -119,14 +111,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const durationMinutes = endMinutes - startMinutes;
   const eventMargin = 1;
 
-  console.log('Time calculations:', {
-    startTime,
-    endTime,
-    startMinutes,
-    endMinutes,
-    durationMinutes
-  });
-
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;
 
@@ -158,12 +142,14 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   else if (isClass) bgColor = "noise-bg";
   else if (isSpecial) bgColor = "bg-[#9b8ba5]";
 
+  const roomLabelWidth = 96; // w-24 = 96px
+
   return (
     <div
       className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1  transition-all cursor-pointer group`}
       style={{
         top: '4px',
-        left: `${startMinutes * pixelsPerMinute + eventMargin}px`,
+        left: `${(startMinutes * pixelsPerMinute + eventMargin) - roomLabelWidth}px`,
         width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`,
         height: '88px',
         overflow: 'visible',
