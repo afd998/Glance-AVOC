@@ -15,7 +15,9 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
+import { useNotifications } from "./hooks/useNotifications";
 import { ThemeProvider } from './contexts/ThemeContext';
+import useRoomStore from './stores/roomStore';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -58,9 +60,33 @@ const rooms = [
 
 function AppContent() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedRooms, setSelectedRooms] = useState(rooms);
   const navigate = useNavigate();
   const { date } = useParams();
+  
+  // Use Zustand store for room state
+  const { 
+    selectedRooms, 
+    allRooms, 
+    setAllRooms, 
+    setSelectedRooms,
+    setNotificationRooms
+  } = useRoomStore();
+  
+  // Initialize rooms in Zustand store (only if not already initialized)
+  React.useEffect(() => {
+    setAllRooms(rooms);
+    
+    // Only set default values if no rooms are currently selected (first time load)
+    if (selectedRooms.length === 0) {
+      setSelectedRooms(rooms); // Start with all rooms selected
+    }
+    
+    // Only set default notification rooms if none are currently set (first time load)
+    const { notificationRooms } = useRoomStore.getState();
+    if (notificationRooms.length === 0) {
+      setNotificationRooms(rooms); // Start with all rooms for notifications
+    }
+  }, [setAllRooms, setSelectedRooms, setNotificationRooms, selectedRooms.length]);
   
   // Parse date from URL or use current date
   const selectedDate = React.useMemo(() => {
@@ -83,6 +109,14 @@ function AppContent() {
   const endHour = 23;
   
   const {events, isLoading, error } = useEvents(selectedDate);
+  const { scheduleNotificationsForEvents } = useNotifications();
+
+  // Schedule notifications when events change
+  React.useEffect(() => {
+    if (events && events.length > 0) {
+      scheduleNotificationsForEvents(events);
+    }
+  }, [events, scheduleNotificationsForEvents]);
 
   // Update current time every minute
   React.useEffect(() => {
@@ -155,11 +189,7 @@ function AppContent() {
 
         {/* Header with controls */}
         <div className="flex justify-between items-center">
-          <FilterPanel
-            rooms={rooms}
-            selectedRooms={selectedRooms}
-            setSelectedRooms={setSelectedRooms}
-          />
+          <FilterPanel />
           <DatePickerComponent 
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
@@ -196,11 +226,7 @@ function AppContent() {
       {/* Header with controls */}
       <div className="flex justify-between items-center ">
        
-        <FilterPanel
-          rooms={rooms}
-          selectedRooms={selectedRooms}
-          setSelectedRooms={setSelectedRooms}
-        />
+        <FilterPanel />
          <DatePickerComponent 
           selectedDate={selectedDate}
           setSelectedDate={handleDateChange}
@@ -222,7 +248,14 @@ function AppContent() {
             />
           </div>
 
-          {selectedRooms.map((room, index) => {
+          {rooms.map((room, index) => {
+            // Only render if room is selected
+            if (!selectedRooms.includes(room)) {
+              return null; // Don't render this room
+            }
+            
+            console.log('App: Rendering room:', room, 'at index:', index, 'Total rooms:', selectedRooms.length);
+            
             const roomEvents = events?.filter(event => {
               if (event.subject_itemName?.includes('&')) return false;
               
@@ -240,7 +273,7 @@ function AppContent() {
             });
 
             const currentFloor = room.match(/GH (\d)/)?.[1];
-            const nextRoom = selectedRooms[index + 1];
+            const nextRoom = rooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
             const isFloorBreak = currentFloor !== nextFloor;
 
