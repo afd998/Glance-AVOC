@@ -1,7 +1,7 @@
 import React from 'react';
 import Event from './Event';
 
-export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak }) {
+export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick }) {
   return (
     <div className={`flex h-24 border-b border-gray-200 dark:border-gray-700 ${
       parseInt(room.match(/GH (\d{1,2})/)?.[1] || '0') % 2 === 0 
@@ -19,6 +19,7 @@ export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, 
             startHour={startHour}
             pixelsPerMinute={pixelsPerMinute}
             rooms={rooms}
+            onEventClick={onEventClick}
           />
         ))}
       </div>

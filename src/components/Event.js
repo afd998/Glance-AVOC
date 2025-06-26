@@ -2,19 +2,21 @@ import React, { useState, useRef, useEffect } from "react";
 import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
-import { useFacultyDirectory, findFacultyMember } from "../services/facultyService";
+import { useFacultyMember } from "../hooks/useFaculty";
 
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }) {
 
   const [showHoverCard, setShowHoverCard] = useState(false);
   const [isHoveringCard, setIsHoveringCard] = useState(false);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const { data: faculty, isLoading: isFacultyLoading } = useFacultyDirectory();
+  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event.instructorName);
   const hoverTimeoutRef = useRef(null);
   const isHoveringRef = useRef(false);
 
-  // Find faculty member from the directory
-  const facultyMember = event.instructorName ? findFacultyMember(event.instructorName, faculty) : null;
+  // Debug logging
+  console.log('Event - event.instructorName:', event.instructorName);
+  console.log('Event - facultyMember:', facultyMember);
+  console.log('Event - isFacultyLoading:', isFacultyLoading);
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -161,6 +163,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       title={event.itemName}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={() => onEventClick && onEventClick(event)}
     >
       <div className="flex flex-col h-full">
         <EventHeader 

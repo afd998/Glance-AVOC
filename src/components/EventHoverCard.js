@@ -1,6 +1,13 @@
 import React from 'react';
 
 export default function EventHoverCard({ event, matchingReservation, eventType, instructorName, facultyMember, isFacultyLoading, style, lectureTitle }) {
+  // Debug logging for faculty data
+  console.log('EventHoverCard - facultyMember:', facultyMember);
+  console.log('EventHoverCard - facultyMember?.timing:', facultyMember?.timing);
+  console.log('EventHoverCard - facultyMember?.complexity:', facultyMember?.complexity);
+  console.log('EventHoverCard - facultyMember?.temperment:', facultyMember?.temperment);
+  console.log('EventHoverCard - should show status bars:', facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment));
+
   const formatTime = (floatHours) => {
     const hours = Math.floor(floatHours);
     const minutes = Math.round((floatHours - hours) * 60);
@@ -59,41 +66,6 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
           </div>
         )}
 
-        {instructorName && (
-          <div className="flex items-center gap-2 mb-2">
-            {facultyMember?.imageUrl ? (
-              <a 
-                href={facultyMember?.bioUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0"
-                title={`View ${instructorName}'s bio`}
-              >
-                <img 
-                  src={facultyMember.imageUrl} 
-                  alt={instructorName}
-                  className="h-10 w-10 rounded-full object-cover"
-                  onError={(e) => {
-                    console.error('Error loading faculty image:', facultyMember.imageUrl);
-                    e.target.style.display = 'none';
-                  }}
-                />
-              </a>
-            ) : (
-              <span className="text-sm">👤</span>
-            )}
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{instructorName}</p>
-              {facultyMember?.title && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{facultyMember.title}</p>
-              )}
-              {isFacultyLoading && (
-                <span className="text-xs text-gray-400">(Loading faculty info...)</span>
-              )}
-            </div>
-          </div>
-        )}
-
         {eventType && (
           <div className="mb-2">
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Type: {eventType}</p>
@@ -124,6 +96,43 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {instructorName && (
+          <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 mt-3 bg-gray-50 dark:bg-gray-700">
+            <div className="flex items-center gap-2">
+              {facultyMember?.imageUrl ? (
+                <a 
+                  href={facultyMember?.bioUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0"
+                  title={`View ${instructorName}'s bio`}
+                >
+                  <img 
+                    src={facultyMember.imageUrl} 
+                    alt={instructorName}
+                    className="h-10 w-10 rounded-full object-cover"
+                    onError={(e) => {
+                      console.error('Error loading faculty image:', facultyMember.imageUrl);
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </a>
+              ) : (
+                <span className="text-sm">👤</span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{instructorName}</p>
+                {facultyMember?.title && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{facultyMember.title}</p>
+                )}
+                {isFacultyLoading && (
+                  <span className="text-xs text-gray-400">(Loading faculty info...)</span>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
