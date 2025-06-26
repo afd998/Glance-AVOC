@@ -6,6 +6,11 @@ export default function EventContent({
   instructorName, 
   facultyMember 
 }) {
+  // Debug logging
+  console.log('EventContent - instructorName:', instructorName);
+  console.log('EventContent - facultyMember:', facultyMember);
+  console.log('EventContent - facultyMember?.imageUrl:', facultyMember?.imageUrl);
+  
   // Extract department code from event name (first 4 characters)
   const departmentCode = event.itemName?.substring(0, 4);
   

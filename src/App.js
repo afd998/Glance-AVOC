@@ -18,6 +18,7 @@ import { useEvents } from "./hooks/useEvents";
 import { useNotifications } from "./hooks/useNotifications";
 import { ThemeProvider } from './contexts/ThemeContext';
 import useRoomStore from './stores/roomStore';
+import EventDetail from './components/EventDetail';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -90,17 +91,13 @@ function AppContent() {
   
   // Parse date from URL or use current date
   const selectedDate = React.useMemo(() => {
-    console.log('URL date param:', date);
     if (!date) {
-      console.log('No date in URL, using current date');
       return new Date();
     }
     // Parse the date and set it to noon to avoid timezone issues
     const [year, month, day] = date.split('-').map(Number);
     const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
-    console.log('Parsed date from URL:', parsedDate);
     const result = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-    console.log('Final selected date:', result);
     return result;
   }, [date]);
   
@@ -158,6 +155,15 @@ function AppContent() {
       navigate(`/${formattedDate}`, { replace: true });
     }
   }, [date, selectedDate, navigate]);
+
+  // Add event click handler
+  const handleEventClick = (event) => {
+    // Create a unique event ID from event properties
+    const eventId = `${event.itemName}-${event.start}-${event.subject_itemName}`;
+    // Include the date in the URL so EventDetail knows which date to fetch
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    navigate(`/event/${dateStr}/${encodeURIComponent(eventId)}`);
+  };
 
   if (isLoading) {
     // Check if the date is outside the 80-day window
@@ -286,6 +292,7 @@ function AppContent() {
                 pixelsPerMinute={pixelsPerMinute}
                 rooms={rooms}
                 isFloorBreak={isFloorBreak}
+                onEventClick={handleEventClick}
               />
             );
           })}
@@ -306,6 +313,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<AppContent />} />
             <Route path="/:date" element={<AppContent />} />
+            <Route path="/event/:date/:eventId" element={<EventDetail />} />
           </Routes>
         </Router>
       </QueryClientProvider>
