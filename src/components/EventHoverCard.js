@@ -1,6 +1,8 @@
 import React from 'react';
+import { parseEventResources, getResourceIcon, getResourceDisplayName } from '../utils/eventUtils';
+import { formatTime, formatDate } from '../utils/timeUtils';
 
-export default function EventHoverCard({ event, matchingReservation, eventType, instructorName, facultyMember, isFacultyLoading, style, lectureTitle }) {
+export default function EventHoverCard({ event, eventType, instructorName, facultyMember, isFacultyLoading, style, lectureTitle }) {
   // Debug logging for faculty data
   console.log('EventHoverCard - facultyMember:', facultyMember);
   console.log('EventHoverCard - facultyMember?.timing:', facultyMember?.timing);
@@ -8,26 +10,8 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
   console.log('EventHoverCard - facultyMember?.temperment:', facultyMember?.temperment);
   console.log('EventHoverCard - should show status bars:', facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment));
 
-  const formatTime = (floatHours) => {
-    const hours = Math.floor(floatHours);
-    const minutes = Math.round((floatHours - hours) * 60);
-    const date = new Date();
-    date.setHours(hours, minutes);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // Parse event resources using the utility function
+  const { resources } = parseEventResources(event);
 
   return (
     <div 
@@ -72,27 +56,16 @@ export default function EventHoverCard({ event, matchingReservation, eventType, 
           </div>
         )}
 
-        {matchingReservation?.res?.length > 0 && (
+        {resources.length > 0 && (
           <div className="mt-2">
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Resources:</h4>
             <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-              {matchingReservation.res.map((item, index) => (
+              {resources.map((item, index) => (
                 <li key={index} className="flex items-center gap-1">
                   <span className="flex-shrink-0">
-                    {item.itemName === "KSM-KGH-VIDEO-Recording (POST TO CANVAS)" && "📹"}
-                    {item.itemName === "KSM-KGH-VIDEO-Recording (PRIVATE LINK)" && "🔗"}
-                    {item.itemName === "KSM-KGH-VIDEO-Recording" && "📹"}
-                    {item.itemName === "KSM-KGH-AV-Handheld Microphone" && "🎤"}
-                    {item.itemName === "KSM-KGH-AV-Staff Assistance" && "🚶"}
-                    {item.itemName === "KSM-KGH-AV-Web Conference" && (
-                      <img 
-                        src="/zoomicon.png" 
-                        alt="Web Conference" 
-                        className="w-4 h-4 object-contain dark:invert"
-                      />
-                    )}
+                    {getResourceIcon(item.itemName)}
                   </span>
-                  <span className="truncate">{item.itemName}</span>
+                  <span className="truncate">{getResourceDisplayName(item.itemName)}</span>
                 </li>
               ))}
             </ul>

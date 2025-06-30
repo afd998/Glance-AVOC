@@ -3,6 +3,7 @@ import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
 import { useFacultyMember } from "../hooks/useFaculty";
+import { parseEventResources, parseRoomName, getEventTypeInfo, calculateEventPosition } from "../utils/eventUtils";
 
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }) {
 
@@ -64,30 +65,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     setShowHoverCard(false);
   };
 
-  // Parse room name from format "KGH1110 (70)" to "GH 1110" or "KGHL110" to "GH L110"
-  const parseRoomName = (subjectItemName) => {
-    if (!subjectItemName) {
-      console.log('No subject item name provided');
-      return null;
-    }
-    // First try to match L-prefixed rooms (KGHL110 format)
-    const lMatch = subjectItemName.match(/K(GHL\d+)/);
-    if (lMatch) {
-      return lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
-    }
-    
-    // Then try to match regular rooms
-    const match = subjectItemName.match(/K(GH\d+[AB]?)/);
-    if (!match) {
-      console.log('No room match found for:', subjectItemName);
-      return null;
-    }
-    
-    // Add space between GH and number, preserving A/B suffix if present
-    const roomNumber = match[1];
-    return roomNumber.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
-  };
-
   const roomName = parseRoomName(event.subject_itemName);
   
   const roomIndex = rooms.indexOf(roomName);
@@ -96,63 +73,25 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return null;
   }
 
-  // Find the matching reservation for the current date
-  const matchingReservation = event.itemDetails?.occur?.prof?.[0]?.rsv?.[0];
-  if (!matchingReservation) {
-    console.log('No matching reservation found, returning null');
-    return null;
-  }
+  // Parse event resources using the utility function
+  const { hasVideoRecording, hasHandheldMic, hasStaffAssistance, hasWebConference } = parseEventResources(event);
 
-  // Convert decimal string times to numbers
-  const startTime = parseFloat(event.start);
-  const endTime = parseFloat(event.end);
-  
-  // Calculate minutes from start of day
-  const startMinutes = Math.round((startTime - startHour) * 60);
-  const endMinutes = Math.round((endTime - startHour) * 60);
-  const durationMinutes = endMinutes - startMinutes;
-  const eventMargin = 1;
+  // Calculate event positioning using the utility function
+  const { left, width } = calculateEventPosition(event, startHour, pixelsPerMinute);
 
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;
 
-  const hasVideoRecording = matchingReservation.res?.some(item => 
-    item.itemName === "KSM-KGH-VIDEO-Recording (POST TO CANVAS)" || 
-    item.itemName === "KSM-KGH-VIDEO-Recording (PRIVATE LINK)" ||
-    item.itemName === "KSM-KGH-VIDEO-Recording"
-  );
-  const hasHandheldMic = matchingReservation.res?.some(item => 
-    item.itemName === "KSM-KGH-AV-Handheld Microphone"
-  );
-  const hasStaffAssistance = matchingReservation.res?.some(item => 
-    item.itemName === "KSM-KGH-AV-Staff Assistance"
-  );
-  const hasWebConference = matchingReservation.res?.some(item => 
-    item.itemName === "KSM-KGH-AV-Web Conference"
-  );
-
-  const isStudentEvent = event.eventType?.toLowerCase().includes('student');
-  const isFacStaffEvent = event.eventType?.toLowerCase().includes('facstaff');
-
-  // Determine event type and color
-  const isClass = event.itemName?.includes("Class");
-  const isSpecial = event.itemName?.includes("Workshop") || event.itemName?.includes("Summit");
-  
-  let bgColor = "noise-bg";
-  if (isStudentEvent) bgColor = "bg-[#b8a68a]";
-  else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
-  else if (isClass) bgColor = "noise-bg";
-  else if (isSpecial) bgColor = "bg-[#9b8ba5]";
-
-  const roomLabelWidth = 96; // w-24 = 96px
+  // Get event type info using the utility function
+  const { bgColor } = getEventTypeInfo(event);
 
   return (
     <div
       className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1  transition-all cursor-pointer group`}
       style={{
         top: '4px',
-        left: `${(startMinutes * pixelsPerMinute + eventMargin) - roomLabelWidth}px`,
-        width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`,
+        left: left,
+        width: width,
         height: '88px',
         overflow: 'visible',
         textOverflow: 'ellipsis',
@@ -198,7 +137,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
             <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg"></div>
             <EventHoverCard
               event={event}
-              matchingReservation={matchingReservation}
               eventType={event.eventType}
               instructorName={event.instructorName}
               facultyMember={facultyMember}

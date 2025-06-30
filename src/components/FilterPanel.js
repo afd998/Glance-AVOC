@@ -58,7 +58,7 @@ const FilterPanel = () => {
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quick Actions</h3>
                 <div className="space-y-3">
                   {/* Theme Toggle */}
-                  <button
+              <button
                     onClick={toggleDarkMode}
                     className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors"
                   >
@@ -66,7 +66,7 @@ const FilterPanel = () => {
                     <span className="text-blue-600 dark:text-blue-400">
                       {isDarkMode ? 'Dark' : 'Light'}
                     </span>
-                  </button>
+              </button>
 
                   {/* Notification Test */}
                   <NotificationTest />
