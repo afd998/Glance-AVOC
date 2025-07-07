@@ -138,18 +138,21 @@ export const getEventTypeInfo = (event) => {
   const isFacStaffEvent = event.eventType?.toLowerCase().includes('facstaff');
   const isClass = event.itemName?.includes("Class");
   const isSpecial = event.itemName?.includes("Workshop") || event.itemName?.includes("Summit");
+  const isLecture = event.eventType === 'Lecture';
   
-  let bgColor = "noise-bg";
+  let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
   if (isStudentEvent) bgColor = "bg-[#b8a68a]";
   else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
-  else if (isClass) bgColor = "noise-bg";
+  else if (isClass) bgColor = "bg-gray-400";
   else if (isSpecial) bgColor = "bg-[#9b8ba5]";
+  else if (isLecture) bgColor = "noise-bg"; // Keep lecture events with the purple noise background
 
   return {
     isStudentEvent,
     isFacStaffEvent,
     isClass,
     isSpecial,
+    isLecture,
     bgColor
   };
 };
