@@ -42,6 +42,9 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
       console.log('fetchFacultyMember - timing value:', data.timing);
       console.log('fetchFacultyMember - complexity value:', data.complexity);
       console.log('fetchFacultyMember - temperment value:', data.temperment);
+      console.log('fetchFacultyMember - uses_mic value:', data.uses_mic);
+      console.log('fetchFacultyMember - right_source value:', data.right_source);
+      console.log('fetchFacultyMember - left_source value:', data.left_source);
       
       const mappedData = {
         name: data.kelloggdirectory_name,
@@ -53,7 +56,11 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
         twentyfivelive_name: data.twentyfivelive_name,
         timing: data.timing,
         complexity: data.complexity,
-        temperment: data.temperment
+        temperment: data.temperment,
+        uses_mic: data.uses_mic,
+        right_source: data.right_source,
+        left_source: data.left_source,
+        setup_notes: data.setup_notes
       };
       
       console.log('fetchFacultyMember - mapped data:', mappedData);
@@ -81,7 +88,11 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }) => {
     .update({
       timing: attributes.timing,
       complexity: attributes.complexity,
-      temperment: attributes.temperment
+      temperment: attributes.temperment,
+      uses_mic: attributes.uses_mic,
+      left_source: attributes.left_source,
+      right_source: attributes.right_source,
+      setup_notes: attributes.setup_notes
     })
     .eq('twentyfivelive_name', twentyfiveliveName)
     .select()
@@ -125,7 +136,11 @@ export const useUpdateFacultyAttributes = () => {
             ...oldData,
             timing: variables.attributes.timing,
             complexity: variables.attributes.complexity,
-            temperment: variables.attributes.temperment
+            temperment: variables.attributes.temperment,
+            uses_mic: variables.attributes.uses_mic,
+            left_source: variables.attributes.left_source,
+            right_source: variables.attributes.right_source,
+            setup_notes: variables.attributes.setup_notes
           };
         }
         return oldData;

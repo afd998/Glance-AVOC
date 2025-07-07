@@ -8,7 +8,7 @@ import CurrentTimeIndicator from "./components/CurrentTimeIndicator";
 import RoomRow from "./components/RoomRow";
 import VerticalLines from "./components/VerticalLines";
 import DatePickerComponent from "./components/DatePickerComponent";
-import Footer from "./components/Footer";
+import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -19,6 +19,7 @@ import { useNotifications } from "./hooks/useNotifications";
 import { ThemeProvider } from './contexts/ThemeContext';
 import useRoomStore from './stores/roomStore';
 import EventDetail from './components/EventDetail';
+import WavyGrid from './components/WavyGrid';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -213,8 +214,6 @@ function AppContent() {
             </div>
           </div>
         </div>
-
-        <Footer />
       </div>
     );
   }
@@ -225,6 +224,7 @@ function AppContent() {
 
   return (
     <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+      {/* <WavyGrid /> */}
       <div className="self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
         <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
       </div>
@@ -239,7 +239,7 @@ function AppContent() {
         />
       </div>
 
-      <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
+      <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
@@ -293,13 +293,12 @@ function AppContent() {
                 rooms={rooms}
                 isFloorBreak={isFloorBreak}
                 onEventClick={handleEventClick}
+                index={index}
               />
             );
           })}
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
@@ -310,11 +309,13 @@ export default function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <Router>
-          <Routes>
-            <Route path="/" element={<AppContent />} />
-            <Route path="/:date" element={<AppContent />} />
-            <Route path="/event/:date/:eventId" element={<EventDetail />} />
-          </Routes>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<AppContent />} />
+              <Route path="/:date" element={<AppContent />} />
+              <Route path="/event/:date/:eventId" element={<EventDetail />} />
+            </Routes>
+          </Layout>
         </Router>
       </QueryClientProvider>
     </ThemeProvider>
