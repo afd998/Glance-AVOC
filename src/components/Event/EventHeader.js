@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatTime } from '../utils/timeUtils';
+import { formatTime } from '../../utils/timeUtils';
 
 export default function EventHeader({ 
   event, 
@@ -7,6 +7,7 @@ export default function EventHeader({
   hasStaffAssistance, 
   hasHandheldMic, 
   hasWebConference,
+  hasClickers,
   isHovering = false
 }) {
   const timeDisplay = `${formatTime(event.start)} - ${formatTime(event.end)}`;
@@ -59,6 +60,17 @@ export default function EventHeader({
             alt="Web Conference" 
             className="w-4 h-4 object-contain dark:invert transition-all duration-200 ease-in-out"
             title="Web Conference"
+            style={{
+              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+            }}
+          />
+        )}
+        {hasClickers && (
+          <img 
+            src="/tp.png" 
+            alt="Clickers" 
+            className="w-4 h-4 object-contain dark:invert transition-all duration-200 ease-in-out"
+            title="Clickers (Polling)"
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}

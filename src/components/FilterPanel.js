@@ -1,14 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import NotificationSettings from './NotificationSettings';
 import NotificationTest from './NotificationTest';
 import RoomFilterTable from './RoomFilterTable';
+import useRoomStore from '../stores/roomStore';
+import { parseRoomName } from '../utils/eventUtils';
+import { useEvents } from '../hooks/useEvents';
 
-const FilterPanel = () => {
+const FilterPanel = ({ selectedDate = new Date() }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [autoHideEmpty, setAutoHideEmpty] = useState(() => {
+    // Load auto-hide setting from localStorage on component mount
+    const saved = localStorage.getItem('autoHideEmpty');
+    return saved ? JSON.parse(saved) : false;
+  });
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { selectedRooms, setSelectedRooms, allRooms } = useRoomStore();
+  const { events } = useEvents(selectedDate);
 
-  console.log('FilterPanel rendered, isOpen:', isOpen); // Debug log
+  // Save auto-hide setting to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('autoHideEmpty', JSON.stringify(autoHideEmpty));
+  }, [autoHideEmpty]);
+
+  // Auto-hide empty rooms logic
+  useEffect(() => {
+    if (!autoHideEmpty || !events) return;
+
+    // Get rooms that have events for the current day
+    const roomsWithEvents = new Set();
+    events.forEach(event => {
+      const roomName = parseRoomName(event.subject_itemName);
+      if (roomName) {
+        roomsWithEvents.add(roomName);
+      }
+    });
+
+    // When auto-hide is enabled, show only rooms with events
+    if (autoHideEmpty) {
+      const roomsToShow = allRooms.filter(room => roomsWithEvents.has(room));
+      setSelectedRooms(roomsToShow);
+    }
+  }, [events, selectedDate, autoHideEmpty, allRooms, setSelectedRooms]);
 
   return (
     <>
@@ -45,7 +78,7 @@ const FilterPanel = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto space-y-6">
               {/* Room Filter Table */}
-              <RoomFilterTable />
+              <RoomFilterTable autoHideEnabled={autoHideEmpty} />
 
               {/* Notification Settings Section */}
               <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
@@ -57,6 +90,17 @@ const FilterPanel = () => {
               <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quick Actions</h3>
                 <div className="space-y-3">
+                  {/* Auto-hide Empty Rooms */}
+                  <div className="flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600">
+                    <span>Auto-hide Empty Rooms</span>
+                    <input
+                      type="checkbox"
+                      checked={autoHideEmpty}
+                      onChange={(e) => setAutoHideEmpty(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </div>
+
                   {/* Theme Toggle */}
               <button
                     onClick={toggleDarkMode}

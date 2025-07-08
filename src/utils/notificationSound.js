@@ -21,7 +21,7 @@ export const playNotificationSound = () => {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.3);
   } catch (error) {
-    console.log('Could not create audio context, falling back to silent notification');
+    console.error('Notification sound failed:', error);
   }
 };
 
@@ -34,9 +34,9 @@ export const playSimpleBeep = () => {
     // Create a simple beep sound using data URL
     const beepData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
     audio.src = beepData;
-    audio.play().catch(e => console.log('Could not play audio:', e));
+    audio.play().catch(e => console.error('Audio play failed:', e));
   } catch (error) {
-    console.log('Could not play simple beep');
+    console.error('Simple beep failed:', error);
   }
 };
 
@@ -63,7 +63,7 @@ export const playSystemNotification = () => {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.1);
   } catch (error) {
-    console.log('Could not play system notification sound');
+    console.error('System notification failed:', error);
   }
 };
 

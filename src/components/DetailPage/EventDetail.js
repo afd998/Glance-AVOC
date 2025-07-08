@@ -63,22 +63,12 @@ export default function EventDetail() {
   
   // Check if it's a CORS error
   const isCorsError = panoptoRecording?.error === 'CORS_BLOCKED';
-  
-  // Debug logging
-  console.log('🎬 EventDetail - event.itemName:', event?.itemName);
-  console.log('🎬 EventDetail - hasVideoRecording:', hasVideoRecording);
-  console.log('🎬 EventDetail - panoptoRecording:', panoptoRecording);
-  console.log('🎬 EventDetail - isPanoptoLoading:', isPanoptoLoading);
-  console.log('🎬 EventDetail - panoptoError:', panoptoError);
-  console.log('🎬 EventDetail - panoptoUrl:', panoptoUrl);
-  console.log('🎬 EventDetail - needsPanoptoAuth:', needsPanoptoAuth);
 
   const handleBack = () => {
     navigate(-1);
   };
 
   const handleManualPanoptoSearch = () => {
-    console.log('🔍 Manual Panopto search triggered for:', event?.itemName);
     refetchPanopto();
   };
 

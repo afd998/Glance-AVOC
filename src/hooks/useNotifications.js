@@ -98,21 +98,12 @@ export function useNotifications() {
     const notificationTime = new Date(startTime.getTime() - (minutesBefore * 60 * 1000));
     const now = new Date();
 
-    // Debug logging
-    console.log('Notification scheduling:', {
-      eventName: event.itemName,
-      eventDate: eventDate.toISOString(),
-      startTime: startTime.toISOString(),
-      notificationTime: notificationTime.toISOString(),
-      now: now.toISOString(),
-      timeUntilNotification: notificationTime.getTime() - now.getTime(),
-      isInFuture: notificationTime > now
-    });
+
 
     // Only schedule if notification time is in the future
     if (notificationTime > now) {
       const timeoutId = setTimeout(() => {
-        console.log('Sending notification for event:', event.itemName);
+        
         sendNotification(event, hasStaffAssistance, hasWebConference);
       }, notificationTime.getTime() - now.getTime());
 
@@ -120,9 +111,9 @@ export function useNotifications() {
       const eventKey = `${event.id}-${event.subject_item_date}-${event.start}`;
       notificationTimeouts.current.set(eventKey, timeoutId);
       
-      console.log('Scheduled notification for:', event.itemName, 'at', notificationTime.toLocaleString());
+      
     } else {
-      console.log('Event is in the past or notification time has passed:', event.itemName);
+      
     }
   };
 
@@ -187,19 +178,19 @@ export function useNotifications() {
     notificationTimeouts.current.clear();
 
     const { notificationRooms } = useRoomStore.getState();
-    console.log('Scheduling notifications for', events.length, 'events in notification rooms:', notificationRooms);
+    
 
     // Schedule new notifications
     events.forEach(event => {
       // Skip events that don't have required data
       if (!event.subject_item_date || !event.start || !event.itemName) {
-        console.log('Skipping event with missing data:', event);
+        
         return;
       }
 
       // Skip events that are not in notification-enabled rooms
       if (!notificationRooms.includes(event.room)) {
-        console.log('Skipping event not in notification rooms:', event.itemName, 'Room:', event.room);
+        
         return;
       }
 
@@ -214,11 +205,11 @@ export function useNotifications() {
         
         // If event is not today, skip it
         if (eventDay.getTime() !== today.getTime()) {
-          console.log('Skipping event not today:', event.itemName, 'Date:', eventDate.toDateString());
+          
           return;
         }
       } catch (error) {
-        console.log('Error parsing event date, skipping:', event.itemName);
+        
         return;
       }
 

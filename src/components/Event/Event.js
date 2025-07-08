@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
-import { useFacultyMember } from "../hooks/useFaculty";
-import { parseEventResources, parseRoomName, getEventTypeInfo, calculateEventPosition } from "../utils/eventUtils";
+import { useFacultyMember } from "../../hooks/useFaculty";
+import { parseEventResources, parseRoomName, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
 
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }) {
 
@@ -82,7 +82,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   }
 
   // Parse event resources using the utility function
-  const { hasVideoRecording, hasHandheldMic, hasStaffAssistance, hasWebConference } = parseEventResources(event);
+  const { hasVideoRecording, hasHandheldMic, hasStaffAssistance, hasWebConference, hasClickers } = parseEventResources(event);
 
   // Calculate event positioning using the utility function
   const { left, width } = calculateEventPosition(event, startHour, pixelsPerMinute);
@@ -122,6 +122,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           hasStaffAssistance={hasStaffAssistance}
           hasHandheldMic={hasHandheldMic}
           hasWebConference={hasWebConference}
+          hasClickers={hasClickers}
           isHovering={isHoveringEvent}
         />
         <EventContent 
@@ -161,4 +162,4 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       )}
     </div>
   );
-}
+} 

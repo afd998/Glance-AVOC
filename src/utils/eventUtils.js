@@ -13,6 +13,7 @@ export const parseEventResources = (event) => {
       hasHandheldMic: false,
       hasStaffAssistance: false,
       hasWebConference: false,
+      hasClickers: false,
       resources: []
     };
   }
@@ -37,12 +38,17 @@ export const parseEventResources = (event) => {
   const hasWebConference = resources.some(item => 
     item.itemName === "KSM-KGH-AV-Web Conference"
   );
+  
+  const hasClickers = resources.some(item => 
+    item.itemName === "KSM-KGH-AV-SRS Clickers (polling)"
+  );
 
   return {
     hasVideoRecording,
     hasHandheldMic,
     hasStaffAssistance,
     hasWebConference,
+    hasClickers,
     resources
   };
 };
@@ -71,6 +77,14 @@ export const getResourceIcon = (itemName) => {
           className="w-6 h-6 object-contain dark:invert"
         />
       );
+    case "KSM-KGH-AV-SRS Clickers (polling)":
+      return (
+        <img 
+          src="/tp.png" 
+          alt="Clickers" 
+          className="w-6 h-6 object-contain dark:invert"
+        />
+      );
     default:
       return "📋";
   }
@@ -95,6 +109,8 @@ export const getResourceDisplayName = (itemName) => {
       return "Staff Assistance";
     case "KSM-KGH-AV-Web Conference":
       return "Web Conference";
+    case "KSM-KGH-AV-SRS Clickers (polling)":
+      return "Clickers (Polling)";
     default:
       return itemName;
   }
@@ -107,7 +123,6 @@ export const getResourceDisplayName = (itemName) => {
  */
 export const parseRoomName = (subjectItemName) => {
   if (!subjectItemName) {
-    console.log('No subject item name provided');
     return null;
   }
   // First try to match L-prefixed rooms (KGHL110 format)
@@ -119,7 +134,6 @@ export const parseRoomName = (subjectItemName) => {
   // Then try to match regular rooms
   const match = subjectItemName.match(/K(GH\d+[AB]?)/);
   if (!match) {
-    console.log('No room match found for:', subjectItemName);
     return null;
   }
   
