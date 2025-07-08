@@ -1,5 +1,5 @@
 import React from 'react';
-import { getEventTypeInfo } from '../utils/eventUtils';
+import { getEventTypeInfo } from '../../utils/eventUtils';
 
 export default function EventContent({ 
   event, 
@@ -8,11 +8,6 @@ export default function EventContent({
   facultyMember,
   isHovering = false
 }) {
-  // Debug logging
-  console.log('EventContent - instructorName:', instructorName);
-  console.log('EventContent - facultyMember:', facultyMember);
-  console.log('EventContent - facultyMember?.imageUrl:', facultyMember?.imageUrl);
-  
   // Extract department code from event name (first 4 characters)
   const departmentCode = event.itemName?.substring(0, 4);
   

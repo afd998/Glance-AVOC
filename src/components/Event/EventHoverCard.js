@@ -1,15 +1,8 @@
 import React from 'react';
-import { parseEventResources, getResourceIcon, getResourceDisplayName } from '../utils/eventUtils';
-import { formatTime, formatDate } from '../utils/timeUtils';
+import { parseEventResources, getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
+import { formatTime, formatDate } from '../../utils/timeUtils';
 
 export default function EventHoverCard({ event, eventType, instructorName, facultyMember, isFacultyLoading, style, lectureTitle }) {
-  // Debug logging for faculty data
-  console.log('EventHoverCard - facultyMember:', facultyMember);
-  console.log('EventHoverCard - facultyMember?.timing:', facultyMember?.timing);
-  console.log('EventHoverCard - facultyMember?.complexity:', facultyMember?.complexity);
-  console.log('EventHoverCard - facultyMember?.temperment:', facultyMember?.temperment);
-  console.log('EventHoverCard - should show status bars:', facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment));
-
   // Parse event resources using the utility function
   const { resources } = parseEventResources(event);
 

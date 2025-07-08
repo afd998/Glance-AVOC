@@ -1,6 +1,6 @@
 import React from 'react';
 import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
-import SetupNotesEditor from '../SetupNotesEditor';
+import SetupNotesEditor from './SetupNotesEditor';
 import FacultyStatusBars from '../FacultyStatusBars';
 
 export default function SessionSetup({ 
@@ -99,16 +99,7 @@ export default function SessionSetup({
                   error={updateFacultyAttributes.error?.message}
                 />
                 
-                {/* Panel Images */}
-                {(() => {
-                  console.log('Panel sources debug:', {
-                    left_source: facultyMember.left_source,
-                    right_source: facultyMember.right_source,
-                    hasLeft: !!facultyMember.left_source,
-                    hasRight: !!facultyMember.right_source
-                  });
-                  return null;
-                })()}
+
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (
                   <div className="mt-6">
@@ -132,7 +123,7 @@ export default function SessionSetup({
                                 e.target.parentElement.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.left_source}.png</span>`;
                               }}
                               onLoad={(e) => {
-                                console.log('Successfully loaded left panel image:', facultyMember.left_source);
+                                
                               }}
                             />
                           </button>
@@ -159,7 +150,7 @@ export default function SessionSetup({
                                 e.target.parentElement.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.right_source}.png</span>`;
                               }}
                               onLoad={(e) => {
-                                console.log('Successfully loaded right panel image:', facultyMember.right_source);
+                                
                               }}
                             />
                           </button>

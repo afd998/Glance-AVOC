@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import TimeWindowPicker from "./components/TimeWindowPicker";
-import Event from "./components/Event";
-import "./index.css";
+import TimeWindowPicker from "../TimeWindowPicker";
+import Event from "../Event/Event";
+import "../index.css";
 
 const rooms = [
   "GH L110", "GH L120", "GH L130", "GH L070", "GH 1110", "GH 1120", "GH 1130",
@@ -108,4 +108,4 @@ export default function App() {
       </div>
     </div>
   );
-}
+} 

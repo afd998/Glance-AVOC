@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
-import Event from "./components/Event";
+import Event from "./components/Event/Event";
 import FilterPanel from "./components/FilterPanel";
-import TimeGrid from "./components/TimeGrid";
-import CurrentTimeIndicator from "./components/CurrentTimeIndicator";
-import RoomRow from "./components/RoomRow";
-import VerticalLines from "./components/VerticalLines";
+import TimeGrid from "./components/Grid/TimeGrid";
+import CurrentTimeIndicator from "./components/Grid/CurrentTimeIndicator";
+import RoomRow from "./components/Grid/RoomRow";
+import VerticalLines from "./components/Grid/VerticalLines";
 import DatePickerComponent from "./components/DatePickerComponent";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -118,41 +118,41 @@ function AppContent() {
 
   // Update current time every minute
   React.useEffect(() => {
-    console.log('Setting up current time interval');
+    
     const timer = setInterval(() => {
       const newTime = new Date();
-      console.log('Current time updated:', newTime);
+      
       setCurrentTime(newTime);
     }, 60000);
 
     return () => {
-      console.log('Cleaning up current time interval');
+      
       clearInterval(timer);
     };
   }, []);
 
   const handleDateChange = (newDate) => {
-    console.log('handleDateChange called with:', newDate);
+    
     // Create a new date object and set it to midnight in local time
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
-    console.log('Local date after setting to midnight:', localDate);
+    
     const formattedDate = localDate.toISOString().split('T')[0];
-    console.log('Formatted date for URL:', formattedDate);
+    
     navigate(`/${formattedDate}`);
   };
 
   // If we're on the root path and have a date, redirect to the date URL
   React.useEffect(() => {
-    console.log('URL effect - Current date param:', date);
-    console.log('URL effect - Current selectedDate:', selectedDate);
+    
+    
     if (!date && selectedDate) {
       // Create a new date object and set it to midnight in local time
       const localDate = new Date(selectedDate);
       localDate.setHours(0, 0, 0, 0);
-      console.log('URL effect - Local date after setting to midnight:', localDate);
+      
       const formattedDate = localDate.toISOString().split('T')[0];
-      console.log('URL effect - Formatted date for redirect:', formattedDate);
+      
       navigate(`/${formattedDate}`, { replace: true });
     }
   }, [date, selectedDate, navigate]);
@@ -196,7 +196,7 @@ function AppContent() {
 
         {/* Header with controls */}
         <div className="flex justify-between items-center">
-          <FilterPanel />
+          <FilterPanel selectedDate={selectedDate} />
           <DatePickerComponent 
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
@@ -232,7 +232,7 @@ function AppContent() {
       {/* Header with controls */}
       <div className="flex justify-between items-center ">
        
-        <FilterPanel />
+        <FilterPanel selectedDate={selectedDate} />
          <DatePickerComponent 
           selectedDate={selectedDate}
           setSelectedDate={handleDateChange}
@@ -260,7 +260,7 @@ function AppContent() {
               return null; // Don't render this room
             }
             
-            console.log('App: Rendering room:', room, 'at index:', index, 'Total rooms:', selectedRooms.length);
+            
             
             const roomEvents = events?.filter(event => {
               if (event.subject_itemName?.includes('&')) return false;

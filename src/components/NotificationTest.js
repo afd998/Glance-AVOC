@@ -31,7 +31,7 @@ export default function NotificationTest() {
       }
     };
 
-    console.log('Sending immediate test notification');
+    
     // Send notification immediately (bypass scheduling)
     sendNotification(testEvent, true, true);
   };

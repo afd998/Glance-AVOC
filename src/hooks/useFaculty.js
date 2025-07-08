@@ -4,12 +4,12 @@ import { supabase } from '../lib/supabase';
 // Function to fetch faculty member by 25Live name
 const fetchFacultyMember = async (twentyfiveliveName) => {
   if (!twentyfiveliveName) {
-    console.log('fetchFacultyMember - no twentyfiveliveName provided');
+    
     return null;
   }
 
-  console.log('fetchFacultyMember - searching for:', twentyfiveliveName);
-  console.log('fetchFacultyMember - timestamp:', new Date().toISOString());
+  
+  
 
   try {
     // First, let's see what's in the faculty table
@@ -17,8 +17,8 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
       .from('faculty')
       .select('twentyfivelive_name, kelloggdirectory_name');
 
-    console.log('fetchFacultyMember - all faculty in table:', allFaculty);
-    console.log('fetchFacultyMember - list error:', listError);
+    
+    
 
     // Now try the specific query
     const { data, error } = await supabase
@@ -27,9 +27,9 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
       .eq('twentyfivelive_name', twentyfiveliveName)
       .single();
 
-    console.log('fetchFacultyMember - Supabase response data:', data);
-    console.log('fetchFacultyMember - Supabase response error:', error);
-    console.log('fetchFacultyMember - query completed at:', new Date().toISOString());
+    
+    
+    
 
     if (error) {
       console.error('Error fetching faculty member:', error);
@@ -38,13 +38,13 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
 
     // Map database column names to expected property names
     if (data) {
-      console.log('fetchFacultyMember - raw data from Supabase:', data);
-      console.log('fetchFacultyMember - timing value:', data.timing);
-      console.log('fetchFacultyMember - complexity value:', data.complexity);
-      console.log('fetchFacultyMember - temperment value:', data.temperment);
-      console.log('fetchFacultyMember - uses_mic value:', data.uses_mic);
-      console.log('fetchFacultyMember - right_source value:', data.right_source);
-      console.log('fetchFacultyMember - left_source value:', data.left_source);
+      
+      
+      
+      
+      
+      
+      
       
       const mappedData = {
         name: data.kelloggdirectory_name,
@@ -63,11 +63,11 @@ const fetchFacultyMember = async (twentyfiveliveName) => {
         setup_notes: data.setup_notes
       };
       
-      console.log('fetchFacultyMember - mapped data:', mappedData);
+      
       return mappedData;
     }
 
-    console.log('fetchFacultyMember - no data found');
+    
     return null;
   } catch (error) {
     console.error('Error in fetchFacultyMember:', error);
@@ -81,7 +81,7 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }) => {
     throw new Error('No faculty name provided');
   }
 
-  console.log('updateFacultyAttributes - updating:', twentyfiveliveName, 'with:', attributes);
+  
 
   const { data, error } = await supabase
     .from('faculty')
@@ -103,7 +103,7 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }) => {
     throw error;
   }
 
-  console.log('updateFacultyAttributes - success:', data);
+  
   return data;
 };
 

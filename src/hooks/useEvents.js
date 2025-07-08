@@ -29,16 +29,16 @@ const fetchEvents = async ({ queryKey }) => {
         
       if (error) throw error;
       
-      console.log('Supabase response:', data);
-      console.log('Events data type:', typeof data?.[0]?.events_data);
-      console.log('Events data:', data?.[0]?.events_data);
+      
+      
+      
       
       // If events_data is a string, parse it
       const eventsData = typeof data?.[0]?.events_data === 'string' 
         ? JSON.parse(data[0].events_data)
         : data?.[0]?.events_data || [];
         
-      console.log('Parsed events data:', eventsData);
+      
       
       return eventsData;
     } else {

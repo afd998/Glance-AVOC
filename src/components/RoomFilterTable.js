@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useRoomStore from '../stores/roomStore';
 
-const RoomFilterTable = () => {
+const RoomFilterTable = ({ autoHideEnabled = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [loadingStates, setLoadingStates] = useState({});
   
@@ -18,7 +18,7 @@ const RoomFilterTable = () => {
 
   const handleDisplayToggle = async (room) => {
     setLoadingStates(prev => ({ ...prev, [`display-${room}`]: true }));
-    console.log('Display checkbox changed:', room, 'checked:', !selectedRooms.includes(room));
+    
     
     try {
       await toggleRoom(room);
@@ -32,7 +32,7 @@ const RoomFilterTable = () => {
 
   const handleNotificationToggle = async (room) => {
     setLoadingStates(prev => ({ ...prev, [`notification-${room}`]: true }));
-    console.log('Notification checkbox changed:', room, 'checked:', !notificationRooms.includes(room));
+    
     
     try {
       await toggleNotificationRoom(room);
@@ -102,9 +102,9 @@ const RoomFilterTable = () => {
                           id={`display-${room}`}
                           checked={selectedRooms.includes(room)}
                           onChange={() => handleDisplayToggle(room)}
-                          disabled={isDisplayLoading}
+                          disabled={isDisplayLoading || autoHideEnabled}
                           className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-opacity ${
-                            isDisplayLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            isDisplayLoading || autoHideEnabled ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         />
                         {isDisplayLoading && (

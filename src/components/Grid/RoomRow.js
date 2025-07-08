@@ -1,5 +1,5 @@
 import React from 'react';
-import Event from './Event';
+import Event from '../Event/Event';
 
 export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick }) {
   return (

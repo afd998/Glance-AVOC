@@ -13,10 +13,10 @@ export default function NotificationSettings() {
     const granted = await requestPermission();
     if (granted) {
       // You could show a success message here
-      console.log('Notifications enabled successfully!');
+      
     } else {
       // You could show an error message here
-      console.log('Failed to enable notifications');
+      
     }
   };
 
