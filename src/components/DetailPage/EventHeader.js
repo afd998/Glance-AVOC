@@ -18,13 +18,17 @@ export default function EventHeader({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
       <div className="flex items-start justify-between">
         {/* Left Side - Event Info */}
-        <div className="flex-1">
-          {/* Main Heading - Department Name */}
-          {event.itemName && event.itemName.length >= 4 && (
+        <div className="flex-1 w-1/2">
+          {/* Main Heading - Department Name for Lectures, Full Title for others */}
+          {event.eventType === "Lecture" && event.itemName && event.itemName.length >= 4 ? (
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               {getDepartmentName(event.itemName.substring(0, 4))}
             </h1>
-          )}
+          ) : event.itemName ? (
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {event.itemName}
+            </h1>
+          ) : null}
           
           {/* Lecture Title */}
           {event.lectureTitle && (
@@ -46,7 +50,7 @@ export default function EventHeader({
 
         {/* Right Side - Event Type/Room and Instructor Info */}
         {event.instructorName && (
-          <div className="flex flex-col items-start gap-4 ml-8 min-w-[260px]">
+          <div className="flex flex-col items-start gap-4 ml-8 w-1/2">
             {/* Event Type and Room side by side at the top */}
             <div className="flex flex-row gap-6 w-full mb-2">
               {event.eventType && (
