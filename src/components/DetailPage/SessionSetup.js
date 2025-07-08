@@ -12,31 +12,52 @@ export default function SessionSetup({
   openPanelModal
 }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Session Setup</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Resources Box */}
-        {resources.length > 0 && (
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Resources</h3>
-            <div className="space-y-3">
-              {resources.map((item, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <span className="flex-shrink-0 text-xl">
-                    {getResourceIcon(item.itemName)}
-                  </span>
-                  <span className="text-gray-700 dark:text-gray-300">{getResourceDisplayName(item.itemName)}</span>
-                </div>
-              ))}
+        {/* Left Column - Resources and Faculty Profile */}
+        <div className="space-y-6">
+          {/* Resources Box */}
+          {resources.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Resources</h3>
+              <div className="space-y-3">
+                {resources.map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <span className="flex-shrink-0 text-xl">
+                      {getResourceIcon(item.itemName)}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">{getResourceDisplayName(item.itemName)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Typical Setup Box */}
+          {/* Faculty Profile Box */}
+          {event.instructorName && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Faculty Profile</h3>
+              <FacultyStatusBars 
+                facultyMember={facultyMember} 
+                isEditable={true}
+                isUpdating={updateFacultyAttributes.isPending}
+                updateError={updateFacultyAttributes.error?.message}
+                onUpdate={(updatedValues) => {
+                  updateFacultyAttributes.mutate({
+                    twentyfiveliveName: event.instructorName,
+                    attributes: updatedValues
+                  });
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Typical Setup */}
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Typical Setup: {event.instructorName}
+            Typical Setup: {facultyMember?.name ? `Dr. ${facultyMember.name}` : event.instructorName}
           </h3>
           <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg min-h-[200px]">
             {event.instructorName && facultyMember ? (
@@ -98,8 +119,6 @@ export default function SessionSetup({
                   isSaving={updateFacultyAttributes.isPending}
                   error={updateFacultyAttributes.error?.message}
                 />
-                
-
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (
                   <div className="mt-6">
@@ -172,24 +191,7 @@ export default function SessionSetup({
         </div>
       </div>
 
-      {/* Faculty Attributes - Full Width Below */}
-      {event.instructorName && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Instructor Preferences</h3>
-          <FacultyStatusBars 
-            facultyMember={facultyMember} 
-            isEditable={true}
-            isUpdating={updateFacultyAttributes.isPending}
-            updateError={updateFacultyAttributes.error?.message}
-            onUpdate={(updatedValues) => {
-              updateFacultyAttributes.mutate({
-                twentyfiveliveName: event.instructorName,
-                attributes: updatedValues
-              });
-            }}
-          />
-        </div>
-      )}
+
     </div>
   );
 } 

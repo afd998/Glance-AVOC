@@ -97,7 +97,9 @@ export default function EventHeader({
                 </div>
               )}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">{event.instructorName}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+                  {facultyMember?.name ? `Dr. ${facultyMember.name}` : event.instructorName}
+                </h3>
                 {facultyMember?.title && (
                   <p className="text-gray-600 dark:text-gray-400 mb-2">{facultyMember.title}</p>
                 )}
