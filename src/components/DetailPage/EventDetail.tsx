@@ -2,22 +2,31 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
-import { usePanoptoRecording, getPanoptoViewerUrl } from '../../hooks/usePanopto';
 import { parseEventResources } from '../../utils/eventUtils';
-import EventHeader from './EventHeader';
+import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from './SessionSetup';
 import PanelModal from './PanelModal';
+import { Database } from '../../types/supabase';
+
+type Event = Database['public']['Tables']['events']['Row'];
+type FacultyMember = Database['public']['Tables']['faculty']['Row'];
+
+interface PanelOption {
+  id: string;
+  label: string;
+  image: string;
+}
 
 export default function EventDetail() {
   const navigate = useNavigate();
-  const { eventId, date } = useParams();
+  const { eventId, date } = useParams<{ eventId: string; date: string }>();
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPanel, setEditingPanel] = useState(null); // 'left' or 'right'
+  const [editingPanel, setEditingPanel] = useState<'left' | 'right' | null>(null);
   
   // Panel image options
-  const panelOptions = [
+  const panelOptions: PanelOption[] = [
     { id: 'ROOM_PC', label: 'Room PC', image: '/panel-images/ROOM_PC.png' },
     { id: 'DOC_CAM', label: 'Document Camera', image: '/panel-images/DOC_CAM.png' },
     { id: 'LAPTOP_1', label: 'Laptop 1', image: '/panel-images/LAPTOP_1.png' },
@@ -40,39 +49,20 @@ export default function EventDetail() {
   // Find the specific event by ID
   const event = React.useMemo(() => {
     if (!events || !eventId) return null;
-    return events.find(e => {
-      const eventKey = `${e.itemName}-${e.start}-${e.subject_itemName}`;
-      return eventKey === decodeURIComponent(eventId);
-    });
+    return events.find(e => e.id === parseInt(eventId, 10));
   }, [events, eventId]);
   
-  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event?.instructorName);
+  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event?.instructor_name || '');
   const updateFacultyAttributes = useUpdateFacultyAttributes();
   
   // Parse event resources using the utility function (only if event exists)
   const { resources, hasVideoRecording } = event ? parseEventResources(event) : { resources: [], hasVideoRecording: false };
-  
-  // Search for Panopto recording only if event has video recording
-  const { data: panoptoRecording, isLoading: isPanoptoLoading, error: panoptoError, refetch: refetchPanopto } = usePanoptoRecording(
-    hasVideoRecording ? event?.itemName : null
-  );
-  const panoptoUrl = getPanoptoViewerUrl(panoptoRecording?.id);
-  
-  // Check if the error is due to authentication
-  const needsPanoptoAuth = panoptoError && (panoptoError.status === 401 || panoptoError.status === 403);
-  
-  // Check if it's a CORS error
-  const isCorsError = panoptoRecording?.error === 'CORS_BLOCKED';
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleManualPanoptoSearch = () => {
-    refetchPanopto();
-  };
-
-  const openPanelModal = (panel) => {
+  const openPanelModal = (panel: 'left' | 'right') => {
     setEditingPanel(panel);
     setIsModalOpen(true);
   };
@@ -82,16 +72,22 @@ export default function EventDetail() {
     setEditingPanel(null);
   };
 
-  const selectPanelImage = (imageId) => {
-    if (!editingPanel || !facultyMember) return;
+  const selectPanelImage = (imageId: string) => {
+    if (!editingPanel || !facultyMember || !event) return;
     
     const updatedAttributes = {
-      ...facultyMember,
+      timing: facultyMember.timing ?? 0,
+      complexity: facultyMember.complexity ?? 0,
+      temperment: facultyMember.temperment ?? 0,
+      uses_mic: facultyMember.uses_mic ?? false,
+      left_source: facultyMember.left_source ?? '',
+      right_source: facultyMember.right_source ?? '',
+      setup_notes: facultyMember.setup_notes ?? '',
       [editingPanel === 'left' ? 'left_source' : 'right_source']: imageId
     };
     
     updateFacultyAttributes.mutate({
-      twentyfiveliveName: event.instructorName,
+      twentyfiveliveName: event.instructor_name || '',
       attributes: updatedAttributes
     });
     
@@ -152,16 +148,11 @@ export default function EventDetail() {
         
         {/* Main Content */}
         <div className="flex-1">
-          <EventHeader
+          <EventDetailHeader
             event={event}
             facultyMember={facultyMember}
             isFacultyLoading={isFacultyLoading}
             hasVideoRecording={hasVideoRecording}
-            panoptoUrl={panoptoUrl}
-            isPanoptoLoading={isPanoptoLoading}
-            isCorsError={isCorsError}
-            needsPanoptoAuth={needsPanoptoAuth}
-            onManualPanoptoSearch={handleManualPanoptoSearch}
           />
           
           <SessionSetup

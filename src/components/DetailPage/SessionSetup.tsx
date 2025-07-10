@@ -1,7 +1,26 @@
 import React from 'react';
+import { Database } from '../../types/supabase';
 import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
 import SetupNotesEditor from './SetupNotesEditor';
 import FacultyStatusBars from '../FacultyStatusBars';
+
+type Event = Database['public']['Tables']['events']['Row'];
+type FacultyMember = Database['public']['Tables']['faculty']['Row'];
+
+interface ResourceItem {
+  itemName: string;
+  quantity?: number;
+  [key: string]: any;
+}
+
+interface SessionSetupProps {
+  event: Event;
+  resources: ResourceItem[];
+  facultyMember: FacultyMember | null | undefined;
+  isFacultyLoading: boolean;
+  updateFacultyAttributes: any; // Type this properly when the hook is converted
+  openPanelModal: (panel: 'left' | 'right') => void;
+}
 
 export default function SessionSetup({ 
   event, 
@@ -10,7 +29,7 @@ export default function SessionSetup({
   isFacultyLoading,
   updateFacultyAttributes,
   openPanelModal
-}) {
+}: SessionSetupProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
       
@@ -35,7 +54,7 @@ export default function SessionSetup({
           )}
 
           {/* Faculty Profile Box */}
-          {event.instructorName && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
+          {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Faculty Profile</h3>
               <FacultyStatusBars 
@@ -43,10 +62,18 @@ export default function SessionSetup({
                 isEditable={true}
                 isUpdating={updateFacultyAttributes.isPending}
                 updateError={updateFacultyAttributes.error?.message}
-                onUpdate={(updatedValues) => {
+                onUpdate={(updatedValues: any) => {
                   updateFacultyAttributes.mutate({
-                    twentyfiveliveName: event.instructorName,
-                    attributes: updatedValues
+                    twentyfiveliveName: event.instructor_name,
+                    attributes: {
+                      timing: updatedValues.timing,
+                      complexity: updatedValues.complexity,
+                      temperment: updatedValues.temperment,
+                      uses_mic: facultyMember.uses_mic ?? false,
+                      left_source: facultyMember.left_source ?? '',
+                      right_source: facultyMember.right_source ?? '',
+                      setup_notes: facultyMember.setup_notes ?? ''
+                    }
                   });
                 }}
               />
@@ -57,10 +84,10 @@ export default function SessionSetup({
         {/* Right Column - Typical Setup */}
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Typical Setup: {facultyMember?.name ? `Dr. ${facultyMember.name}` : event.instructorName}
+            Typical Setup: {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name}
           </h3>
           <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg min-h-[200px]">
-            {event.instructorName && facultyMember ? (
+            {event.instructor_name && facultyMember ? (
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
@@ -80,10 +107,15 @@ export default function SessionSetup({
                       onChange={() => {
                         if (!updateFacultyAttributes.isPending) {
                           updateFacultyAttributes.mutate({
-                            twentyfiveliveName: event.instructorName,
+                            twentyfiveliveName: event.instructor_name,
                             attributes: {
-                              ...facultyMember,
-                              uses_mic: !facultyMember.uses_mic
+                              timing: facultyMember.timing ?? 0,
+                              complexity: facultyMember.complexity ?? 0,
+                              temperment: facultyMember.temperment ?? 0,
+                              uses_mic: !facultyMember.uses_mic,
+                              left_source: facultyMember.left_source ?? '',
+                              right_source: facultyMember.right_source ?? '',
+                              setup_notes: facultyMember.setup_notes ?? ''
                             }
                           });
                         }
@@ -106,18 +138,9 @@ export default function SessionSetup({
                 
                 {/* Setup Notes */}
                 <SetupNotesEditor
-                  value={facultyMember.setup_notes || ''}
-                  onSave={newNotes => {
-                    updateFacultyAttributes.mutate({
-                      twentyfiveliveName: event.instructorName,
-                      attributes: {
-                        ...facultyMember,
-                        setup_notes: newNotes
-                      }
-                    });
-                  }}
-                  isSaving={updateFacultyAttributes.isPending}
-                  error={updateFacultyAttributes.error?.message}
+                  event={event}
+                  facultyMember={facultyMember}
+                  updateFacultyAttributes={updateFacultyAttributes}
                 />
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (
@@ -134,12 +157,12 @@ export default function SessionSetup({
                           >
                             <img 
                               src={`/panel-images/${facultyMember.left_source}.png`}
-                              alt={`Left panel setup for ${event.instructorName}`}
+                              alt={`Left panel setup for ${event.instructor_name}`}
                               className="max-w-full max-h-full object-contain"
                               onError={(e) => {
                                 console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
-                                e.target.style.display = 'none';
-                                e.target.parentElement.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.left_source}.png</span>`;
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.left_source}.png</span>`;
                               }}
                               onLoad={(e) => {
                                 
@@ -161,12 +184,12 @@ export default function SessionSetup({
                           >
                             <img 
                               src={`/panel-images/${facultyMember.right_source}.png`}
-                              alt={`Right panel setup for ${event.instructorName}`}
+                              alt={`Right panel setup for ${event.instructor_name}`}
                               className="max-w-full max-h-full object-contain"
                               onError={(e) => {
                                 console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
-                                e.target.style.display = 'none';
-                                e.target.parentElement.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.right_source}.png</span>`;
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.right_source}.png</span>`;
                               }}
                               onLoad={(e) => {
                                 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { playNotificationAudio } from '../utils/notificationSound';
 import useRoomStore from '../stores/roomStore';
 
@@ -15,7 +15,7 @@ export function useNotifications() {
     }
   }, []);
 
-  const requestPermission = async () => {
+  const requestPermission = useCallback(async () => {
     if (!isSupported) {
       console.warn('Notifications not supported in this browser');
       return false;
@@ -29,9 +29,9 @@ export function useNotifications() {
       console.error('Error requesting notification permission:', error);
       return false;
     }
-  };
+  }, [isSupported]);
 
-  const scheduleNotification = (event, minutesBefore = 15) => {
+  const scheduleNotification = useCallback((event, minutesBefore = 15) => {
     if (permission !== 'granted' || !isSupported) {
       return;
     }
@@ -115,9 +115,9 @@ export function useNotifications() {
     } else {
       
     }
-  };
+  }, [permission, isSupported]);
 
-  const sendNotification = (event, hasStaffAssistance, hasWebConference) => {
+  const sendNotification = useCallback((event, hasStaffAssistance, hasWebConference) => {
     if (permission !== 'granted') return;
 
     const formatTime = (floatHours) => {
@@ -168,9 +168,9 @@ export function useNotifications() {
       notification.close();
       // You could navigate to the specific event or day view here
     };
-  };
+  }, [permission]);
 
-  const scheduleNotificationsForEvents = (events) => {
+  const scheduleNotificationsForEvents = useCallback((events) => {
     // Clear existing timeouts
     notificationTimeouts.current.forEach(timeoutId => {
       clearTimeout(timeoutId);
@@ -224,21 +224,21 @@ export function useNotifications() {
 
       scheduleNotification(event, 15);
     });
-  };
+  }, [scheduleNotification]);
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = useCallback(() => {
     notificationTimeouts.current.forEach(timeoutId => {
       clearTimeout(timeoutId);
     });
     notificationTimeouts.current.clear();
-  };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearAllNotifications();
     };
-  }, []);
+  }, [clearAllNotifications]);
 
   return {
     isSupported,

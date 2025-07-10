@@ -1,12 +1,26 @@
 import React from 'react';
 
+interface PanelOption {
+  id: string;
+  label: string;
+  image: string;
+}
+
+interface PanelModalProps {
+  isModalOpen: boolean;
+  editingPanel: 'left' | 'right' | null;
+  panelOptions: PanelOption[];
+  onClose: () => void;
+  onSelectPanel: (imageId: string) => void;
+}
+
 export default function PanelModal({ 
   isModalOpen, 
   editingPanel, 
   panelOptions, 
   onClose, 
   onSelectPanel 
-}) {
+}: PanelModalProps) {
   if (!isModalOpen) return null;
 
   return (
@@ -32,34 +46,18 @@ export default function PanelModal({
               <button
                 key={option.id}
                 onClick={() => onSelectPanel(option.id)}
-                className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                <div className="h-24 bg-purple-100 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700 flex items-center justify-center mb-3">
-                  <img 
-                    src={option.image}
-                    alt={option.label}
-                    className="max-w-full max-h-full object-contain"
-                    onError={(e) => {
-                      console.error('Error loading modal image:', option.image);
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `<span class="text-gray-500 text-sm">Failed to load</span>`;
-                    }}
-                  />
-                </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white text-center">
+                <img 
+                  src={option.image} 
+                  alt={option.label}
+                  className="w-16 h-16 object-contain mb-2"
+                />
+                <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
                   {option.label}
-                </p>
+                </span>
               </button>
             ))}
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
           </div>
         </div>
       </div>

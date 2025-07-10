@@ -1,10 +1,24 @@
 import React from 'react';
 import Event from '../Event/Event';
+import { Database } from '../../types/supabase';
 
-export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick }) {
+type Event = Database['public']['Tables']['events']['Row'];
+
+interface RoomRowProps {
+  room: string;
+  roomEvents: Event[] | undefined;
+  startHour: number;
+  pixelsPerMinute: number;
+  rooms: string[];
+  isFloorBreak: boolean;
+  onEventClick: (event: Event) => void;
+  isEvenRow?: boolean; // Make optional with default
+}
+
+export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick, isEvenRow = false }: RoomRowProps) {
   return (
     <div className={`flex h-24 border-b border-gray-200 dark:border-gray-700 ${
-      parseInt(room.match(/GH (\d{1,2})/)?.[1] || '0') % 2 === 0 
+      isEvenRow 
         ? 'bg-gray-100 dark:bg-gray-800' 
         : 'bg-gray-200 dark:bg-gray-900'
     }`}>
@@ -14,7 +28,7 @@ export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, 
       <div className="flex-1 h-24 relative">
         {roomEvents?.map((event) => (
           <Event
-            key={`${event.subject_itemName}-${event.start}-${event.end}`}
+            key={event.id}
             event={event}
             startHour={startHour}
             pixelsPerMinute={pixelsPerMinute}
