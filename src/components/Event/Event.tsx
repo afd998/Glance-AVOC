@@ -4,8 +4,19 @@ import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
 import { useFacultyMember } from "../../hooks/useFaculty";
 import { parseEventResources, parseRoomName, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
+import { Database } from '../../types/supabase';
 
-export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }) {
+type Event = Database['public']['Tables']['events']['Row'];
+
+interface EventProps {
+  event: Event;
+  startHour: number;
+  pixelsPerMinute: number;
+  rooms: string[];
+  onEventClick: (event: Event) => void;
+}
+
+export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
 
   // Disable hover card functionality
   const HOVER_CARD_ENABLED = false;
@@ -14,14 +25,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const [isHoveringCard, setIsHoveringCard] = useState(false);
   const [isHoveringEvent, setIsHoveringEvent] = useState(false);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event.instructorName);
-  const hoverTimeoutRef = useRef(null);
+  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event.instructor_name || '');
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringRef = useRef(false);
-
-  // Debug logging
-  console.log('Event - event.instructorName:', event.instructorName);
-  console.log('Event - facultyMember:', facultyMember);
-  console.log('Event - isFacultyLoading:', isFacultyLoading);
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -32,7 +38,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     };
   }, []);
 
-  const handleMouseEnter = (e) => {
+  const handleMouseEnter = (e: React.MouseEvent) => {
     isHoveringRef.current = true;
     setIsHoveringEvent(true);
     if (hoverTimeoutRef.current) {
@@ -40,7 +46,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     }
     if (HOVER_CARD_ENABLED) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const container = e.currentTarget.closest('.overflow-x-auto');
+      const container = e.currentTarget.closest('.overflow-x-auto') as HTMLElement;
       const containerRect = container.getBoundingClientRect();
       
       setHoverPosition({
@@ -73,9 +79,10 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     setShowHoverCard(false);
   };
 
-  const roomName = parseRoomName(event.subject_itemName);
+  // Use the new room_name field instead of parsing subject_itemName
+  const roomName = event.room_name;
   
-  const roomIndex = rooms.indexOf(roomName);
+  const roomIndex = rooms.indexOf(roomName || '');
   
   if (roomIndex === -1) {
     return null;
@@ -110,7 +117,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         transformOrigin: 'center center',
         boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
       }}
-      title={event.itemName}
+      title={event.event_name || ''}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => onEventClick && onEventClick(event)}
@@ -125,14 +132,12 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           hasClickers={hasClickers}
           isHovering={isHoveringEvent}
         />
-        <EventContent 
+                <EventContent 
           event={event}
-          lectureTitle={event.lectureTitle}
-          instructorName={event.instructorName}
-          facultyMember={facultyMember}
+          facultyMember={facultyMember || null}
           isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
-        />
+                />
       </div>
       {HOVER_CARD_ENABLED && showHoverCard && (
         <div 
@@ -151,11 +156,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
             <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg"></div>
             <EventHoverCard
               event={event}
-              eventType={event.eventType}
-              instructorName={event.instructorName}
-              facultyMember={facultyMember}
+              facultyMember={facultyMember || null}
               isFacultyLoading={isFacultyLoading}
-              lectureTitle={event.lectureTitle}
+              style={{}}
             />
           </div>
         </div>

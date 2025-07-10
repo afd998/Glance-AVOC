@@ -1,5 +1,18 @@
 import React from 'react';
+import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
+
+type Event = Database['public']['Tables']['events']['Row'];
+
+interface EventHeaderProps {
+  event: Event;
+  hasVideoRecording: boolean;
+  hasStaffAssistance: boolean;
+  hasHandheldMic: boolean;
+  hasWebConference: boolean;
+  hasClickers: boolean;
+  isHovering: boolean;
+}
 
 export default function EventHeader({ 
   event, 
@@ -9,8 +22,28 @@ export default function EventHeader({
   hasWebConference,
   hasClickers,
   isHovering = false
-}) {
-  const timeDisplay = `${formatTime(event.start)} - ${formatTime(event.end)}`;
+}: EventHeaderProps) {
+  // Format start and end times from ISO strings
+  const formatTimeFromISO = (timeString: string | null) => {
+    if (!timeString) return '';
+    try {
+      const date = new Date(timeString);
+      // Adjust for timezone offset since timestamps are stored as Chicago time
+      // but JavaScript interprets them as UTC
+      const timezoneOffset = date.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
+      const adjustedDate = new Date(date.getTime() + timezoneOffset);
+      return adjustedDate.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return '';
+    }
+  };
+
+  const timeDisplay = `${formatTimeFromISO(event.start_time)} - ${formatTimeFromISO(event.end_time)}`;
 
   return (
     <div className="flex justify-between items-center h-4 transition-all duration-200 ease-in-out">

@@ -5,9 +5,17 @@ import NotificationTest from './NotificationTest';
 import RoomFilterTable from './RoomFilterTable';
 import useRoomStore from '../stores/roomStore';
 import { parseRoomName } from '../utils/eventUtils';
-import { useEvents } from '../hooks/useEvents';
+import UserProfile from './UserProfile';
+import { Database } from '../types/supabase';
 
-const FilterPanel = ({ selectedDate = new Date() }) => {
+type Event = Database['public']['Tables']['events']['Row'];
+
+interface FilterPanelProps {
+  selectedDate: Date;
+  events: Event[];
+}
+
+const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), events = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [autoHideEmpty, setAutoHideEmpty] = useState(() => {
     // Load auto-hide setting from localStorage on component mount
@@ -16,7 +24,6 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
   });
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { selectedRooms, setSelectedRooms, allRooms } = useRoomStore();
-  const { events } = useEvents(selectedDate);
 
   // Save auto-hide setting to localStorage when it changes
   useEffect(() => {
@@ -30,7 +37,7 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
     // Get rooms that have events for the current day
     const roomsWithEvents = new Set();
     events.forEach(event => {
-      const roomName = parseRoomName(event.subject_itemName);
+      const roomName = event.room_name;
       if (roomName) {
         roomsWithEvents.add(roomName);
       }
@@ -38,7 +45,7 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
 
     // When auto-hide is enabled, show only rooms with events
     if (autoHideEmpty) {
-      const roomsToShow = allRooms.filter(room => roomsWithEvents.has(room));
+      const roomsToShow = allRooms.filter((room: string) => roomsWithEvents.has(room));
       setSelectedRooms(roomsToShow);
     }
   }, [events, selectedDate, autoHideEmpty, allRooms, setSelectedRooms]);
@@ -49,12 +56,11 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 right-4 flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors z-50 shadow-lg"
+          className="fixed top-4 right-4 flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors z-50 shadow-lg"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <span>Menu</span>
         </button>
       )}
 
@@ -75,7 +81,13 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
               </button>
             </div>
 
-            {/* Scrollable Content */}
+            {/* User Profile Section */}
+            <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Account</h3>
+              <UserProfile />
+            </div>
+
+                        {/* Main Content */}
             <div className="flex-1 overflow-y-auto space-y-6">
               {/* Room Filter Table */}
               <RoomFilterTable autoHideEnabled={autoHideEmpty} />
@@ -102,7 +114,7 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
                   </div>
 
                   {/* Theme Toggle */}
-              <button
+                  <button
                     onClick={toggleDarkMode}
                     className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors"
                   >
@@ -110,7 +122,7 @@ const FilterPanel = ({ selectedDate = new Date() }) => {
                     <span className="text-blue-600 dark:text-blue-400">
                       {isDarkMode ? 'Dark' : 'Light'}
                     </span>
-              </button>
+                  </button>
 
                   {/* Notification Test */}
                   <NotificationTest />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event/Event";
@@ -10,60 +10,38 @@ import VerticalLines from "./components/Grid/VerticalLines";
 import DatePickerComponent from "./components/DatePickerComponent";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
 import { useNotifications } from "./hooks/useNotifications";
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import useRoomStore from './stores/roomStore';
 import EventDetail from './components/EventDetail';
 import WavyGrid from './components/WavyGrid';
+import LandingPage from './pages/LandingPage';
+import AuthCallback from './pages/AuthCallback';
+import ProtectedRoute from './components/ProtectedRoute';
+import { Database } from './types/supabase';
+import AccountPage from './pages/AccountPage';
+
+type Event = Database['public']['Tables']['events']['Row'];
 
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours (renamed from cacheTime)
     },
   },
 });
 
-// Create a persister with proper serialization
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-  serialize: (data) => JSON.stringify(data),
-  deserialize: (data) => {
-    try {
-      return JSON.parse(data);
-    } catch (error) {
-      console.error('Error deserializing cache:', error);
-      return null;
-    }
-  },
-});
-
-// Persist the cache
-persistQueryClient({
-  queryClient,
-  persister,
-  maxAge: 1000 * 60 * 60 * 24, // 24 hours
-  buster: 'v1', // Add a cache buster to force a fresh cache
-});
-
-const rooms = [
-  "GH L129", "GH L110", "GH L120", "GH L130", "GH L070", "GH 1110", "GH 1120", "GH 1130",
-  "GH 1420", "GH 1430", "GH 2110", "GH 2120", "GH 2130",
-  "GH 2410A", "GH 2410B", "GH 2420A", "GH 2420B", "GH 2430A", "GH 2430B",
-  "GH 4101", "GH 4301", "GH 4302", "GH 5101", "GH 5201", "GH 5301"
-];
-
 function AppContent() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const currentTimeRef = useRef(new Date());
   const navigate = useNavigate();
-  const { date } = useParams();
+  const { date } = useParams<{ date: string }>();
   
   // Use Zustand store for room state
   const { 
@@ -74,26 +52,11 @@ function AppContent() {
     setNotificationRooms
   } = useRoomStore();
   
-  // Initialize rooms in Zustand store (only if not already initialized)
-  React.useEffect(() => {
-    setAllRooms(rooms);
-    
-    // Only set default values if no rooms are currently selected (first time load)
-    if (selectedRooms.length === 0) {
-      setSelectedRooms(rooms); // Start with all rooms selected
-    }
-    
-    // Only set default notification rooms if none are currently set (first time load)
-    const { notificationRooms } = useRoomStore.getState();
-    if (notificationRooms.length === 0) {
-      setNotificationRooms(rooms); // Start with all rooms for notifications
-    }
-  }, [setAllRooms, setSelectedRooms, setNotificationRooms, selectedRooms.length]);
-  
   // Parse date from URL or use current date
   const selectedDate = React.useMemo(() => {
     if (!date) {
-      return new Date();
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
     }
     // Parse the date and set it to noon to avoid timezone issues
     const [year, month, day] = date.split('-').map(Number);
@@ -116,22 +79,20 @@ function AppContent() {
     }
   }, [events, scheduleNotificationsForEvents]);
 
-  // Update current time every minute
+  // Update current time every minute (but don't cause re-renders)
   React.useEffect(() => {
-    
     const timer = setInterval(() => {
       const newTime = new Date();
-      
+      currentTimeRef.current = newTime;
       setCurrentTime(newTime);
     }, 60000);
 
     return () => {
-      
       clearInterval(timer);
     };
   }, []);
 
-  const handleDateChange = (newDate) => {
+  const handleDateChange = (newDate: Date) => {
     
     // Create a new date object and set it to midnight in local time
     const localDate = new Date(newDate);
@@ -158,12 +119,10 @@ function AppContent() {
   }, [date, selectedDate, navigate]);
 
   // Add event click handler
-  const handleEventClick = (event) => {
-    // Create a unique event ID from event properties
-    const eventId = `${event.itemName}-${event.start}-${event.subject_itemName}`;
-    // Include the date in the URL so EventDetail knows which date to fetch
+  const handleEventClick = (event: Event) => {
+    // Use the actual event ID from the database
     const dateStr = selectedDate.toISOString().split('T')[0];
-    navigate(`/event/${dateStr}/${encodeURIComponent(eventId)}`);
+    navigate(`/event/${dateStr}/${event.id}`);
   };
 
   if (isLoading) {
@@ -196,10 +155,11 @@ function AppContent() {
 
         {/* Header with controls */}
         <div className="flex justify-between items-center">
-          <FilterPanel selectedDate={selectedDate} />
+          <FilterPanel selectedDate={selectedDate} events={events} />
           <DatePickerComponent 
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            isLoading={isLoading}
           />
         </div>
 
@@ -232,10 +192,11 @@ function AppContent() {
       {/* Header with controls */}
       <div className="flex justify-between items-center ">
        
-        <FilterPanel selectedDate={selectedDate} />
-         <DatePickerComponent 
+        <FilterPanel selectedDate={selectedDate} events={events} />
+        <DatePickerComponent 
           selectedDate={selectedDate}
           setSelectedDate={handleDateChange}
+          isLoading={isLoading}
         />
       </div>
 
@@ -247,53 +208,46 @@ function AppContent() {
           {/* Current time indicator positioned absolutely over the content */}
           <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
             <CurrentTimeIndicator 
-              currentTime={currentTime}
+              currentTime={currentTimeRef.current}
               startHour={startHour}
               endHour={endHour}
               pixelsPerMinute={pixelsPerMinute}
             />
           </div>
 
-          {rooms.map((room, index) => {
+          {allRooms.map((room: string, index: number) => {
             // Only render if room is selected
             if (!selectedRooms.includes(room)) {
               return null; // Don't render this room
             }
             
-            
-            
             const roomEvents = events?.filter(event => {
-              if (event.subject_itemName?.includes('&')) return false;
+              // Use the new room_name field instead of subject_itemName
+              const eventRoomName = event.room_name;
               
-              const lMatch = event.subject_itemName?.match(/K(GHL\d+)/);
-              if (lMatch) {
-                const parsedRoom = lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
-                return parsedRoom === room;
+              if (!eventRoomName) {
+                return false;
               }
               
-              const match = event.subject_itemName?.match(/K(GH\d+[AB]?)/);
-              if (!match) return false;
-              
-              const roomName = match[1].replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
-              return roomName === room;
+              return eventRoomName === room;
             });
 
             const currentFloor = room.match(/GH (\d)/)?.[1];
-            const nextRoom = rooms[index + 1];
+            const nextRoom = allRooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
             const isFloorBreak = currentFloor !== nextFloor;
 
             return (
               <RoomRow
-                key={room}
+                key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
                 room={room}
                 roomEvents={roomEvents}
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
-                rooms={rooms}
+                rooms={allRooms}
                 isFloorBreak={isFloorBreak}
                 onEventClick={handleEventClick}
-                index={index}
+                isEvenRow={index % 2 === 0}
               />
             );
           })}
@@ -306,18 +260,48 @@ function AppContent() {
 // Wrap the app with QueryClientProvider and ThemeProvider
 export default function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Layout>
+    <AuthProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
             <Routes>
-              <Route path="/" element={<AppContent />} />
-              <Route path="/:date" element={<AppContent />} />
-              <Route path="/event/:date/:eventId" element={<EventDetail />} />
+              {/* Public routes */}
+              <Route path="/auth" element={<LandingPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              
+              {/* Protected routes */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AppContent />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/:date" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AppContent />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/event/:date/:eventId" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <EventDetail />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/account" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AccountPage />
+                  </Layout>
+                </ProtectedRoute>
+              } />
             </Routes>
-          </Layout>
-        </Router>
-      </QueryClientProvider>
-    </ThemeProvider>
+          </Router>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
