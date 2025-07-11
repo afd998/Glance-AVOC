@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useWhitelist } from '../hooks/useWhitelist';
+import { supabase } from '../lib/supabase';
 
 const LandingPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,10 +12,45 @@ const LandingPage: React.FC = () => {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const { signInWithOtp, verifyOtp } = useAuth();
+  const { signInWithOtp, verifyOtp, user } = useAuth();
   const { checkEmailWhitelisted, isChecking: isWhitelistChecking } = useWhitelist();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
+
+  // Function to ensure user has a profile
+  const ensureUserProfile = async (userId: string) => {
+    try {
+      // Check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (checkError && checkError.code === 'PGRST116') {
+        // Profile doesn't exist, create one
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: null,
+            room_filters: [],
+            auto_hide: false,
+            current_filter: null
+          });
+
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+        } else {
+          console.log('Created default profile for user:', userId);
+        }
+      } else if (checkError) {
+        console.error('Error checking user profile:', checkError);
+      }
+    } catch (error) {
+      console.error('Error ensuring user profile:', error);
+    }
+  };
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +113,11 @@ const LandingPage: React.FC = () => {
         setMessage(error.message);
         setMessageType('error');
       } else if (session) {
+        // Ensure user has a profile after successful authentication
+        if (session.user) {
+          await ensureUserProfile(session.user.id);
+        }
+        
         setMessage('Verification successful! Redirecting...');
         setMessageType('success');
         // The AuthContext will handle the redirect automatically

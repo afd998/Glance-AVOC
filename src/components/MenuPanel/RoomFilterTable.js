@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import useRoomStore from '../stores/roomStore';
+import useRoomStore from '../../stores/roomStore';
 
 const RoomFilterTable = ({ autoHideEnabled = false }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [loadingStates, setLoadingStates] = useState({});
   
   const { 
@@ -46,22 +45,8 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
 
   return (
     <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
-      <div className="flex justify-between items-center mb-3">
+      <div className="mb-3">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Room Filters</h3>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center space-x-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          <span>{isExpanded ? 'Collapse' : 'Expand'}</span>
-          <svg
-            className={`w-4 h-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
       </div>
       
       {/* Summary Stats - Always visible */}
@@ -70,8 +55,8 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
         <span>Notifications: {getNotificationRoomsCount()}/{getTotalRoomsCount()}</span>
       </div>
 
-      {/* Collapsible Content */}
-      <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 overflow-y-auto' : 'max-h-0 overflow-hidden'}`}>
+      {/* Scrollable Content */}
+      <div className="h-64 overflow-y-auto">
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

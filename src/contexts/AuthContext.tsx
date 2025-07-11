@@ -9,6 +9,7 @@ interface AuthContextType {
   signInWithOtp: (email: string) => Promise<{ error: any }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: any; session: Session | null }>;
   signOut: () => Promise<void>;
+  ensureUserProfile: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +30,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Function to ensure user has a profile
+  const ensureUserProfile = async (userId: string) => {
+    console.log('ensureUserProfile: Starting for user:', userId);
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Profile check timeout')), 10000); // 10 second timeout
+    });
+
+    try {
+      // Check if profile exists with timeout
+      console.log('ensureUserProfile: Checking if profile exists...');
+      const profileCheckPromise = supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      const result = await Promise.race([
+        profileCheckPromise,
+        timeoutPromise
+      ]) as { data: any; error: any };
+      
+      const { data: existingProfile, error: checkError } = result;
+
+      console.log('ensureUserProfile: Check result:', { existingProfile, checkError });
+
+      if (checkError && checkError.code === 'PGRST116') {
+        // Profile doesn't exist, create one
+        console.log('ensureUserProfile: Profile doesn\'t exist, creating...');
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: null,
+            room_filters: [],
+            auto_hide: false,
+            current_filter: null
+          });
+
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+        } else {
+          console.log('Created default profile for user:', userId);
+        }
+      } else if (checkError) {
+        console.error('Error checking user profile:', checkError);
+      } else {
+        console.log('ensureUserProfile: Profile already exists');
+      }
+    } catch (error) {
+      console.error('Error ensuring user profile:', error);
+    }
+    console.log('ensureUserProfile: Completed');
+  };
 
   useEffect(() => {
     // Get initial session
@@ -88,6 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithOtp,
     verifyOtp,
     signOut,
+    ensureUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
