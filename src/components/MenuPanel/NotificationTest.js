@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotifications } from '../../hooks/useNotifications';
 
 export default function NotificationTest() {
   const { permission, sendNotification } = useNotifications();

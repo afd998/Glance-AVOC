@@ -2,23 +2,24 @@ import React, { useState, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event/Event";
-import FilterPanel from "./components/FilterPanel";
+import FilterPanel from "./components/MenuPanel/FilterPanel";
 import TimeGrid from "./components/Grid/TimeGrid";
 import CurrentTimeIndicator from "./components/Grid/CurrentTimeIndicator";
 import RoomRow from "./components/Grid/RoomRow";
 import VerticalLines from "./components/Grid/VerticalLines";
-import DatePickerComponent from "./components/DatePickerComponent";
+import DatePickerComponent from "./components/Grid/DatePickerComponent";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
 import { useNotifications } from "./hooks/useNotifications";
+import { useAutoHideLogic } from "./hooks/useAutoHideLogic";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import useRoomStore from './stores/roomStore';
 import EventDetail from './components/EventDetail';
-import WavyGrid from './components/WavyGrid';
+
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -71,6 +72,7 @@ function AppContent() {
   
   const {events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
+  const { autoHide } = useAutoHideLogic(events || [], selectedDate);
 
   // Schedule notifications when events change
   React.useEffect(() => {
@@ -149,10 +151,7 @@ function AppContent() {
 
     return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        <div className="self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
-          <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
-        </div>
-
+        {/* Wildcat image removed */}
         {/* Header with controls */}
         <div className="flex justify-between items-center">
           <FilterPanel selectedDate={selectedDate} events={events} />
@@ -182,14 +181,10 @@ function AppContent() {
     return <div className="flex items-center justify-center h-screen text-red-500 dark:bg-gray-900">Error: {error.message}</div>;
   }
 
-  return (
-    <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-      {/* <WavyGrid /> */}
-      <div className="self-center absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
-        <img src="/wildcat.png" alt="Wildcat" className="w-full h-full object-contain" />
-      </div>
-
-      {/* Header with controls */}
+      return (
+      <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+        {/* Wildcat image removed */}
+        {/* Header with controls */}
       <div className="flex justify-between items-center ">
        
         <FilterPanel selectedDate={selectedDate} events={events} />
@@ -215,25 +210,15 @@ function AppContent() {
             />
           </div>
 
-          {allRooms.map((room: string, index: number) => {
-            // Only render if room is selected
-            if (!selectedRooms.includes(room)) {
-              return null; // Don't render this room
-            }
-            
+          {selectedRooms.map((room: string, index: number) => {
             const roomEvents = events?.filter(event => {
-              // Use the new room_name field instead of subject_itemName
               const eventRoomName = event.room_name;
-              
-              if (!eventRoomName) {
-                return false;
-              }
-              
+              if (!eventRoomName) return false;
               return eventRoomName === room;
             });
 
             const currentFloor = room.match(/GH (\d)/)?.[1];
-            const nextRoom = allRooms[index + 1];
+            const nextRoom = selectedRooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
             const isFloorBreak = currentFloor !== nextFloor;
 

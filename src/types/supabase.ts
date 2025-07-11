@@ -161,6 +161,37 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          id: string
+          name: string | null
+          room_filters: Json
+          auto_hide: boolean
+          current_filter: string | null
+        }
+        Insert: {
+          id: string
+          name: string | null
+          room_filters: Json
+          auto_hide: boolean
+          current_filter: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          room_filters?: Json
+          auto_hide?: boolean
+          current_filter?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
