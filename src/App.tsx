@@ -8,6 +8,8 @@ import CurrentTimeIndicator from "./components/Grid/CurrentTimeIndicator";
 import RoomRow from "./components/Grid/RoomRow";
 import VerticalLines from "./components/Grid/VerticalLines";
 import DatePickerComponent from "./components/Grid/DatePickerComponent";
+import AcademicCalendarInfo from "./components/Grid/AcademicCalendarInfo";
+import QuarterCount from "./components/Grid/QuarterCount";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import "react-datepicker/dist/react-datepicker.css";
@@ -155,11 +157,15 @@ function AppContent() {
         {/* Header with controls */}
         <div className="flex justify-between items-center">
           <FilterPanel selectedDate={selectedDate} events={events} />
+                  <div className="flex items-center">
           <DatePickerComponent 
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
             isLoading={isLoading}
           />
+          <AcademicCalendarInfo />
+          <QuarterCount />
+        </div>
         </div>
 
         <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
@@ -188,11 +194,15 @@ function AppContent() {
       <div className="flex justify-between items-center ">
        
         <FilterPanel selectedDate={selectedDate} events={events} />
-        <DatePickerComponent 
-          selectedDate={selectedDate}
-          setSelectedDate={handleDateChange}
-          isLoading={isLoading}
-        />
+        <div className="flex items-center">
+          <DatePickerComponent 
+            selectedDate={selectedDate}
+            setSelectedDate={handleDateChange}
+            isLoading={isLoading}
+          />
+          <AcademicCalendarInfo />
+          <QuarterCount />
+        </div>
       </div>
 
       <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">

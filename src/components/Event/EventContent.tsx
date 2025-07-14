@@ -18,26 +18,35 @@ export default function EventContent({
   isFacultyLoading, 
   isHovering 
 }: EventContentProps) {
-  // Extract department code from event name (first 4 characters)
-  const departmentCode = event.event_name?.substring(0, 4);
-  
   // For lecture events, split the name and handle the last two parts
   const isLecture = event.event_type === 'Lecture';
-  let mainEventName, additionalInfo;
+  let mainEventName, additionalInfo, departmentCode;
+  
+  // For lectures, use the event name up to the "-" symbol
+  const dashIndex = event.event_name?.indexOf('-');
+  let baseName;
+  if (dashIndex !== undefined && dashIndex !== -1) {
+    baseName = event.event_name?.substring(0, dashIndex);
+  } else {
+    baseName = event.event_name;
+  }
+  
+  // Get the 3rd part when splitting by whitespace
+  const parts = event.event_name?.split(' ');
+  const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
   
   if (isLecture) {
-    const parts = event.event_name?.substring(4).split(' ');
-    if (parts && parts.length >= 2) {
-      // Get the last two parts
-      const lastTwoParts = parts.slice(-2).join(' ');
-      // Get everything except the last two parts
-      mainEventName = parts.slice(0, -2).join(' ');
-      additionalInfo = lastTwoParts;
-    } else {
-      mainEventName = event.event_name?.substring(4);
-    }
+    mainEventName = thirdPart ? `${baseName} Sec: ${thirdPart}` : baseName;
   } else {
     mainEventName = event.event_name;
+    // Extract department code from event name (everything up to the "-" symbol)
+    const dashIndex = event.event_name?.indexOf('-');
+    if (dashIndex !== undefined && dashIndex !== -1) {
+      departmentCode = event.event_name?.substring(0, dashIndex);
+    } else {
+      // Fallback to first 4 characters if no dash found
+      departmentCode = event.event_name?.substring(0, 4);
+    }
   }
 
   // Get event type info for background color
@@ -106,36 +115,25 @@ export default function EventContent({
           )}
 
           <div className="flex flex-col min-w-0 pl-1 flex-1 gap-0.5 transition-all duration-200 ease-in-out">
-            <div className="flex items-center transition-all duration-200 ease-in-out">
+            <span 
+              className="truncate font-medium text-white transition-all duration-200 ease-in-out"
+              style={{
+                transform: isHovering ? 'scale(1.05)' : 'scale(1)',
+                transformOrigin: 'left center'
+              }}
+            >
+              {baseName}
+            </span>
+            {thirdPart && (
               <span 
-                className="text-xs text-white mr-1 transition-all duration-200 ease-in-out"
-                style={{
-                  transform: isHovering ? 'scale(1.1)' : 'scale(1)',
-                  transformOrigin: 'left center'
-                }}
+                className="text-xs text-white opacity-90 transition-all duration-200 ease-in-out"
               >
-                {departmentCode}
+                Sec: {thirdPart}
               </span>
-              <span 
-                className="truncate font-medium text-white transition-all duration-200 ease-in-out"
-                style={{
-                  transform: isHovering ? 'scale(1.05)' : 'scale(1)',
-                  transformOrigin: 'left center'
-                }}
-              >
-                {mainEventName}
-                {additionalInfo && (
-                  <span 
-                    className="text-xs text-gray-400 ml-1 transition-all duration-200 ease-in-out"
-                  >
-                    {additionalInfo}
-                  </span>
-                )}
-              </span>
-            </div>
+            )}
             {event.lecture_title && (
               <span 
-                className="text-[11px] text-white opacity-90 whitespace-normal break-words leading-tight transition-all duration-200 ease-in-out"
+                className="text-[10px] text-white opacity-80 truncate leading-tight transition-all duration-200 ease-in-out"
               >
                 {event.lecture_title}
               </span>
