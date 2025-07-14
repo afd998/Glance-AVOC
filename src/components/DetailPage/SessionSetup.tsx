@@ -40,13 +40,21 @@ export default function SessionSetup({
           {resources.length > 0 && (
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Resources</h3>
-              <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
                 {resources.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span className="flex-shrink-0 text-xl">
+                  <div 
+                    key={index} 
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  >
+                    <span className="flex-shrink-0 text-base">
                       {getResourceIcon(item.itemName)}
                     </span>
-                    <span className="text-gray-700 dark:text-gray-300">{getResourceDisplayName(item.itemName)}</span>
+                    <span className="whitespace-nowrap">{getResourceDisplayName(item.itemName)}</span>
+                    {item.quantity && item.quantity > 1 && (
+                      <span className="ml-1 px-1.5 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
+                        {item.quantity}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

@@ -5,6 +5,7 @@ import NotificationTest from './NotificationTest';
 
 import FilterRoomsModal from './FilterRoomsModal';
 import useRoomStore from '../../stores/roomStore';
+import useModalStore from '../../stores/modalStore';
 
 import UserProfile from '../UserProfile';
 import { Database } from '../../types/supabase';
@@ -18,9 +19,8 @@ interface FilterPanelProps {
 
 const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), events = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showFilterModal, setShowFilterModal] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
-
+  const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
 
 
   return (
@@ -65,7 +65,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), ev
               {/* Filter Rooms Button */}
               <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                 <button
-                  onClick={() => setShowFilterModal(true)}
+                  onClick={openFilterRoomsModal}
                   className="w-full flex items-center justify-center px-4 py-3 border border-blue-300 dark:border-blue-600 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                 >
                   🔧 Filter Rooms
@@ -112,8 +112,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), ev
 
       {/* Filter Rooms Modal */}
       <FilterRoomsModal 
-        isOpen={showFilterModal} 
-        onClose={() => setShowFilterModal(false)} 
+        isOpen={isFilterRoomsModalOpen} 
+        onClose={closeFilterRoomsModal} 
       />
     </>
   );
