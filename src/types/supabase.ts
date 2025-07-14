@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      academic_calendar: {
+        Row: {
+          date: string | null
+          date_string: string | null
+          id: number
+          label: string | null
+        }
+        Insert: {
+          date?: string | null
+          date_string?: string | null
+          id?: number
+          label?: string | null
+        }
+        Update: {
+          date?: string | null
+          date_string?: string | null
+          id?: number
+          label?: string | null
+        }
+        Relationships: []
+      }
+      email_whitelist: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: number
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: number
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: number
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -146,51 +185,47 @@ export type Database = {
         }
         Relationships: []
       }
-      email_whitelist: {
+      ideas: {
         Row: {
-          email: string
+          content: string | null
+          created_at: string
           id: number
         }
         Insert: {
-          email: string
+          content?: string | null
+          created_at?: string
           id?: number
         }
         Update: {
-          email?: string
+          content?: string | null
+          created_at?: string
           id?: number
         }
         Relationships: []
       }
       profiles: {
         Row: {
-          id: string
-          name: string | null
-          room_filters: Json
           auto_hide: boolean
           current_filter: string | null
+          id: string
+          name: string | null
+          room_filters: Json | null
         }
         Insert: {
-          id: string
-          name: string | null
-          room_filters: Json
-          auto_hide: boolean
-          current_filter: string | null
-        }
-        Update: {
-          id?: string
-          name?: string | null
-          room_filters?: Json
           auto_hide?: boolean
           current_filter?: string | null
+          id: string
+          name?: string | null
+          room_filters?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Update: {
+          auto_hide?: boolean
+          current_filter?: string | null
+          id?: string
+          name?: string | null
+          room_filters?: Json | null
+        }
+        Relationships: []
       }
     }
     Views: {
