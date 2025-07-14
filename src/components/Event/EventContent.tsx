@@ -109,7 +109,13 @@ export default function EventContent({
               <span 
                 className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-16 -mt-0.5 line-clamp-2 transition-all duration-200 ease-in-out"
               >
-                {event.instructor_name}
+                {event.instructor_name ? (() => {
+                  const parts = event.instructor_name.split(',');
+                  if (parts.length >= 2) {
+                    return parts[0].trim();
+                  }
+                  return event.instructor_name;
+                })() : ''}
               </span>
             </div>
           )}
