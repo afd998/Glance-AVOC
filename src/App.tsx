@@ -130,27 +130,6 @@ function AppContent() {
   };
 
   if (isLoading) {
-    // Check if the date is outside the 80-day window
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const fortyDaysAgo = new Date(today);
-    fortyDaysAgo.setDate(today.getDate() - 40);
-    const fortyDaysAhead = new Date(today);
-    fortyDaysAhead.setDate(today.getDate() + 40);
-    
-    const isOutsideRange = selectedDate < fortyDaysAgo || selectedDate > fortyDaysAhead;
-    
-    if (isOutsideRange) {
-      return (
-        <div className="flex flex-col items-center justify-center h-screen dark:bg-gray-900 dark:text-white gap-4">
-          <div className="text-xl">Loading...</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            You requested a day outside the 80-day window. Data may take up to 2 minutes to load.
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
         {/* Wildcat image removed */}

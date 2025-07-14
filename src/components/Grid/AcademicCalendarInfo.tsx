@@ -24,7 +24,7 @@ const AcademicCalendarInfo: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className={`ml-4 p-3 rounded-lg border ${
+      <div className={`ml-4 p-2 rounded-lg border ${
         isDarkMode 
           ? 'bg-gray-800 border-gray-600 text-gray-300' 
           : 'bg-gray-100 border-gray-300 text-gray-600'
@@ -39,7 +39,7 @@ const AcademicCalendarInfo: React.FC = () => {
 
   if (error) {
     return (
-      <div className={`ml-4 p-3 rounded-lg border ${
+      <div className={`ml-4 p-2 rounded-lg border ${
         isDarkMode 
           ? 'bg-red-900 border-red-600 text-red-200' 
           : 'bg-red-100 border-red-300 text-red-700'
@@ -54,7 +54,7 @@ const AcademicCalendarInfo: React.FC = () => {
   }
 
   return (
-    <div className={`ml-4 p-3 rounded-lg border ${
+    <div className={`ml-4 p-2 rounded-lg border ${
       isDarkMode 
         ? 'bg-purple-900/20 border-purple-300/30 text-purple-200' 
         : 'bg-purple-50/50 border-purple-200/50 text-purple-700'
