@@ -44,18 +44,21 @@ export type Database = {
           date_string: string | null
           id: number
           label: string | null
+          start_of_quarter: boolean
         }
         Insert: {
           date?: string | null
           date_string?: string | null
           id?: number
           label?: string | null
+          start_of_quarter?: boolean
         }
         Update: {
           date?: string | null
           date_string?: string | null
           id?: number
           label?: string | null
+          start_of_quarter?: boolean
         }
         Relationships: []
       }

@@ -22,20 +22,31 @@ const QuarterCount: React.FC = () => {
 
   const selectedDate = getSelectedDate();
   console.log('[QuarterCount] Selected date from URL:', selectedDate);
+  console.log('[QuarterCount] Quarter start dates from hook:', quarterStartDates);
+  console.log('[QuarterCount] Loading state:', isLoading);
+  console.log('[QuarterCount] Error state:', error);
 
-  // Find the closest quarter start date that comes before the selected date (within 10 weeks)
+  // Find the closest quarter start date that comes before the selected date (within 70 days)
   const findClosestQuarterStart = (): Date | null => {
-    if (quarterStartDates.length === 0) return null;
+    if (quarterStartDates.length === 0) {
+      console.log('[QuarterCount] No quarter start dates available');
+      return null;
+    }
 
-    const tenWeeksInMs = 10 * 7 * 24 * 60 * 60 * 1000; // 10 weeks in milliseconds
-    const cutoffDate = new Date(selectedDate.getTime() - tenWeeksInMs);
+    const seventyDaysInMs = 70 * 24 * 60 * 60 * 1000; // 70 days in milliseconds
+    const cutoffDate = new Date(selectedDate.getTime() - seventyDaysInMs);
+    console.log('[QuarterCount] Cutoff date (70 days before selected):', cutoffDate);
 
-    // Filter dates that come before the selected date and within 10 weeks
+    // Filter dates that come before the selected date and within 70 days
     const validDates = quarterStartDates.filter(date => 
       date <= selectedDate && date >= cutoffDate
     );
+    console.log('[QuarterCount] Valid dates within 70 days:', validDates);
 
-    if (validDates.length === 0) return null;
+    if (validDates.length === 0) {
+      console.log('[QuarterCount] No valid quarter start dates found within 70 days');
+      return null;
+    }
 
     // Return the most recent date (closest to selected date)
     const closest = validDates.reduce((closest, current) => 
@@ -48,25 +59,17 @@ const QuarterCount: React.FC = () => {
   const closestQuarterStart = findClosestQuarterStart();
 
   if (isLoading) {
-    return (
-      <div className={`ml-4 p-2 rounded-lg border ${
-        isDarkMode 
-          ? 'bg-gray-800/20 border-gray-300/30 text-gray-300' 
-          : 'bg-gray-50/50 border-gray-200/50 text-gray-600'
-      }`}>
-        <div className="flex items-center gap-2">
-          <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-current"></div>
-          <span className="text-xs">Loading...</span>
-        </div>
-      </div>
-    );
+    console.log('[QuarterCount] Rendering loading state');
+    return null; // Don't show anything while loading
   }
 
   if (error) {
+    console.log('[QuarterCount] Rendering error state (returning null)');
     return null; // Don't show anything on error
   }
 
   if (!closestQuarterStart) {
+    console.log('[QuarterCount] No closest quarter start found (returning null)');
     return null; // Don't show anything if no valid quarter start found
   }
 
@@ -76,20 +79,41 @@ const QuarterCount: React.FC = () => {
   );
   console.log('[QuarterCount] Weeks since quarter start:', weeksSinceQuarterStart + 1);
 
+  // Determine quarter name based on the month of the quarter start date
+  const getQuarterName = (date: Date): string => {
+    const month = date.getMonth(); // 0-11
+    console.log('[QuarterCount] Month from quarter start date:', month);
+    
+    // Academic year quarters typically start in:
+    // Fall: September (8), October (9), November (10)
+    // Winter: December (11), January (0), February (1) 
+    // Spring: March (2), April (3), May (4)
+    // Summer: June (5), July (6), August (7)
+    
+    if (month >= 8 && month <= 10) return 'Fall'; // Sep, Oct, Nov
+    if (month === 11 || month <= 1) return 'Winter'; // Dec, Jan, Feb
+    if (month >= 2 && month <= 4) return 'Spring'; // Mar, Apr, May
+    return 'Summer'; // Jun, Jul, Aug
+  };
+
+  // Format the quarter start date for display
+  const formatQuarterStartDate = (date: Date): string => {
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const quarterName = getQuarterName(closestQuarterStart);
+  console.log('[QuarterCount] Rendering quarter count component');
+  console.log('[QuarterCount] Quarter start date:', closestQuarterStart);
+  console.log('[QuarterCount] Quarter name:', quarterName);
+
   return (
-    <div className={`ml-4 p-2 rounded-lg border ${
-      isDarkMode 
-        ? 'bg-blue-900/20 border-blue-300/30 text-blue-200' 
-        : 'bg-blue-50/50 border-blue-200/50 text-blue-700'
-    }`}>
-      <div className="flex items-center gap-2">
-        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-        </svg>
-        <span className="text-xs">
-          Week {weeksSinceQuarterStart + 1}
-        </span>
-      </div>
+    <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+      Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
     </div>
   );
 };
