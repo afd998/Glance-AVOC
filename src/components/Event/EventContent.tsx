@@ -86,7 +86,7 @@ export default function EventContent({
                   <img 
                     src={facultyMember.kelloggdirectory_image_url} 
                     alt={event.instructor_name}
-                    className="h-8 w-8 rounded-full object-cover filter grayscale opacity-80 transition-all duration-200 ease-in-out"
+                    className="h-12 w-12 rounded-full object-cover filter grayscale opacity-80 transition-all duration-200 ease-in-out"
                     style={{
                       transform: 'scale(1)'
                     }}

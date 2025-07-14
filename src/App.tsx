@@ -138,14 +138,16 @@ function AppContent() {
         <div className="flex justify-between items-center">
           <FilterPanel selectedDate={selectedDate} events={events} />
                   <div className="flex items-center">
-          <DatePickerComponent 
-            selectedDate={selectedDate}
-            setSelectedDate={handleDateChange}
-            isLoading={isLoading}
-          />
+          <div className="flex flex-col items-center">
+            <DatePickerComponent 
+              selectedDate={selectedDate}
+              setSelectedDate={handleDateChange}
+              isLoading={isLoading}
+            />
+            <QuarterCount />
+          </div>
           <CurrentFilterLink />
           <AcademicCalendarInfo />
-          <QuarterCount />
         </div>
         </div>
 
@@ -176,14 +178,16 @@ function AppContent() {
        
         <FilterPanel selectedDate={selectedDate} events={events} />
         <div className="flex items-center">
-          <DatePickerComponent 
-            selectedDate={selectedDate}
-            setSelectedDate={handleDateChange}
-            isLoading={isLoading}
-          />
+          <div className="flex flex-col items-center">
+            <DatePickerComponent 
+              selectedDate={selectedDate}
+              setSelectedDate={handleDateChange}
+              isLoading={isLoading}
+            />
+            <QuarterCount />
+          </div>
           <CurrentFilterLink />
           <AcademicCalendarInfo />
-          <QuarterCount />
         </div>
       </div>
 

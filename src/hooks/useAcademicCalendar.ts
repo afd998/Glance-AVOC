@@ -7,18 +7,15 @@ type AcademicCalendarItem = Database['public']['Tables']['academic_calendar']['R
 const fetchAcademicCalendar = async (date: Date): Promise<AcademicCalendarItem[]> => {
   const formattedDate = date.toISOString().split('T')[0];
   
-  // Create start and end of day for the given date
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  // Create start and end of day in UTC to match database storage
+  const startOfDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
   
   console.log('🔍 Academic Calendar Query Debug:');
   console.log('  Date:', date);
   console.log('  Formatted Date:', formattedDate);
-  console.log('  Start of Day:', startOfDay.toISOString());
-  console.log('  End of Day:', endOfDay.toISOString());
+  console.log('  Start of Day (UTC):', startOfDay.toISOString());
+  console.log('  End of Day (UTC):', endOfDay.toISOString());
   
   const { data, error } = await supabase
     .from('academic_calendar')

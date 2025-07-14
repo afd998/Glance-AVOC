@@ -11,18 +11,13 @@ const CurrentFilterLink: React.FC = () => {
   const currentFilter = profile?.current_filter;
   const autoHide = profile?.auto_hide;
 
-  // Debug logging
-  console.log('CurrentFilterLink debug:', { currentFilter, autoHide, profile });
-
   // Don't show anything if no filter is set and auto-hide is off
   if (!currentFilter && !autoHide) {
-    console.log('CurrentFilterLink: Not showing - no current filter and auto-hide is off');
     return null;
   }
 
   // Determine what text to display
   const displayText = currentFilter || (autoHide ? "Empty Rooms Hidden" : "");
-  console.log('CurrentFilterLink: Displaying with text:', displayText);
 
   return (
     <button
