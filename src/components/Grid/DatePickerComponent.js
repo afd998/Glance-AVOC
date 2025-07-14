@@ -1,11 +1,12 @@
 import React from 'react';
 import DatePicker from "react-datepicker";
 import { useTheme } from '../../contexts/ThemeContext';
+import "react-datepicker/dist/react-datepicker.css";
 
 const CustomInput = React.forwardRef(({ value, onClick, disabled }, ref) => (
   <button
-    className={`w-64 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-200 dark:bg-gray-700 dark:text-white text-center whitespace-nowrap ${
-      disabled ? 'opacity-50 cursor-not-allowed' : ''
+    className={`w-64 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md ${
+      disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 dark:hover:border-blue-400'
     }`}
     onClick={onClick}
     ref={ref}
@@ -46,15 +47,20 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
     setSelectedDate(newDate);
   };
 
+  // Custom CSS classes for dark mode
+  const customPopperClassName = isDarkMode 
+    ? "z-[9999] react-datepicker-dark" 
+    : "z-[9999]";
+
   return (
     <div className="flex items-center space-x-2">
       <button
         onClick={handlePreviousDay}
         disabled={isLoading}
-        className={`p-2 rounded-lg transition-colors ${
+        className={`p-2 rounded-lg transition-all duration-200 ${
           isLoading 
             ? 'opacity-50 cursor-not-allowed' 
-            : 'hover:bg-gray-300 dark:hover:bg-gray-600'
+            : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
         }`}
         aria-label="Previous day"
       >
@@ -68,7 +74,7 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
         onChange={handleDateChange}
         customInput={<CustomInput disabled={isLoading} />}
         dateFormat="EEE, MMM d, yyyy"
-        popperClassName="z-[9999]"
+        popperClassName={customPopperClassName}
         popperPlacement="bottom-start"
         popperModifiers={[
           {
@@ -82,15 +88,16 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
         portalId="root"
         withPortal
         disabled={isLoading}
+        calendarClassName={isDarkMode ? "react-datepicker-dark" : ""}
       />
 
       <button
         onClick={handleNextDay}
         disabled={isLoading}
-        className={`p-2 rounded-lg transition-colors ${
+        className={`p-2 rounded-lg transition-all duration-200 ${
           isLoading 
             ? 'opacity-50 cursor-not-allowed' 
-            : 'hover:bg-gray-300 dark:hover:bg-gray-600'
+            : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
         }`}
         aria-label="Next day"
       >

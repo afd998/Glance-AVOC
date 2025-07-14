@@ -10,6 +10,7 @@ import VerticalLines from "./components/Grid/VerticalLines";
 import DatePickerComponent from "./components/Grid/DatePickerComponent";
 import AcademicCalendarInfo from "./components/Grid/AcademicCalendarInfo";
 import QuarterCount from "./components/Grid/QuarterCount";
+import CurrentFilterLink from "./components/Grid/CurrentFilterLink";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import "react-datepicker/dist/react-datepicker.css";
@@ -142,6 +143,7 @@ function AppContent() {
             setSelectedDate={handleDateChange}
             isLoading={isLoading}
           />
+          <CurrentFilterLink />
           <AcademicCalendarInfo />
           <QuarterCount />
         </div>
@@ -179,6 +181,7 @@ function AppContent() {
             setSelectedDate={handleDateChange}
             isLoading={isLoading}
           />
+          <CurrentFilterLink />
           <AcademicCalendarInfo />
           <QuarterCount />
         </div>
