@@ -5,25 +5,47 @@ import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
+// Calculate days difference between two dates
+const getDaysDifference = (date1: Date, date2: Date): number => {
+  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+  const diffTime = Math.abs(date2.getTime() - date1.getTime());
+  return Math.ceil(diffTime / oneDay);
+};
+
 // Fetch events from the events table
 const fetchEvents = async ({ queryKey }: { queryKey: [string, Date, Date] }): Promise<Event[]> => {
   const [_, date] = queryKey;
 
   try {
-    
-    // Calculate date range for today
-    const today = new Date(date);
+    // Calculate days from today
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
     
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    const daysDifference = getDaysDifference(today, targetDate);
     
-    // Query events for today
+    // If date is beyond 80 days, return no events
+    if (daysDifference > 80) {
+      console.log(`📅 useEvents: Date ${targetDate.toISOString().split('T')[0]} is beyond 80 days (${daysDifference} days), returning no events`);
+      return [];
+    }
+    
+    // Calculate date range for the target date
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(targetDate);
+    endOfDay.setDate(targetDate.getDate() + 1);
+    
+    console.log(`📅 useEvents: Fetching events for ${targetDate.toISOString().split('T')[0]} (${daysDifference} days from today)`);
+    
+    // Query events for the target date
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .gte('start_time', today.toISOString())
-      .lt('start_time', tomorrow.toISOString())
+      .gte('start_time', startOfDay.toISOString())
+      .lt('start_time', endOfDay.toISOString())
       .order('start_time', { ascending: true });
       
     if (error) {
@@ -59,6 +81,14 @@ export function useEvents(date: Date) {
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
   
+  // Calculate days from today to determine if we should fetch
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  const daysDifference = getDaysDifference(today, targetDate);
+  const isOutsideWindow = daysDifference > 80;
+  
   const { data: eventsData, isLoading, error, isFetching } = useQuery({
     queryKey: ['events', dateString],
     queryFn: () => fetchEvents({ queryKey: ['events', date, date] }),
@@ -68,6 +98,7 @@ export function useEvents(date: Date) {
     refetchOnWindowFocus: false, // Don't refetch when window gains focus
     refetchOnReconnect: false, // Don't refetch when reconnecting
     placeholderData: undefined, // Don't show any placeholder data
+    enabled: !isOutsideWindow, // Skip query if outside window
   });
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -78,6 +109,12 @@ export function useEvents(date: Date) {
   }, [dateString]);
 
   useEffect(() => {
+    if (isOutsideWindow) {
+      // If outside window, immediately set empty events and no loading
+      setEvents([]);
+      return;
+    }
+    
     // Only set events if we're not currently fetching and we have data
     if (!isFetching && eventsData) {
       // Cache each event individually by ID
@@ -94,7 +131,10 @@ export function useEvents(date: Date) {
       // Clear events when no data (date changed)
       setEvents([]);
     }
-  }, [eventsData, isLoading, isFetching, queryClient]);
+  }, [eventsData, isLoading, isFetching, queryClient, isOutsideWindow]);
 
-  return { events, isLoading: isLoading || isFetching, error };
+  // Return appropriate loading state - no loading if outside window
+  const finalLoadingState = isOutsideWindow ? false : (isLoading || isFetching);
+
+  return { events, isLoading: finalLoadingState, error };
 } 
