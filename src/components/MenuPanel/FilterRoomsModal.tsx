@@ -73,11 +73,11 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-2 gap-6">
-            {/* Preset Manager */}
-            <PresetManager 
-              autoHideEmpty={autoHide} 
-              onAutoHideChange={updateAutoHide} 
-            />
+          {/* Preset Manager */}
+          <PresetManager 
+            autoHideEmpty={autoHide} 
+            onAutoHideChange={updateAutoHide} 
+          />
 
             {/* Room Filter Table */}
             <RoomFilterTable autoHideEnabled={autoHide} />

@@ -5,14 +5,14 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const CustomInput = React.forwardRef(({ value, onClick, disabled }, ref) => (
   <button
-    className={`w-64 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md ${
+    className={`w-40 sm:w-64 px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md text-base sm:text-lg font-semibold ${
       disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 dark:hover:border-blue-400'
     }`}
     onClick={onClick}
     ref={ref}
     disabled={disabled}
   >
-    <div className="text-lg font-semibold">
+    <div>
       {value}
     </div>
   </button>
@@ -63,7 +63,7 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
       <button
         onClick={handleGoToToday}
         disabled={isLoading}
-        className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+        className={`px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-xl transition-all duration-200 ${
           isLoading 
             ? 'opacity-50 cursor-not-allowed' 
             : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 shadow-md hover:shadow-lg transform hover:scale-105'
