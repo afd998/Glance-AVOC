@@ -179,18 +179,34 @@ export function useNotifications() {
 
     const { notificationRooms } = useRoomStore.getState();
     
+    console.log('🔔 Notification Debug:', {
+      totalEvents: events.length,
+      notificationRooms,
+      permission,
+      isSupported
+    });
 
     // Schedule new notifications
     events.forEach(event => {
+      console.log('🔔 Processing event:', {
+        id: event.id,
+        name: event.itemName,
+        room: event.room,
+        date: event.subject_item_date,
+        start: event.start,
+        hasResources: !!event.itemDetails?.occur?.prof?.[0]?.rsv?.[0]?.res,
+        resources: event.itemDetails?.occur?.prof?.[0]?.rsv?.[0]?.res?.map(r => r.itemName) || []
+      });
+
       // Skip events that don't have required data
       if (!event.subject_item_date || !event.start || !event.itemName) {
-        
+        console.log('❌ Skipping event - missing required data');
         return;
       }
 
       // Skip events that are not in notification-enabled rooms
       if (!notificationRooms.includes(event.room)) {
-        
+        console.log('❌ Skipping event - not in notification rooms:', event.room);
         return;
       }
 
@@ -205,11 +221,11 @@ export function useNotifications() {
         
         // If event is not today, skip it
         if (eventDay.getTime() !== today.getTime()) {
-          
+          console.log('❌ Skipping event - not today:', event.subject_item_date);
           return;
         }
       } catch (error) {
-        
+        console.log('❌ Skipping event - date parsing error:', error);
         return;
       }
 
@@ -218,10 +234,12 @@ export function useNotifications() {
       if (!isNaN(startTimeFloat)) {
         const currentHour = now.getHours() + (now.getMinutes() / 60);
         if (startTimeFloat <= currentHour) {
+          console.log('❌ Skipping event - already started:', startTimeFloat, '<=', currentHour);
           return;
         }
       }
 
+      console.log('✅ Scheduling notification for event:', event.itemName);
       scheduleNotification(event, 15);
     });
   }, [scheduleNotification]);
