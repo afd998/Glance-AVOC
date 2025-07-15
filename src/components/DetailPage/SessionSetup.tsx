@@ -57,7 +57,9 @@ export default function SessionSetup({
                 </div>
               )}
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{event.instructor_name}</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name || ''}
+                </h3>
                 {facultyMember?.kelloggdirectory_title && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
                 )}

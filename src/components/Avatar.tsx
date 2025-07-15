@@ -54,9 +54,12 @@ const Avatar: React.FC<AvatarProps> = ({ userId, size = 'md', className = '' }) 
     lg: 'w-10 h-10 text-base'
   };
   
-  const initials = getInitials(userProfile?.name || null);
-  const colorClass = getAvatarColor(userId);
+  // Debug logging
+  console.log('Avatar debug:', { userId, userProfile, isLoading });
+  
   const displayName = userProfile?.name || 'Unknown User';
+  const initials = getInitials(displayName !== 'Unknown User' ? displayName : null);
+  const colorClass = getAvatarColor(userId);
   
   return (
     <div className="relative group">
