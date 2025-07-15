@@ -230,6 +230,36 @@ export type Database = {
         }
         Relationships: []
       }
+      room_filters: {
+        Row: {
+          created_at: string
+          default: boolean | null
+          display: Json | null
+          id: number
+          name: string | null
+          notify: Json | null
+          owner: string | null
+        }
+        Insert: {
+          created_at?: string
+          default?: boolean | null
+          display?: Json | null
+          id?: number
+          name?: string | null
+          notify?: Json | null
+          owner?: string | null
+        }
+        Update: {
+          created_at?: string
+          default?: boolean | null
+          display?: Json | null
+          id?: number
+          name?: string | null
+          notify?: Json | null
+          owner?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
