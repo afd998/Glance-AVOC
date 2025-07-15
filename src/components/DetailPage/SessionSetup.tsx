@@ -106,11 +106,12 @@ export default function SessionSetup({
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-12 h-12 bg-white dark:bg-gray-300 rounded-full flex items-center justify-center">
+                    <div className="relative m-0 p-0">
+                      <div className="absolute top-0 left-0 w-12 h-12 bg-white dark:bg-gray-300 rounded-full"></div>
                       <img 
                         src="/lapel.png" 
                         alt="Lapel microphone" 
-                        className="w-20 h-20 object-contain"
+                        className="relative z-10 w-12 h-12 object-cover m-0 p-0 scale-150 -top-4"
                       />
                     </div>
                     <span className="text-gray-700 dark:text-gray-300 font-medium">Uses Microphone</span>
