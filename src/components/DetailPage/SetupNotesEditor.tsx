@@ -164,12 +164,18 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
-                  <Avatar userId={update.author || ''} size="sm" />
+                  {update.author ? (
+                    <Avatar userId={update.author} size="sm" />
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                      ?
+                    </div>
+                  )}
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(update.created_at)}
                   </span>
                 </div>
-                {update.author === user?.id && (
+                {update.author && update.author === user?.id && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEditNote(update)}

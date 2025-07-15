@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
       // Check if profile exists
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, name')
         .eq('id', userId)
         .single();
 
@@ -33,8 +33,7 @@ const LandingPage: React.FC = () => {
           .from('profiles')
           .insert({
             id: userId,
-            name: null,
-            room_filters: [],
+            name: email, // Use the email from the form
             auto_hide: false,
             current_filter: null
           });
@@ -46,6 +45,20 @@ const LandingPage: React.FC = () => {
         }
       } else if (checkError) {
         console.error('Error checking user profile:', checkError);
+      } else {
+        // Profile exists, but check if name is null and update it
+        if (existingProfile && !existingProfile.name) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ name: email })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Error updating user profile name:', updateError);
+          } else {
+            console.log('Updated profile name for user:', userId);
+          }
+        }
       }
     } catch (error) {
       console.error('Error ensuring user profile:', error);

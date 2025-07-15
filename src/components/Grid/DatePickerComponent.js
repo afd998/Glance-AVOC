@@ -35,6 +35,12 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
     setSelectedDate(newDate);
   };
 
+  const handleGoToToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setSelectedDate(today);
+  };
+
   // Create a new date object for the DatePicker
   const displayDate = new Date(selectedDate);
   const timezoneOffset = displayDate.getTimezoneOffset();
@@ -54,6 +60,19 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
 
   return (
     <div className="flex items-center space-x-2">
+      <button
+        onClick={handleGoToToday}
+        disabled={isLoading}
+        className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+          isLoading 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 shadow-md hover:shadow-lg transform hover:scale-105'
+        }`}
+        aria-label="Go to today"
+      >
+        Today
+      </button>
+
       <button
         onClick={handlePreviousDay}
         disabled={isLoading}

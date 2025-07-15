@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('ensureUserProfile: Checking if profile exists...');
       const profileCheckPromise = supabase
         .from('profiles')
-        .select('id')
+        .select('id, name')
         .eq('id', userId)
         .single();
 
@@ -61,12 +61,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (checkError && checkError.code === 'PGRST116') {
         // Profile doesn't exist, create one
         console.log('ensureUserProfile: Profile doesn\'t exist, creating...');
+        
+        // Get user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        const userEmail = user?.email || userId;
+        
         const { error: createError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
-            name: null,
-            room_filters: [],
+            name: userEmail,
             auto_hide: false,
             current_filter: null
           });
@@ -79,7 +83,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else if (checkError) {
         console.error('Error checking user profile:', checkError);
       } else {
-        console.log('ensureUserProfile: Profile already exists');
+        // Profile exists, but check if name is null and update it
+        if (existingProfile && !existingProfile.name) {
+          console.log('ensureUserProfile: Profile exists but name is null, updating...');
+          const { data: { user } } = await supabase.auth.getUser();
+          const userEmail = user?.email || userId;
+          
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ name: userEmail })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Error updating user profile name:', updateError);
+          } else {
+            console.log('Updated profile name for user:', userId);
+          }
+        } else {
+          console.log('ensureUserProfile: Profile already exists');
+        }
       }
     } catch (error) {
       console.error('Error ensuring user profile:', error);
