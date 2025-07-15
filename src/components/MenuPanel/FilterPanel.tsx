@@ -25,15 +25,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), ev
 
   return (
     <>
-      {/* Hamburger Menu Button */}
+      {/* Modern Menu Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 right-4 flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors z-50 shadow-lg"
+          className="fixed top-4 right-4 flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 z-50 shadow-lg hover:shadow-xl transform hover:scale-105 group"
+          aria-label="Open menu"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <div className="flex flex-col items-center justify-center space-y-1">
+            <div className="w-4 h-0.5 bg-white rounded-full transition-all duration-200 group-hover:w-5"></div>
+            <div className="w-4 h-0.5 bg-white rounded-full transition-all duration-200 group-hover:w-3"></div>
+            <div className="w-4 h-0.5 bg-white rounded-full transition-all duration-200 group-hover:w-5"></div>
+          </div>
         </button>
       )}
 
@@ -46,9 +49,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), ev
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Menu</h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                className="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 hover:text-gray-800 dark:hover:text-white transition-all duration-200 transform hover:scale-105"
+                aria-label="Close menu"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

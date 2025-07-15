@@ -14,7 +14,7 @@ const fetchQuarterStartDates = async (): Promise<Date[]> => {
 
   console.log('[useQuarterStartDates] Raw data from Supabase:', data);
   console.log('[useQuarterStartDates] Error from Supabase:', error);
-  
+
   if (error) {
     console.error('[useQuarterStartDates] Supabase error:', error);
     throw error;

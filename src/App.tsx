@@ -30,6 +30,7 @@ import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Database } from './types/supabase';
 import AccountPage from './pages/AccountPage';
+import AboutPage from './pages/AboutPage';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -150,25 +151,38 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        {/* Wildcat image removed */}
-        {/* Header with controls */}
-        <div className="flex justify-between items-center">
-          <FilterPanel selectedDate={selectedDate} events={events} />
-                  <div className="flex items-center">
-          <div className="flex flex-col items-center">
-            <DatePickerComponent 
-              selectedDate={selectedDate}
-              setSelectedDate={handleDateChange}
-              isLoading={isLoading}
-            />
-            <QuarterCount />
+        {/* Mobile-Responsive Header */}
+        <div className="mb-4">
+          {/* Top Row - Date Picker and Menu */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex-1 max-w-xs">
+              <DatePickerComponent 
+                selectedDate={selectedDate}
+                setSelectedDate={handleDateChange}
+                isLoading={isLoading}
+              />
+            </div>
+            <FilterPanel selectedDate={selectedDate} events={events} />
           </div>
-          <CurrentFilterLink />
-          <AcademicCalendarInfo />
-        </div>
+
+          {/* Second Row - Quarter Count and Academic Info */}
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="hidden sm:block">
+              <QuarterCount />
+            </div>
+            <div className="hidden sm:block">
+              <AcademicCalendarInfo />
+            </div>
+          </div>
+
+          {/* Desktop Row - Academic Info and Current Filter */}
+          <div className="hidden sm:flex items-center justify-between mt-2">
+            <AcademicCalendarInfo />
+            <CurrentFilterLink />
+          </div>
         </div>
 
-        <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
+        <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
           <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
             <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
             <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
@@ -189,26 +203,38 @@ function AppContent() {
 
       return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        {/* Wildcat image removed */}
-        {/* Header with controls */}
-      <div className="flex justify-between items-center ">
-       
-        <FilterPanel selectedDate={selectedDate} events={events} />
-        <div className="flex items-center">
-          <div className="flex flex-col items-center">
-            <DatePickerComponent 
-              selectedDate={selectedDate}
-              setSelectedDate={handleDateChange}
-              isLoading={isLoading}
-            />
-            <QuarterCount />
+        {/* Mobile-Responsive Header */}
+        <div className="mb-4">
+          {/* Top Row - Date Picker and Menu */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex-1 max-w-xs">
+              <DatePickerComponent 
+                selectedDate={selectedDate}
+                setSelectedDate={handleDateChange}
+                isLoading={isLoading}
+              />
+            </div>
+            <FilterPanel selectedDate={selectedDate} events={events} />
           </div>
-          <CurrentFilterLink />
-          <AcademicCalendarInfo />
-        </div>
-      </div>
 
-      <div className="mt-4 h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
+          {/* Second Row - Quarter Count and Academic Info */}
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="hidden sm:block">
+              <QuarterCount />
+            </div>
+            <div className="hidden sm:block">
+              <AcademicCalendarInfo />
+            </div>
+          </div>
+
+          {/* Desktop Row - Academic Info and Current Filter */}
+          <div className="hidden sm:flex items-center justify-between mt-2">
+            <AcademicCalendarInfo />
+            <CurrentFilterLink />
+          </div>
+        </div>
+
+      <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
@@ -293,6 +319,13 @@ export default function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AccountPage />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/about" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AboutPage />
                   </Layout>
                 </ProtectedRoute>
               } />

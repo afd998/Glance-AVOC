@@ -32,10 +32,10 @@ const formatTimeFromISO = (isoString: string | null): string => {
     const timezoneOffset = date.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
     const adjustedDate = new Date(date.getTime() + timezoneOffset);
     return adjustedDate.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
   } catch (error) {
     console.error('Error formatting time:', isoString, error);
     return '';

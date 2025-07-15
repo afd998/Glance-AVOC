@@ -217,12 +217,12 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                       onClick={handleCancelEdit}
                       disabled={updateFacultyUpdate.isPending}
                       className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
                 <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
                   {update.content}
                 </p>
@@ -236,8 +236,8 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
               Click "Add Note" to create the first note for this faculty member.
             </p>
           </div>
-        )}
-      </div>
+          )}
+        </div>
     </div>
   );
 } 
