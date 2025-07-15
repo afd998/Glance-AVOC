@@ -153,6 +153,7 @@ export default function EventDetail() {
             facultyMember={facultyMember}
             isFacultyLoading={isFacultyLoading}
             hasVideoRecording={hasVideoRecording}
+            resources={resources}
           />
           
           <SessionSetup

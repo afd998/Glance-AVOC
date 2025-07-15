@@ -188,6 +188,33 @@ export type Database = {
         }
         Relationships: []
       }
+      faculty_updates: {
+        Row: {
+          author: string | null
+          content: string | null
+          created_at: string
+          faculty: number | null
+          id: number
+          updated_at: string | null
+        }
+        Insert: {
+          author?: string | null
+          content?: string | null
+          created_at?: string
+          faculty?: number | null
+          id?: number
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string | null
+          content?: string | null
+          created_at?: string
+          faculty?: number | null
+          id?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ideas: {
         Row: {
           content: string | null
@@ -212,21 +239,18 @@ export type Database = {
           current_filter: string | null
           id: string
           name: string | null
-          room_filters: Json | null
         }
         Insert: {
           auto_hide?: boolean
           current_filter?: string | null
           id: string
           name?: string | null
-          room_filters?: Json | null
         }
         Update: {
           auto_hide?: boolean
           current_filter?: string | null
           id?: string
           name?: string | null
-          room_filters?: Json | null
         }
         Relationships: []
       }

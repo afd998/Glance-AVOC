@@ -18,6 +18,8 @@ import "./index.css";
 import { useEvents } from "./hooks/useEvents";
 import { useNotifications } from "./hooks/useNotifications";
 import { useAutoHideLogic } from "./hooks/useAutoHideLogic";
+import { useProfile } from "./hooks/useProfile";
+import { useFilters } from "./hooks/useFilters";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import useRoomStore from './stores/roomStore';
@@ -76,6 +78,21 @@ function AppContent() {
   const {events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
   const { autoHide } = useAutoHideLogic(events || [], selectedDate);
+  
+  // Get profile and filters data
+  const { currentFilter } = useProfile();
+  const { filters } = useFilters();
+
+  // Load current filter on mount and when filters change
+  React.useEffect(() => {
+    if (currentFilter && filters.length > 0) {
+      const currentFilterData = filters.find(filter => filter.name === currentFilter);
+      if (currentFilterData) {
+        setSelectedRooms(currentFilterData.display);
+        setNotificationRooms(currentFilterData.notify);
+      }
+    }
+  }, [currentFilter, filters, setSelectedRooms, setNotificationRooms]);
 
   // Schedule notifications when events change
   React.useEffect(() => {
