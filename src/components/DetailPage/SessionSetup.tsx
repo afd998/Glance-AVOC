@@ -57,9 +57,24 @@ export default function SessionSetup({
                 </div>
               )}
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name || ''}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name || ''}
+                  </h3>
+                  {facultyMember?.kelloggdirectory_bio_url && (
+                    <a 
+                      href={facultyMember.kelloggdirectory_bio_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                      title="View faculty directory page"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
+                </div>
                 {facultyMember?.kelloggdirectory_title && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
                 )}
