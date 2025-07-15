@@ -34,33 +34,8 @@ export default function SessionSetup({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Resources and Faculty Profile */}
+        {/* Left Column - Faculty Profile and Faculty Info */}
         <div className="space-y-6">
-          {/* Resources Box */}
-          {resources.length > 0 && (
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Resources</h3>
-              <div className="flex flex-wrap gap-2">
-                {resources.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                  >
-                    <span className="flex-shrink-0 text-base">
-                      {getResourceIcon(item.itemName)}
-                    </span>
-                    <span className="whitespace-nowrap">{getResourceDisplayName(item.itemName)}</span>
-                    {item.quantity && item.quantity > 1 && (
-                      <span className="ml-1 px-1.5 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
-                        {item.quantity}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Faculty Profile Box */}
           {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
             <div>
@@ -79,12 +54,51 @@ export default function SessionSetup({
                       temperment: updatedValues.temperment,
                       uses_mic: facultyMember.uses_mic ?? false,
                       left_source: facultyMember.left_source ?? '',
-                      right_source: facultyMember.right_source ?? '',
-                      setup_notes: facultyMember.setup_notes ?? ''
+                      right_source: facultyMember.right_source ?? ''
                     }
                   });
                 }}
               />
+            </div>
+          )}
+
+          {/* Faculty Info Box */}
+          {event.instructor_name && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Faculty Information</h3>
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                <div className="flex items-center gap-3">
+                  {facultyMember?.kelloggdirectory_image_url ? (
+                    <img 
+                      src={facultyMember.kelloggdirectory_image_url} 
+                      alt={event.instructor_name}
+                      className="h-16 w-16 rounded-full object-cover"
+                      onError={(e) => {
+                        console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                      <span className="text-gray-600 dark:text-gray-400 text-xl">👤</span>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">{event.instructor_name}</h3>
+                    {facultyMember?.kelloggdirectory_title && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
+                    )}
+                    {facultyMember?.kelloggdirectory_bio && (
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-3">
+                        {facultyMember.kelloggdirectory_bio}
+                      </p>
+                    )}
+                    {isFacultyLoading && (
+                      <p className="text-xs text-gray-400">Loading faculty info...</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -122,8 +136,7 @@ export default function SessionSetup({
                               temperment: facultyMember.temperment ?? 0,
                               uses_mic: !facultyMember.uses_mic,
                               left_source: facultyMember.left_source ?? '',
-                              right_source: facultyMember.right_source ?? '',
-                              setup_notes: facultyMember.setup_notes ?? ''
+                              right_source: facultyMember.right_source ?? ''
                             }
                           });
                         }
@@ -148,7 +161,6 @@ export default function SessionSetup({
                 <SetupNotesEditor
                   event={event}
                   facultyMember={facultyMember}
-                  updateFacultyAttributes={updateFacultyAttributes}
                 />
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (

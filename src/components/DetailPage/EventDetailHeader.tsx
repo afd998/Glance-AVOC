@@ -2,16 +2,24 @@ import React from 'react';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
 import { parseRoomName } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
+
+interface ResourceItem {
+  itemName: string;
+  quantity?: number;
+  [key: string]: any;
+}
 
 interface EventDetailHeaderProps {
   event: Event;
   facultyMember: FacultyMember | null | undefined;
   isFacultyLoading: boolean;
   hasVideoRecording: boolean;
+  resources: ResourceItem[];
 }
 
 // Helper function to format ISO timestamp to time string
@@ -28,7 +36,8 @@ export default function EventDetailHeader({
   event, 
   facultyMember, 
   isFacultyLoading,
-  hasVideoRecording
+  hasVideoRecording,
+  resources
 }: EventDetailHeaderProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
@@ -80,34 +89,29 @@ export default function EventDetailHeader({
             </div>
           </div>
 
-          {/* Instructor Info */}
-          {event.instructor_name && (
-            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-              <div className="flex items-center gap-3">
-                {facultyMember?.kelloggdirectory_image_url ? (
-                  <img 
-                    src={facultyMember.kelloggdirectory_image_url} 
-                    alt={event.instructor_name}
-                    className="h-12 w-12 rounded-full object-cover"
-                    onError={(e) => {
-                      console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="h-12 w-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                    <span className="text-gray-600 dark:text-gray-400">👤</span>
+          {/* Resources */}
+          {resources.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Resources:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {resources.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  >
+                    <span className="flex-shrink-0 text-base">
+                      {getResourceIcon(item.itemName)}
+                    </span>
+                    <span className="whitespace-nowrap">{getResourceDisplayName(item.itemName)}</span>
+                    {item.quantity && item.quantity > 1 && (
+                      <span className="ml-1 px-1.5 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
+                        {item.quantity}
+                      </span>
+                    )}
                   </div>
-                )}
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 dark:text-white">{event.instructor_name}</h3>
-                  {facultyMember?.kelloggdirectory_title && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
-                  )}
-                  {isFacultyLoading && (
-                    <p className="text-xs text-gray-400">Loading faculty info...</p>
-                  )}
-                </div>
+                ))}
               </div>
             </div>
           )}

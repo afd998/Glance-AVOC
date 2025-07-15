@@ -174,6 +174,11 @@ export const useFilters = () => {
     loadFilterMutation.mutate(filter);
   };
 
+  // Get filter by name
+  const getFilterByName = (name: string) => {
+    return filters?.find(filter => filter.name === name);
+  };
+
   return {
     // Data
     filters: filters || [],
@@ -196,6 +201,7 @@ export const useFilters = () => {
     saveFilter,
     deleteFilter,
     loadFilter,
+    getFilterByName,
     
     // Mutations (for direct access)
     saveFilterMutation,

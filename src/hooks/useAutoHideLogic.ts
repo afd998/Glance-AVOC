@@ -11,14 +11,9 @@ export const useAutoHideLogic = (events: Event[], selectedDate: Date) => {
   const previousSelection = useRef<string[]>([]);
   const previousNotificationSelection = useRef<string[]>([]);
 
-  // Auto-hide empty rooms logic
+  // Auto-hide empty rooms logic (only when no current filter is active)
   useEffect(() => {
-    if (!events) return;
-
-    // If a preset is currently loaded, don't override the room selection
-    if (currentFilter) {
-      return;
-    }
+    if (!events || currentFilter) return;
 
     if (autoHide) {
       // Store current selection before applying auto-hide

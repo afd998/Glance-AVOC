@@ -11,7 +11,6 @@ interface FacultyAttributes {
   uses_mic: boolean;
   left_source: string;
   right_source: string;
-  setup_notes: string;
 }
 
 interface UpdateFacultyParams {
@@ -59,8 +58,7 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }: Updat
       temperment: attributes.temperment,
       uses_mic: attributes.uses_mic,
       left_source: attributes.left_source,
-      right_source: attributes.right_source,
-      setup_notes: attributes.setup_notes
+      right_source: attributes.right_source
     })
     .eq('twentyfivelive_name', twentyfiveliveName)
     .select()
@@ -105,8 +103,7 @@ export const useUpdateFacultyAttributes = () => {
             temperment: variables.attributes.temperment,
             uses_mic: variables.attributes.uses_mic,
             left_source: variables.attributes.left_source,
-            right_source: variables.attributes.right_source,
-            setup_notes: variables.attributes.setup_notes
+            right_source: variables.attributes.right_source
           };
         }
         return oldData;

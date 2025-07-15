@@ -119,9 +119,8 @@ const useRoomStore = create(
     {
       name: 'room-store', // unique name for localStorage key
       partialize: (state) => ({ 
-        selectedRooms: state.selectedRooms,
-        notificationRooms: state.notificationRooms 
-      }), // only persist these fields
+        // Don't persist room selections - they should come from current filter or auto-hide logic
+      }), // don't persist any fields
     }
   )
 );
