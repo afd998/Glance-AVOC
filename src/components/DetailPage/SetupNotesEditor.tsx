@@ -105,7 +105,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Setup History</h3>
         {!isAddingNote && (

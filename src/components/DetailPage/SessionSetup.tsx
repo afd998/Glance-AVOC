@@ -219,7 +219,7 @@ export default function SessionSetup({
         </div>
 
         {/* Right Column - Setup Notes */}
-        <div>
+        <div className="">
           {event.instructor_name && facultyMember && (
             <div>
               <SetupNotesEditor
