@@ -44,7 +44,7 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold">Filter Rooms</h2>
+          <h2 className="text-2xl font-semibold">Rooms</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
@@ -71,14 +71,17 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
             </div>
           </div>
 
-          {/* Room Filter Table */}
-          <RoomFilterTable autoHideEnabled={autoHide} />
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Preset Manager */}
+            <PresetManager 
+              autoHideEmpty={autoHide} 
+              onAutoHideChange={updateAutoHide} 
+            />
 
-          {/* Preset Manager */}
-          <PresetManager 
-            autoHideEmpty={autoHide} 
-            onAutoHideChange={updateAutoHide} 
-          />
+            {/* Room Filter Table */}
+            <RoomFilterTable autoHideEnabled={autoHide} />
+          </div>
         </div>
 
         {/* Footer */}

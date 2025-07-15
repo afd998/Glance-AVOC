@@ -6,13 +6,18 @@ import { Database } from '../types/supabase';
 type Event = Database['public']['Tables']['events']['Row'];
 
 export const useAutoHideLogic = (events: Event[], selectedDate: Date) => {
-  const { autoHide } = useProfile();
+  const { autoHide, currentFilter } = useProfile();
   const { selectedRooms, setSelectedRooms, allRooms } = useRoomStore();
   const previousSelection = useRef<string[]>([]);
 
   // Auto-hide empty rooms logic
   useEffect(() => {
     if (!events) return;
+
+    // If a preset is currently loaded, don't override the room selection
+    if (currentFilter) {
+      return;
+    }
 
     if (autoHide) {
       // Store current selection before applying auto-hide
@@ -39,7 +44,7 @@ export const useAutoHideLogic = (events: Event[], selectedDate: Date) => {
         : allRooms;
       setSelectedRooms(roomsToShow);
     }
-  }, [events, selectedDate, autoHide, allRooms, setSelectedRooms]);
+  }, [events, selectedDate, autoHide, currentFilter, allRooms, setSelectedRooms]);
 
   return { autoHide };
 }; 
