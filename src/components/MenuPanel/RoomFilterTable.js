@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import useRoomStore from '../../stores/roomStore';
-import { useProfile } from '../../hooks/useProfile';
+import { useFilters } from '../../hooks/useFilters';
 
 const RoomFilterTable = ({ autoHideEnabled = false }) => {
   const [loadingStates, setLoadingStates] = useState({});
@@ -18,7 +18,7 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
     getNotificationRoomsCount
   } = useRoomStore();
 
-  const { savePreset, isSavingPreset } = useProfile();
+  const { saveFilter, isSavingFilter } = useFilters();
 
   const handleDisplayToggle = async (room) => {
     setLoadingStates(prev => ({ ...prev, [`display-${room}`]: true }));
@@ -48,15 +48,15 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
     }
   };
 
-  const handleSavePreset = async () => {
+  const handleSaveFilter = async () => {
     if (!presetName.trim()) return;
     
     try {
-      await savePreset(presetName.trim(), selectedRooms, notificationRooms);
+      await saveFilter(presetName.trim(), selectedRooms, notificationRooms);
       setPresetName('');
       setShowSaveDialog(false);
     } catch (error) {
-      console.error('Failed to save preset:', error);
+      console.error('Failed to save filter:', error);
     }
   };
 
@@ -68,7 +68,7 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
           onClick={() => setShowSaveDialog(true)}
           className="flex items-center px-3 py-1 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
         >
-          💾 Save current selection as preset
+          💾 Save current selection as filter
         </button>
       </div>
       
@@ -153,7 +153,7 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="max-w-md w-full mx-4 p-6 rounded-lg shadow-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
-            <h3 className="text-lg font-medium mb-4">Save Preset</h3>
+            <h3 className="text-lg font-medium mb-4">Save Filter</h3>
             <input
               type="text"
               value={presetName}
@@ -170,15 +170,15 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
                 Cancel
               </button>
               <button
-                onClick={handleSavePreset}
-                disabled={!presetName.trim() || isSavingPreset}
+                onClick={handleSaveFilter}
+                disabled={!presetName.trim() || isSavingFilter}
                 className={`px-4 py-2 text-sm font-medium rounded-md ${
-                  !presetName.trim() || isSavingPreset
+                  !presetName.trim() || isSavingFilter
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
               >
-                {isSavingPreset ? 'Saving...' : 'Save'}
+                {isSavingFilter ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
