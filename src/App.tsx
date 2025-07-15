@@ -2,15 +2,11 @@ import React, { useState, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event/Event";
-import FilterPanel from "./components/MenuPanel/FilterPanel";
 import TimeGrid from "./components/Grid/TimeGrid";
 import CurrentTimeIndicator from "./components/Grid/CurrentTimeIndicator";
 import RoomRow from "./components/Grid/RoomRow";
 import VerticalLines from "./components/Grid/VerticalLines";
-import DatePickerComponent from "./components/Grid/DatePickerComponent";
-import AcademicCalendarInfo from "./components/Grid/AcademicCalendarInfo";
-import QuarterCount from "./components/Grid/QuarterCount";
-import CurrentFilterLink from "./components/Grid/CurrentFilterLink";
+import AppHeader from "./components/AppHeader";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import "react-datepicker/dist/react-datepicker.css";
@@ -151,36 +147,12 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        {/* Mobile-Responsive Header */}
-        <div className="mb-4">
-          {/* Top Row - Date Picker and Menu */}
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex-1 max-w-xs">
-              <DatePickerComponent 
-                selectedDate={selectedDate}
-                setSelectedDate={handleDateChange}
-                isLoading={isLoading}
-              />
-            </div>
-            <FilterPanel selectedDate={selectedDate} events={events} />
-          </div>
-
-          {/* Second Row - Quarter Count and Academic Info */}
-          <div className="flex flex-wrap gap-2 items-center justify-between">
-            <div className="hidden sm:block">
-              <QuarterCount />
-            </div>
-            <div className="hidden sm:block">
-              <AcademicCalendarInfo />
-            </div>
-          </div>
-
-          {/* Desktop Row - Academic Info and Current Filter */}
-          <div className="hidden sm:flex items-center justify-between mt-2">
-            <AcademicCalendarInfo />
-            <CurrentFilterLink />
-          </div>
-        </div>
+        <AppHeader 
+          selectedDate={selectedDate}
+          setSelectedDate={handleDateChange}
+          isLoading={isLoading}
+          events={events}
+        />
 
         <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
           <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
@@ -203,36 +175,12 @@ function AppContent() {
 
       return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        {/* Mobile-Responsive Header */}
-        <div className="mb-4">
-          {/* Top Row - Date Picker and Menu */}
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex-1 max-w-xs">
-              <DatePickerComponent 
-                selectedDate={selectedDate}
-                setSelectedDate={handleDateChange}
-                isLoading={isLoading}
-              />
-            </div>
-            <FilterPanel selectedDate={selectedDate} events={events} />
-          </div>
-
-          {/* Second Row - Quarter Count and Academic Info */}
-          <div className="flex flex-wrap gap-2 items-center justify-between">
-            <div className="hidden sm:block">
-              <QuarterCount />
-            </div>
-            <div className="hidden sm:block">
-              <AcademicCalendarInfo />
-            </div>
-          </div>
-
-          {/* Desktop Row - Academic Info and Current Filter */}
-          <div className="hidden sm:flex items-center justify-between mt-2">
-            <AcademicCalendarInfo />
-            <CurrentFilterLink />
-          </div>
-        </div>
+        <AppHeader 
+          selectedDate={selectedDate}
+          setSelectedDate={handleDateChange}
+          isLoading={isLoading}
+          events={events}
+        />
 
       <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
