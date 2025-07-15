@@ -77,7 +77,7 @@ export default function FacultyStatusBars({ facultyMember, onUpdate, isEditable 
       `}</style>
       
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Faculty Profile</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Attributes</h3>
         {isEditable && (
           <div className="flex gap-2">
             {!isEditing ? (

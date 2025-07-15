@@ -33,13 +33,50 @@ export default function SessionSetup({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
       
+      {/* Faculty Information - Full Width at Top */}
+      {event.instructor_name && (
+        <div className="mb-6">
+          <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+            <div className="flex items-center gap-3">
+              {facultyMember?.kelloggdirectory_image_url ? (
+                <div className="relative">
+                  <img 
+                    src={facultyMember.kelloggdirectory_image_url} 
+                    alt={event.instructor_name}
+                    className="h-16 w-16 rounded-full object-cover filter grayscale opacity-80"
+                    onError={(e) => {
+                      console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
+                </div>
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                  <span className="text-gray-600 dark:text-gray-400 text-xl">👤</span>
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{event.instructor_name}</h3>
+                {facultyMember?.kelloggdirectory_title && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
+                )}
+                {isFacultyLoading && (
+                  <p className="text-xs text-gray-400">Loading faculty info...</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Two Column Layout - Attributes and Setup Options */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Faculty Profile and Faculty Info */}
+        {/* Left Column - Attributes and Setup Options */}
         <div className="space-y-6">
-          {/* Faculty Profile Box */}
+          {/* Attributes */}
           {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Faculty Profile</h3>
               <FacultyStatusBars 
                 facultyMember={facultyMember} 
                 isEditable={true}
@@ -62,63 +99,20 @@ export default function SessionSetup({
             </div>
           )}
 
-          {/* Faculty Info Box */}
-          {event.instructor_name && (
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Faculty Information</h3>
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-                <div className="flex items-center gap-3">
-                  {facultyMember?.kelloggdirectory_image_url ? (
-                    <img 
-                      src={facultyMember.kelloggdirectory_image_url} 
-                      alt={event.instructor_name}
-                      className="h-16 w-16 rounded-full object-cover"
-                      onError={(e) => {
-                        console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                      <span className="text-gray-600 dark:text-gray-400 text-xl">👤</span>
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">{event.instructor_name}</h3>
-                    {facultyMember?.kelloggdirectory_title && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{facultyMember.kelloggdirectory_title}</p>
-                    )}
-                    {facultyMember?.kelloggdirectory_bio && (
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-3">
-                        {facultyMember.kelloggdirectory_bio}
-                      </p>
-                    )}
-                    {isFacultyLoading && (
-                      <p className="text-xs text-gray-400">Loading faculty info...</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column - Typical Setup */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Typical Setup: {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name}
-          </h3>
-          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg min-h-[200px]">
-            {event.instructor_name && facultyMember ? (
+          {/* Setup Options Group */}
+          {event.instructor_name && facultyMember && (
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img 
-                      src="/lapel.png" 
-                      alt="Lapel microphone" 
-                      className="w-16 h-16 object-contain"
-                    />
+                    <div className="w-12 h-12 bg-white dark:bg-gray-300 rounded-full flex items-center justify-center">
+                      <img 
+                        src="/lapel.png" 
+                        alt="Lapel microphone" 
+                        className="w-20 h-20 object-contain"
+                      />
+                    </div>
                     <span className="text-gray-700 dark:text-gray-300 font-medium">Uses Microphone</span>
                   </div>
                   <label className="inline-flex items-center cursor-pointer select-none">
@@ -156,12 +150,6 @@ export default function SessionSetup({
                     </span>
                   </label>
                 </div>
-                
-                {/* Setup Notes */}
-                <SetupNotesEditor
-                  event={event}
-                  facultyMember={facultyMember}
-                />
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (
                   <div className="mt-6">
@@ -225,12 +213,20 @@ export default function SessionSetup({
                   </div>
                 )}
               </div>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 italic">
-                {isFacultyLoading ? 'Loading faculty information...' : 'No faculty information available'}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Setup Notes */}
+        <div>
+          {event.instructor_name && facultyMember && (
+            <div>
+              <SetupNotesEditor
+                event={event}
+                facultyMember={facultyMember}
+              />
+            </div>
+          )}
         </div>
       </div>
 
