@@ -134,36 +134,51 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <div className="max-w-7xl mx-auto flex flex-row items-start gap-4">
-        {/* Back Button - left of main content, vertically centered */}
-        <button
-          onClick={handleBack}
-          className="flex-shrink-0 mt-2 mr-2 text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 rounded-full p-2 focus:outline-none font-bold"
-          aria-label="Back to Schedule"
-          title="Back to Schedule"
-        >
-          <span className="text-3xl leading-none">&lt;</span>
-        </button>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Back Button - Mobile: top, Desktop: left */}
+        <div className="flex sm:hidden mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 shadow-sm focus:outline-none font-medium"
+            aria-label="Back to Schedule"
+            title="Back to Schedule"
+          >
+            <span className="text-xl">&lt;</span>
+            <span>Back</span>
+          </button>
+        </div>
         
-        {/* Main Content */}
-        <div className="flex-1">
-          <EventDetailHeader
-            event={event}
-            facultyMember={facultyMember}
-            isFacultyLoading={isFacultyLoading}
-            hasVideoRecording={hasVideoRecording}
-            resources={resources}
-          />
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+          {/* Back Button - Desktop only */}
+          <button
+            onClick={handleBack}
+            className="hidden sm:flex flex-shrink-0 mt-2 mr-2 text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 rounded-full p-2 focus:outline-none font-bold"
+            aria-label="Back to Schedule"
+            title="Back to Schedule"
+          >
+            <span className="text-3xl leading-none">&lt;</span>
+          </button>
           
-          <SessionSetup
-            event={event}
-            resources={resources}
-            facultyMember={facultyMember}
-            isFacultyLoading={isFacultyLoading}
-            updateFacultyAttributes={updateFacultyAttributes}
-            openPanelModal={openPanelModal}
-          />
+          {/* Main Content */}
+          <div className="flex-1 w-full">
+            <EventDetailHeader
+              event={event}
+              facultyMember={facultyMember}
+              isFacultyLoading={isFacultyLoading}
+              hasVideoRecording={hasVideoRecording}
+              resources={resources}
+            />
+            
+            <SessionSetup
+              event={event}
+              resources={resources}
+              facultyMember={facultyMember}
+              isFacultyLoading={isFacultyLoading}
+              updateFacultyAttributes={updateFacultyAttributes}
+              openPanelModal={openPanelModal}
+            />
+          </div>
         </div>
       </div>
 
