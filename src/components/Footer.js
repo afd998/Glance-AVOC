@@ -9,6 +9,7 @@ const Footer = () => {
           © 2025 Scion Informatics
         </div>
         <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600 dark:text-gray-300">Timezone: Chicago Standard Time</span>
           <Link
             to="/about"
             className="text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center space-x-1"

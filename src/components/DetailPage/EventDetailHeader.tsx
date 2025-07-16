@@ -26,15 +26,11 @@ const formatTimeFromISO = (isoString: string | null): string => {
   if (!isoString) return '';
   try {
     const date = new Date(isoString);
-    // Adjust for timezone offset since timestamps are stored as Chicago time
-    // but JavaScript interprets them as UTC
-    const timezoneOffset = date.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
-    const adjustedDate = new Date(date.getTime() + timezoneOffset);
-    return adjustedDate.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   } catch (error) {
     console.error('Error formatting time:', isoString, error);
     return '';
@@ -77,7 +73,7 @@ export default function EventDetailHeader({
           
           <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-1">{formatDate(event.start_time || '')}</p>
           <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
-            {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)}
+            {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
           </p>
         </div>
 
