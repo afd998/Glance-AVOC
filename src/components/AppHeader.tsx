@@ -1,6 +1,6 @@
 import React from 'react';
 import DatePickerComponent from './Grid/DatePickerComponent';
-import FilterPanel from './MenuPanel/FilterPanel';
+import MenuPanel from './MenuPanel/MenuPanel';
 import AcademicCalendarInfo from './Grid/AcademicCalendarInfo';
 import CurrentFilterLink from './Grid/CurrentFilterLink';
 import QuarterCount from './Grid/QuarterCount';
@@ -30,7 +30,7 @@ export default function AppHeader({
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
-          {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, FilterPanel */}
+          {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, MenuPanel */}
           <div className="flex items-center justify-center">
             <button
               onClick={() => {
@@ -111,7 +111,7 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-end">
-            <FilterPanel selectedDate={selectedDate} events={events} />
+            <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
           {/* Row 2: Empty, Empty, QuarterCount, Empty, Empty, Empty, Empty */}
@@ -134,7 +134,7 @@ export default function AppHeader({
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
-          {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, FilterPanel */}
+          {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, MenuPanel */}
           <div className="flex items-center justify-center">
             <button
               onClick={() => {
@@ -215,7 +215,7 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-end">
-            <FilterPanel selectedDate={selectedDate} events={events} />
+            <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
           {/* Row 2: Empty, Empty, QuarterCount, Empty, Empty, Empty, Empty */}
