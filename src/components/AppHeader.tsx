@@ -206,12 +206,12 @@ export default function AppHeader({
             </button>
           </div>
           
-          <div className="flex items-center justify-center" style={{ visibility: 'hidden' }}>
-            <AcademicCalendarInfo />
+          <div className="flex items-center justify-center">
+            {false && <AcademicCalendarInfo />}
           </div>
           
-          <div className="flex items-center justify-center" style={{ visibility: 'hidden' }}>
-            <CurrentFilterLink />
+          <div className="flex items-center justify-center">
+            {false && <CurrentFilterLink />}
           </div>
           
           <div className="flex items-center justify-end">
@@ -221,8 +221,8 @@ export default function AppHeader({
           {/* Row 2: Empty, Empty, QuarterCount, Empty, Empty, Empty, Empty */}
           <div></div>
           <div></div>
-          <div className="flex items-center justify-center" style={{ visibility: 'hidden' }}>
-            <QuarterCount />
+          <div className="flex items-center justify-center">
+            {false && <QuarterCount />}
           </div>
           <div></div>
           <div></div>
