@@ -29,7 +29,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ selectedDate = new Date(), ev
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 z-50 shadow-lg hover:shadow-xl transform hover:scale-105 group"
+          className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 group"
           aria-label="Open menu"
         >
           <div className="flex flex-col items-center justify-center space-y-1">
