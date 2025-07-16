@@ -28,11 +28,7 @@ export default function EventHeader({
     if (!timeString) return '';
     try {
       const date = new Date(timeString);
-      // Adjust for timezone offset since timestamps are stored as Chicago time
-      // but JavaScript interprets them as UTC
-      const timezoneOffset = date.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
-      const adjustedDate = new Date(date.getTime() + timezoneOffset);
-      return adjustedDate.toLocaleTimeString('en-US', { 
+      return date.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true 
