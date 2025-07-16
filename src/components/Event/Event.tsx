@@ -88,8 +88,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return null;
   }
 
-  // Parse event resources using the utility function
-  const { hasVideoRecording, hasHandheldMic, hasStaffAssistance, hasWebConference, hasClickers } = parseEventResources(event);
+
 
   // Calculate event positioning using the utility function
   const { left, width } = calculateEventPosition(event, startHour, pixelsPerMinute);
@@ -125,11 +124,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       <div className="flex flex-col h-full transition-all duration-200 ease-in-out">
         <EventHeader 
           event={event}
-          hasVideoRecording={hasVideoRecording}
-          hasStaffAssistance={hasStaffAssistance}
-          hasHandheldMic={hasHandheldMic}
-          hasWebConference={hasWebConference}
-          hasClickers={hasClickers}
           isHovering={isHoveringEvent}
         />
                 <EventContent 

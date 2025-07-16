@@ -9,11 +9,6 @@ interface ResourceItem {
 }
 
 interface ResourceFlags {
-  hasVideoRecording: boolean;
-  hasHandheldMic: boolean;
-  hasStaffAssistance: boolean;
-  hasWebConference: boolean;
-  hasClickers: boolean;
   resources: ResourceItem[];
 }
 
@@ -43,47 +38,21 @@ export const parseEventResources = (event: Event): ResourceFlags => {
   // Check if event has resources in the new JSONB format
   if (!event.resources || !Array.isArray(event.resources)) {
     return {
-      hasVideoRecording: false,
-      hasHandheldMic: false,
-      hasStaffAssistance: false,
-      hasWebConference: false,
-      hasClickers: false,
       resources: []
     };
   }
 
   const resources = event.resources as ResourceItem[];
 
-  // Compute boolean flags for quick checks
-  const hasVideoRecording = resources.some(item => 
-    item.itemName === "KSM-KGH-VIDEO-Recording (POST TO CANVAS)" || 
-    item.itemName === "KSM-KGH-VIDEO-Recording (PRIVATE LINK)" ||
-    item.itemName === "KSM-KGH-VIDEO-Recording"
-  );
-  
-  const hasHandheldMic = resources.some(item => 
-    item.itemName === "KSM-KGH-AV-Handheld Microphone"
-  );
-  
-  const hasStaffAssistance = resources.some(item => 
-    item.itemName === "KSM-KGH-AV-Staff Assistance"
-  );
-  
-  const hasWebConference = resources.some(item => 
-    item.itemName === "KSM-KGH-AV-Web Conference"
-  );
-  
-  const hasClickers = resources.some(item => 
-    item.itemName === "KSM-KGH-AV-SRS Clickers (polling)"
-  );
+  // Add icon and displayName properties to each resource item
+  const resourcesWithIcons = resources.map(item => ({
+    ...item,
+    icon: getResourceIcon(item.itemName),
+    displayName: getResourceDisplayName(item.itemName)
+  }));
 
   return {
-    hasVideoRecording,
-    hasHandheldMic,
-    hasStaffAssistance,
-    hasWebConference,
-    hasClickers,
-    resources
+    resources: resourcesWithIcons
   };
 };
 
@@ -98,7 +67,7 @@ export const getResourceIcon = (itemName: string): string => {
     case "KSM-KGH-VIDEO-Recording":
       return "📹";
     case "KSM-KGH-VIDEO-Recording (PRIVATE LINK)":
-      return "🔗";
+      return "📹";
     case "KSM-KGH-AV-Handheld Microphone":
       return "🎤";
     case "KSM-KGH-AV-Staff Assistance":
@@ -215,30 +184,24 @@ export const calculateEventPosition = (
   roomLabelWidth: number = 96, 
   eventMargin: number = 1
 ): EventPosition => {
-  // Parse start_time and end_time from ISO strings
+  // Parse start_time and end_time from ISO strings (e.g., "2025-07-16 08:00:00+00")
   const startTime = new Date(event.start_time || '');
   const endTime = new Date(event.end_time || '');
   
-  // Adjust for timezone offset since timestamps are stored as Chicago time
-  // but JavaScript interprets them as UTC
-  const timezoneOffset = startTime.getTimezoneOffset() * 60 * 1000; // Convert minutes to milliseconds
-  const adjustedStartTime = new Date(startTime.getTime() + timezoneOffset);
-  const adjustedEndTime = new Date(endTime.getTime() + timezoneOffset);
-  
-  // Convert to hours (e.g., 13.5 for 1:30 PM)
-  const startHourDecimal = adjustedStartTime.getHours() + (adjustedStartTime.getMinutes() / 60);
-  const endHourDecimal = adjustedEndTime.getHours() + (adjustedEndTime.getMinutes() / 60);
-  
-  // Calculate minutes from start of day
-  const startMinutes = Math.round((startHourDecimal - startHour) * 60);
-  const endMinutes = Math.round((endHourDecimal - startHour) * 60);
+  // Calculate minutes from start of day (midnight)
+  const startMinutes = (startTime.getHours() * 60) + startTime.getMinutes();
+  const endMinutes = (endTime.getHours() * 60) + endTime.getMinutes();
   const durationMinutes = endMinutes - startMinutes;
   
+  // Calculate minutes relative to the grid start hour
+  const startMinutesRelative = startMinutes - (startHour * 60);
+  const endMinutesRelative = endMinutes - (startHour * 60);
+  
   return {
-    startMinutes,
-    endMinutes,
+    startMinutes: startMinutesRelative,
+    endMinutes: endMinutesRelative,
     durationMinutes,
-    left: `${(startMinutes * pixelsPerMinute + eventMargin) - roomLabelWidth}px`,
+    left: `${(startMinutesRelative * pixelsPerMinute + eventMargin) - roomLabelWidth}px`,
     width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`
   };
 }; 

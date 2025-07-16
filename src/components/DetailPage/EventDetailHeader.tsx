@@ -18,7 +18,6 @@ interface EventDetailHeaderProps {
   event: Event;
   facultyMember: FacultyMember | null | undefined;
   isFacultyLoading: boolean;
-  hasVideoRecording: boolean;
   resources: ResourceItem[];
 }
 
@@ -46,7 +45,6 @@ export default function EventDetailHeader({
   event, 
   facultyMember, 
   isFacultyLoading,
-  hasVideoRecording,
   resources
 }: EventDetailHeaderProps) {
   return (
@@ -105,20 +103,27 @@ export default function EventDetailHeader({
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Resources:</span>
               </div>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
+              <div className="flex flex-col gap-2">
                 {resources.map((item, index) => (
                   <div 
                     key={index} 
-                    className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-full text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                    className="flex flex-col gap-1 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-xs sm:text-sm text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                   >
-                    <span className="flex-shrink-0 text-sm sm:text-base">
-                      {getResourceIcon(item.itemName)}
-                    </span>
-                    <span className="whitespace-nowrap">{getResourceDisplayName(item.itemName)}</span>
-                    {item.quantity && item.quantity > 1 && (
-                      <span className="ml-1 px-1 sm:px-1.5 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
-                        {item.quantity}
+                    <div className="flex items-center gap-2">
+                      <span className="flex-shrink-0 text-sm sm:text-base">
+                        {getResourceIcon(item.itemName)}
                       </span>
+                      <span className="font-medium">{getResourceDisplayName(item.itemName)}</span>
+                      {item.quantity && item.quantity > 1 && (
+                        <span className="ml-1 px-1 sm:px-1.5 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
+                          {item.quantity}
+                        </span>
+                      )}
+                    </div>
+                    {item.instruction && (
+                      <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 pl-6">
+                        {item.instruction}
+                      </div>
                     )}
                   </div>
                 ))}

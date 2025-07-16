@@ -56,7 +56,7 @@ export default function EventDetail() {
   const updateFacultyAttributes = useUpdateFacultyAttributes();
   
   // Parse event resources using the utility function (only if event exists)
-  const { resources, hasVideoRecording } = event ? parseEventResources(event) : { resources: [], hasVideoRecording: false };
+  const { resources } = event ? parseEventResources(event) : { resources: [] };
 
   const handleBack = () => {
     navigate(-1);
@@ -149,7 +149,6 @@ export default function EventDetail() {
                 event={event}
                 facultyMember={facultyMember}
                 isFacultyLoading={isFacultyLoading}
-                hasVideoRecording={hasVideoRecording}
                 resources={resources}
               />
               

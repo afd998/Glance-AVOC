@@ -1,28 +1,28 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
+import { parseEventResources } from '../../utils/eventUtils';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
 interface EventHeaderProps {
   event: Event;
-  hasVideoRecording: boolean;
-  hasStaffAssistance: boolean;
-  hasHandheldMic: boolean;
-  hasWebConference: boolean;
-  hasClickers: boolean;
   isHovering: boolean;
 }
 
 export default function EventHeader({ 
   event, 
-  hasVideoRecording, 
-  hasStaffAssistance, 
-  hasHandheldMic, 
-  hasWebConference,
-  hasClickers,
   isHovering = false
 }: EventHeaderProps) {
+  // Parse event resources using the utility function
+  const { resources } = parseEventResources(event);
+  
+  // Check for specific resources by display name
+  const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
+  const hasStaffAssistance = resources.some(item => item.displayName === 'Staff Assistance');
+  const hasHandheldMic = resources.some(item => item.displayName === 'Handheld Microphone');
+  const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
+  const hasClickers = resources.some(item => item.displayName === 'Clickers (Polling)');
   // Format start and end times from ISO strings
   const formatTimeFromISO = (timeString: string | null) => {
     if (!timeString) return '';
