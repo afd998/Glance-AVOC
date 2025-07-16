@@ -36,6 +36,13 @@
   }
 }
 
+/* iPhone Safe Area Handling */
+html {
+  /* Ensure the viewport covers the safe area */
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -43,6 +50,30 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Handle iPhone safe areas */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  
+  /* Default background colors that match the status bar */
+  background-color: #e5e7eb; /* Light mode background */
+}
+
+/* Dark mode body background */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111827; /* Dark mode background */
+  }
+}
+
+/* Ensure the root element also handles safe areas */
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Hide scrollbars across the entire app */
@@ -199,4 +230,26 @@ code {
 
 .react-datepicker__navigation:hover {
   background-color: #f3f4f6 !important;
+}
+
+.react-datepicker__month-container {
+  background-color: #ffffff !important;
+  border-radius: 0.5rem !important;
+}
+
+.react-datepicker__triangle {
+  border-bottom-color: #ffffff !important;
+}
+
+.react-datepicker__triangle::before {
+  border-bottom-color: #e5e7eb !important;
+}
+
+.react-datepicker__day--outside-month {
+  color: #9ca3af !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
 }
