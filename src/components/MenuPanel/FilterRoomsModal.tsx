@@ -10,7 +10,7 @@ interface FilterRoomsModalProps {
 }
 
 const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) => {
-  const { autoHide, updateAutoHide, isUpdatingAutoHide } = useProfile();
+  const { autoHide } = useProfile();
   const { isDarkMode } = useTheme();
 
   // Close modal on escape key
@@ -36,15 +36,19 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
+      onClick={onClose}
+    >
       <div 
         className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-lg shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+          isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold">Rooms</h2>
+          <h2 className="text-2xl font-semibold">Filter Rooms</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
@@ -57,27 +61,10 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Auto-hide Empty Rooms */}
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Auto-hide Empty Rooms</span>
-              <input
-                type="checkbox"
-                checked={autoHide}
-                onChange={(e) => updateAutoHide(e.target.checked)}
-                disabled={isUpdatingAutoHide}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-            </div>
-          </div>
-
           {/* Two Column Layout */}
           <div className="grid grid-cols-2 gap-6">
-          {/* Preset Manager */}
-          <PresetManager 
-            autoHideEmpty={autoHide} 
-            onAutoHideChange={updateAutoHide} 
-          />
+            {/* Preset Manager */}
+            <PresetManager />
 
             {/* Room Filter Table */}
             <RoomFilterTable autoHideEnabled={autoHide} />

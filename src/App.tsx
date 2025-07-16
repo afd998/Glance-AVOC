@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
 import TimeWindowPicker from "./components/TimeWindowPicker";
 import Event from "./components/Event/Event";
 import TimeGrid from "./components/Grid/TimeGrid";
@@ -44,7 +44,8 @@ function AppContent() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const currentTimeRef = useRef(new Date());
   const navigate = useNavigate();
-  const { date } = useParams<{ date: string }>();
+  const location = useLocation();
+  const { date, eventId } = useParams<{ date: string; eventId: string }>();
   
   // Use Zustand store for room state
   const { 
@@ -79,6 +80,9 @@ function AppContent() {
   // Get profile and filters data
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
+
+  // Check if we're on an event detail route
+  const isEventDetailRoute = location.pathname.includes('/event/');
 
   // Load current filter on mount and when filters change
   React.useEffect(() => {
@@ -173,14 +177,14 @@ function AppContent() {
     return <div className="flex items-center justify-center h-screen text-red-500 dark:bg-gray-900">Error: {error.message}</div>;
   }
 
-      return (
-      <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
-        <AppHeader 
-          selectedDate={selectedDate}
-          setSelectedDate={handleDateChange}
-          isLoading={isLoading}
-          events={events}
-        />
+  return (
+    <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+      <AppHeader 
+        selectedDate={selectedDate}
+        setSelectedDate={handleDateChange}
+        isLoading={isLoading}
+        events={events}
+      />
 
       <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
@@ -225,6 +229,21 @@ function AppContent() {
           })}
         </div>
       </div>
+
+      {/* Event Detail Modal Overlay */}
+      {isEventDetailRoute && eventId && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
+          onClick={() => navigate(-1)}
+        >
+          <div 
+            className="w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EventDetail />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -259,7 +278,7 @@ export default function App() {
               <Route path="/event/:date/:eventId" element={
                 <ProtectedRoute>
                   <Layout>
-                    <EventDetail />
+                    <AppContent />
                   </Layout>
                 </ProtectedRoute>
               } />

@@ -96,12 +96,10 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p>Loading event details...</p>
-          </div>
+      <div className="p-4">
+        <div className="text-center text-gray-600 dark:text-gray-400">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p>Loading event details...</p>
         </div>
       </div>
     );
@@ -109,12 +107,10 @@ export default function EventDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center text-red-600 dark:text-red-400">
-            <h1 className="text-2xl font-bold mb-4">Error Loading Event</h1>
-            <p>{error.message}</p>
-          </div>
+      <div className="p-4">
+        <div className="text-center text-red-600 dark:text-red-400">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Event</h1>
+          <p>{error.message}</p>
         </div>
       </div>
     );
@@ -122,62 +118,50 @@ export default function EventDetail() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
-            <p>The event you're looking for could not be found.</p>
-          </div>
+      <div className="p-4">
+        <div className="text-center text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
+          <p>The event you're looking for could not be found.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Back Button - Mobile: top, Desktop: left */}
-        <div className="flex sm:hidden mb-4">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 shadow-sm focus:outline-none font-medium"
-            aria-label="Back to Schedule"
-            title="Back to Schedule"
-          >
-            <span className="text-xl">&lt;</span>
-            <span>Back</span>
-          </button>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-start gap-4">
-          {/* Back Button - Desktop only */}
-          <button
-            onClick={handleBack}
-            className="hidden sm:flex flex-shrink-0 mt-2 mr-2 text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 rounded-full p-2 focus:outline-none font-bold"
-            aria-label="Back to Schedule"
-            title="Back to Schedule"
-          >
-            <span className="text-3xl leading-none">&lt;</span>
-          </button>
-          
-          {/* Main Content */}
-          <div className="flex-1 w-full">
-            <EventDetailHeader
-              event={event}
-              facultyMember={facultyMember}
-              isFacultyLoading={isFacultyLoading}
-              hasVideoRecording={hasVideoRecording}
-              resources={resources}
-            />
-            
-            <SessionSetup
-              event={event}
-              resources={resources}
-              facultyMember={facultyMember}
-              isFacultyLoading={isFacultyLoading}
-              updateFacultyAttributes={updateFacultyAttributes}
-              openPanelModal={openPanelModal}
-            />
+    <div className="relative">
+      {/* Close Button */}
+      <button
+        onClick={handleBack}
+        className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        aria-label="Close"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            {/* Main Content */}
+            <div className="flex-1 w-full">
+              <EventDetailHeader
+                event={event}
+                facultyMember={facultyMember}
+                isFacultyLoading={isFacultyLoading}
+                hasVideoRecording={hasVideoRecording}
+                resources={resources}
+              />
+              
+              <SessionSetup
+                event={event}
+                resources={resources}
+                facultyMember={facultyMember}
+                isFacultyLoading={isFacultyLoading}
+                updateFacultyAttributes={updateFacultyAttributes}
+                openPanelModal={openPanelModal}
+              />
+            </div>
           </div>
         </div>
       </div>

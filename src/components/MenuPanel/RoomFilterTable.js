@@ -61,7 +61,7 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
       <div className="mb-3 flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Rooms</h3>
         <button
@@ -98,7 +98,7 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
                 return (
                   <tr 
                     key={room} 
-                    className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 bg-white dark:bg-gray-800"
                   >
                     <td className="py-2 px-2 text-gray-700 dark:text-gray-300">
                       {room}
