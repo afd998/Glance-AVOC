@@ -9,7 +9,6 @@ interface AuthContextType {
   signInWithOtp: (email: string) => Promise<{ error: any }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: any; session: Session | null }>;
   signOut: () => Promise<void>;
-  ensureUserProfile: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,84 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Function to ensure user has a profile
-  const ensureUserProfile = async (userId: string) => {
-    console.log('ensureUserProfile: Starting for user:', userId);
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Profile check timeout')), 10000); // 10 second timeout
-    });
-
-    try {
-      // Check if profile exists with timeout
-      console.log('ensureUserProfile: Checking if profile exists...');
-      const profileCheckPromise = supabase
-        .from('profiles')
-        .select('id, name')
-        .eq('id', userId)
-        .single();
-
-      const result = await Promise.race([
-        profileCheckPromise,
-        timeoutPromise
-      ]) as { data: any; error: any };
-      
-      const { data: existingProfile, error: checkError } = result;
-
-      console.log('ensureUserProfile: Check result:', { existingProfile, checkError });
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // Profile doesn't exist, create one
-        console.log('ensureUserProfile: Profile doesn\'t exist, creating...');
-        
-        // Get user email from auth
-        const { data: { user } } = await supabase.auth.getUser();
-        const userEmail = user?.email || userId;
-        
-        const { error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            name: userEmail,
-            auto_hide: false,
-            current_filter: null
-          });
-
-        if (createError) {
-          console.error('Error creating user profile:', createError);
-        } else {
-          console.log('Created default profile for user:', userId);
-        }
-      } else if (checkError) {
-        console.error('Error checking user profile:', checkError);
-      } else {
-        // Profile exists, but check if name is null and update it
-        if (existingProfile && !existingProfile.name) {
-          console.log('ensureUserProfile: Profile exists but name is null, updating...');
-          const { data: { user } } = await supabase.auth.getUser();
-          const userEmail = user?.email || userId;
-          
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ name: userEmail })
-            .eq('id', userId);
-
-          if (updateError) {
-            console.error('Error updating user profile name:', updateError);
-          } else {
-            console.log('Updated profile name for user:', userId);
-          }
-        } else {
-          console.log('ensureUserProfile: Profile already exists');
-        }
-      }
-    } catch (error) {
-      console.error('Error ensuring user profile:', error);
-    }
-    console.log('ensureUserProfile: Completed');
-  };
 
   useEffect(() => {
     // Get initial session
@@ -130,30 +51,120 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signInWithOtp = async (email: string) => {
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true, // Allow new users to sign up
-      },
-    });
+    console.log('🔐 signInWithOtp: Starting with email:', email);
     
-    return { error };
+    try {
+      console.log('🔐 signInWithOtp: Calling Supabase auth.signInWithOtp...');
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // Don't create new users automatically
+        },
+      });
+      
+      console.log('🔐 signInWithOtp: Supabase response:', { 
+        hasData: !!data, 
+        hasError: !!error,
+        errorMessage: error?.message,
+        errorStatus: error?.status,
+        errorName: error?.name
+      });
+      
+      if (error) {
+        console.error('🔐 signInWithOtp: Supabase OTP error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+          stack: error.stack
+        });
+        
+        // Provide more specific error messages
+        if (error.message.includes('User not found') || error.message.includes('Invalid login credentials')) {
+          console.error('🔐 signInWithOtp: User not found in database');
+          return { 
+            error: { 
+              message: 'User not in database. Contact support for access.' 
+            } 
+          };
+        }
+        
+        if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
+          console.error('🔐 signInWithOtp: 500 error detected - likely database issue');
+          return { 
+            error: { 
+              message: 'Authentication service temporarily unavailable. Please try again in a few minutes.' 
+            } 
+          };
+        }
+        
+        return { error };
+      }
+      
+      console.log('🔐 signInWithOtp: Success - OTP sent to existing user');
+      return { error: null };
+    } catch (err) {
+      console.error('🔐 signInWithOtp: Unexpected error:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
+      });
+      return { 
+        error: { 
+          message: 'An unexpected error occurred. Please try again.' 
+        } 
+      };
+    }
   };
 
   const verifyOtp = async (email: string, token: string) => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    });
+    console.log('🔐 verifyOtp: Starting with email:', email, 'token length:', token.length);
     
-    if (!error && data.session) {
-      // Update the session state immediately
-      setSession(data.session);
-      setUser(data.session.user);
+    try {
+      console.log('🔐 verifyOtp: Calling Supabase auth.verifyOtp...');
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+      
+      console.log('🔐 verifyOtp: Supabase response:', { 
+        hasData: !!data, 
+        hasSession: !!data?.session,
+        hasUser: !!data?.session?.user,
+        hasError: !!error,
+        errorMessage: error?.message
+      });
+      
+      if (!error && data.session) {
+        console.log('🔐 verifyOtp: Session created successfully:', {
+          userId: data.session.user.id,
+          userEmail: data.session.user.email,
+          sessionExpiresAt: data.session.expires_at
+        });
+        
+        // Update the session state immediately
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+      
+      if (error) {
+        console.error('🔐 verifyOtp: Supabase error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
+      }
+      
+      return { error, session: data.session };
+    } catch (err) {
+      console.error('🔐 verifyOtp: Unexpected error:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error'
+      });
+      return { error: err, session: null };
     }
-    
-    return { error, session: data.session };
   };
 
   const signOut = async () => {
@@ -167,7 +178,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithOtp,
     verifyOtp,
     signOut,
-    ensureUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

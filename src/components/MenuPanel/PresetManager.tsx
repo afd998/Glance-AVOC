@@ -89,18 +89,18 @@ const PresetManager: React.FC = () => {
                 <div className="w-4 h-4 border border-green-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
-          </div>
+        </div>
 
-          {loading ? (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading filters...</p>
-            </div>
+              </div>
           ) : filters.length === 0 ? (
-            <div className="text-center py-4">
+              <div className="text-center py-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">No filters saved yet</p>
-            </div>
-          ) : (
+              </div>
+            ) : (
             filters.map((filter) => {
               const isCurrentFilter = currentFilter === filter.name;
               return (
@@ -129,7 +129,7 @@ const PresetManager: React.FC = () => {
                         {filter.isDefault && (
                           <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(Default)</span>
                         )}
-                      </h4>
+                    </h4>
                       <p className={`text-xs ${
                         isCurrentFilter 
                           ? 'text-green-600 dark:text-green-300' 
@@ -140,20 +140,20 @@ const PresetManager: React.FC = () => {
                     </div>
                   </div>
                   {!filter.isDefault && (
-                    <button
+                  <button
                       onClick={(e) => handleDeleteFilter(filter.id, e)}
                       className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-                    >
+                  >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                    </button>
+                  </button>
                   )}
                 </div>
               );
             })
-          )}
-        </div>
+            )}
+          </div>
       </div>
     </div>
   );

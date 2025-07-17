@@ -2,6 +2,17 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { playNotificationAudio } from '../utils/notificationSound';
 import useRoomStore from '../stores/roomStore';
 
+// Helper function to convert UTC time to Chicago time
+const convertUTCToChicagoTime = (utcDate, utcHour) => {
+  // Create a new date object with the UTC date and hour
+  const date = new Date(utcDate);
+  date.setUTCHours(utcHour, 0, 0, 0);
+  
+  // Convert to Chicago time (Central Time)
+  const chicagoTime = new Date(date.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+  return chicagoTime;
+};
+
 export function useNotifications() {
   const [permission, setPermission] = useState('default');
   const [isSupported, setIsSupported] = useState(false);
@@ -90,30 +101,39 @@ export function useNotifications() {
       return;
     }
 
-    // Create the event start time
-    const startTime = new Date(eventDate);
-    startTime.setHours(startHour, startMinute, 0, 0);
+    // Convert UTC time to Chicago time for the event start
+    const chicagoStartTime = convertUTCToChicagoTime(eventDate, startHour);
+    chicagoStartTime.setMinutes(startMinute, 0, 0);
 
     // Calculate notification time (15 minutes before)
-    const notificationTime = new Date(startTime.getTime() - (minutesBefore * 60 * 1000));
+    const notificationTime = new Date(chicagoStartTime.getTime() - (minutesBefore * 60 * 1000));
+    
+    // Get current time in Chicago
     const now = new Date();
+    const chicagoNow = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
 
-
+    console.log('🔔 Time Debug:', {
+      eventName: event.itemName,
+      utcStartHour: startHour,
+      chicagoStartTime: chicagoStartTime.toLocaleString("en-US", {timeZone: "America/Chicago"}),
+      notificationTime: notificationTime.toLocaleString("en-US", {timeZone: "America/Chicago"}),
+      chicagoNow: chicagoNow.toLocaleString("en-US", {timeZone: "America/Chicago"}),
+      timeUntilNotification: notificationTime.getTime() - chicagoNow.getTime()
+    });
 
     // Only schedule if notification time is in the future
-    if (notificationTime > now) {
+    if (notificationTime > chicagoNow) {
       const timeoutId = setTimeout(() => {
-        
         sendNotification(event, hasStaffAssistance, hasWebConference);
-      }, notificationTime.getTime() - now.getTime());
+      }, notificationTime.getTime() - chicagoNow.getTime());
 
       // Store timeout ID for cleanup
       const eventKey = `${event.id}-${event.subject_item_date}-${event.start}`;
       notificationTimeouts.current.set(eventKey, timeoutId);
       
-      
+      console.log('✅ Scheduled notification for:', event.itemName, 'at', notificationTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
     } else {
-      
+      console.log('❌ Notification time has passed for:', event.itemName);
     }
   }, [permission, isSupported]);
 
@@ -212,7 +232,8 @@ export function useNotifications() {
 
       // Check if event is today and not already passed
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const chicagoNow = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+      const today = new Date(chicagoNow.getFullYear(), chicagoNow.getMonth(), chicagoNow.getDate());
       
       let eventDate;
       try {
@@ -229,12 +250,16 @@ export function useNotifications() {
         return;
       }
 
-      // Check if event has already started
+      // Check if event has already started (using Chicago time)
       const startTimeFloat = parseFloat(event.start);
       if (!isNaN(startTimeFloat)) {
-        const currentHour = now.getHours() + (now.getMinutes() / 60);
-        if (startTimeFloat <= currentHour) {
-          console.log('❌ Skipping event - already started:', startTimeFloat, '<=', currentHour);
+        const startHour = Math.floor(startTimeFloat);
+        const chicagoStartTime = convertUTCToChicagoTime(eventDate, startHour);
+        const currentHour = chicagoNow.getHours() + (chicagoNow.getMinutes() / 60);
+        const chicagoStartHour = chicagoStartTime.getHours() + (chicagoStartTime.getMinutes() / 60);
+        
+        if (chicagoStartHour <= currentHour) {
+          console.log('❌ Skipping event - already started (Chicago time):', chicagoStartHour, '<=', currentHour);
           return;
         }
       }

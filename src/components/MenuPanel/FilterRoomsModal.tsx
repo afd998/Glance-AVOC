@@ -61,8 +61,8 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-2 gap-6">
+          {/* Responsive Layout: Stacked on mobile, side-by-side on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Preset Manager */}
             <PresetManager />
 
