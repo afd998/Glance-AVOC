@@ -90,7 +90,7 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
                 <div className="flex flex-col gap-1">
                   {resources.map((item, index) => (
                     <div 
-                      key={index} 
+                      key={`${event.id}-resource-${index}`} 
                       className="flex flex-col gap-1 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-xs text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                     >
                       <div className="flex items-center gap-2">
@@ -169,6 +169,7 @@ export default function OccurrencesPage() {
         throw error;
       }
 
+      console.log('Occurrences query result:', data);
       return data || [];
     },
     enabled: !!currentEvent?.event_name,
