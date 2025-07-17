@@ -82,7 +82,7 @@ function AppContent() {
   const { filters } = useFilters();
 
   // Check if we're on an event detail route
-  const isEventDetailRoute = location.pathname.includes('/event/');
+  const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
 
   // Load current filter on mount and when filters change
   React.useEffect(() => {
@@ -145,7 +145,7 @@ function AppContent() {
   const handleEventClick = (event: Event) => {
     // Use the actual event ID from the database
     const dateStr = selectedDate.toISOString().split('T')[0];
-    navigate(`/event/${dateStr}/${event.id}`);
+    navigate(`/${dateStr}/${event.id}`);
   };
 
   if (isLoading) {
@@ -234,7 +234,7 @@ function AppContent() {
       {isEventDetailRoute && eventId && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(`/${date}`)}
         >
           <div 
             className="w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl"
@@ -275,7 +275,7 @@ export default function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
-              <Route path="/event/:date/:eventId" element={
+              <Route path="/:date/:eventId/*" element={
                 <ProtectedRoute>
                   <Layout>
                     <AppContent />

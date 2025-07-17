@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
 import { parseRoomName } from '../../utils/eventUtils';
@@ -43,6 +44,12 @@ export default function EventDetailHeader({
   isFacultyLoading,
   resources
 }: EventDetailHeaderProps) {
+  const navigate = useNavigate();
+  const { date } = useParams<{ date: string }>();
+
+  const handleOccurrencesClick = () => {
+    navigate(`/${date}/${event.id}/occurrences`);
+  };
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
@@ -75,6 +82,16 @@ export default function EventDetailHeader({
           <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
             {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
           </p>
+          
+          {/* Occurrences Button */}
+          <div className="mb-3 sm:mb-4">
+            <button
+              onClick={handleOccurrencesClick}
+              className="px-3 py-1.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+            >
+              Occurrences
+            </button>
+          </div>
         </div>
 
         {/* Right Side - Event Type/Room and Instructor Info */}

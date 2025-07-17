@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
 import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
 import { parseEventResources } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from './SessionSetup';
 import PanelModal from './PanelModal';
+import OccurrencesPage from '../../pages/OccurrencesPage';
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -19,7 +20,11 @@ interface PanelOption {
 
 export default function EventDetail() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { eventId, date } = useParams<{ eventId: string; date: string }>();
+  
+  // Check if we're on the occurrences route
+  const isOccurrencesRoute = location.pathname.endsWith('/occurrences');
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,7 +64,7 @@ export default function EventDetail() {
   const { resources } = event ? parseEventResources(event) : { resources: [] };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate(`/${date}`);
   };
 
   const openPanelModal = (panel: 'left' | 'right') => {
@@ -94,15 +99,8 @@ export default function EventDetail() {
     closeModal();
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading event details...</p>
-        </div>
-      </div>
-    );
+  if (isLoading || !event) {
+    return null;
   }
 
   if (error) {
@@ -111,17 +109,6 @@ export default function EventDetail() {
         <div className="text-center text-red-600 dark:text-red-400">
           <h1 className="text-2xl font-bold mb-4">Error Loading Event</h1>
           <p>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!event) {
-    return (
-      <div className="p-4">
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
-          <p>The event you're looking for could not be found.</p>
         </div>
       </div>
     );
@@ -172,6 +159,21 @@ export default function EventDetail() {
         onClose={closeModal}
         onSelectPanel={selectPanelImage}
       />
+
+      {/* Occurrences Modal Overlay */}
+      {isOccurrencesRoute && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-10 z-[9999] flex items-center justify-center p-4"
+          onClick={() => navigate(`/${date}/${eventId}`)}
+        >
+          <div 
+            className="w-full max-w-2xl max-h-[80vh] overflow-visible bg-transparent"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <OccurrencesPage />
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
