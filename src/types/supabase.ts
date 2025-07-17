@@ -95,6 +95,7 @@ export type Database = {
           resources: Json | null
           room_name: string | null
           start_time: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -110,6 +111,7 @@ export type Database = {
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -125,6 +127,7 @@ export type Database = {
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

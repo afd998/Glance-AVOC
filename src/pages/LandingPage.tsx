@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useWhitelist } from '../hooks/useWhitelist';
-import { supabase } from '../lib/supabase';
 
 const LandingPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,64 +11,17 @@ const LandingPage: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const { signInWithOtp, verifyOtp, user } = useAuth();
-  const { checkEmailWhitelisted, isChecking: isWhitelistChecking } = useWhitelist();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Function to ensure user has a profile
-  const ensureUserProfile = async (userId: string) => {
-    try {
-      // Check if profile exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .eq('id', userId)
-        .single();
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // Profile doesn't exist, create one
-        const { error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            name: email, // Use the email from the form
-            auto_hide: false,
-            current_filter: null
-          });
-
-        if (createError) {
-          console.error('Error creating user profile:', createError);
-        } else {
-          console.log('Created default profile for user:', userId);
-        }
-      } else if (checkError) {
-        console.error('Error checking user profile:', checkError);
-      } else {
-        // Profile exists, but check if name is null and update it
-        if (existingProfile && !existingProfile.name) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ name: email })
-            .eq('id', userId);
-
-          if (updateError) {
-            console.error('Error updating user profile name:', updateError);
-          } else {
-            console.log('Updated profile name for user:', userId);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error ensuring user profile:', error);
-    }
-  };
-
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📧 handleSendOtp: Starting with email:', email);
     setIsLoading(true);
     setMessage('');
 
     if (!email) {
+      console.log('📧 handleSendOtp: No email provided');
       setMessage('Please enter your email address');
       setMessageType('error');
       setIsLoading(false);
@@ -78,28 +29,26 @@ const LandingPage: React.FC = () => {
     }
 
     try {
-      // Check whitelist first
-      const whitelistResult = await checkEmailWhitelisted(email);
-      
-      if (!whitelistResult.isWhitelisted) {
-        setMessage(whitelistResult.error || 'Email not authorized');
-        setMessageType('error');
-        setIsLoading(false);
-        return;
-      }
-
-      // Send OTP if whitelist check passes
+      console.log('📧 handleSendOtp: Sending OTP to existing user...');
       const { error } = await signInWithOtp(email);
       
+      console.log('📧 handleSendOtp: OTP result:', {
+        hasError: !!error,
+        errorMessage: error?.message
+      });
+      
       if (error) {
+        console.error('📧 handleSendOtp: OTP error:', error);
         setMessage(error.message);
         setMessageType('error');
       } else {
+        console.log('📧 handleSendOtp: OTP sent successfully');
         setMessage('Check your email for the verification code!');
         setMessageType('success');
         setOtpSent(true);
       }
     } catch (error) {
+      console.error('📧 handleSendOtp: Unexpected error:', error);
       setMessage('An unexpected error occurred. Please try again.');
       setMessageType('error');
     } finally {
@@ -109,10 +58,12 @@ const LandingPage: React.FC = () => {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔑 handleVerifyOtp: Starting with email:', email, 'code length:', otpCode.length);
     setIsLoading(true);
     setMessage('');
 
     if (!otpCode || otpCode.length !== 6) {
+      console.log('🔑 handleVerifyOtp: Invalid OTP code length:', otpCode.length);
       setMessage('Please enter the 6-digit verification code');
       setMessageType('error');
       setIsLoading(false);
@@ -120,29 +71,34 @@ const LandingPage: React.FC = () => {
     }
 
     try {
+      console.log('🔑 handleVerifyOtp: Verifying OTP...');
       const { error, session } = await verifyOtp(email, otpCode);
       
+      console.log('🔑 handleVerifyOtp: Verification result:', {
+        hasError: !!error,
+        hasSession: !!session,
+        errorMessage: error?.message,
+        userId: session?.user?.id
+      });
+      
       if (error) {
+        console.error('🔑 handleVerifyOtp: Verification error:', error);
         setMessage(error.message);
         setMessageType('error');
       } else if (session) {
-        // Ensure user has a profile after successful authentication
-        if (session.user) {
-          await ensureUserProfile(session.user.id);
-        }
-        
+        console.log('🔑 handleVerifyOtp: Authentication complete, redirecting...');
         setMessage('Verification successful! Redirecting...');
         setMessageType('success');
-        // The AuthContext will handle the redirect automatically
-        // But we can also navigate manually if needed
         setTimeout(() => {
           navigate('/');
         }, 1000);
       } else {
+        console.log('🔑 handleVerifyOtp: No session returned from verification');
         setMessage('Verification failed. Please try again.');
         setMessageType('error');
       }
     } catch (error) {
+      console.error('🔑 handleVerifyOtp: Unexpected error:', error);
       setMessage('An unexpected error occurred. Please try again.');
       setMessageType('error');
     } finally {
@@ -237,7 +193,7 @@ const LandingPage: React.FC = () => {
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                   }`}
-                  disabled={isLoading || isWhitelistChecking}
+                  disabled={isLoading}
                 />
               </div>
             ) : (
@@ -269,17 +225,17 @@ const LandingPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading || isWhitelistChecking}
+              disabled={isLoading}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                isLoading || isWhitelistChecking
+                isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               }`}
             >
-              {isLoading || isWhitelistChecking ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  {isWhitelistChecking ? 'Checking authorization...' : otpSent ? 'Verifying...' : 'Sending code...'}
+                  {otpSent ? 'Verifying...' : 'Sending code...'}
                 </div>
               ) : (
                 otpSent ? 'Verify Code' : 'Send Verification Code'
@@ -321,7 +277,7 @@ const LandingPage: React.FC = () => {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Only authorized Northwestern email addresses can access this system.
+              Only authorized users can access this system. Contact support for access.
             </p>
           </div>
         </div>
