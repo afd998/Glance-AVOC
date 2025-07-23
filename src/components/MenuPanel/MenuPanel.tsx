@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import NotificationSettings from './NotificationSettings';
 import NotificationTest from './NotificationTest';
-
 import FilterRoomsModal from './FilterRoomsModal';
 import useRoomStore from '../../stores/roomStore';
 import useModalStore from '../../stores/modalStore';
-
+import SessionAssignmentsModal from './SessionAssignmentsModal';
 import UserProfile from '../UserProfile';
 import { Database } from '../../types/supabase';
-
-type Event = Database['public']['Tables']['events']['Row'];
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface MenuPanelProps {
   selectedDate: Date;
-  events: Event[] | undefined;
+  events: Database['public']['Tables']['events']['Row'][] | undefined;
 }
 
 const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
-
+  const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { date } = useParams();
 
   return (
     <>
@@ -39,7 +39,6 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
           </div>
         </button>
       )}
-
       {/* Menu Panel */}
       {isOpen && (
         <>
@@ -48,7 +47,6 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
             className="fixed inset-0 bg-black bg-opacity-25 z-[9998]"
             onClick={() => setIsOpen(false)}
           />
-          
           {/* Menu Panel */}
           <div style={{zIndex: 9999}} className="fixed top-0 right-0 h-screen w-80 bg-gray-100 dark:bg-gray-800 shadow-lg">
             <div className="p-6 h-full flex flex-col">
@@ -65,14 +63,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                   </svg>
                 </button>
               </div>
-
               {/* User Profile Section */}
               <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm mb-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Account</h3>
                 <UserProfile />
               </div>
-
-                        {/* Main Content */}
+              {/* Main Content */}
               <div className="flex-1 overflow-y-auto space-y-6">
                 {/* Filter Rooms Button */}
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
@@ -85,14 +81,33 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                     </svg>
                     Filter Rooms
                   </button>
+                  {/* Faculty List Button */}
+                  <button
+                    onClick={() => navigate(`/${date}/faculty`)}
+                    className="w-full flex items-center justify-center mt-3 px-4 py-3 border border-green-300 dark:border-green-600 text-sm font-medium rounded-md text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V8a4 4 0 00-8 0v4m8 0v4a4 4 0 01-8 0v-4" />
+                    </svg>
+                    Faculty List
+                  </button>
+                  {/* Session Assignments Button */}
+                  <button
+                    onClick={() => setIsSessionAssignmentsOpen(true)}
+                    className="w-full flex items-center justify-center mt-3 px-4 py-3 border border-purple-300 dark:border-purple-600 text-sm font-medium rounded-md text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Session Assignments
+                  </button>
                 </div>
-
                 {/* Notification Settings Section */}
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Notifications</h3>
                   <NotificationSettings />
                 </div>
-
                 {/* Quick Actions Section */}
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quick Actions</h3>
@@ -107,13 +122,11 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                         {isDarkMode ? 'Dark' : 'Light'}
                       </span>
                     </button>
-
                     {/* Notification Test */}
                     <NotificationTest />
                   </div>
                 </div>
               </div>
-
               {/* Footer */}
               <div className="pt-6 border-t border-gray-300 dark:border-gray-700">
                 <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
@@ -125,11 +138,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
           </div>
         </>
       )}
-
       {/* Filter Rooms Modal */}
       <FilterRoomsModal 
         isOpen={isFilterRoomsModalOpen} 
         onClose={closeFilterRoomsModal} 
+      />
+      {/* Session Assignments Modal */}
+      <SessionAssignmentsModal 
+        isOpen={isSessionAssignmentsOpen} 
+        onClose={() => setIsSessionAssignmentsOpen(false)} 
       />
     </>
   );

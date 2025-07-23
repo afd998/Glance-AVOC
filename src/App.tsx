@@ -1,7 +1,5 @@
 import React, { useState, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
-import TimeWindowPicker from "./components/TimeWindowPicker";
-import Event from "./components/Event/Event";
 import TimeGrid from "./components/Grid/TimeGrid";
 import CurrentTimeIndicator from "./components/Grid/CurrentTimeIndicator";
 import RoomRow from "./components/Grid/RoomRow";
@@ -19,8 +17,9 @@ import { useFilters } from "./hooks/useFilters";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import useRoomStore from './stores/roomStore';
-import EventDetail from './components/EventDetail';
-
+import EventDetail from './components/DetailPage/EventDetail';
+import FacultyListModal from './components/MenuPanel/FacultyListModal';
+import FacultyDetailModal from './components/Faculty/FacultyDetailModal';
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -28,14 +27,11 @@ import { Database } from './types/supabase';
 import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 
-type Event = Database['public']['Tables']['events']['Row'];
-
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 60 * 24, // 24 hours (renamed from cacheTime)
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 60 * 24,
     },
   },
 });
@@ -45,46 +41,29 @@ function AppContent() {
   const currentTimeRef = useRef(new Date());
   const navigate = useNavigate();
   const location = useLocation();
-  const { date, eventId } = useParams<{ date: string; eventId: string }>();
-  
-  // Use Zustand store for room state
-  const { 
-    selectedRooms, 
-    allRooms, 
-    setAllRooms, 
-    setSelectedRooms,
-    setNotificationRooms
-  } = useRoomStore();
-  
-  // Parse date from URL or use current date
+  const { date, eventId } = useParams();
+  const { selectedRooms, allRooms, setSelectedRooms, setNotificationRooms } = useRoomStore();
   const selectedDate = React.useMemo(() => {
     if (!date) {
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
     }
-    // Parse the date and set it to noon to avoid timezone issues
     const [year, month, day] = date.split('-').map(Number);
     const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
-    const result = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-    return result;
+    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   }, [date]);
-  
   const pixelsPerMinute = 2;
   const startHour = 6;
   const endHour = 23;
-  
-  const {events, isLoading, error } = useEvents(selectedDate);
+  const { events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
   const { autoHide } = useAutoHideLogic(events || [], selectedDate);
-  
-  // Get profile and filters data
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
-
-  // Check if we're on an event detail route
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
+  const isFacultyModalRoute = location.pathname.endsWith('/faculty');
+  const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
 
-  // Load current filter on mount and when filters change
   React.useEffect(() => {
     if (currentFilter && filters.length > 0) {
       const currentFilterData = filters.find(filter => filter.name === currentFilter);
@@ -95,55 +74,38 @@ function AppContent() {
     }
   }, [currentFilter, filters, setSelectedRooms, setNotificationRooms]);
 
-  // Schedule notifications when events change
   React.useEffect(() => {
     if (events && events.length > 0) {
       scheduleNotificationsForEvents(events);
     }
   }, [events, scheduleNotificationsForEvents]);
 
-  // Update current time every minute (but don't cause re-renders)
   React.useEffect(() => {
     const timer = setInterval(() => {
       const newTime = new Date();
       currentTimeRef.current = newTime;
       setCurrentTime(newTime);
     }, 60000);
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => { clearInterval(timer); };
   }, []);
 
   const handleDateChange = (newDate: Date) => {
-    
-    // Create a new date object and set it to midnight in local time
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
-    
     const formattedDate = localDate.toISOString().split('T')[0];
-    
     navigate(`/${formattedDate}`);
   };
 
-  // If we're on the root path and have a date, redirect to the date URL
   React.useEffect(() => {
-    
-    
     if (!date && selectedDate) {
-      // Create a new date object and set it to midnight in local time
       const localDate = new Date(selectedDate);
       localDate.setHours(0, 0, 0, 0);
-      
       const formattedDate = localDate.toISOString().split('T')[0];
-      
       navigate(`/${formattedDate}`, { replace: true });
     }
   }, [date, selectedDate, navigate]);
 
-  // Add event click handler
-  const handleEventClick = (event: Event) => {
-    // Use the actual event ID from the database
+  const handleEventClick = (event: Database['public']['Tables']['events']['Row']) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
     navigate(`/${dateStr}/${event.id}`);
   };
@@ -157,13 +119,10 @@ function AppContent() {
           isLoading={isLoading}
           events={events}
         />
-
         <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
           <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
             <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
             <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-            
-            {/* Loading spinner overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
             </div>
@@ -185,13 +144,10 @@ function AppContent() {
         isLoading={isLoading}
         events={events}
       />
-
       <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          
-          {/* Current time indicator positioned absolutely over the content */}
           <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
             <CurrentTimeIndicator 
               currentTime={currentTimeRef.current}
@@ -200,19 +156,16 @@ function AppContent() {
               pixelsPerMinute={pixelsPerMinute}
             />
           </div>
-
           {selectedRooms.map((room: string, index: number) => {
             const roomEvents = events?.filter(event => {
               const eventRoomName = event.room_name;
               if (!eventRoomName) return false;
               return eventRoomName === room;
             });
-
             const currentFloor = room.match(/GH (\d)/)?.[1];
             const nextRoom = selectedRooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
             const isFloorBreak = currentFloor !== nextFloor;
-
             return (
               <RoomRow
                 key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
@@ -229,7 +182,6 @@ function AppContent() {
           })}
         </div>
       </div>
-
       {/* Event Detail Modal Overlay */}
       {isEventDetailRoute && eventId && (
         <div 
@@ -244,11 +196,28 @@ function AppContent() {
           </div>
         </div>
       )}
+      {/* Faculty Modal Overlay */}
+      {isFacultyModalRoute && !isFacultyDetailModalRoute && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
+          onClick={() => navigate(`/${date}`)}
+        >
+          <div
+            className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <FacultyListModal isOpen={true} onClose={() => navigate(`/${date}`)} />
+          </div>
+        </div>
+      )}
+      {/* Faculty Detail Modal Overlay */}
+      {isFacultyDetailModalRoute && (
+        <FacultyDetailModal />
+      )}
     </div>
   );
 }
 
-// Wrap the app with QueryClientProvider and ThemeProvider
 export default function App() {
   return (
     <AuthProvider>
@@ -256,11 +225,8 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <Router>
             <Routes>
-              {/* Public routes */}
               <Route path="/auth" element={<LandingPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Protected routes */}
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout>
@@ -268,14 +234,28 @@ export default function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
-              <Route path="/:date" element={
+              <Route path=":date" element={
                 <ProtectedRoute>
                   <Layout>
                     <AppContent />
                   </Layout>
                 </ProtectedRoute>
               } />
-              <Route path="/:date/:eventId/*" element={
+              <Route path=":date/:eventId/*" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AppContent />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path=":date/faculty" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AppContent />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path=":date/faculty/:facultyId" element={
                 <ProtectedRoute>
                   <Layout>
                     <AppContent />
@@ -302,4 +282,4 @@ export default function App() {
       </ThemeProvider>
     </AuthProvider>
   );
-}
+} 

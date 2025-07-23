@@ -66,8 +66,8 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
             {/* Preset Manager */}
             <PresetManager />
 
-            {/* Room Filter Table */}
-            <RoomFilterTable autoHideEnabled={autoHide} />
+          {/* Room Filter Table */}
+          <RoomFilterTable autoHideEnabled={autoHide} />
           </div>
         </div>
 

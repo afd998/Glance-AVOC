@@ -13,25 +13,16 @@ export default function NotificationTest() {
     // Create a simple test event for immediate notification
     const testEvent = {
       id: 'test-123',
-      itemName: 'Test Event with Staff Assistance',
-      start: 14.5, // 2:30 PM (just for display purposes)
-      end: 15.5,   // 3:30 PM
+      event_name: 'Test Event with Staff Assistance',
+      start_time: new Date().toISOString(), // Current time as ISO string
+      end_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
       subject_item_date: new Date().toISOString().split('T')[0],
-      itemDetails: {
-        occur: {
-          prof: [{
-            rsv: [{
-              res: [
-                { itemName: "KSM-KGH-AV-Staff Assistance" },
-                { itemName: "KSM-KGH-AV-Web Conference" }
-              ]
-            }]
-          }]
-        }
-      }
+      resources: JSON.stringify([
+        { itemName: "KSM-KGH-AV-Staff Assistance" },
+        { itemName: "KSM-KGH-AV-Web Conference" }
+      ])
     };
 
-    
     // Send notification immediately (bypass scheduling)
     sendNotification(testEvent, true, true);
   };

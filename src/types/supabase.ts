@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      "25liveData": {
-        Row: {
-          created_at: string
-          events_data: Json | null
-          id: number
-          scraped_date: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          events_data?: Json | null
-          id?: number
-          scraped_date?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          events_data?: Json | null
-          id?: number
-          scraped_date?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       academic_calendar: {
         Row: {
           date: string | null
@@ -59,24 +35,6 @@ export type Database = {
           id?: number
           label?: string | null
           start_of_quarter?: boolean
-        }
-        Relationships: []
-      }
-      email_whitelist: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: number
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          id?: number
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          id?: number
         }
         Relationships: []
       }
@@ -242,18 +200,21 @@ export type Database = {
           current_filter: string | null
           id: string
           name: string | null
+          role: string | null
         }
         Insert: {
           auto_hide?: boolean
           current_filter?: string | null
           id: string
           name?: string | null
+          role?: string | null
         }
         Update: {
           auto_hide?: boolean
           current_filter?: string | null
           id?: string
           name?: string | null
+          role?: string | null
         }
         Relationships: []
       }
@@ -286,6 +247,92 @@ export type Database = {
           owner?: string | null
         }
         Relationships: []
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string | null
+        }
+        Relationships: []
+      }
+      shift_blocks: {
+        Row: {
+          assignments: Json | null
+          created_at: string
+          day_of_week: number | null
+          end_time: string | null
+          id: number
+          start_time: string | null
+          week_start: string | null
+        }
+        Insert: {
+          assignments?: Json | null
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          id?: number
+          start_time?: string | null
+          week_start?: string | null
+        }
+        Update: {
+          assignments?: Json | null
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          id?: number
+          start_time?: string | null
+          week_start?: string | null
+        }
+        Relationships: []
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          day_of_week: number | null
+          end_time: string | null
+          id: number
+          profile_id: string | null
+          start_time: string | null
+          week_start: string | null
+        }
+        Insert: {
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          id?: number
+          profile_id?: string | null
+          start_time?: string | null
+          week_start?: string | null
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string | null
+          id?: number
+          profile_id?: string | null
+          start_time?: string | null
+          week_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
