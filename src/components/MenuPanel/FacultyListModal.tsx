@@ -32,12 +32,15 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
   const [search, setSearch] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [filteredFaculty, setFilteredFaculty] = useState<FacultyMember[]>([]);
+  const [filteredFaculty, setFilteredFaculty] = useState<FacultyMember[] | null>(null);
   const navigate = useNavigate();
   const { date } = useParams();
 
   useEffect(() => {
-    if (!faculty) return;
+    if (!faculty) {
+      setFilteredFaculty(null);
+      return;
+    }
     if (!searchQuery) {
       setFilteredFaculty(faculty);
       setIsSearching(false);
@@ -86,20 +89,20 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
         }`}
         onClick={e => e.stopPropagation()}
       >
-        {/* Sticky Header + Search */}
-        <div className="sticky top-0 z-10 bg-inherit" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}}>
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-semibold">Faculty List</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <form className="px-6 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 bg-inherit flex gap-2 items-center" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}} onSubmit={handleSearch}>
+                 {/* Sticky Header + Search */}
+         <div className="sticky top-0 z-10 bg-inherit rounded-t-lg overflow-hidden" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}}>
+           <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+             <h2 className="text-2xl font-semibold">Faculty List</h2>
+             <button
+               onClick={onClose}
+               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+             >
+               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+           </div>
+           <form className="px-6 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 bg-inherit flex gap-2 items-center" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}} onSubmit={handleSearch}>
             <input
               type="text"
               value={search}
@@ -128,53 +131,58 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
             </button>
           </form>
         </div>
-        {/* Scrollable Faculty List */}
-        <div className="p-6 pt-2 overflow-y-auto" style={{maxHeight: '60vh'}}>
-          {isLoading && <div>Loading faculty...</div>}
-          {error && <div className="text-red-600">Error loading faculty.</div>}
-          {isSearching ? (
-            <div className="flex justify-center items-center py-8">
-              <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
-            </div>
-          ) : filteredFaculty && filteredFaculty.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredFaculty.map((f: FacultyMember) => (
-                <div
-                  key={f.id}
-                  className="bg-white dark:bg-gray-700 rounded-lg shadow p-4 flex flex-col items-center hover:ring-2 hover:ring-purple-400 hover:scale-105 transition-transform transition-shadow duration-150 cursor-pointer"
-                  onClick={() => navigate(`/${date}/faculty/${f.id}`)}
-                >
-                  {f.kelloggdirectory_image_url && (
-                    <div className="relative mb-2">
-                      <img
-                        src={f.kelloggdirectory_image_url}
-                        alt={f.kelloggdirectory_name || 'Faculty'}
-                        className="w-24 h-24 rounded-full object-cover filter grayscale opacity-80"
-                      />
-                      <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
-                    </div>
-                  )}
-                  <div className="text-lg font-semibold text-center mb-1">{f.kelloggdirectory_name || f.twentyfivelive_name || 'Unknown'}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 text-center mb-1">{f.kelloggdirectory_title}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">{f.kelloggdirectory_subtitle}</div>
-                  {f.kelloggdirectory_bio_url && (
-                    <a
-                      href={f.kelloggdirectory_bio_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 text-xs underline mt-1"
-                    >
-                      View Bio
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : !isLoading && !isSearching && <div>No faculty found.</div>}
-        </div>
+                 {/* Scrollable Faculty List */}
+         <div className="p-6 pt-2 overflow-y-auto" style={{maxHeight: '60vh'}}>
+           {isLoading && <div>Loading faculty...</div>}
+           {error && <div className="text-red-600">Error loading faculty.</div>}
+           {isSearching ? (
+             <div className="flex justify-center items-center py-8">
+               <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+               </svg>
+             </div>
+           ) : filteredFaculty !== null ? (
+             filteredFaculty.length > 0 ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {filteredFaculty.map((f: FacultyMember) => (
+                   <div
+                     key={f.id}
+                     className="bg-white dark:bg-gray-700 rounded-lg shadow p-4 flex flex-col items-center hover:ring-2 hover:ring-purple-400 hover:scale-105 transition-transform transition-shadow duration-150 cursor-pointer"
+                     onClick={() => navigate(`/${date}/faculty/${f.id}`)}
+                   >
+                     {f.kelloggdirectory_image_url && (
+                       <div className="relative mb-2">
+                         <img
+                           src={f.kelloggdirectory_image_url}
+                           alt={f.kelloggdirectory_name || 'Faculty'}
+                           className="w-24 h-24 rounded-full object-cover filter grayscale opacity-80"
+                         />
+                         <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
+                       </div>
+                     )}
+                     <div className="text-lg font-semibold text-center mb-1">{f.kelloggdirectory_name || f.twentyfivelive_name || 'Unknown'}</div>
+                     <div className="text-sm text-gray-600 dark:text-gray-300 text-center mb-1">{f.kelloggdirectory_title}</div>
+                     <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">{f.kelloggdirectory_subtitle}</div>
+                     {f.kelloggdirectory_bio_url && (
+                       <a
+                         href={f.kelloggdirectory_bio_url}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-600 dark:text-blue-400 text-xs underline mt-1"
+                         onClick={e => e.stopPropagation()}
+                       >
+                         View Bio
+                       </a>
+                     )}
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div>No faculty found.</div>
+             )
+           ) : null}
+         </div>
       </div>
     </div>
   );
