@@ -22,30 +22,33 @@ export default function EventContent({
   const isLecture = event.event_type === 'Lecture';
   let mainEventName, additionalInfo, departmentCode;
   
+  // Create a copy of the event name to avoid mutating the original
+  const eventNameCopy = event.event_name ? String(event.event_name) : '';
+  
   // For lectures, use the event name up to the "-" symbol
-  const dashIndex = event.event_name?.indexOf('-');
+  const dashIndex = eventNameCopy.indexOf('-');
   let baseName;
   if (dashIndex !== undefined && dashIndex !== -1) {
-    baseName = event.event_name?.substring(0, dashIndex);
+    baseName = eventNameCopy.substring(0, dashIndex);
   } else {
-    baseName = event.event_name;
+    baseName = eventNameCopy;
   }
   
   // Get the 3rd part when splitting by whitespace
-  const parts = event.event_name?.split(' ');
+  const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
   
   if (isLecture) {
     mainEventName = thirdPart ? `${baseName} Sec: ${thirdPart}` : baseName;
   } else {
-    mainEventName = event.event_name;
+    mainEventName = eventNameCopy;
     // Extract department code from event name (everything up to the "-" symbol)
-    const dashIndex = event.event_name?.indexOf('-');
+    const dashIndex = eventNameCopy.indexOf('-');
     if (dashIndex !== undefined && dashIndex !== -1) {
-      departmentCode = event.event_name?.substring(0, dashIndex);
+      departmentCode = eventNameCopy.substring(0, dashIndex);
     } else {
       // Fallback to first 4 characters if no dash found
-      departmentCode = event.event_name?.substring(0, 4);
+      departmentCode = eventNameCopy.substring(0, 4);
     }
   }
 

@@ -23,20 +23,16 @@ const fetchFacultyMember = async (twentyfiveliveName: string): Promise<FacultyMe
   if (!twentyfiveliveName) {
     return null;
   }
-
   try {
-    // Now try the specific query
     const { data, error } = await supabase
       .from('faculty')
       .select('*')
       .eq('twentyfivelive_name', twentyfiveliveName)
       .single();
-
     if (error) {
       console.error('Error fetching faculty member:', error);
       return null;
     }
-
     return data;
   } catch (error) {
     console.error('Error in fetchFacultyMember:', error);
@@ -49,7 +45,6 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }: Updat
   if (!twentyfiveliveName) {
     throw new Error('No faculty name provided');
   }
-
   const { data, error } = await supabase
     .from('faculty')
     .update({
@@ -63,12 +58,10 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }: Updat
     .eq('twentyfivelive_name', twentyfiveliveName)
     .select()
     .single();
-
   if (error) {
     console.error('Error updating faculty attributes:', error);
     throw error;
   }
-
   return data;
 };
 
@@ -78,7 +71,7 @@ export const useFacultyMember = (twentyfiveliveName: string) => {
     queryKey: ['facultyMember', twentyfiveliveName],
     queryFn: () => fetchFacultyMember(twentyfiveliveName),
     enabled: !!twentyfiveliveName,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 3
   });
 };
@@ -86,14 +79,10 @@ export const useFacultyMember = (twentyfiveliveName: string) => {
 // React Query mutation hook for updating faculty attributes
 export const useUpdateFacultyAttributes = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: updateFacultyAttributes,
     onSuccess: (data, variables) => {
-      // Invalidate and refetch the specific faculty member
       queryClient.invalidateQueries({ queryKey: ['facultyMember', variables.twentyfiveliveName] });
-      
-      // Optionally, you can also update the cache directly for immediate UI update
       queryClient.setQueryData(['facultyMember', variables.twentyfiveliveName], (oldData: FacultyMember | undefined) => {
         if (oldData) {
           return {
@@ -112,5 +101,25 @@ export const useUpdateFacultyAttributes = () => {
     onError: (error) => {
       console.error('Mutation failed:', error);
     }
+  });
+};
+
+// React Query hook for all faculty members
+export const useAllFaculty = () => {
+  return useQuery<FacultyMember[]>({
+    queryKey: ['allFaculty'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('faculty')
+        .select('*')
+        .order('kelloggdirectory_name', { ascending: true });
+      if (error) {
+        console.error('Error fetching all faculty:', error);
+        return [];
+      }
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 10,
+    retry: 2
   });
 }; 

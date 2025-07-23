@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -205,3 +206,12 @@ export const calculateEventPosition = (
     width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`
   };
 }; 
+
+export async function getAllShiftBlocksForWeek(week_start: string) {
+  const { data, error } = await supabase
+    .from('shift_blocks')
+    .select('*')
+    .eq('week_start', week_start);
+  if (error) throw error;
+  return data as Database['public']['Tables']['shift_blocks']['Row'][];
+} 

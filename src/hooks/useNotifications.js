@@ -2,17 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { playNotificationAudio } from '../utils/notificationSound';
 import useRoomStore from '../stores/roomStore';
 
-// Helper function to convert UTC time to Chicago time
-const convertUTCToChicagoTime = (utcDate, utcHour) => {
-  // Create a new date object with the UTC date and hour
-  const date = new Date(utcDate);
-  date.setUTCHours(utcHour, 0, 0, 0);
-  
-  // Convert to Chicago time (Central Time)
-  const chicagoTime = new Date(date.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-  return chicagoTime;
-};
-
 export function useNotifications() {
   const [permission, setPermission] = useState('default');
   const [isSupported, setIsSupported] = useState(false);
@@ -42,136 +31,35 @@ export function useNotifications() {
     }
   }, [isSupported]);
 
-  const scheduleNotification = useCallback((event, minutesBefore = 15) => {
-    if (permission !== 'granted' || !isSupported) {
-      return;
-    }
-
-    // Check if event has staff assistance or web conferencing
-    const matchingReservation = event.itemDetails?.occur?.prof?.[0]?.rsv?.[0];
-    if (!matchingReservation) return;
-
-    const hasStaffAssistance = matchingReservation.res?.some(item => 
-      item.itemName === "KSM-KGH-AV-Staff Assistance"
-    );
-    const hasWebConference = matchingReservation.res?.some(item => 
-      item.itemName === "KSM-KGH-AV-Web Conference"
-    );
-
-    if (!hasStaffAssistance && !hasWebConference) {
-      return; // Only notify for events with staff assistance or web conferencing
-    }
-
-    // Parse event date and time properly
-    let eventDate;
-    try {
-      // Handle different date formats
-      if (typeof event.subject_item_date === 'string') {
-        eventDate = new Date(event.subject_item_date);
-      } else if (event.subject_item_date instanceof Date) {
-        eventDate = new Date(event.subject_item_date);
-      } else {
-        console.warn('Invalid event date format:', event.subject_item_date);
-        return;
-      }
-    } catch (error) {
-      console.warn('Error parsing event date:', error);
-      return;
-    }
-
-    // Parse start time (handle decimal hours like 8.5 for 8:30 AM)
-    let startHour, startMinute;
-    try {
-      const startTimeFloat = parseFloat(event.start);
-      if (isNaN(startTimeFloat)) {
-        console.warn('Invalid start time:', event.start);
-        return;
-      }
-      
-      startHour = Math.floor(startTimeFloat);
-      startMinute = Math.round((startTimeFloat - startHour) * 60);
-      
-      // Validate time values
-      if (startHour < 0 || startHour > 23 || startMinute < 0 || startMinute > 59) {
-        console.warn('Invalid time values:', { startHour, startMinute });
-        return;
-      }
-    } catch (error) {
-      console.warn('Error parsing start time:', error);
-      return;
-    }
-
-    // Convert UTC time to Chicago time for the event start
-    const chicagoStartTime = convertUTCToChicagoTime(eventDate, startHour);
-    chicagoStartTime.setMinutes(startMinute, 0, 0);
-
-    // Calculate notification time (15 minutes before)
-    const notificationTime = new Date(chicagoStartTime.getTime() - (minutesBefore * 60 * 1000));
-    
-    // Get current time in Chicago
-    const now = new Date();
-    const chicagoNow = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-
-    console.log('🔔 Time Debug:', {
-      eventName: event.itemName,
-      utcStartHour: startHour,
-      chicagoStartTime: chicagoStartTime.toLocaleString("en-US", {timeZone: "America/Chicago"}),
-      notificationTime: notificationTime.toLocaleString("en-US", {timeZone: "America/Chicago"}),
-      chicagoNow: chicagoNow.toLocaleString("en-US", {timeZone: "America/Chicago"}),
-      timeUntilNotification: notificationTime.getTime() - chicagoNow.getTime()
-    });
-
-    // Only schedule if notification time is in the future
-    if (notificationTime > chicagoNow) {
-      const timeoutId = setTimeout(() => {
-        sendNotification(event, hasStaffAssistance, hasWebConference);
-      }, notificationTime.getTime() - chicagoNow.getTime());
-
-      // Store timeout ID for cleanup
-      const eventKey = `${event.id}-${event.subject_item_date}-${event.start}`;
-      notificationTimeouts.current.set(eventKey, timeoutId);
-      
-      console.log('✅ Scheduled notification for:', event.itemName, 'at', notificationTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-    } else {
-      console.log('❌ Notification time has passed for:', event.itemName);
-    }
-  }, [permission, isSupported]);
-
-  const sendNotification = useCallback((event, hasStaffAssistance, hasWebConference) => {
+  const sendNotification = useCallback((event) => {
     if (permission !== 'granted') return;
 
-    const formatTime = (floatHours) => {
-      const hours = Math.floor(floatHours);
-      const minutes = Math.round((floatHours - hours) * 60);
-      const date = new Date();
-      date.setHours(hours, minutes);
-      return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      });
+    const formatTime = (isoString) => {
+      if (!isoString) return '';
+      try {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      } catch (error) {
+        console.error('Error formatting time:', isoString, error);
+        return '';
+      }
     };
 
-    const timeDisplay = `${formatTime(event.start)} - ${formatTime(event.end)}`;
-    
-    let title = `Event Starting Soon: ${event.itemName}`;
-    let body = `Your event starts in 15 minutes at ${timeDisplay}`;
-    
-    if (hasStaffAssistance && hasWebConference) {
-      body += ' (Staff Assistance & Web Conference)';
-    } else if (hasStaffAssistance) {
-      body += ' (Staff Assistance)';
-    } else if (hasWebConference) {
-      body += ' (Web Conference)';
-    }
+    const timeDisplay = `${formatTime(event.start_time)} - ${formatTime(event.end_time)}`;
+    const title = `Event Starting Soon: ${event.event_name}`;
+    const body = `Your event starts in 10 minutes at ${timeDisplay} (Staff Assistance)`;
 
     const notification = new Notification(title, {
       body: body,
-      icon: '/wildcat2.png', // Using wildcat2.png as the app icon
+      icon: '/wildcat2.png',
       badge: '/wildcat2.png',
-      tag: `event-${event.id}`, // Prevents duplicate notifications
+      tag: `event-${event.id}`,
       requireInteraction: false,
-      silent: false // This should allow system sounds, but we'll add our own
+      silent: false
     });
 
     // Play notification sound
@@ -186,12 +74,87 @@ export function useNotifications() {
     notification.onclick = () => {
       window.focus();
       notification.close();
-      // You could navigate to the specific event or day view here
     };
   }, [permission]);
 
+  const hasStaffAssistance = useCallback((event) => {
+    if (!event.resources) return false;
+
+    let resourcesArray = [];
+    try {
+      if (typeof event.resources === 'string') {
+        resourcesArray = JSON.parse(event.resources);
+      } else if (Array.isArray(event.resources)) {
+        resourcesArray = event.resources;
+      } else if (event.resources && typeof event.resources === 'object') {
+        resourcesArray = event.resources.resources || event.resources.res || [];
+      }
+    } catch (error) {
+      console.log('Error parsing resources for event:', event.event_name, error);
+      return false;
+    }
+
+    return Array.isArray(resourcesArray) && resourcesArray.some(item => 
+      item.itemName === "KSM-KGH-AV-Staff Assistance"
+    );
+  }, []);
+
+  const scheduleNotificationForEvent = useCallback((event) => {
+    // Clear any existing notification for this event
+    const eventKey = `event-${event.id}`;
+    if (notificationTimeouts.current.has(eventKey)) {
+      clearTimeout(notificationTimeouts.current.get(eventKey));
+      notificationTimeouts.current.delete(eventKey);
+    }
+
+    // Check if event has staff assistance
+    if (!hasStaffAssistance(event)) {
+      console.log('Event does not have staff assistance:', event.event_name);
+      return;
+    }
+
+    // Parse event start time
+    let eventStartTime;
+    try {
+      eventStartTime = new Date(event.start_time);
+      if (isNaN(eventStartTime.getTime())) {
+        console.warn('Invalid start_time format:', event.start_time);
+        return;
+      }
+    } catch (error) {
+      console.warn('Error parsing event start_time:', error);
+      return;
+    }
+
+    // Calculate notification time (10 minutes before event)
+    const notificationTime = new Date(eventStartTime.getTime() - (10 * 60 * 1000)); // 10 minutes before
+    const now = new Date();
+
+    console.log('Scheduling notification for:', event.event_name, {
+      eventStart: eventStartTime.toLocaleString(),
+      notificationTime: notificationTime.toLocaleString(),
+      now: now.toLocaleString()
+    });
+
+    // If notification time has already passed, don't schedule
+    if (notificationTime <= now) {
+      console.log('Notification time has passed for:', event.event_name);
+      return;
+    }
+
+    // Schedule the notification
+    const timeoutId = setTimeout(() => {
+      sendNotification(event);
+      notificationTimeouts.current.delete(eventKey);
+      console.log('Sent notification for:', event.event_name);
+    }, notificationTime.getTime() - now.getTime());
+
+    notificationTimeouts.current.set(eventKey, timeoutId);
+    console.log('Scheduled notification for:', event.event_name, 'at', notificationTime.toLocaleString());
+  }, [hasStaffAssistance, sendNotification]);
+
   const scheduleNotificationsForEvents = useCallback((events) => {
-    // Clear existing timeouts
+    // Clear all existing notifications
     notificationTimeouts.current.forEach(timeoutId => {
       clearTimeout(timeoutId);
     });
@@ -199,75 +162,56 @@ export function useNotifications() {
 
     const { notificationRooms } = useRoomStore.getState();
     
-    console.log('🔔 Notification Debug:', {
+    console.log('Scheduling notifications for events:', {
       totalEvents: events.length,
       notificationRooms,
       permission,
       isSupported
     });
 
-    // Schedule new notifications
+    // Filter and schedule notifications for relevant events
     events.forEach(event => {
-      console.log('🔔 Processing event:', {
-        id: event.id,
-        name: event.itemName,
-        room: event.room,
-        date: event.subject_item_date,
-        start: event.start,
-        hasResources: !!event.itemDetails?.occur?.prof?.[0]?.rsv?.[0]?.res,
-        resources: event.itemDetails?.occur?.prof?.[0]?.rsv?.[0]?.res?.map(r => r.itemName) || []
-      });
-
-      // Skip events that don't have required data
-      if (!event.subject_item_date || !event.start || !event.itemName) {
-        console.log('❌ Skipping event - missing required data');
+      // Skip events without required data
+      if (!event.start_time || !event.event_name) {
+        console.log('Skipping event - missing required data:', event.event_name);
         return;
       }
 
-      // Skip events that are not in notification-enabled rooms
-      if (!notificationRooms.includes(event.room)) {
-        console.log('❌ Skipping event - not in notification rooms:', event.room);
+      // Skip events not in notification-enabled rooms
+      if (!notificationRooms.includes(event.room_name)) {
+        console.log('Skipping event - not in notification rooms:', event.room_name);
         return;
       }
 
-      // Check if event is today and not already passed
+      // Check if event is today
       const now = new Date();
-      const chicagoNow = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-      const today = new Date(chicagoNow.getFullYear(), chicagoNow.getMonth(), chicagoNow.getDate());
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
       let eventDate;
       try {
-        eventDate = new Date(event.subject_item_date);
+        eventDate = new Date(event.start_time);
         const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         
-        // If event is not today, skip it
         if (eventDay.getTime() !== today.getTime()) {
-          console.log('❌ Skipping event - not today:', event.subject_item_date);
+          console.log('Skipping event - not today:', event.event_name);
           return;
         }
       } catch (error) {
-        console.log('❌ Skipping event - date parsing error:', error);
+        console.log('Skipping event - date parsing error:', error);
         return;
       }
 
-      // Check if event has already started (using Chicago time)
-      const startTimeFloat = parseFloat(event.start);
-      if (!isNaN(startTimeFloat)) {
-        const startHour = Math.floor(startTimeFloat);
-        const chicagoStartTime = convertUTCToChicagoTime(eventDate, startHour);
-        const currentHour = chicagoNow.getHours() + (chicagoNow.getMinutes() / 60);
-        const chicagoStartHour = chicagoStartTime.getHours() + (chicagoStartTime.getMinutes() / 60);
-        
-        if (chicagoStartHour <= currentHour) {
-          console.log('❌ Skipping event - already started (Chicago time):', chicagoStartHour, '<=', currentHour);
-          return;
-        }
+      // Check if event has already started
+      const eventStartTime = new Date(event.start_time);
+      if (eventStartTime <= now) {
+        console.log('Skipping event - already started:', event.event_name);
+        return;
       }
 
-      console.log('✅ Scheduling notification for event:', event.itemName);
-      scheduleNotification(event, 15);
+      // Schedule notification for this event
+      scheduleNotificationForEvent(event);
     });
-  }, [scheduleNotification]);
+  }, [scheduleNotificationForEvent]);
 
   const clearAllNotifications = useCallback(() => {
     notificationTimeouts.current.forEach(timeoutId => {
@@ -287,7 +231,6 @@ export function useNotifications() {
     isSupported,
     permission,
     requestPermission,
-    scheduleNotification,
     sendNotification,
     scheduleNotificationsForEvents,
     clearAllNotifications

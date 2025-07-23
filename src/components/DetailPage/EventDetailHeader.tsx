@@ -28,10 +28,10 @@ const formatTimeFromISO = (isoString: string | null): string => {
   try {
     const date = new Date(isoString);
     return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
   } catch (error) {
     console.error('Error formatting time:', isoString, error);
     return '';

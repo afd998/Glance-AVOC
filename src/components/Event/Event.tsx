@@ -111,7 +111,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         minWidth: '120px',
-        zIndex: showHoverCard ? 50 : 49,
+        zIndex: isHoveringEvent ? 60 : (showHoverCard ? 50 : 49),
         transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
         transformOrigin: 'center center',
         boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
