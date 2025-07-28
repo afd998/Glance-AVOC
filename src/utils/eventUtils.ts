@@ -16,8 +16,6 @@ interface ResourceFlags {
 interface EventTypeInfo {
   isStudentEvent: boolean;
   isFacStaffEvent: boolean;
-  isClass: boolean;
-  isSpecial: boolean;
   isLecture: boolean;
   bgColor: string;
 }
@@ -69,6 +67,7 @@ export const getResourceIcon = (itemName: string): string => {
   if (name.includes('panel') || name.includes('control')) return '🎛️';
   if (name.includes('audio') || name.includes('microphone')) return '🎤';
   if (name.includes('display') || name.includes('monitor')) return '🖥️';
+  if (name.includes('ksm-kgh-av-kis notes') || name.includes('notes')) return '📝';
   
   return '📱'; // Default icon
 };
@@ -82,6 +81,11 @@ export const getResourceDisplayName = (itemName: string): string => {
     ?.replace(/^(laptop|computer)\s*-?\s*/i, 'Laptop ')
     ?.replace(/^(camera|doc cam)\s*-?\s*/i, 'Camera ')
     ?.replace(/zoom/i, 'Zoom')
+    ?.replace(/^.*staff assistance$/i, 'Staff Assistance')
+    ?.replace(/^.*web conference$/i, 'Web Conference')
+    ?.replace(/^.*handheld microphone$/i, 'Handheld Microphone')
+    ?.replace(/^.*clickers.*polling.*$/i, 'Clickers (Polling)')
+    ?.replace(/^ksm-kgh-av-kis notes$/i, 'AV Setup Notes')
     || itemName;
 };
 
@@ -89,30 +93,26 @@ export const getResourceDisplayName = (itemName: string): string => {
  * Determine event type information including colors
  */
 export const getEventTypeInfo = (event: Event): EventTypeInfo => {
-  const eventType = event.event_type?.toLowerCase() || '';
-  const eventName = event.event_name?.toLowerCase() || '';
+  const eventType = event.event_type || '';
+  const eventName = event.event_name || '';
   
-  const isLecture = eventType === 'lecture';
-  const isClass = isLecture || eventType === 'class';
-  const isSpecial = eventType === 'special' || eventName.includes('special');
+  const isLecture = eventType === 'Lecture';
   
   // Determine if it's a student or faculty/staff event
-  const isStudentEvent = isClass || eventName.includes('student');
+  const isStudentEvent = isLecture || eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
   
   // Determine background color
   let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
-  if (isLecture) bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
+  if (eventType === 'KEC') bgColor = "bg-transparent border-2 border-gray-400"; // KEC events get transparent background with gray border
+  else if (eventType === 'CMC') bgColor = "bg-red-300"; // CMC events get pastel red background
+  else if (isLecture) bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
   else if (isStudentEvent) bgColor = "bg-[#b8a68a]";
   else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
-  else if (isClass) bgColor = "bg-gray-400";
-  else if (isSpecial) bgColor = "bg-[#9b8ba5]";
   
   return {
     isStudentEvent,
     isFacStaffEvent,
-    isClass,
-    isSpecial,
     isLecture,
     bgColor
   };
@@ -150,12 +150,15 @@ export const calculateEventPosition = (
   const startMinutesRelative = eventStartMinutes - startMinutes;
   const endMinutesRelative = eventEndMinutes - startMinutes;
   
+  // Ensure minimum width for very short events
+  const calculatedWidth = Math.max(durationMinutes * pixelsPerMinute - eventMargin * 2, 60); // Minimum 60px width
+  
   return {
     startMinutes: startMinutesRelative,
     endMinutes: endMinutesRelative,
     durationMinutes,
     left: `${(startMinutesRelative * pixelsPerMinute + eventMargin) - roomLabelWidth}px`,
-    width: `${durationMinutes * pixelsPerMinute - eventMargin * 2}px`
+    width: `${calculatedWidth}px`
   };
 }; 
 

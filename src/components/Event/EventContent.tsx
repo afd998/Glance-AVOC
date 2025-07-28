@@ -102,10 +102,13 @@ function ExamEvent({ event, isHovering }: EventContentProps) {
 
   return (
     <div className="bg-red-600 rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-center h-full transition-all duration-200 ease-in-out">
+      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
         <span 
-          className="text-sm font-medium text-white truncate transition-all duration-200 ease-in-out max-w-full"
-          style={{ transform: isHovering ? 'scale(1.1)' : 'scale(1)' }}
+          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
+          style={{ 
+            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+            transformOrigin: 'left center'
+          }}
           title={mainEventName}
         >
           {mainEventName}
@@ -123,10 +126,13 @@ function LabEvent({ event, isHovering }: EventContentProps) {
 
   return (
     <div className="bg-green-600 rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-center h-full transition-all duration-200 ease-in-out">
+      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
         <span 
-          className="text-sm font-medium text-white truncate transition-all duration-200 ease-in-out max-w-full"
-          style={{ transform: isHovering ? 'scale(1.1)' : 'scale(1)' }}
+          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
+          style={{ 
+            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+            transformOrigin: 'left center'
+          }}
           title={mainEventName}
         >
           {mainEventName}
@@ -136,6 +142,8 @@ function LabEvent({ event, isHovering }: EventContentProps) {
   );
 }
 
+
+
 // Default Event Component
 function DefaultEvent({ event, isHovering }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
@@ -144,10 +152,13 @@ function DefaultEvent({ event, isHovering }: EventContentProps) {
 
   return (
     <div className="rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-center h-full transition-all duration-200 ease-in-out">
+      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
         <span 
-          className="text-sm font-medium text-white truncate transition-all duration-200 ease-in-out max-w-full"
-          style={{ transform: isHovering ? 'scale(1.1)' : 'scale(1)' }}
+          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
+          style={{ 
+            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+            transformOrigin: 'left center'
+          }}
           title={mainEventName}
         >
           {mainEventName}

@@ -123,7 +123,22 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Subtract room label width since events are positioned too far right
   const roomLabelWidth = 96; // Adjust this if needed
   const left = `${(startMinutesRelative * pixelsPerMinute) - roomLabelWidth}px`;
-  const width = `${durationMinutes * pixelsPerMinute}px`;
+  // Ensure minimum width for very short events to prevent overlaps
+  const calculatedWidth = Math.max(durationMinutes * pixelsPerMinute, 30);
+  const width = `${calculatedWidth}px`;
+  
+  // Debug logging for width issues
+  console.log(`Event: ${event.event_name}`, {
+    startTime: event.start_time,
+    endTime: event.end_time,
+    durationMinutes,
+    pixelsPerMinute,
+    rawWidth: durationMinutes * pixelsPerMinute,
+    calculatedWidth,
+    finalWidth: width,
+    left,
+    eventType: event.event_type
+  });
 
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;
@@ -142,7 +157,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         overflow: 'visible',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        minWidth: '120px',
         zIndex: isHoveringEvent ? 60 : (showHoverCard ? 50 : 49),
         transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
         transformOrigin: 'center center',
