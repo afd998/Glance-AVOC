@@ -9,22 +9,19 @@ export interface Filter {
   id: number;
   name: string | null;
   display: string[]; // Array of room names to display
-  notify: string[]; // Array of room names for notifications
   owner: string | null;
   isDefault: boolean;
   createdAt: string;
 }
 
-// Parse the display and notify JSON arrays
+// Parse the display JSON array
 const parseFilter = (filter: RoomFilter): Filter => {
   const display = Array.isArray(filter.display) ? filter.display : [];
-  const notifyRooms = Array.isArray(filter.notify) ? filter.notify : [];
   
   return {
     id: filter.id,
     name: filter.name,
     display: display as string[],
-    notify: notifyRooms as string[],
     owner: filter.owner,
     isDefault: filter.default || false,
     createdAt: filter.created_at,
@@ -80,7 +77,6 @@ export const useFilters = () => {
         .insert({
           name: filter.name,
           display: filter.display,
-          notify: filter.notify,
           owner: user.id,
           default: false,
         })
@@ -146,20 +142,18 @@ export const useFilters = () => {
     },
     onSuccess: (filter) => {
       // Update room store state with the filter's room selections
-      const { setSelectedRooms, setNotificationRooms } = require('../stores/roomStore').default.getState();
+      const { setSelectedRooms } = require('../stores/roomStore').default.getState();
       setSelectedRooms(filter.display);
-      setNotificationRooms(filter.notify);
       
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
     },
   });
 
   // Convenience methods
-  const saveFilter = (name: string, displayRooms: string[], notifyRooms: string[]) => {
+  const saveFilter = (name: string, displayRooms: string[]) => {
     const newFilter: Omit<Filter, 'id' | 'createdAt'> = {
       name,
       display: displayRooms,
-      notify: notifyRooms,
       owner: user?.id || null,
       isDefault: false,
     };

@@ -3,6 +3,7 @@ import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
+import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -137,6 +138,18 @@ export default function EventHeader({
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}
           />
+        )}
+        {/* Owner Avatar */}
+        {event.owner && (
+          <div 
+            className="transition-all duration-200 ease-in-out"
+            title={`Assigned to: ${event.owner}`}
+            style={{
+              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+            }}
+          >
+            <Avatar userId={event.owner} size="xs" />
+          </div>
         )}
       </div>
     </div>

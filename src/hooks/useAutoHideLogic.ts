@@ -1,60 +1,60 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useProfile } from './useProfile';
+import { useFilters } from './useFilters';
 import useRoomStore from '../stores/roomStore';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
-export const useAutoHideLogic = (events: Event[], selectedDate: Date) => {
+export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) => {
   const { autoHide, currentFilter } = useProfile();
   const { selectedRooms, setSelectedRooms, notificationRooms, setNotificationRooms, allRooms } = useRoomStore();
-  const previousSelection = useRef<string[]>([]);
-  const previousNotificationSelection = useRef<string[]>([]);
+  const { filters } = useFilters();
 
-  // Auto-hide empty rooms logic (only when no current filter is active)
-  useEffect(() => {
-    if (!events || currentFilter) return;
+  // Calculate what rooms should be displayed
+  const targetRooms = useMemo(() => {
+    if (!filteredEvents) return allRooms;
+
+    // Determine the base rooms that should be shown (based on current filter)
+    let baseRooms = allRooms;
+    if (currentFilter && filters.length > 0) {
+      const currentFilterData = filters.find(filter => filter.name === currentFilter);
+      if (currentFilterData) {
+        baseRooms = currentFilterData.display;
+      } else if (currentFilter === 'My Events') {
+        // For "My Events", we show all rooms since filtering is done by event ownership
+        baseRooms = allRooms;
+      }
+    }
 
     if (autoHide) {
-      // Store current selection before applying auto-hide
-      if (selectedRooms.length > 0 && selectedRooms.length !== allRooms.length) {
-        previousSelection.current = [...selectedRooms];
-      }
-      
-      // Store current notification selection before applying auto-hide
-      if (notificationRooms.length > 0 && notificationRooms.length !== allRooms.length) {
-        previousNotificationSelection.current = [...notificationRooms];
-      }
-
-      // Get rooms that have events for the current day
+      // Get rooms that have filtered events for the current day
       const roomsWithEvents = new Set();
-      events.forEach(event => {
+      filteredEvents.forEach(event => {
         const roomName = event.room_name;
         if (roomName) {
           roomsWithEvents.add(roomName);
         }
       });
 
-      // When auto-hide is enabled, show only rooms with events
-      const roomsToShow = allRooms.filter((room: string) => roomsWithEvents.has(room));
-      setSelectedRooms(roomsToShow);
-      
-      // Also enable notifications for rooms with events
-      setNotificationRooms(roomsToShow);
+      // When auto-hide is enabled, show only base rooms that have events
+      return baseRooms.filter((room: string) => roomsWithEvents.has(room));
     } else {
-      // When auto-hide is disabled, restore previous selection or show all rooms
-      const roomsToShow = previousSelection.current.length > 0 
-        ? previousSelection.current 
-        : allRooms;
-      setSelectedRooms(roomsToShow);
-      
-      // Restore previous notification selection or show all rooms
-      const notificationRoomsToShow = previousNotificationSelection.current.length > 0 
-        ? previousNotificationSelection.current 
-        : allRooms;
-      setNotificationRooms(notificationRoomsToShow);
+      // When auto-hide is disabled, show all base rooms
+      return baseRooms;
     }
-  }, [events, selectedDate, autoHide, currentFilter, allRooms, setSelectedRooms, setNotificationRooms]);
+  }, [filteredEvents, selectedDate, autoHide, currentFilter, filters, allRooms]);
+
+  // Only update selectedRooms when targetRooms actually changes
+  useEffect(() => {
+    const currentRoomsStr = selectedRooms.sort().join(',');
+    const targetRoomsStr = targetRooms.sort().join(',');
+    
+    if (currentRoomsStr !== targetRoomsStr) {
+      setSelectedRooms(targetRooms);
+      setNotificationRooms(targetRooms);
+    }
+  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms]);
 
   return { autoHide };
 }; 
