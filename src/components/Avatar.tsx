@@ -60,28 +60,19 @@ const Avatar: React.FC<AvatarProps> = ({ userId, size = 'md', className = '' }) 
   const colorClass = getAvatarColor(userId);
   
   return (
-    <div className="relative group">
-      <div
-        className={`
-          ${sizeClasses[size]}
-          ${colorClass}
-          rounded-full flex items-center justify-center text-white font-medium
-          ${className}
-        `}
-        title={displayName}
-      >
-        {isLoading ? (
-          <div className="animate-pulse bg-white bg-opacity-30 rounded-full w-3/4 h-3/4" />
-        ) : (
-          initials
-        )}
-      </div>
-      
-      {/* Tooltip */}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-        {displayName}
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-      </div>
+    <div
+      className={`
+        ${sizeClasses[size]}
+        ${colorClass}
+        rounded-full flex items-center justify-center text-white font-medium
+        ${className}
+      `}
+    >
+      {isLoading ? (
+        <div className="animate-pulse bg-white bg-opacity-30 rounded-full w-3/4 h-3/4" />
+      ) : (
+        initials
+      )}
     </div>
   );
 };
