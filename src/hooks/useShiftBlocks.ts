@@ -287,6 +287,7 @@ async function manageEventOwnersInTimeRange(
           .gte('start_time', startTimestamp)
           .lt('start_time', endTimestamp)
           .in('room_name', assignment.rooms)
+          .neq('event_type', 'KEC')
           .select('*');
           
         if (assignError) {

@@ -3,6 +3,7 @@ import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -18,6 +19,9 @@ export default function EventHeader({
 }: EventHeaderProps) {
   // Get all occurrences of this event
   const { data: occurrences } = useOccurrences(event.event_name);
+  
+  // Get user profile for the event owner
+  const { data: userProfile } = useUserProfile(event.owner || '');
   
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
@@ -42,6 +46,7 @@ export default function EventHeader({
   const hasHandheldMic = resources.some(item => item.displayName === 'Handheld Microphone');
   const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
   const hasClickers = resources.some(item => item.displayName === 'Clickers (Polling)');
+  const hasAVNotes = resources.some(item => item.displayName === 'AV Setup Notes');
   // Format start and end times from ISO strings
   const formatTimeFromISO = (timeString: string | null) => {
     if (!timeString) return '';
@@ -74,7 +79,7 @@ export default function EventHeader({
           {timeDisplay}
         </span>
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out">
+      <div className="flex items-center gap-1.5 flex-shrink-0 transition-all duration-200 ease-in-out">
         {isFirstSession && (
           <span 
             className="text-yellow-500 dark:text-yellow-400 text-sm font-bold transition-all duration-200 ease-in-out"
@@ -86,7 +91,7 @@ export default function EventHeader({
             !
           </span>
         )}
-        {hasVideoRecording && (
+        {event.event_type !== 'KEC' && hasVideoRecording && (
           <span 
             className="w-2 h-2 rounded-full bg-red-500 animate-pulse transition-all duration-200 ease-in-out" 
             title="Video Recording"
@@ -95,20 +100,20 @@ export default function EventHeader({
             }}
           ></span>
         )}
-        {hasStaffAssistance && (
+        {event.event_type !== 'KEC' && hasStaffAssistance && (
           <div 
-            className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500 bg-opacity-90 transition-all duration-200 ease-in-out"
+            className="flex items-center justify-center w-3 h-3 rounded-full bg-green-500 bg-opacity-90 transition-all duration-200 ease-in-out"
             title="Staff Assistance"
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}
           >
-            <span className="text-white text-xs">🚶</span>
+            <span className="text-white text-[8px]">🚶</span>
           </div>
         )}
-        {hasHandheldMic && (
+        {event.event_type !== 'KEC' && hasHandheldMic && (
           <span 
-            className="text-sm transition-all duration-200 ease-in-out" 
+            className="text-xs transition-all duration-200 ease-in-out" 
             title="Handheld Microphone"
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
@@ -117,33 +122,44 @@ export default function EventHeader({
             🎤
           </span>
         )}
-        {hasWebConference && (
+        {event.event_type !== 'KEC' && hasWebConference && (
           <img 
             src="/zoomicon.png" 
             alt="Web Conference" 
-            className="w-4 h-4 object-contain dark:invert transition-all duration-200 ease-in-out"
+            className="w-3 h-3 object-contain dark:invert transition-all duration-200 ease-in-out"
             title="Web Conference"
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}
           />
         )}
-        {hasClickers && (
+        {event.event_type !== 'KEC' && hasClickers && (
           <img 
             src="/tp.png" 
             alt="Clickers" 
-            className="w-4 h-4 object-contain dark:invert transition-all duration-200 ease-in-out"
+            className="w-3 h-3 object-contain dark:invert transition-all duration-200 ease-in-out"
             title="Clickers (Polling)"
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}
           />
         )}
+        {event.event_type !== 'KEC' && hasAVNotes && (
+          <span 
+            className="text-xs transition-all duration-200 ease-in-out" 
+            title="AV Setup Notes"
+            style={{
+              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+            }}
+          >
+            📝
+          </span>
+        )}
         {/* Owner Avatar */}
         {event.owner && (
           <div 
             className="transition-all duration-200 ease-in-out"
-            title={`Assigned to: ${event.owner}`}
+            title={`Assigned to: ${userProfile?.name || event.owner}`}
             style={{
               transform: isHovering ? 'scale(1.2)' : 'scale(1)'
             }}
