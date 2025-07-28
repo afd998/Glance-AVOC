@@ -11,9 +11,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { useEvents } from "./hooks/useEvents";
 import { useNotifications } from "./hooks/useNotifications";
+import { useEventFiltering } from "./hooks/useEventFiltering";
 import { useAutoHideLogic } from "./hooks/useAutoHideLogic";
 import { useProfile } from "./hooks/useProfile";
 import { useFilters } from "./hooks/useFilters";
+import { useRooms } from "./hooks/useRooms";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import useRoomStore from './stores/roomStore';
@@ -42,7 +44,16 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
-  const { selectedRooms, allRooms, setSelectedRooms, setNotificationRooms } = useRoomStore();
+  const { allRooms, selectedRooms, setSelectedRooms, setAllRooms } = useRoomStore();
+  const { rooms, isLoading: roomsLoading } = useRooms();
+  
+  // Populate the store with rooms from database
+  React.useEffect(() => {
+    if (rooms.length > 0) {
+      setAllRooms(rooms);
+    }
+  }, [rooms, setAllRooms]);
+  
   const selectedDate = React.useMemo(() => {
     if (!date) {
       const now = new Date();
@@ -57,22 +68,15 @@ function AppContent() {
   const endHour = 23;
   const { events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
-  const { autoHide } = useAutoHideLogic(events || [], selectedDate);
+  const { filteredEvents, getFilteredEventsForRoom } = useEventFiltering(events);
+  useAutoHideLogic(filteredEvents, selectedDate);
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
 
-  React.useEffect(() => {
-    if (currentFilter && filters.length > 0) {
-      const currentFilterData = filters.find(filter => filter.name === currentFilter);
-      if (currentFilterData) {
-        setSelectedRooms(currentFilterData.display);
-        setNotificationRooms(currentFilterData.notify);
-      }
-    }
-  }, [currentFilter, filters, setSelectedRooms, setNotificationRooms]);
+
 
   React.useEffect(() => {
     if (events && events.length > 0) {
@@ -110,7 +114,7 @@ function AppContent() {
     navigate(`/${dateStr}/${event.id}`);
   };
 
-  if (isLoading) {
+  if (isLoading || roomsLoading) {
     return (
       <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
         <AppHeader 
@@ -157,11 +161,7 @@ function AppContent() {
             />
           </div>
           {selectedRooms.map((room: string, index: number) => {
-            const roomEvents = events?.filter(event => {
-              const eventRoomName = event.room_name;
-              if (!eventRoomName) return false;
-              return eventRoomName === room;
-            });
+            const roomEvents = getFilteredEventsForRoom(room);
             const currentFloor = room.match(/GH (\d)/)?.[1];
             const nextRoom = selectedRooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
@@ -173,7 +173,7 @@ function AppContent() {
                 roomEvents={roomEvents}
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
-                rooms={allRooms}
+                                 rooms={selectedRooms}
                 isFloorBreak={isFloorBreak}
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
 import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
-import FacultyStatusBars from '../Faculty/FacultyStatusBars';
-import SetupNotesEditor from '../Faculty/SetupNotesEditor';
+import FacultyStatusBars from './FacultyStatusBars';
+import SetupNotesEditor from './SetupNotesEditor';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];

@@ -49,6 +49,7 @@ export type Database = {
           item_id: number | null
           item_id2: number | null
           lecture_title: string | null
+          owner: string | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
@@ -65,6 +66,7 @@ export type Database = {
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null
+          owner?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -81,13 +83,22 @@ export type Database = {
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null
+          owner?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_fkey"
+            columns: ["owner"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faculty: {
         Row: {
@@ -225,7 +236,6 @@ export type Database = {
           display: Json | null
           id: number
           name: string | null
-          notify: Json | null
           owner: string | null
         }
         Insert: {
@@ -234,7 +244,6 @@ export type Database = {
           display?: Json | null
           id?: number
           name?: string | null
-          notify?: Json | null
           owner?: string | null
         }
         Update: {
@@ -243,7 +252,6 @@ export type Database = {
           display?: Json | null
           id?: number
           name?: string | null
-          notify?: Json | null
           owner?: string | null
         }
         Relationships: []

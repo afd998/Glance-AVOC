@@ -4,7 +4,7 @@ import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFac
 import { useEvents } from '../../hooks/useEvents';
 import { parseEventResources } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
-import SessionSetup from './SessionSetup';
+import SessionSetup from '../Faculty/SessionSetup';
 import PanelModal from './PanelModal';
 import OccurrencesPage from '../../pages/OccurrencesPage';
 import { Database } from '../../types/supabase';

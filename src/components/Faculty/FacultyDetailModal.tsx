@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
+import SessionSetup from './SessionSetup';
+import { useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 
 const fetchFacultyById = async (facultyId: string) => {
   const { data, error } = await supabase
@@ -24,6 +26,19 @@ const FacultyDetailModal: React.FC = () => {
     queryFn: () => fetchFacultyById(facultyId!),
     enabled: !!facultyId,
   });
+  
+  const updateFacultyAttributes = useUpdateFacultyAttributes();
+  
+  // Create a mock event object for the SessionSetup component
+  const mockEvent = facultyMember ? {
+    instructor_name: facultyMember.twentyfivelive_name || facultyMember.kelloggdirectory_name || 'Unknown Faculty',
+    // Add other required event properties as needed
+  } as Database['public']['Tables']['events']['Row'] : null;
+  
+  const handlePanelModal = (panel: 'left' | 'right') => {
+    // TODO: Implement panel modal functionality if needed
+    console.log(`Panel modal requested for ${panel} panel`);
+  };
 
   return (
     <div
@@ -55,41 +70,15 @@ const FacultyDetailModal: React.FC = () => {
           </div>
         ) : error ? (
           <div className="text-red-600">Error loading faculty details.</div>
-        ) : facultyMember ? (
-          <>
-            {/* Faculty Info */}
-            <div className="flex flex-col items-center mb-6">
-              {facultyMember.kelloggdirectory_image_url && (
-                <div className="relative mb-2">
-                  <img
-                    src={facultyMember.kelloggdirectory_image_url}
-                    alt={facultyMember.kelloggdirectory_name || 'Faculty'}
-                    className="w-24 h-24 rounded-full object-cover filter grayscale opacity-80"
-                  />
-                  <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
-                </div>
-              )}
-              <div className="text-xl font-semibold text-center mb-1">{facultyMember.kelloggdirectory_name || facultyMember.twentyfivelive_name || 'Unknown'}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300 text-center mb-1">{facultyMember.kelloggdirectory_title}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">{facultyMember.kelloggdirectory_subtitle}</div>
-              {facultyMember.kelloggdirectory_bio_url && (
-                <a
-                  href={facultyMember.kelloggdirectory_bio_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 text-xs underline mt-1"
-                >
-                  View Bio
-                </a>
-              )}
-            </div>
-            {/* Status Bars */}
-            <FacultyStatusBars facultyMember={facultyMember} isEditable={false} onUpdate={() => {}} />
-            {/* Setup Notes */}
-            <div className="mt-8">
-              <SetupNotesEditor event={null as any} facultyMember={facultyMember} />
-            </div>
-          </>
+        ) : facultyMember && mockEvent ? (
+          <SessionSetup
+            event={mockEvent}
+            resources={[]}
+            facultyMember={facultyMember}
+            isFacultyLoading={false}
+            updateFacultyAttributes={updateFacultyAttributes}
+            openPanelModal={handlePanelModal}
+          />
         ) : null}
       </div>
     </div>

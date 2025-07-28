@@ -58,107 +58,56 @@ export const parseEventResources = (event: Event): ResourceFlags => {
 };
 
 /**
- * Get the icon for a resource item
- * @param itemName - The resource item name
- * @returns Icon emoji string
+ * Get icon for a resource item
  */
 export const getResourceIcon = (itemName: string): string => {
-  switch (itemName) {
-    case "KSM-KGH-VIDEO-Recording (POST TO CANVAS)":
-    case "KSM-KGH-VIDEO-Recording":
-      return "📹";
-    case "KSM-KGH-VIDEO-Recording (PRIVATE LINK)":
-      return "📹";
-    case "KSM-KGH-AV-Handheld Microphone":
-      return "🎤";
-    case "KSM-KGH-AV-Staff Assistance":
-      return "🚶";
-    case "KSM-KGH-AV-Web Conference":
-      return "💻";
-    case "KSM-KGH-AV-SRS Clickers (polling)":
-      return "📱";
-    default:
-      return "📋";
-  }
+  const name = itemName?.toLowerCase() || '';
+  
+  if (name.includes('laptop') || name.includes('computer')) return '💻';
+  if (name.includes('camera') || name.includes('doc cam')) return '📷';
+  if (name.includes('zoom') || name.includes('video')) return '📹';
+  if (name.includes('panel') || name.includes('control')) return '🎛️';
+  if (name.includes('audio') || name.includes('microphone')) return '🎤';
+  if (name.includes('display') || name.includes('monitor')) return '🖥️';
+  
+  return '📱'; // Default icon
 };
 
 /**
- * Get a human-readable name for a resource
- * @param itemName - The resource item name
- * @returns Human-readable name
+ * Get display name for a resource item
  */
 export const getResourceDisplayName = (itemName: string): string => {
-  switch (itemName) {
-    case "KSM-KGH-VIDEO-Recording (POST TO CANVAS)":
-      return "Video Recording (Canvas)";
-    case "KSM-KGH-VIDEO-Recording (PRIVATE LINK)":
-      return "Video Recording (Private)";
-    case "KSM-KGH-VIDEO-Recording":
-      return "Video Recording";
-    case "KSM-KGH-AV-Handheld Microphone":
-      return "Handheld Microphone";
-    case "KSM-KGH-AV-Staff Assistance":
-      return "Staff Assistance";
-    case "KSM-KGH-AV-Web Conference":
-      return "Web Conference";
-    case "KSM-KGH-AV-SRS Clickers (polling)":
-      return "Clickers (Polling)";
-    default:
-      return itemName;
-  }
+  // Clean up common patterns
+  return itemName
+    ?.replace(/^(laptop|computer)\s*-?\s*/i, 'Laptop ')
+    ?.replace(/^(camera|doc cam)\s*-?\s*/i, 'Camera ')
+    ?.replace(/zoom/i, 'Zoom')
+    || itemName;
 };
 
 /**
- * Parse room name from format "KGH1110 (70)" to "GH 1110" or "KGHL110" to "GH L110"
- * @param roomName - The room name from the database
- * @returns Parsed room name or null if no match
- */
-export const parseRoomName = (roomName: string | null): string | null => {
-  if (!roomName) {
-    return null;
-  }
-  
-  // If the room name is already in the correct format (GH 1110), return it
-  if (roomName.match(/^GH \d+[AB]?$/)) {
-    return roomName;
-  }
-  
-  // First try to match L-prefixed rooms (KGHL110 format)
-  const lMatch = roomName.match(/K(GHL\d+)/);
-  if (lMatch) {
-    return lMatch[1].replace(/(GH)(L)(\d+)/, 'GH $2$3');
-  }
-  
-  // Then try to match regular rooms
-  const match = roomName.match(/K(GH\d+[AB]?)/);
-  if (!match) {
-    return null;
-  }
-  
-  // Add space between GH and number, preserving A/B suffix if present
-  const roomNumber = match[1];
-  return roomNumber.replace(/(GH)(\d+)([AB]?)/, 'GH $2$3');
-};
-
-/**
- * Determine event type and return appropriate styling information
- * @param event - The event object with new field names
- * @returns Object containing event type flags and background color
+ * Determine event type information including colors
  */
 export const getEventTypeInfo = (event: Event): EventTypeInfo => {
-  const isStudentEvent = event.event_type?.toLowerCase().includes('student') || false;
-  const isFacStaffEvent = event.event_type?.toLowerCase().includes('facstaff') || false;
-  const isClass = event.event_name?.includes("Class") || false;
-  const isSpecial = event.event_name?.includes("Workshop") || event.event_name?.includes("Summit") || false;
-  const isLecture = event.event_type === 'Lecture';
+  const eventType = event.event_type?.toLowerCase() || '';
+  const eventName = event.event_name?.toLowerCase() || '';
   
+  const isLecture = eventType === 'lecture';
+  const isClass = isLecture || eventType === 'class';
+  const isSpecial = eventType === 'special' || eventName.includes('special');
+  
+  // Determine if it's a student or faculty/staff event
+  const isStudentEvent = isClass || eventName.includes('student');
+  const isFacStaffEvent = !isStudentEvent;
+  
+  // Determine background color
   let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
-  if (isStudentEvent) bgColor = "bg-[#b8a68a]";
+  if (isLecture) bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
+  else if (isStudentEvent) bgColor = "bg-[#b8a68a]";
   else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
   else if (isClass) bgColor = "bg-gray-400";
   else if (isSpecial) bgColor = "bg-[#9b8ba5]";
-  else if (isLecture) bgColor = "noise-bg"; // Keep lecture events with the purple noise background
-
+  
   return {
     isStudentEvent,
     isFacStaffEvent,
@@ -170,33 +119,36 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
 };
 
 /**
- * Calculate event positioning and dimensions for grid display
- * @param event - The event object
- * @param startHour - The start hour of the grid
- * @param pixelsPerMinute - Pixels per minute for scaling
- * @param roomLabelWidth - Width of room labels (default: 96)
- * @param eventMargin - Margin between events (default: 1)
- * @returns Object containing positioning and dimension values
+ * Calculate event position on the timeline
  */
 export const calculateEventPosition = (
-  event: Event, 
-  startHour: number, 
-  pixelsPerMinute: number, 
-  roomLabelWidth: number = 96, 
+  event: Event,
+  startMinutes: number,
+  pixelsPerMinute: number,
+  roomLabelWidth: number,
   eventMargin: number = 1
 ): EventPosition => {
-  // Parse start_time and end_time from ISO strings (e.g., "2025-07-16 08:00:00+00")
-  const startTime = new Date(event.start_time || '');
-  const endTime = new Date(event.end_time || '');
+  if (!event.start_time || !event.end_time) {
+    return {
+      startMinutes: 0,
+      endMinutes: 0,
+      durationMinutes: 0,
+      left: '0px',
+      width: '0px'
+    };
+  }
+
+  // Parse start and end times
+  const [startHour, startMin] = event.start_time.split(':').map(Number);
+  const [endHour, endMin] = event.end_time.split(':').map(Number);
   
-  // Calculate minutes from start of day (midnight)
-  const startMinutes = (startTime.getHours() * 60) + startTime.getMinutes();
-  const endMinutes = (endTime.getHours() * 60) + endTime.getMinutes();
-  const durationMinutes = endMinutes - startMinutes;
+  const eventStartMinutes = startHour * 60 + startMin;
+  const eventEndMinutes = endHour * 60 + endMin;
+  const durationMinutes = eventEndMinutes - eventStartMinutes;
   
-  // Calculate minutes relative to the grid start hour
-  const startMinutesRelative = startMinutes - (startHour * 60);
-  const endMinutesRelative = endMinutes - (startHour * 60);
+  // Calculate position relative to timeline start
+  const startMinutesRelative = eventStartMinutes - startMinutes;
+  const endMinutesRelative = eventEndMinutes - startMinutes;
   
   return {
     startMinutes: startMinutesRelative,
@@ -213,5 +165,17 @@ export async function getAllShiftBlocksForWeek(week_start: string) {
     .select('*')
     .eq('week_start', week_start);
   if (error) throw error;
-  return data as Database['public']['Tables']['shift_blocks']['Row'][];
+  
+  // Sort by day_of_week and then by start_time to ensure consistent chronological order
+  const sortedData = (data || []).sort((a, b) => {
+    // First sort by day of week
+    if (a.day_of_week !== b.day_of_week) {
+      return (a.day_of_week ?? 0) - (b.day_of_week ?? 0);
+    }
+    // Then sort by start time within the same day
+    if (!a.start_time || !b.start_time) return 0;
+    return a.start_time.localeCompare(b.start_time);
+  });
+  
+  return sortedData as Database['public']['Tables']['shift_blocks']['Row'][];
 } 

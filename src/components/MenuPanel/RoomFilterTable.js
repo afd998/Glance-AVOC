@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useRoomStore from '../../stores/roomStore';
 import { useFilters } from '../../hooks/useFilters';
+import { useProfile } from '../../hooks/useProfile';
 
 const RoomFilterTable = ({ autoHideEnabled = false }) => {
   const [loadingStates, setLoadingStates] = useState({});
@@ -10,15 +11,16 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
   const { 
     allRooms,
     selectedRooms,
-    notificationRooms,
     toggleRoom,
-    toggleNotificationRoom,
     getSelectedRoomsCount,
-    getTotalRoomsCount,
-    getNotificationRoomsCount
+    getTotalRoomsCount
   } = useRoomStore();
 
   const { saveFilter, isSavingFilter } = useFilters();
+  const { currentFilter } = useProfile();
+  
+  // Disable checkboxes when a filter is active or auto-hide is enabled
+  const isDisabled = autoHideEnabled || !!currentFilter;
 
   const handleDisplayToggle = async (room) => {
     setLoadingStates(prev => ({ ...prev, [`display-${room}`]: true }));
@@ -34,119 +36,97 @@ const RoomFilterTable = ({ autoHideEnabled = false }) => {
     }
   };
 
-  const handleNotificationToggle = async (room) => {
-    setLoadingStates(prev => ({ ...prev, [`notification-${room}`]: true }));
-    
-    
-    try {
-      await toggleNotificationRoom(room);
-    } finally {
-      // Small delay to show loading state
-      setTimeout(() => {
-        setLoadingStates(prev => ({ ...prev, [`notification-${room}`]: false }));
-      }, 150);
-    }
-  };
+
 
   const handleSaveFilter = async () => {
     if (!presetName.trim()) return;
     
+    console.log('Saving filter:', {
+      name: presetName.trim(),
+      selectedRooms
+    });
+    
     try {
-      await saveFilter(presetName.trim(), selectedRooms, notificationRooms);
+      await saveFilter(presetName.trim(), selectedRooms);
+      console.log('Filter saved successfully');
       setPresetName('');
       setShowSaveDialog(false);
     } catch (error) {
       console.error('Failed to save filter:', error);
+      alert('Failed to save filter: ' + error.message);
     }
   };
 
   return (
     <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
       <div className="mb-3 flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Rooms</h3>
-        <button
-          onClick={() => setShowSaveDialog(true)}
-          className="flex items-center px-3 py-1 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-        >
-          💾 Save current selection as filter
-        </button>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Filter Events by Room</h3>
+        {!isDisabled && (
+          <button
+            onClick={() => setShowSaveDialog(true)}
+            className="flex items-center px-3 py-1 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+          >
+            💾 Save
+          </button>
+        )}
       </div>
       
+
+      
+
+      
       {/* Summary Stats - Always visible */}
-      <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-        <span>Display: {getSelectedRoomsCount()}/{getTotalRoomsCount()}</span>
-        <span>Notifications: {getNotificationRoomsCount()}/{getTotalRoomsCount()}</span>
+      <div className="flex justify-center text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <span>Include Rooms: {getSelectedRoomsCount()}/{getTotalRoomsCount()}</span>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="h-80 overflow-y-auto">
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-600">
-                <th className="text-left py-2 px-2 font-medium text-gray-700 dark:text-gray-300">Room</th>
-                <th className="text-center py-2 px-2 font-medium text-gray-700 dark:text-gray-300">Display</th>
-                <th className="text-center py-2 px-2 font-medium text-gray-700 dark:text-gray-300">Notifications</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allRooms.map((room) => {
-                const isDisplayLoading = loadingStates[`display-${room}`];
-                const isNotificationLoading = loadingStates[`notification-${room}`];
+      {/* Scrollable Room List */}
+      <div className="h-80 overflow-y-auto space-y-1">
+        {allRooms.map((room) => {
+          const isSelected = selectedRooms.includes(room);
+          const isLoading = loadingStates[`display-${room}`];
+          
+          return (
+            <div
+              key={room}
+              onClick={() => !isDisabled && !isLoading && handleDisplayToggle(room)}
+              className={`relative flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
+                  : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+              } ${
+                isDisabled
+                  ? 'cursor-default'
+                  : 'cursor-pointer hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/10'
+              }`}
+            >
+              <div className="flex items-center flex-1">
+                {/* Selection indicator */}
+                <div className={`w-3 h-3 rounded-full mr-3 transition-colors ${
+                  isSelected 
+                    ? 'bg-blue-500' 
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`} />
                 
-                return (
-                  <tr 
-                    key={room} 
-                    className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 bg-white dark:bg-gray-800"
-                  >
-                    <td className="py-2 px-2 text-gray-700 dark:text-gray-300">
-                      {room}
-                    </td>
-                    <td className="py-2 px-2 text-center">
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          id={`display-${room}`}
-                          checked={selectedRooms.includes(room)}
-                          onChange={() => handleDisplayToggle(room)}
-                          disabled={isDisplayLoading || autoHideEnabled}
-                          className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-opacity ${
-                            isDisplayLoading || autoHideEnabled ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        />
-                        {isDisplayLoading && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-2 px-2 text-center">
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          id={`notification-${room}`}
-                          checked={notificationRooms.includes(room)}
-                          onChange={() => handleNotificationToggle(room)}
-                          disabled={isNotificationLoading}
-                          className={`h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition-opacity ${
-                            isNotificationLoading ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        />
-                        {isNotificationLoading && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-3 h-3 border border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                <span className="font-medium">{room}</span>
+              </div>
+              
+              {/* Loading indicator */}
+              {isLoading && (
+                <div className="ml-2">
+                  <div className="w-4 h-4 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+              
+              {/* Check mark for selected items */}
+              {isSelected && !isLoading && (
+                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Save Dialog */}

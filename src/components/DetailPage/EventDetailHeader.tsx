@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { parseRoomName } from '../../utils/eventUtils';
 import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 

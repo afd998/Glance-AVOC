@@ -32,14 +32,9 @@ export const useProfile = () => {
     mutationFn: async (autoHide: boolean) => {
       if (!user) throw new Error('No user');
       
-      // When auto-hide is turned on, clear the current_filter
-      const updateData = autoHide 
-        ? { auto_hide: autoHide, current_filter: null }
-        : { auto_hide: autoHide };
-
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({ auto_hide: autoHide })
         .eq('id', user.id);
 
       if (error) throw error;

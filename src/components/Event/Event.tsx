@@ -3,7 +3,7 @@ import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
 import { useFacultyMember } from "../../hooks/useFaculty";
-import { parseEventResources, parseRoomName, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
+import { parseEventResources, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -90,8 +90,40 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
 
 
 
-  // Calculate event positioning using the utility function
-  const { left, width } = calculateEventPosition(event, startHour, pixelsPerMinute);
+  // Calculate event positioning manually (working approach)
+  if (!event.start_time || !event.end_time) {
+    return null;
+  }
+
+  // Parse times - handle both "HH:MM:SS" and ISO timestamp formats
+  let startTimeHour: number, startTimeMin: number;
+  let endTimeHour: number, endTimeMin: number;
+
+  if (event.start_time.includes('T')) {
+    // ISO timestamp format
+    const startDate = new Date(event.start_time);
+    const endDate = new Date(event.end_time);
+    startTimeHour = startDate.getHours();
+    startTimeMin = startDate.getMinutes();
+    endTimeHour = endDate.getHours();
+    endTimeMin = endDate.getMinutes();
+  } else {
+    // Simple time string format "HH:MM" or "HH:MM:SS"
+    [startTimeHour, startTimeMin] = event.start_time.split(':').map(Number);
+    [endTimeHour, endTimeMin] = event.end_time.split(':').map(Number);
+  }
+  
+  const eventStartMinutes = startTimeHour * 60 + startTimeMin;
+  const eventEndMinutes = endTimeHour * 60 + endTimeMin;
+  const timelineStartMinutes = startHour * 60;
+  
+  const startMinutesRelative = eventStartMinutes - timelineStartMinutes;
+  const durationMinutes = eventEndMinutes - eventStartMinutes;
+  
+  // Subtract room label width since events are positioned too far right
+  const roomLabelWidth = 96; // Adjust this if needed
+  const left = `${(startMinutesRelative * pixelsPerMinute) - roomLabelWidth}px`;
+  const width = `${durationMinutes * pixelsPerMinute}px`;
 
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;

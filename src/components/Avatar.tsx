@@ -3,7 +3,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 
 interface AvatarProps {
   userId: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
 }
 
@@ -49,6 +49,7 @@ const Avatar: React.FC<AvatarProps> = ({ userId, size = 'md', className = '' }) 
   const { data: userProfile, isLoading } = useUserProfile(userId);
   
   const sizeClasses = {
+    xs: 'w-4 h-4 text-[10px]',
     sm: 'w-6 h-6 text-xs',
     md: 'w-8 h-8 text-sm',
     lg: 'w-10 h-10 text-base'
