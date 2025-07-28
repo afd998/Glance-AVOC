@@ -154,7 +154,9 @@ function DefaultEvent({ event, isHovering }: EventContentProps) {
     <div className="rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
       <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
         <span 
-          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
+          className={`text-sm font-medium transition-all duration-200 ease-in-out truncate w-full ${
+            event.event_type === 'KEC' ? 'text-gray-700 dark:text-white' : 'text-white'
+          }`}
           style={{ 
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
             transformOrigin: 'left center'

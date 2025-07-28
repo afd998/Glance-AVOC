@@ -99,7 +99,7 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   const isLecture = eventType === 'Lecture';
   
   // Determine if it's a student or faculty/staff event
-  const isStudentEvent = isLecture || eventName.toLowerCase().includes('student');
+  const isStudentEvent = eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
   
   // Determine background color
