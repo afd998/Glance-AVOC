@@ -90,56 +90,24 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
 
 
 
-  // Calculate event positioning manually (working approach)
-  if (!event.start_time || !event.end_time) {
+  // Calculate event positioning using utility function
+  const timelineStartMinutes = startHour * 60;
+  const roomLabelWidth = 96; // Adjust this if needed
+  
+  const position = calculateEventPosition(
+    event,
+    timelineStartMinutes,
+    pixelsPerMinute,
+    roomLabelWidth
+  );
+  
+  if (!position) {
     return null;
   }
-
-  // Parse times - handle both "HH:MM:SS" and ISO timestamp formats
-  let startTimeHour: number, startTimeMin: number;
-  let endTimeHour: number, endTimeMin: number;
-
-  if (event.start_time.includes('T')) {
-    // ISO timestamp format
-    const startDate = new Date(event.start_time);
-    const endDate = new Date(event.end_time);
-    startTimeHour = startDate.getHours();
-    startTimeMin = startDate.getMinutes();
-    endTimeHour = endDate.getHours();
-    endTimeMin = endDate.getMinutes();
-  } else {
-    // Simple time string format "HH:MM" or "HH:MM:SS"
-    [startTimeHour, startTimeMin] = event.start_time.split(':').map(Number);
-    [endTimeHour, endTimeMin] = event.end_time.split(':').map(Number);
-  }
   
-  const eventStartMinutes = startTimeHour * 60 + startTimeMin;
-  const eventEndMinutes = endTimeHour * 60 + endTimeMin;
-  const timelineStartMinutes = startHour * 60;
+  const { left, width, durationMinutes } = position;
   
-  const startMinutesRelative = eventStartMinutes - timelineStartMinutes;
-  const durationMinutes = eventEndMinutes - eventStartMinutes;
-  
-  // Subtract room label width since events are positioned too far right
-  const roomLabelWidth = 96; // Adjust this if needed
-  const left = `${(startMinutesRelative * pixelsPerMinute) - roomLabelWidth}px`;
-  // Ensure minimum width for very short events to prevent overlaps
-  const calculatedWidth = Math.max(durationMinutes * pixelsPerMinute, 30);
-  const width = `${calculatedWidth}px`;
-  
-  // Debug logging for width issues
-  console.log(`Event: ${event.event_name}`, {
-    startTime: event.start_time,
-    endTime: event.end_time,
-    durationMinutes,
-    pixelsPerMinute,
-    rawWidth: durationMinutes * pixelsPerMinute,
-    calculatedWidth,
-    finalWidth: width,
-    left,
-    eventType: event.event_type
-  });
-
+ 
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;
 

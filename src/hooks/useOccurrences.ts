@@ -16,6 +16,7 @@ export const useOccurrences = (eventName: string | null) => {
         .from('events')
         .select('*')
         .eq('event_name', eventName)
+        .order('date', { ascending: true })
         .order('start_time', { ascending: true });
 
       if (error) {

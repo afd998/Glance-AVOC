@@ -40,12 +40,11 @@ const fetchEvents = async ({ queryKey }: { queryKey: [string, Date, Date] }): Pr
     
     console.log(`📅 useEvents: Fetching events for ${targetDate.toISOString().split('T')[0]} (${daysDifference} days from today)`);
     
-    // Query events for the target date
+    // Query events for the target date using the new date column
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .gte('start_time', startOfDay.toISOString())
-      .lt('start_time', endOfDay.toISOString())
+      .eq('date', targetDate.toISOString().split('T')[0])
       .order('start_time', { ascending: true });
       
     if (error) {
