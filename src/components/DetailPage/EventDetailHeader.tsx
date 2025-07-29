@@ -24,17 +24,20 @@ interface EventDetailHeaderProps {
 }
 
 // Helper function to format ISO timestamp to time string
-const formatTimeFromISO = (isoString: string | null): string => {
-  if (!isoString) return '';
+const formatTimeFromISO = (timeString: string | null): string => {
+  if (!timeString) return '';
   try {
-    const date = new Date(isoString);
+    // Parse HH:MM:SS format
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
     return date.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   } catch (error) {
-    console.error('Error formatting time:', isoString, error);
+    console.error('Error formatting time:', timeString, error);
     return '';
   }
 };
@@ -84,6 +87,8 @@ export default function EventDetailHeader({
           <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
             {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
           </p>
+          
+
           
           {/* Occurrences Button */}
           <div className="mb-3 sm:mb-4">

@@ -47,11 +47,14 @@ export default function EventHeader({
   const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
   const hasClickers = resources.some(item => item.displayName === 'Clickers (Polling)');
   const hasAVNotes = resources.some(item => item.displayName === 'AV Setup Notes');
-  // Format start and end times from ISO strings
+  // Format start and end times from HH:MM:SS format
   const formatTimeFromISO = (timeString: string | null) => {
     if (!timeString) return '';
     try {
-      const date = new Date(timeString);
+      // Parse HH:MM:SS format
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
       return date.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',

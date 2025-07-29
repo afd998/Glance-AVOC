@@ -41,6 +41,7 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          date: string | null
           end_time: string | null
           event_name: string | null
           event_type: string | null
@@ -49,15 +50,20 @@ export type Database = {
           item_id: number | null
           item_id2: number | null
           lecture_title: string | null
+          man_owner: string | null
+          man_owner_2: string | null
           owner: string | null
+          owner_2: string | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
           start_time: string | null
+          transition_time: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string
+          date?: string | null
           end_time?: string | null
           event_name?: string | null
           event_type?: string | null
@@ -66,15 +72,20 @@ export type Database = {
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null
+          man_owner?: string | null
+          man_owner_2?: string | null
           owner?: string | null
+          owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
+          transition_time?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string
+          date?: string | null
           end_time?: string | null
           event_name?: string | null
           event_type?: string | null
@@ -83,14 +94,39 @@ export type Database = {
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null
+          man_owner?: string | null
+          man_owner_2?: string | null
           owner?: string | null
+          owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
+          transition_time?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "events_man_owner_2_fkey"
+            columns: ["man_owner_2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_man_owner_fkey"
+            columns: ["man_owner"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_owner_2_fkey"
+            columns: ["owner_2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_owner_fkey"
             columns: ["owner"]

@@ -113,10 +113,12 @@ export function useNotifications() {
       return;
     }
 
-    // Parse event start time
+    // Parse event start time (now in HH:MM:SS format, need to combine with date)
     let eventStartTime;
     try {
-      eventStartTime = new Date(event.start_time);
+      // Combine date and time to create a full timestamp
+      const eventDateTime = `${event.date}T${event.start_time}`;
+      eventStartTime = new Date(eventDateTime);
       if (isNaN(eventStartTime.getTime())) {
         console.warn('Invalid start_time format:', event.start_time);
         return;
@@ -173,13 +175,13 @@ export function useNotifications() {
     events.forEach(event => {
       // Skip events without required data
       if (!event.start_time || !event.event_name) {
-        console.log('Skipping event - missing required data:', event.event_name);
+     
         return;
       }
 
       // Skip events not in notification-enabled rooms
       if (!notificationRooms.includes(event.room_name)) {
-        console.log('Skipping event - not in notification rooms:', event.room_name);
+       
         return;
       }
 

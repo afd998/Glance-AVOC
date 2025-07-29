@@ -201,12 +201,15 @@ async function manageEventOwnersInTimeRange(
   assignedEvents: Event[];
   errors: string[];
 }> {
-  const { startTimestamp, endTimestamp, date } = createTimeRangeForDay(dayOfWeek, weekStart, startTime, endTime);
+  const date = getDateFromDayOfWeek(dayOfWeek, weekStart);
   
-  console.log(`🔄 Managing event owners for ${startTimestamp} to ${endTimestamp} (day ${dayOfWeek})`);
-  console.log(`  📅 Date: ${date}`);
+  console.log(`🔄 DEBUG: manageEventOwnersInTimeRange called`);
+  console.log(`  📅 Day of week: ${dayOfWeek}`);
+  console.log(`  📅 Week start: ${weekStart}`);
+  console.log(`  📅 Calculated date: ${date}`);
   console.log(`  ⏰ Time range: ${startTime} - ${endTime}`);
   console.log(`  👥 Assignments:`, assignments);
+  console.log(`  🔍 Query will be: date=${date}, start_time>=${startTime}, start_time<${endTime}`);
   
   const clearedEvents: Event[] = [];
   const assignedEvents: Event[] = [];
@@ -216,42 +219,34 @@ async function manageEventOwnersInTimeRange(
     // Step 1: Clear all existing owners in the time range
     console.log(`🧹 Step 1: Clearing existing event owners...`);
     
-    // First, let's see what events exist in this time range for debugging
-    const { data: existingEvents, error: queryError } = await supabase
-      .from('events')
-      .select('*')
-      .gte('start_time', startTimestamp)
-      .lt('start_time', endTimestamp);
-      
-    if (queryError) {
-      console.error(`❌ Error querying events: ${queryError.message}`);
-    } else {
-      console.log(`🔍 Found ${existingEvents?.length || 0} events in UTC time range ${startTimestamp} to ${endTimestamp}:`);
-      if (existingEvents && existingEvents.length > 0) {
-        existingEvents.forEach(event => {
-          if (event.start_time) {
-            const localTime = new Date(event.start_time).toLocaleString('en-US', { 
-              timeZone: 'America/Chicago',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            });
-            console.log(`  📅 ${event.event_name} in ${event.room_name} - UTC: ${event.start_time} | Local: ${localTime}`);
-          } else {
-            console.log(`  📅 ${event.event_name} in ${event.room_name} - No start time`);
-          }
-        });
-      }
-    }
+         // First, let's see what events exist in this time range for debugging
+     console.log(`🔍 DEBUG: Querying events with: date=${date}, start_time>=${startTime}, start_time<${endTime}`);
+     const { data: existingEvents, error: queryError } = await supabase
+       .from('events')
+       .select('*')
+       .eq('date', date)
+       .gte('start_time', startTime)
+       .lt('start_time', endTime);
+       
+     if (queryError) {
+       console.error(`❌ Error querying events: ${queryError.message}`);
+     } else {
+       console.log(`🔍 DEBUG: Found ${existingEvents?.length || 0} events in time range ${startTime} to ${endTime}:`);
+       if (existingEvents && existingEvents.length > 0) {
+         existingEvents.forEach(event => {
+           console.log(`  📅 ${event.event_name} in ${event.room_name} - Time: ${event.start_time} - Owner: ${event.owner || 'null'}`);
+         });
+       } else {
+         console.log(`  ⚠️ DEBUG: No events found in this time range!`);
+       }
+     }
     
     const { data: clearedData, error: clearError } = await supabase
       .from('events')
       .update({ owner: null })
-      .gte('start_time', startTimestamp)
-      .lt('start_time', endTimestamp)
+      .eq('date', date)
+      .gte('start_time', startTime)
+      .lt('start_time', endTime)
       .select('*');
       
     if (clearError) {
@@ -281,14 +276,18 @@ async function manageEventOwnersInTimeRange(
         
         console.log(`  🔄 Assigning ${assignment.user} to rooms: [${assignment.rooms.join(', ')}]`);
         
-        const { data: assignedData, error: assignError } = await supabase
-          .from('events')
-          .update({ owner: assignment.user })
-          .gte('start_time', startTimestamp)
-          .lt('start_time', endTimestamp)
-          .in('room_name', assignment.rooms)
-          .neq('event_type', 'KEC')
-          .select('*');
+                 console.log(`🔍 DEBUG: Assigning ${assignment.user} to rooms [${assignment.rooms.join(', ')}]`);
+         console.log(`🔍 DEBUG: Assignment query: date=${date}, start_time>=${startTime}, start_time<${endTime}, room_name IN [${assignment.rooms.join(', ')}], event_type != 'KEC'`);
+         
+         const { data: assignedData, error: assignError } = await supabase
+           .from('events')
+           .update({ owner: assignment.user })
+           .eq('date', date)
+           .gte('start_time', startTime)
+           .lt('start_time', endTime)
+           .in('room_name', assignment.rooms)
+           .neq('event_type', 'KEC')
+           .select('*');
           
         if (assignError) {
           const errorMsg = `Failed to assign events to ${assignment.user}: ${assignError.message}`;
@@ -367,13 +366,12 @@ async function findEventsInTimeRange(
   endTime: string,
   rooms?: string[]
 ): Promise<Event[]> {
-  const { startTimestamp, endTimestamp } = createTimeRangeForDay(0, date, startTime, endTime);
-  
   let query = supabase
     .from('events')
     .select('*')
-    .gte('start_time', startTimestamp)
-    .lt('start_time', endTimestamp);
+    .eq('date', date)
+    .gte('start_time', startTime)
+    .lt('start_time', endTime);
 
   if (rooms && rooms.length > 0) {
     query = query.in('room_name', rooms);
@@ -440,7 +438,11 @@ export function useUpdateShiftBlocks() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ day_of_week, week_start, newBlocks }: { day_of_week: number, week_start: string, newBlocks: ShiftBlockInsert[] }) => {
-      console.log('🔄 useUpdateShiftBlocks starting with:', { day_of_week, week_start, newBlocks });
+      console.log('🔄 DEBUG: useUpdateShiftBlocks mutation triggered!');
+      console.log('  📅 Day of week:', day_of_week);
+      console.log('  📅 Week start:', week_start);
+      console.log('  📦 New blocks count:', newBlocks.length);
+      console.log('  📦 New blocks:', newBlocks);
       
       // 1. Get existing shift blocks to know what time ranges to clear event owners from
       const { data: existingBlocks, error: fetchError } = await supabase

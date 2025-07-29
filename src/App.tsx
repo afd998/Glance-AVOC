@@ -173,7 +173,7 @@ function AppContent() {
                 roomEvents={roomEvents}
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
-                                 rooms={selectedRooms}
+                rooms={selectedRooms}
                 isFloorBreak={isFloorBreak}
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}

@@ -16,5 +16,20 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'glance-app',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  },
+  db: {
+    schema: 'public'
   }
-}) 
+})
+
+// Debug: Test the connection
+console.log('🔧 DEBUG: Supabase client created');
+console.log('🔧 DEBUG: Supabase URL:', supabaseUrl);
+console.log('🔧 DEBUG: Supabase Key (first 10 chars):', supabaseAnonKey ? supabaseAnonKey.substring(0, 10) + '...' : 'Missing'); 

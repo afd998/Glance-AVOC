@@ -8,14 +8,14 @@ import { parseEventResources, getResourceIcon, getResourceDisplayName } from '..
 
 type Event = Database['public']['Tables']['events']['Row'];
 
-// Helper function to convert ISO date string to float hours for formatTime
-const isoToFloatHours = (isoString: string | null): number => {
-  if (!isoString) return 0;
+// Helper function to convert HH:MM:SS time string to float hours for formatTime
+const timeToFloatHours = (timeString: string | null): number => {
+  if (!timeString) return 0;
   try {
-    const date = new Date(isoString);
-    return date.getHours() + date.getMinutes() / 60;
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours + minutes / 60;
   } catch (error) {
-    console.error('Error converting ISO to float hours:', isoString, error);
+    console.error('Error converting time to float hours:', timeString, error);
     return 0;
   }
 };
@@ -38,7 +38,7 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
   const { resources } = parseEventResources(event);
 
   const handleCardClick = () => {
-    const eventDate = event.start_time ? new Date(event.start_time).toISOString().split('T')[0] : '';
+    const eventDate = event.date || '';
     navigate(`/${eventDate}/${event.id}`);
   };
 
@@ -57,10 +57,10 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
           <div className="flex-1 space-y-2">
             <div className="space-y-1">
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {formatDate(event.start_time || '')}
+                {formatDate(event.date || '')}
               </p>
               <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                {formatTime(isoToFloatHours(event.start_time))} - {formatTime(isoToFloatHours(event.end_time))}
+                {formatTime(timeToFloatHours(event.start_time))} - {formatTime(timeToFloatHours(event.end_time))}
               </p>
             </div>
             <div className="space-y-1 text-sm">

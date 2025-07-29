@@ -138,7 +138,7 @@ export const calculateEventPosition = (
     };
   }
 
-  // Parse start and end times
+  // Parse start and end times (now in HH:MM:SS format)
   const [startHour, startMin] = event.start_time.split(':').map(Number);
   const [endHour, endMin] = event.end_time.split(':').map(Number);
   
@@ -151,7 +151,7 @@ export const calculateEventPosition = (
   const endMinutesRelative = eventEndMinutes - startMinutes;
   
   // Ensure minimum width for very short events
-  const calculatedWidth = Math.max(durationMinutes * pixelsPerMinute - eventMargin * 2, 60); // Minimum 60px width
+  const calculatedWidth = Math.max(durationMinutes * pixelsPerMinute - eventMargin * 2, 30); // Minimum 30px width
   
   return {
     startMinutes: startMinutesRelative,
