@@ -6,6 +6,7 @@ import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils'
 import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import OwnerDisplay from './OwnerDisplay';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -21,6 +22,8 @@ interface EventDetailHeaderProps {
   facultyMember: FacultyMember | null | undefined;
   isFacultyLoading: boolean;
   resources: ResourceItem[];
+  handOffTime: string | null | undefined;
+  isHandOffTimeLoading: boolean;
 }
 
 // Helper function to format ISO timestamp to time string
@@ -42,15 +45,20 @@ const formatTimeFromISO = (timeString: string | null): string => {
   }
 };
 
+
+
 export default function EventDetailHeader({ 
   event, 
   facultyMember, 
   isFacultyLoading,
-  resources
+  resources,
+  handOffTime,
+  isHandOffTimeLoading
 }: EventDetailHeaderProps) {
   const navigate = useNavigate();
   const { date } = useParams<{ date: string }>();
   const { data: ownerProfile, isLoading: isOwnerLoading } = useUserProfile(event.owner || '');
+  const { data: owner2Profile, isLoading: isOwner2Loading } = useUserProfile(event.owner_2 || '');
 
   const handleOccurrencesClick = () => {
     navigate(`/${date}/${event.id}/occurrences`);
@@ -83,22 +91,29 @@ export default function EventDetailHeader({
             {event.event_name}
           </p>
           
-          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-1">{formatDate(event.start_time || '')}</p>
-          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
-            {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
-          </p>
-          
-
-          
-          {/* Occurrences Button */}
-          <div className="mb-3 sm:mb-4">
-            <button
-              onClick={handleOccurrencesClick}
-              className="px-3 py-1.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-            >
-              Occurrences
-            </button>
-          </div>
+          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-1">{formatDate(event.date || '')}</p>
+                     <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+             {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
+           </p>
+           
+           {/* Occurrences Button */}
+           <div className="mb-3 sm:mb-4">
+             <button
+               onClick={handleOccurrencesClick}
+               className="px-3 py-1.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+             >
+               Occurrences
+             </button>
+           </div>
+           
+           {/* Owner Display - Show for any owner */}
+           {event.owner && (
+             <OwnerDisplay
+               owner1={event.owner}
+               owner2={event.owner_2}
+               handOffTime={!isHandOffTimeLoading ? handOffTime : null}
+             />
+           )}
         </div>
 
         {/* Right Side - Event Type/Room and Instructor Info */}
@@ -125,23 +140,7 @@ export default function EventDetailHeader({
               </div>
             </div>
 
-            {/* Owner Assignment */}
-            {event.owner && (
-              <div className="mb-4">
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">Assigned to</span>
-                <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
-                  <Avatar userId={event.owner} size="md" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {isOwnerLoading ? 'Loading...' : (ownerProfile?.name || 'Unknown User')}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Event Owner
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+            
           </div>
 
           {/* Resources Card */}

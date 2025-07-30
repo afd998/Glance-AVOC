@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
 import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
+import { useHandOffTime } from '../../hooks/useHandOffTime';
 import { parseEventResources } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';
@@ -59,6 +60,9 @@ export default function EventDetail() {
   
   const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event?.instructor_name || '');
   const updateFacultyAttributes = useUpdateFacultyAttributes();
+  
+  // Get hand-off time for the event
+  const { data: handOffTime, isLoading: isHandOffTimeLoading } = useHandOffTime(event);
   
   // Parse event resources using the utility function (only if event exists)
   const { resources } = event ? parseEventResources(event) : { resources: [] };
@@ -137,6 +141,8 @@ export default function EventDetail() {
                 facultyMember={facultyMember}
                 isFacultyLoading={isFacultyLoading}
                 resources={resources}
+                handOffTime={handOffTime || null}
+                isHandOffTimeLoading={isHandOffTimeLoading}
               />
               
               <SessionSetup
