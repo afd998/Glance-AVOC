@@ -20,8 +20,12 @@ export default function EventHeader({
   // Get all occurrences of this event
   const { data: occurrences } = useOccurrences(event.event_name);
   
-  // Get user profile for the event owner
-  const { data: userProfile } = useUserProfile(event.owner || '');
+  // Get user profiles for tooltips
+  const { data: owner1Profile } = useUserProfile(event.owner || '');
+  const { data: owner2Profile } = useUserProfile(event.owner_2 || '');
+  
+  // Check if there are two different owners
+  const hasTwoOwners = event.owner_2 && event.owner && event.owner !== event.owner_2;
   
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
@@ -160,16 +164,45 @@ export default function EventHeader({
             📝
           </span>
         )}
-        {/* Owner Avatar */}
+        {/* Owner Avatar(s) */}
         {event.owner && (
-          <div 
-            className="transition-all duration-200 ease-in-out"
-            title={`Assigned to: ${userProfile?.name || event.owner}`}
-            style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-            }}
-          >
-            <Avatar userId={event.owner} size="xs" />
+          <div className="flex items-center gap-1">
+            {/* First Owner Avatar */}
+            <div 
+              className="transition-all duration-200 ease-in-out"
+              title={`Assigned to: ${owner1Profile?.name || event.owner}`}
+              style={{
+                transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              }}
+            >
+              <Avatar userId={event.owner} size="xs" />
+            </div>
+            
+            {/* Arrow and Second Owner - Only show if there are two different owners */}
+            {hasTwoOwners && (
+              <>
+                <svg 
+                  className="w-3 h-3 text-white opacity-80 transition-all duration-200 ease-in-out" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                  style={{
+                    transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+                  }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                                 <div 
+                   className="transition-all duration-200 ease-in-out"
+                   title={`Assigned to: ${owner2Profile?.name || event.owner_2 || ''}`}
+                   style={{
+                     transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+                   }}
+                 >
+                   <Avatar userId={event.owner_2 || ''} size="xs" />
+                 </div>
+              </>
+            )}
           </div>
         )}
       </div>

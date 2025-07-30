@@ -323,6 +323,131 @@ async function manageEventOwnersInTimeRange(
 }
 
 // ============================================================================
+// HAND-OFF EVENT OWNER_2 MANAGEMENT
+// ============================================================================
+
+/**
+ * Manage owner_2 assignments for events that hand off into shift blocks
+ * 
+ * This function finds events that END in a shift block but DON'T start in it,
+ * and assigns/removes owner_2 based on the shift block assignments.
+ * 
+ * @param dayOfWeek - Day of week (0-6, where 0 is Sunday)
+ * @param weekStart - Week start date in YYYY-MM-DD format
+ * @param startTime - Start time in HH:MM or HH:MM:SS format (local time)
+ * @param endTime - End time in HH:MM or HH:MM:SS format (local time)
+ * @param assignments - Optional array of user assignments with rooms
+ * @returns Promise with detailed results of the operation
+ */
+async function manageHandoffEventOwners(
+  dayOfWeek: number,
+  weekStart: string,
+  startTime: string,
+  endTime: string,
+  assignments: Array<{ user: string; rooms: string[] }> | null = null
+): Promise<{
+  clearedEvents: Event[];
+  assignedEvents: Event[];
+  errors: string[];
+}> {
+  const date = getDateFromDayOfWeek(dayOfWeek, weekStart);
+  
+  console.log(`🔄 DEBUG: manageHandoffEventOwners called`);
+  console.log(`  📅 Day of week: ${dayOfWeek}`);
+  console.log(`  📅 Week start: ${weekStart}`);
+  console.log(`  📅 Calculated date: ${date}`);
+  console.log(`  ⏰ Time range: ${startTime} - ${endTime}`);
+  console.log(`  👥 Assignments:`, assignments);
+  
+  const clearedEvents: Event[] = [];
+  const assignedEvents: Event[] = [];
+  const errors: string[] = [];
+  
+  try {
+    // Step 1: Clear all existing owner_2 in the time range
+    console.log(`🧹 Step 1: Clearing existing event owner_2...`);
+    
+    const { data: clearedData, error: clearError } = await supabase
+      .from('events')
+      .update({ owner_2: null })
+      .eq('date', date)
+      .gte('end_time', startTime)
+      .lt('end_time', endTime)
+      .select('*');
+      
+    if (clearError) {
+      const errorMsg = `Failed to clear event owner_2: ${clearError.message}`;
+      console.error(`❌ ${errorMsg}`);
+      errors.push(errorMsg);
+      throw clearError;
+    }
+    
+    if (clearedData && clearedData.length > 0) {
+      clearedEvents.push(...clearedData);
+      console.log(`  ✅ Cleared owner_2 for ${clearedData.length} events:`, 
+        clearedData.map(e => `${e.event_name} in ${e.room_name} (${e.end_time})`));
+    } else {
+      console.log(`  ℹ️ No events found in time range to clear owner_2`);
+    }
+    
+    // Step 2: Assign new owner_2 if assignments are provided
+    if (assignments && assignments.length > 0) {
+      console.log(`👤 Step 2: Assigning new event owner_2...`);
+      
+      for (const assignment of assignments) {
+        if (!assignment.rooms || assignment.rooms.length === 0) {
+          console.log(`  ⚠️ User ${assignment.user} has no rooms assigned, skipping`);
+          continue;
+        }
+        
+        console.log(`  🔄 Assigning ${assignment.user} as owner_2 to rooms: [${assignment.rooms.join(', ')}]`);
+        
+        // Find events that END in this time range but DON'T start in it
+        const { data: assignedData, error: assignError } = await supabase
+          .from('events')
+          .update({ owner_2: assignment.user })
+          .eq('date', date)
+          .gte('end_time', startTime)
+          .lt('end_time', endTime)
+          .lt('start_time', startTime) // Event doesn't start in this shift block
+          .in('room_name', assignment.rooms)
+          .neq('event_type', 'KEC')
+          .select('*');
+         
+        if (assignError) {
+          const errorMsg = `Failed to assign owner_2 to ${assignment.user}: ${assignError.message}`;
+          console.error(`❌ ${errorMsg}`);
+          errors.push(errorMsg);
+          continue; // Continue with other assignments even if one fails
+        }
+        
+        if (assignedData && assignedData.length > 0) {
+          assignedEvents.push(...assignedData);
+          console.log(`  ✅ Assigned owner_2 for ${assignedData.length} events to ${assignment.user} in rooms [${assignment.rooms.join(', ')}]:`, 
+            assignedData.map(e => `${e.event_name} in ${e.room_name} (${e.end_time})`));
+        } else {
+          console.log(`  ℹ️ No events found for ${assignment.user} as owner_2 in rooms [${assignment.rooms.join(', ')}]`);
+        }
+      }
+    } else {
+      console.log(`  ℹ️ No assignments provided, only clearing owner_2`);
+    }
+    
+    console.log(`✅ Hand-off event owner_2 management complete:`);
+    console.log(`  📊 Cleared: ${clearedEvents.length} events`);
+    console.log(`  📊 Assigned: ${assignedEvents.length} events`);
+    console.log(`  ❌ Errors: ${errors.length}`);
+    
+  } catch (error) {
+    const errorMsg = `Unexpected error in manageHandoffEventOwners: ${error}`;
+    console.error(`❌ ${errorMsg}`);
+    errors.push(errorMsg);
+  }
+  
+  return { clearedEvents, assignedEvents, errors };
+}
+
+// ============================================================================
 // LEGACY FUNCTIONS (for backward compatibility)
 // ============================================================================
 
@@ -461,7 +586,16 @@ export function useUpdateShiftBlocks() {
       if (existingBlocks && existingBlocks.length > 0) {
         for (const block of existingBlocks) {
           if (block.start_time && block.end_time) {
+            // Clear regular event owners
             await manageEventOwnersInTimeRange(
+              day_of_week,
+              week_start,
+              block.start_time,
+              block.end_time
+            );
+            
+            // Clear hand-off event owners
+            await manageHandoffEventOwners(
               day_of_week,
               week_start,
               block.start_time,
@@ -500,7 +634,17 @@ export function useUpdateShiftBlocks() {
         // 5. Assign event owners based on new shift block assignments
         for (const block of newBlocks) {
           if (block.start_time && block.end_time && block.assignments) {
+            // Manage regular event owners (events that start in this shift block)
             await manageEventOwnersInTimeRange(
+              block.day_of_week!,
+              block.week_start!,
+              block.start_time,
+              block.end_time,
+              block.assignments as Array<{ user: string; rooms: string[] }>
+            );
+            
+            // Manage hand-off event owners (events that end in this shift block but don't start in it)
+            await manageHandoffEventOwners(
               block.day_of_week!,
               block.week_start!,
               block.start_time,
@@ -530,8 +674,19 @@ export async function syncEventsForShiftBlock(shiftBlock: ShiftBlock): Promise<v
 
   console.log(`🔄 Manually syncing events for shift block ${shiftBlock.id}`);
 
-  // Use the centralized function to manage event owners
+  // Use the centralized function to manage regular event owners
   await manageEventOwnersInTimeRange(
+    shiftBlock.day_of_week,
+    shiftBlock.week_start,
+    shiftBlock.start_time,
+    shiftBlock.end_time,
+    shiftBlock.assignments && Array.isArray(shiftBlock.assignments) 
+      ? shiftBlock.assignments as Array<{ user: string; rooms: string[] }>
+      : null
+  );
+
+  // Use the centralized function to manage hand-off event owners
+  await manageHandoffEventOwners(
     shiftBlock.day_of_week,
     shiftBlock.week_start,
     shiftBlock.start_time,
@@ -621,7 +776,16 @@ export function useCopyShiftBlocks() {
         if (existingTargetBlocks && existingTargetBlocks.length > 0) {
           for (const block of existingTargetBlocks) {
             if (block.start_time && block.end_time) {
+              // Clear regular event owners
               await manageEventOwnersInTimeRange(
+                targetDay,
+                weekStart,
+                block.start_time,
+                block.end_time
+              );
+              
+              // Clear hand-off event owners
+              await manageHandoffEventOwners(
                 targetDay,
                 weekStart,
                 block.start_time,
@@ -657,7 +821,17 @@ export function useCopyShiftBlocks() {
           // Assign event owners for the copied blocks
           for (const block of blocksToInsert) {
             if (block.start_time && block.end_time && block.assignments) {
+              // Assign regular event owners
               await manageEventOwnersInTimeRange(
+                targetDay,
+                weekStart,
+                block.start_time,
+                block.end_time,
+                block.assignments as Array<{ user: string; rooms: string[] }>
+              );
+              
+              // Assign hand-off event owners
+              await manageHandoffEventOwners(
                 targetDay,
                 weekStart,
                 block.start_time,

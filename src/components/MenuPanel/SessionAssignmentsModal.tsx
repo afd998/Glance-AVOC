@@ -355,7 +355,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
         </div>
         
         {/* Content */}
-        <div className="mt-6 px-12 pb-12 min-h-[400px] flex flex-col items-center justify-center relative">
+        <div className="mt-6 px-12 pb-12 min-h-[400px] flex flex-col relative">
           {/* Copy Schedule Loading Overlay */}
           {isCopyingSchedule && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
