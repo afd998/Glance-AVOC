@@ -106,14 +106,13 @@ export default function EventDetailHeader({
              </button>
            </div>
            
-           {/* Owner Display - Show for any owner */}
-           {event.owner && (
-             <OwnerDisplay
-               owner1={event.owner}
-               owner2={event.owner_2}
-               handOffTime={!isHandOffTimeLoading ? handOffTime : null}
-             />
-           )}
+                       {/* Owner Display - Show for any owner or if there's a handoff time */}
+            {(event.man_owner || event.man_owner_2 || event.owner || event.owner_2 || handOffTime) && (
+              <OwnerDisplay
+                event={event}
+                isHandOffTimeLoading={isHandOffTimeLoading}
+              />
+            )}
         </div>
 
         {/* Right Side - Event Type/Room and Instructor Info */}

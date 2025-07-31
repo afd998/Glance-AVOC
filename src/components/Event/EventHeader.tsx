@@ -4,6 +4,8 @@ import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { useHandOffTime } from '../../hooks/useHandOffTime';
+import { useOwnerDisplay } from '../../hooks/useOwnerDisplay';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -20,12 +22,19 @@ export default function EventHeader({
   // Get all occurrences of this event
   const { data: occurrences } = useOccurrences(event.event_name);
   
-  // Get user profiles for tooltips
-  const { data: owner1Profile } = useUserProfile(event.owner || '');
-  const { data: owner2Profile } = useUserProfile(event.owner_2 || '');
+  // Get handoff time
+  const { data: handOffTime } = useHandOffTime(event);
   
-  // Check if there are two different owners
-  const hasTwoOwners = event.owner_2 && event.owner && event.owner !== event.owner_2;
+  // Get owner display logic
+  const {
+    owner1,
+    owner2,
+    owner1Profile,
+    owner2Profile,
+    hasTwoOwners,
+    isOwner1FromManOwner,
+    isOwner2FromManOwner
+  } = useOwnerDisplay(event);
   
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
@@ -164,19 +173,21 @@ export default function EventHeader({
             📝
           </span>
         )}
-        {/* Owner Avatar(s) */}
-        {event.owner && (
+                {/* Owner Avatar(s) */}
+        {(owner1 || owner2 || handOffTime) && (
           <div className="flex items-center gap-1">
             {/* First Owner Avatar */}
-            <div 
-              className="transition-all duration-200 ease-in-out"
-              title={`Assigned to: ${owner1Profile?.name || event.owner}`}
-              style={{
-                transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-              }}
-            >
-              <Avatar userId={event.owner} size="xs" />
-            </div>
+                         {owner1 && (
+               <div 
+                 className="transition-all duration-200 ease-in-out"
+                 title={`Assigned to: ${owner1Profile?.name || owner1}`}
+                 style={{
+                   transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+                 }}
+               >
+                 <Avatar userId={owner1} size="xs" />
+               </div>
+             )}
             
             {/* Arrow and Second Owner - Only show if there are two different owners */}
             {hasTwoOwners && (
@@ -194,12 +205,12 @@ export default function EventHeader({
                 </svg>
                                  <div 
                    className="transition-all duration-200 ease-in-out"
-                   title={`Assigned to: ${owner2Profile?.name || event.owner_2 || ''}`}
+                   title={`Assigned to: ${owner2Profile?.name || owner2 || ''}`}
                    style={{
                      transform: isHovering ? 'scale(1.2)' : 'scale(1)'
                    }}
                  >
-                   <Avatar userId={event.owner_2 || ''} size="xs" />
+                   <Avatar userId={owner2 || ''} size="xs" />
                  </div>
               </>
             )}
