@@ -76,7 +76,11 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const thisMonday = getThisMonday(today);
   const nextMonday = getNextMonday(today);
   const weekStartDate = weekTab === 'this' ? thisMonday : nextMonday;
-  const weekStart = weekStartDate.toISOString().split('T')[0];
+  
+  // Use local date calculation to avoid timezone issues
+  const weekStart = weekStartDate.getFullYear() + '-' + 
+    String(weekStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(weekStartDate.getDate()).padStart(2, '0');
   const followingSunday = new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000);
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStartDate);
@@ -226,10 +230,26 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
 
   // Handler for copying schedule from previous week
   const handleCopyScheduleFromLastWeek = () => {
-    // Calculate previous week based on current tab
-    const currentWeekStart = weekTab === 'this' ? thisMonday : nextMonday;
-    const previousWeekStart = new Date(currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const previousWeekStartString = previousWeekStart.toISOString().split('T')[0];
+    // Calculate previous week based on the currently displayed week
+    // Use a more reliable date calculation that avoids timezone issues
+    const currentWeekStartDate = new Date(weekStart + 'T00:00:00');
+    const previousWeekStartDate = new Date(currentWeekStartDate);
+    previousWeekStartDate.setDate(previousWeekStartDate.getDate() - 7);
+    const previousWeekStartString = previousWeekStartDate.toISOString().split('T')[0];
+    
+    // Get current date in local timezone
+    const now = new Date();
+    const todayString = now.getFullYear() + '-' + 
+      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(now.getDate()).padStart(2, '0');
+    
+    console.log('🔍 DEBUG: Copy schedule dates:');
+    console.log('  📅 Today (local):', todayString);
+    console.log('  📅 Current week start:', weekStart);
+    console.log('  📅 Previous week start:', previousWeekStartString);
+    console.log('  📅 Week tab:', weekTab);
+    console.log('  📅 This Monday:', thisMonday.toISOString().split('T')[0]);
+    console.log('  📅 Next Monday:', nextMonday.toISOString().split('T')[0]);
     
     setIsCopyingSchedule(true);
     
@@ -377,13 +397,13 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
           
           {!profilesLoading && !shiftsLoading && !profilesError && !shiftsError && (
             <>
-              {/* Copy Schedule from Last Week Button */}
-              <div className="mb-4 flex justify-center">
-                <button
-                  onClick={handleCopyScheduleFromLastWeek}
-                  disabled={isCopyingSchedule}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2"
-                >
+                             {/* Copy Schedule from Last Week Button */}
+               <div className="mb-4 flex justify-start">
+                 <button
+                   onClick={handleCopyScheduleFromLastWeek}
+                   disabled={isCopyingSchedule}
+                   className="px-2 py-1 text-blue-600 hover:text-blue-700 disabled:opacity-60 text-sm transition-colors flex items-center gap-2 underline"
+                 >
                   {isCopyingSchedule ? (
                     <>
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -397,7 +417,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2V8a2 2 0 00-2-2H9a2 2 0 00-2 2v5.172a2 2 0 00.586 1.414l4.414 4.414A2 2 0 0012.828 18H14" />
                       </svg>
-                      Copy schedule from last week
+                      Copy schedule from last week into this week
                     </>
                   )}
                 </button>
@@ -530,22 +550,54 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                   Updating shift blocks…
                 </div>
               )}
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={closeCellModal}
-                  className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  disabled={upsertShift.isPending}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60"
-                  disabled={upsertShift.isPending}
-                >
-                  {upsertShift.isPending ? 'Saving...' : 'Save'}
-                </button>
-              </div>
+                             <div className="flex justify-between">
+                 <button
+                   onClick={() => {
+                     // Clear the shift by setting times to null
+                     upsertShift.mutate({
+                       profile_id: editingCell.profileId,
+                       day_of_week: editingCell.dayIdx,
+                       week_start: weekStart,
+                       start_time: null,
+                       end_time: null,
+                     }, {
+                       onSuccess: () => {
+                         // After shift is cleared, recalculate shift blocks for that day
+                         const dayIdx = editingCell.dayIdx;
+                         const shiftsForDay = (shifts || []).filter(s => s.day_of_week === dayIdx && s.week_start === weekStart);
+                         // Remove the cleared shift from the list
+                         const updatedShifts = shiftsForDay.filter(s => s.profile_id !== editingCell.profileId);
+                         const newBlocks = calculateNewShiftBlocks(updatedShifts, dayIdx, weekStart);
+                         updateShiftBlocks.mutate({ day_of_week: dayIdx, week_start: weekStart, newBlocks });
+                         closeCellModal();
+                       },
+                       onError: (error) => {
+                         console.error('Shift clear error:', error);
+                       }
+                     });
+                   }}
+                   className="px-4 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                   disabled={upsertShift.isPending}
+                 >
+                   Clear
+                 </button>
+                 <div className="flex space-x-2">
+                   <button
+                     onClick={closeCellModal}
+                     className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                     disabled={upsertShift.isPending}
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     onClick={handleSave}
+                     className="px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60"
+                     disabled={upsertShift.isPending}
+                   >
+                     {upsertShift.isPending ? 'Saving...' : 'Save'}
+                   </button>
+                 </div>
+               </div>
             </div>
           </div>
         )}
