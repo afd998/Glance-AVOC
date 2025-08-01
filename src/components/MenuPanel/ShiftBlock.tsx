@@ -88,10 +88,17 @@ function DraggableRoomBadge({ room, dragging }: { room: string; dragging: boolea
 
 // Shift block assignment component (user section)
 function ShiftBlockAssignment({ userId, rooms, isOver }: { userId: string; rooms: string[]; isOver: boolean }) {
-  const { data: profile } = useUserProfile(userId);
+  // Always call the hooks, even if userId is undefined
+  const { data: profile } = useUserProfile(userId || '');
   const { setNodeRef } = useDroppable({
-    id: userId,
+    id: userId || '',
   });
+
+  // Add defensive check for undefined userId
+  if (!userId) {
+    console.warn('ShiftBlockAssignment: userId is undefined or null');
+    return null;
+  }
 
   return (
     <div
@@ -159,6 +166,13 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   const [assignments, setAssignments] = useState<Assignment[]>(block.assignments || []);
   const [draggingRoom, setDraggingRoom] = useState<string | null>(null);
 
+  // Debug logging
+  console.log('ShiftBlock render:', {
+    blockId: block.id,
+    assignments: assignments,
+    blockAssignments: block.assignments
+  });
+
   // Create unique drop ID for rooms section
   const roomsDropId = `rooms-${block.id}`;
 
@@ -210,25 +224,22 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
       
       // Convert to ShiftBlockInsert format (remove database-generated fields)
       const newBlocks = updatedBlocks.map(b => ({
-        day_of_week: b.day_of_week,
-        week_start: b.week_start,
+        date: b.date,
         start_time: b.start_time,
         end_time: b.end_time,
         assignments: b.assignments,
       }));
       
-      // Persist the full set of shift blocks for the day/week
+      // Persist the full set of shift blocks for the date
       console.log('🔄 Updating shift blocks with:', {
-        day_of_week: block.day_of_week,
-        week_start: block.week_start,
+        date: block.date,
         newBlocks,
         draggedRoom,
         newAssignments
       });
       
       updateShiftBlocks.mutate({
-        day_of_week: block.day_of_week,
-        week_start: block.week_start,
+        date: block.date,
         newBlocks,
       }, {
         onSuccess: (data) => {

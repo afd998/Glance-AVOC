@@ -21,9 +21,10 @@ export const useEventFiltering = (events: Event[] | undefined) => {
     // Special case: MY_EVENTS filter
     if (currentFilter === 'My Events') {
       if (!user) return [];
-      // Filter events to only show those assigned to the current user (either as owner or owner_2)
+      // Filter events to only show those assigned to the current user (either as man_owner or man_owner_2)
       return events.filter(event => {
-        return event.owner === user.id || event.owner_2 === user.id;
+        return event.man_owner === user.id || 
+               event.man_owner_2 === user.id;
       });
     }
 

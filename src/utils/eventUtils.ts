@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from '../lib/supabase';
-import { Database } from '../types/supabase';
+import type { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -162,23 +162,31 @@ export const calculateEventPosition = (
   };
 }; 
 
-export async function getAllShiftBlocksForWeek(week_start: string) {
+type ShiftBlock = Database['public']['Tables']['shift_blocks']['Row'];
+type Shift = Database['public']['Tables']['shifts']['Row'];
+
+// Updated to use date instead of week_start
+export async function getAllShiftBlocksForDate(date: string) {
   const { data, error } = await supabase
     .from('shift_blocks')
     .select('*')
-    .eq('week_start', week_start);
+    .eq('date', date);
+
   if (error) throw error;
-  
-  // Sort by day_of_week and then by start_time to ensure consistent chronological order
-  const sortedData = (data || []).sort((a, b) => {
-    // First sort by day of week
-    if (a.day_of_week !== b.day_of_week) {
-      return (a.day_of_week ?? 0) - (b.day_of_week ?? 0);
+  return data || [];
+}
+
+// Updated to use date instead of day_of_week
+export function sortShiftsByTime(shifts: Shift[]): Shift[] {
+  // Sort by date and then by start_time to ensure consistent chronological order
+  return shifts.sort((a, b) => {
+    // First sort by date
+    if (a.date !== b.date) {
+      return (a.date ?? '').localeCompare(b.date ?? '');
     }
-    // Then sort by start time within the same day
+    
+    // Then sort by start_time
     if (!a.start_time || !b.start_time) return 0;
     return a.start_time.localeCompare(b.start_time);
   });
-  
-  return sortedData as Database['public']['Tables']['shift_blocks']['Row'][];
 } 

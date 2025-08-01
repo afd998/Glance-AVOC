@@ -4,8 +4,7 @@ import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useHandOffTime } from '../../hooks/useHandOffTime';
-import { useOwnerDisplay } from '../../hooks/useOwnerDisplay';
+import { useOwnerDisplay, useHandOffTime } from '../../hooks/useOwnerDisplay';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];

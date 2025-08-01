@@ -52,13 +52,10 @@ export type Database = {
           lecture_title: string | null
           man_owner: string | null
           man_owner_2: string | null
-          owner: string | null
-          owner_2: string | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
           start_time: string | null
-          transition_time: string | null
           updated_at: string | null
         }
         Insert: {
@@ -74,13 +71,10 @@ export type Database = {
           lecture_title?: string | null
           man_owner?: string | null
           man_owner_2?: string | null
-          owner?: string | null
-          owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
-          transition_time?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -96,13 +90,10 @@ export type Database = {
           lecture_title?: string | null
           man_owner?: string | null
           man_owner_2?: string | null
-          owner?: string | null
-          owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
           start_time?: string | null
-          transition_time?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -116,20 +107,6 @@ export type Database = {
           {
             foreignKeyName: "events_man_owner_fkey"
             columns: ["man_owner"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_owner_2_fkey"
-            columns: ["owner_2"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_owner_fkey"
-            columns: ["owner"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -314,59 +291,53 @@ export type Database = {
         Row: {
           assignments: Json | null
           created_at: string
-          day_of_week: number | null
+          date: string | null
           end_time: string | null
           id: number
           start_time: string | null
-          week_start: string | null
         }
         Insert: {
           assignments?: Json | null
           created_at?: string
-          day_of_week?: number | null
+          date?: string | null
           end_time?: string | null
           id?: number
           start_time?: string | null
-          week_start?: string | null
         }
         Update: {
           assignments?: Json | null
           created_at?: string
-          day_of_week?: number | null
+          date?: string | null
           end_time?: string | null
           id?: number
           start_time?: string | null
-          week_start?: string | null
         }
         Relationships: []
       }
       shifts: {
         Row: {
           created_at: string
-          day_of_week: number | null
+          date: string | null
           end_time: string | null
           id: number
           profile_id: string | null
           start_time: string | null
-          week_start: string | null
         }
         Insert: {
           created_at?: string
-          day_of_week?: number | null
+          date?: string | null
           end_time?: string | null
           id?: number
           profile_id?: string | null
           start_time?: string | null
-          week_start?: string | null
         }
         Update: {
           created_at?: string
-          day_of_week?: number | null
+          date?: string | null
           end_time?: string | null
           id?: number
           profile_id?: string | null
           start_time?: string | null
-          week_start?: string | null
         }
         Relationships: [
           {
