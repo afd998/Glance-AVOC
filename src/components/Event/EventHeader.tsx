@@ -4,7 +4,7 @@ import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useOwnerDisplay, useHandOffTime } from '../../hooks/useOwnerDisplay';
+import { useEventOwnership } from '../../hooks/useCalculateOwners';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -21,19 +21,11 @@ export default function EventHeader({
   // Get all occurrences of this event
   const { data: occurrences } = useOccurrences(event.event_name);
   
-  // Get handoff time
-  const { data: handOffTime } = useHandOffTime(event);
+  // Get ownership data including timeline
+  const { data: ownershipData } = useEventOwnership(event);
   
-  // Get owner display logic
-  const {
-    owner1,
-    owner2,
-    owner1Profile,
-    owner2Profile,
-    hasTwoOwners,
-    isOwner1FromManOwner,
-    isOwner2FromManOwner
-  } = useOwnerDisplay(event);
+  // Get timeline entries
+  const timeline = ownershipData?.timeline || [];
   
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
@@ -172,47 +164,38 @@ export default function EventHeader({
             📝
           </span>
         )}
-                {/* Owner Avatar(s) */}
-        {(owner1 || owner2 || handOffTime) && (
+                {/* Owner Avatars */}
+        {timeline.length > 0 && (
           <div className="flex items-center gap-1">
-            {/* First Owner Avatar */}
-                         {owner1 && (
-               <div 
-                 className="transition-all duration-200 ease-in-out"
-                 title={`Assigned to: ${owner1Profile?.name || owner1}`}
-                 style={{
-                   transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-                 }}
-               >
-                 <Avatar userId={owner1} size="xs" />
-               </div>
-             )}
-            
-            {/* Arrow and Second Owner - Only show if there are two different owners */}
-            {hasTwoOwners && (
-              <>
-                <svg 
-                  className="w-3 h-3 text-white opacity-80 transition-all duration-200 ease-in-out" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+            {timeline.map((entry, index) => (
+              <React.Fragment key={entry.ownerId}>
+                {/* Owner Avatar */}
+                <div 
+                  className="transition-all duration-200 ease-in-out"
+                  title={`Assigned to: ${entry.ownerId}`}
                   style={{
                     transform: isHovering ? 'scale(1.2)' : 'scale(1)'
                   }}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-                                 <div 
-                   className="transition-all duration-200 ease-in-out"
-                   title={`Assigned to: ${owner2Profile?.name || owner2 || ''}`}
-                   style={{
-                     transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-                   }}
-                 >
-                   <Avatar userId={owner2 || ''} size="xs" />
-                 </div>
-              </>
-            )}
+                  <Avatar userId={entry.ownerId} size="xs" />
+                </div>
+                
+                {/* Arrow (if not the last owner) */}
+                {index < timeline.length - 1 && (
+                  <svg 
+                    className="w-3 h-3 text-gray-600 dark:text-gray-400 transition-all duration-200 ease-in-out" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                    style={{
+                      transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+                    }}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         )}
       </div>

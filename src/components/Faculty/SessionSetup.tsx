@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
-import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../../utils/eventUtils';
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 
@@ -30,13 +30,16 @@ export default function SessionSetup({
   updateFacultyAttributes,
   openPanelModal
 }: SessionSetupProps) {
+  // Get theme colors based on event type
+  const themeColors = getEventThemeColors(event);
+  
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 mb-8">
+    <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
       
       {/* Faculty Information - Full Width at Top */}
       {event.instructor_name && (
         <div className="mb-4 sm:mb-6">
-          <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 sm:p-4 bg-gray-50 dark:bg-gray-700">
+          <div className={`border rounded-lg p-3 sm:p-4 ${themeColors.itemBg}`}>
             <div className="flex items-center gap-2 sm:gap-3">
               {facultyMember?.kelloggdirectory_image_url ? (
                 <div className="relative">
@@ -58,7 +61,7 @@ export default function SessionSetup({
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white truncate">
+                  <h3 className="text-base sm:text-lg font-medium text-black truncate">
                     {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name || ''}
                   </h3>
                   {facultyMember?.kelloggdirectory_bio_url && (
@@ -76,10 +79,10 @@ export default function SessionSetup({
                     )}
                   </div>
                 {facultyMember?.kelloggdirectory_title && (
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{facultyMember.kelloggdirectory_title}</p>
+                  <p className="text-xs sm:text-sm text-black truncate">{facultyMember.kelloggdirectory_title}</p>
                 )}
                 {isFacultyLoading && (
-                  <p className="text-xs text-gray-400">Loading faculty info...</p>
+                  <p className="text-xs text-black">Loading faculty info...</p>
                 )}
               </div>
             </div>
@@ -118,7 +121,7 @@ export default function SessionSetup({
 
           {/* Setup Options Group */}
           {event.instructor_name && facultyMember && (
-            <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className={`p-3 sm:p-4 rounded-lg ${themeColors.itemBg}`}>
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
@@ -131,7 +134,7 @@ export default function SessionSetup({
                         className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 object-cover m-0 p-0 scale-150 -top-3 sm:-top-4"
                     />
                     </div>
-                    <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium">Uses Microphone</span>
+                    <span className="text-sm sm:text-base text-black font-medium">Uses Microphone</span>
                   </div>
                   <label className="inline-flex items-center cursor-pointer select-none">
                     <input
@@ -171,14 +174,14 @@ export default function SessionSetup({
                 
                 {(facultyMember.right_source || facultyMember.left_source) && (
                   <div className="mt-6">
-                    <h4 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3">Panel</h4>
+                    <h4 className="text-base sm:text-lg font-medium text-black mb-3">Panel</h4>
                     <div className="flex gap-3 sm:gap-4">
                       {facultyMember.left_source && (
                         <div className="flex-1">
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Left Panel</p>
+                          <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
                           <button
                             onClick={() => openPanelModal('left')}
-                            className="w-full h-24 sm:h-32 bg-purple-100 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700 flex items-center justify-center hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBg}`}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -188,24 +191,24 @@ export default function SessionSetup({
                               onError={(e) => {
                                 console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
                                 (e.target as HTMLImageElement).style.display = 'none';
-                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.left_source}.png</span>`;
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.left_source}.png</span>`;
                               }}
                               onLoad={(e) => {
                                 
                               }}
                             />
                           </button>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 font-medium">
+                          <p className="text-xs text-black text-center mt-2 font-medium">
                             {facultyMember.left_source.replace(/_/g, ' ')}
                           </p>
                         </div>
                       )}
                       {facultyMember.right_source && (
                         <div className="flex-1">
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Right Panel</p>
+                          <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
                           <button
                             onClick={() => openPanelModal('right')}
-                            className="w-full h-24 sm:h-32 bg-purple-100 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700 flex items-center justify-center hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBg}`}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -215,14 +218,14 @@ export default function SessionSetup({
                               onError={(e) => {
                                 console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
                                 (e.target as HTMLImageElement).style.display = 'none';
-                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-gray-500">Failed to load: ${facultyMember.right_source}.png</span>`;
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.right_source}.png</span>`;
                               }}
                               onLoad={(e) => {
                                 
                               }}
                             />
                           </button>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 font-medium">
+                          <p className="text-xs text-black text-center mt-2 font-medium">
                             {facultyMember.right_source.replace(/_/g, ' ')}
                           </p>
                         </div>

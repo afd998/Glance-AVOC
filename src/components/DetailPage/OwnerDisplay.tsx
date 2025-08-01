@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useOwnerDisplay, useHandOffTime } from '../../hooks/useOwnerDisplay';
+import { useEventOwnership, useAssignManualOwner, useClearManualOwner } from '../../hooks/useCalculateOwners';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import Avatar from '../Avatar';
 import UserSelectionModal from '../UserSelectionModal';
 import type { Database } from '../../types/supabase';
@@ -80,39 +81,52 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, isVisible }) => {
 };
 
 export default function OwnerDisplay({ event, isHandOffTimeLoading }: OwnerDisplayProps) {
-  const { data: handOffTime } = useHandOffTime(event);
-  const {
-    owner1,
-    owner2,
-    owner1Profile,
-    owner2Profile,
-    hasTwoOwners,
-    isOwner1FromManOwner,
-    isOwner2FromManOwner,
-    handleUserSelect: updateOwner,
-    handleClearOwner
-  } = useOwnerDisplay(event);
+  // Get ownership data including timeline
+  const { data: ownershipData } = useEventOwnership(event);
+  
+  // Get timeline entries
+  const timeline = ownershipData?.timeline || [];
+
+
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingOwner, setEditingOwner] = useState<'man_owner' | 'man_owner_2' | null>(null);
   
   // Tooltip state
-  const [hoveredAvatar, setHoveredAvatar] = useState<'owner1' | 'owner2' | 'empty1' | 'empty2' | null>(null);
+  const [hoveredAvatar, setHoveredAvatar] = useState<string | null>(null);
 
-  const handleAvatarClick = (ownerType: 'man_owner' | 'man_owner_2') => {
-    setEditingOwner(ownerType);
+  // Mutation hooks
+  const assignManualOwnerMutation = useAssignManualOwner();
+  const clearManualOwnerMutation = useClearManualOwner();
+
+  const handleAvatarClick = () => {
     setIsModalOpen(true);
   };
 
   const handleUserSelect = (userId: string) => {
-    if (!editingOwner) return;
-    updateOwner(editingOwner, userId);
+    assignManualOwnerMutation.mutate({ eventId: event.id, userId });
+    setIsModalOpen(false);
   };
 
-  // Don't render if no owners and no handoff time
-  if (!owner1 && !owner2 && !handOffTime) {
-    return null;
+  // Check if there's a manual owner
+  const hasManualOwner = !!event?.man_owner;
+
+
+
+  // Don't render if no timeline entries
+  if (timeline.length === 0) {
+    return (
+      <div className="mb-3 sm:mb-4">
+        <div className="mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Assigned to:
+          </span>
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          No owners found for this event
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -125,103 +139,30 @@ export default function OwnerDisplay({ event, isHandOffTimeLoading }: OwnerDispl
       </div>
       
       <div className="flex items-center gap-3">
-        {/* First Owner Avatar with Tooltip */}
-        {owner1 && (
-          <div className="relative">
-            <Tooltip
-              isVisible={hoveredAvatar === 'owner1'}
-              content={
-                <div>
-                  {owner1Profile?.name || owner1}
-                  <div className="text-xs text-gray-300 mt-1">
-                    {isOwner1FromManOwner ? 'Click to change' : 'Click to override auto-assignment'}
-                  </div>
-                </div>
-              }
-            >
-              <button
-                onClick={() => handleAvatarClick('man_owner')}
-                onMouseEnter={() => setHoveredAvatar('owner1')}
-                onMouseLeave={() => setHoveredAvatar(null)}
-                className="hover:ring-2 hover:ring-blue-400 rounded-full transition-all duration-200"
-              >
-                <Avatar userId={owner1} size="md" />
-                {/* Show indicator if displaying from auto-assigned owner */}
-                {!isOwner1FromManOwner && (
-                  <div className="absolute -bottom-2 -right-2 px-1 py-0.5 bg-gray-400 text-white text-[8px] font-medium rounded border border-white dark:border-gray-800">
-                    AUTO
-                  </div>
-                )}
-              </button>
-            </Tooltip>
-            {/* Only show clear button if this is a manual assignment */}
-            {isOwner1FromManOwner && (
-              <button
-                onClick={() => handleClearOwner('man_owner')}
-                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                title="Clear manual assignment (return to auto-assignment)"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        )}
-        
-        {/* Show empty avatar for first owner if no primary owner */}
-        {!owner1 && (
-          <div className="relative">
-            <Tooltip
-              isVisible={hoveredAvatar === 'empty1'}
-              content={
-                <div>
-                  Assign initial owner
-                  <div className="text-xs text-gray-300 mt-1">Click to assign</div>
-                </div>
-              }
-            >
-              <button
-                onClick={() => handleAvatarClick('man_owner')}
-                onMouseEnter={() => setHoveredAvatar('empty1')}
-                onMouseLeave={() => setHoveredAvatar(null)}
-                className="hover:ring-2 hover:ring-blue-400 rounded-full transition-all duration-200"
-              >
-                <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-400 dark:border-gray-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-              </button>
-            </Tooltip>
-          </div>
-        )}
-        
-        {/* Arrow and Second Owner - Show only if there are two different owners */}
-        {hasTwoOwners && (
-          <>
-            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+        {timeline.map((entry, index) => (
+          <React.Fragment key={entry.ownerId}>
+            {/* Owner Avatar */}
             <div className="relative">
               <Tooltip
-                isVisible={hoveredAvatar === 'owner2'}
+                isVisible={hoveredAvatar === entry.ownerId}
                 content={
                   <div>
-                    {owner2Profile?.name || owner2}
+                    {entry.ownerId}
                     <div className="text-xs text-gray-300 mt-1">
-                      {isOwner2FromManOwner ? 'Click to change' : 'Click to override auto-assignment'}
+                      {hasManualOwner ? 'Click to change manual assignment' : 'Click to assign manual owner'}
                     </div>
                   </div>
                 }
               >
                 <button
-                  onClick={() => handleAvatarClick('man_owner_2')}
-                  onMouseEnter={() => setHoveredAvatar('owner2')}
+                  onClick={handleAvatarClick}
+                  onMouseEnter={() => setHoveredAvatar(entry.ownerId)}
                   onMouseLeave={() => setHoveredAvatar(null)}
                   className="hover:ring-2 hover:ring-blue-400 rounded-full transition-all duration-200"
                 >
-                  <Avatar userId={owner2!} size="md" />
+                  <Avatar userId={entry.ownerId} size="md" />
                   {/* Show indicator if displaying from auto-assigned owner */}
-                  {!isOwner2FromManOwner && (
+                  {!hasManualOwner && (
                     <div className="absolute -bottom-2 -right-2 px-1 py-0.5 bg-gray-400 text-white text-[8px] font-medium rounded border border-white dark:border-gray-800">
                       AUTO
                     </div>
@@ -229,9 +170,9 @@ export default function OwnerDisplay({ event, isHandOffTimeLoading }: OwnerDispl
                 </button>
               </Tooltip>
               {/* Only show clear button if this is a manual assignment */}
-              {isOwner2FromManOwner && (
+              {hasManualOwner && (
                 <button
-                  onClick={() => handleClearOwner('man_owner_2')}
+                  onClick={() => clearManualOwnerMutation.mutate({ eventId: event.id })}
                   className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                   title="Clear manual assignment (return to auto-assignment)"
                 >
@@ -239,61 +180,47 @@ export default function OwnerDisplay({ event, isHandOffTimeLoading }: OwnerDispl
                 </button>
               )}
             </div>
-          </>
-        )}
+            
+            {/* Arrow and transition time (if not the last owner) */}
+            {entry.transitionTime && index < timeline.length - 1 && (
+              <div className="flex flex-col items-center gap-1">
+                {/* Arrow */}
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                
+                {/* Transition time */}
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  {formatHandOffTime(entry.transitionTime)}
+                </span>
+              </div>
+            )}
+          </React.Fragment>
+        ))}
         
-        {/* Show empty avatar for handoff owner if there's a handoff time but no second owner */}
-        {handOffTime && !owner2 && (
-          <>
-            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        {/* Manual Assignment Button */}
+        {!hasManualOwner && (
+          <button
+            onClick={handleAvatarClick}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg transition-colors"
+            title="Assign manual owner"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <div className="relative">
-              <Tooltip
-                isVisible={hoveredAvatar === 'empty2'}
-                content={
-                  <div>
-                    Assign hand-off owner
-                    <div className="text-xs text-gray-300 mt-1">Click to assign</div>
-                  </div>
-                }
-              >
-                <button
-                  onClick={() => handleAvatarClick('man_owner_2')}
-                  onMouseEnter={() => setHoveredAvatar('empty2')}
-                  onMouseLeave={() => setHoveredAvatar(null)}
-                  className="hover:ring-2 hover:ring-blue-400 rounded-full transition-all duration-200"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-400 dark:border-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                </button>
-              </Tooltip>
-            </div>
-          </>
+            Assign Owner
+          </button>
         )}
       </div>
-      
-      {/* Hand-off Time Text - Show if there's a handoff time and either two owners or one owner with handoff */}
-      {handOffTime && (hasTwoOwners || (owner1 && !owner2)) && (
-        <div className="mt-2">
-          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            Hand-off at {formatHandOffTime(handOffTime)}
-          </span>
-        </div>
-      )}
       
       {/* User Selection Modal */}
       <UserSelectionModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingOwner(null);
         }}
         onSelectUser={handleUserSelect}
-        title={editingOwner === 'man_owner' ? 'Select Initial Owner' : 'Select Hand-off Owner'}
+        title={hasManualOwner ? 'Select Initial Owner' : 'Select Manual Owner'}
       />
     </div>
   );

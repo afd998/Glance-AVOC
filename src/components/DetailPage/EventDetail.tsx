@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
 import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
-import { useOwnerDisplay, useHandOffTime } from '../../hooks/useOwnerDisplay';
-import { parseEventResources } from '../../utils/eventUtils';
+import { useEventOwnership } from '../../hooks/useCalculateOwners';
+import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';
 import PanelModal from './PanelModal';
@@ -55,17 +55,23 @@ export default function EventDetail() {
   // Find the specific event by ID
   const event = React.useMemo(() => {
     if (!events || !eventId) return null;
-    return events.find(e => e.id === parseInt(eventId, 10));
+    return events.find(e => e.id === parseInt(eventId, 10)) || null;
   }, [events, eventId]);
   
   const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event?.instructor_name || '');
   const updateFacultyAttributes = useUpdateFacultyAttributes();
   
-  // Get hand-off time for the event
-  const { data: handOffTime, isLoading: isHandOffTimeLoading } = useHandOffTime(event);
+  // Get ownership data including hand-off times
+  const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event);
+  
+  // Use the first hand-off time if there are multiple
+  const handOffTime = ownershipData?.handOffTimes && ownershipData.handOffTimes.length > 0 ? ownershipData.handOffTimes[0] : null;
   
   // Parse event resources using the utility function (only if event exists)
   const { resources } = event ? parseEventResources(event) : { resources: [] };
+  
+  // Get theme colors based on event type
+  const themeColors = event ? getEventThemeColors(event) : null;
 
   const handleBack = () => {
     navigate(`/${date}`);
@@ -119,7 +125,7 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${themeColors ? themeColors.mainBgDark : ''}`}>
       {/* Close Button */}
       <button
         onClick={handleBack}
