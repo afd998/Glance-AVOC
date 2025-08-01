@@ -15,14 +15,39 @@ export function useHandOffTime(dateOrEvent: string | null | Event | undefined) {
     queryFn: async () => {
       // Handle different input types
       let date: string | null = null;
+      let eventStartTime: string | null = null;
+      let eventEndTime: string | null = null;
+      let eventRoom: string | null = null;
+      let eventName: string | null = null;
       
       if (typeof dateOrEvent === 'string') {
         date = dateOrEvent;
       } else if (dateOrEvent && typeof dateOrEvent === 'object' && 'date' in dateOrEvent) {
         date = dateOrEvent.date;
+        eventStartTime = dateOrEvent.start_time;
+        eventEndTime = dateOrEvent.end_time;
+        eventRoom = dateOrEvent.room_name;
+        eventName = dateOrEvent.event_name;
       }
       
-      if (!date) return null;
+      const shouldLog = eventName === 'Saraniti Lunch';
+      
+      if (shouldLog) {
+        console.log('useHandOffTime input:', {
+          date,
+          eventStartTime,
+          eventEndTime,
+          eventRoom,
+          eventName
+        });
+      }
+      
+      if (!date || !eventStartTime || !eventEndTime || !eventRoom) {
+        if (shouldLog) {
+          console.log('useHandOffTime: Missing required data, returning null');
+        }
+        return null;
+      }
       
       // Get shift blocks for the specified date
       const { data: shiftBlocks, error } = await supabase
@@ -33,18 +58,148 @@ export function useHandOffTime(dateOrEvent: string | null | Event | undefined) {
       
       if (error) throw error;
       
+      if (shouldLog) {
+        console.log('useHandOffTime: All shift blocks for date:', shiftBlocks);
+      }
+      
       if (!shiftBlocks || shiftBlocks.length === 0) {
+        if (shouldLog) {
+          console.log('useHandOffTime: No shift blocks found, returning null');
+        }
         return null;
       }
       
-      // Find the latest end time from all shift blocks
-      const latestEndTime = shiftBlocks.reduce((latest, block) => {
-        if (!block.end_time) return latest;
-        if (!latest) return block.end_time;
-        return block.end_time > latest ? block.end_time : latest;
-      }, null as string | null);
+      // Find all shift blocks that overlap with the event
+      const relevantBlocks = shiftBlocks.filter(block => {
+        if (!block.start_time || !block.end_time) return false;
+        
+        const blockStart = block.start_time;
+        const blockEnd = block.end_time;
+        
+        // Event overlaps with block
+        const overlaps = (eventStartTime! >= blockStart && eventStartTime! < blockEnd) ||
+               (eventEndTime! > blockStart && eventEndTime! <= blockEnd) ||
+               (eventStartTime! <= blockStart && eventEndTime! >= blockEnd);
+        
+        if (shouldLog) {
+          console.log('useHandOffTime: Block overlap check:', {
+            blockId: block.id,
+            blockStart,
+            blockEnd,
+            eventStart: eventStartTime,
+            eventEnd: eventEndTime,
+            overlaps
+          });
+        }
+        
+        return overlaps;
+      });
       
-      return latestEndTime;
+      if (shouldLog) {
+        console.log('useHandOffTime: Relevant blocks that overlap:', relevantBlocks);
+      }
+      
+      if (relevantBlocks.length === 0) {
+        if (shouldLog) {
+          console.log('useHandOffTime: No relevant blocks overlap with event, returning null');
+        }
+        return null; // No shift blocks overlap with event
+      }
+      
+      // For each relevant block, find who owns the event during that block's time
+      const ownershipPeriods: Array<{
+        startTime: string;
+        endTime: string;
+        owners: string[];
+      }> = [];
+      
+      relevantBlocks.forEach(block => {
+        if (!block.start_time || !block.end_time || !block.assignments) return;
+        
+        // Find the time period this block covers during the event
+        const blockStart = block.start_time;
+        const blockEnd = block.end_time;
+        
+        // Calculate the actual overlap period
+        const overlapStart = eventStartTime! >= blockStart ? eventStartTime! : blockStart;
+        const overlapEnd = eventEndTime! <= blockEnd ? eventEndTime! : blockEnd;
+        
+        // Find who is assigned to the event's room during this block
+        const owners: string[] = [];
+        if (Array.isArray(block.assignments)) {
+          block.assignments.forEach((assignment: any) => {
+            if (assignment && assignment.rooms && Array.isArray(assignment.rooms)) {
+              if (assignment.rooms.includes(eventRoom)) {
+                owners.push(assignment.user);
+              }
+            }
+          });
+        }
+        
+        if (shouldLog) {
+          console.log('useHandOffTime: Ownership period:', {
+            blockId: block.id,
+            overlapStart,
+            overlapEnd,
+            owners,
+            assignments: block.assignments
+          });
+        }
+        
+        ownershipPeriods.push({
+          startTime: overlapStart,
+          endTime: overlapEnd,
+          owners: owners
+        });
+      });
+      
+      // Sort by start time
+      ownershipPeriods.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      if (shouldLog) {
+        console.log('useHandOffTime: Sorted ownership periods:', ownershipPeriods);
+      }
+      
+      // Find transitions where ownership changes
+      const transitions: string[] = [];
+      
+      for (let i = 0; i < ownershipPeriods.length - 1; i++) {
+        const currentPeriod = ownershipPeriods[i];
+        const nextPeriod = ownershipPeriods[i + 1];
+        
+        // Check if ownership changed between periods
+        const currentOwners = new Set(currentPeriod.owners);
+        const nextOwners = new Set(nextPeriod.owners);
+        
+        // If the sets are different, there's a transition
+        const hasTransition = currentOwners.size !== nextOwners.size || 
+            !Array.from(currentOwners).every(owner => nextOwners.has(owner));
+        
+        if (shouldLog) {
+          console.log('useHandOffTime: Transition check:', {
+            periodIndex: i,
+            currentOwners: Array.from(currentOwners),
+            nextOwners: Array.from(nextOwners),
+            hasTransition
+          });
+        }
+        
+        if (hasTransition) {
+          transitions.push(nextPeriod.startTime);
+        }
+      }
+      
+      if (shouldLog) {
+        console.log('useHandOffTime: Found transitions:', transitions);
+      }
+      
+      // Return the first transition time, or null if no transitions
+      const result = transitions.length > 0 ? transitions[0] : null;
+      if (shouldLog) {
+        console.log('useHandOffTime: Final result:', result);
+      }
+      
+      return result;
     },
     enabled: !!dateOrEvent,
   });
@@ -70,7 +225,6 @@ function isTimeInShiftBlock(eventTime: string, blockStart: string, blockEnd: str
 // Helper function to find owners for an event based on shift blocks
 function findOwnersForEvent(event: Event, shiftBlocks: ShiftBlock[]): { owner1: string | null; owner2: string | null } {
   if (!event.date || !event.start_time || !event.end_time) {
-    console.log('findOwnersForEvent: Missing event date/time info');
     return { owner1: null, owner2: null };
   }
 
@@ -79,16 +233,7 @@ function findOwnersForEvent(event: Event, shiftBlocks: ShiftBlock[]): { owner1: 
   const eventEndTime = event.end_time;
   const eventRoom = event.room_name;
 
-  console.log('findOwnersForEvent:', {
-    eventDate,
-    eventStartTime,
-    eventEndTime,
-    eventRoom,
-    shiftBlocksCount: shiftBlocks.length
-  });
-
   if (!eventRoom) {
-    console.log('findOwnersForEvent: No event room');
     return { owner1: null, owner2: null };
   }
 
@@ -108,30 +253,17 @@ function findOwnersForEvent(event: Event, shiftBlocks: ShiftBlock[]): { owner1: 
            (eventEndTime > blockStart && eventEndTime <= blockEnd) ||
            (eventStartTime <= blockStart && eventEndTime >= blockEnd);
     
-    console.log('Block check:', {
-      blockId: block.id,
-      blockDate: block.date,
-      blockStart,
-      blockEnd,
-      overlaps
-    });
-    
     return overlaps;
   });
-
-  console.log('Relevant blocks:', relevantBlocks);
 
   // Find owners for the specific room
   const roomOwners = new Set<string>();
   
   relevantBlocks.forEach(block => {
-    console.log('Checking block assignments:', block.assignments);
     if (block.assignments && Array.isArray(block.assignments)) {
       block.assignments.forEach((assignment: any) => {
-        console.log('Assignment:', assignment);
         if (assignment && assignment.rooms && Array.isArray(assignment.rooms)) {
           if (assignment.rooms.includes(eventRoom)) {
-            console.log('Found owner for room:', assignment.user);
             roomOwners.add(assignment.user);
           }
         }
@@ -140,7 +272,6 @@ function findOwnersForEvent(event: Event, shiftBlocks: ShiftBlock[]): { owner1: 
   });
 
   const owners = Array.from(roomOwners);
-  console.log('Final owners:', owners);
   
   return {
     owner1: owners[0] || null,
@@ -175,19 +306,6 @@ export function useOwnerDisplay(event: Event | null): OwnerDisplayResult {
   // Use manual owners if they exist, otherwise use calculated owners
   const owner1 = event?.man_owner || calculatedOwners.owner1 || '';
   const owner2 = event?.man_owner_2 || calculatedOwners.owner2;
-
-  console.log('useOwnerDisplay result:', {
-    eventId: event?.id,
-    eventDate: event?.date,
-    eventRoom: event?.room_name,
-    eventTime: event?.start_time,
-    manOwner: event?.man_owner,
-    manOwner2: event?.man_owner_2,
-    calculatedOwner1: calculatedOwners.owner1,
-    calculatedOwner2: calculatedOwners.owner2,
-    finalOwner1: owner1,
-    finalOwner2: owner2
-  });
 
   // Get profiles for the owners
   const { data: owner1Profile } = useUserProfile(owner1);
