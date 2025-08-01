@@ -109,38 +109,62 @@ export function useDeleteShiftBlock() {
 
 // Updated to use date instead of week_start
 export function calculateNewShiftBlocks(shifts: Shift[], date: string): ShiftBlockInsert[] {
+  if (shifts.length === 0) return [];
+  
+  // Sort shifts by start time
+  const sortedShifts = shifts
+    .filter(shift => shift.start_time && shift.end_time)
+    .sort((a, b) => a.start_time!.localeCompare(b.start_time!));
+  
+  if (sortedShifts.length === 0) return [];
+  
   const blocks: ShiftBlockInsert[] = [];
   
-  // Group shifts by time slots
-  const timeSlots = new Map<string, Shift[]>();
-  
-  shifts.forEach(shift => {
-    if (!shift.start_time || !shift.end_time) return;
-    
-    const key = `${shift.start_time}-${shift.end_time}`;
-    if (!timeSlots.has(key)) {
-      timeSlots.set(key, []);
-    }
-    timeSlots.get(key)!.push(shift);
+  // Find all unique time boundaries (start and end times)
+  const timeBoundaries = new Set<string>();
+  sortedShifts.forEach(shift => {
+    timeBoundaries.add(shift.start_time!);
+    timeBoundaries.add(shift.end_time!);
   });
   
-  // Create blocks for each time slot
-  timeSlots.forEach((shiftsInSlot, timeSlot) => {
-    const [startTime, endTime] = timeSlot.split('-');
+  const sortedBoundaries = Array.from(timeBoundaries).sort();
+  
+  // Create blocks for each time period between boundaries
+  for (let i = 0; i < sortedBoundaries.length - 1; i++) {
+    const startTime = sortedBoundaries[i];
+    const endTime = sortedBoundaries[i + 1];
     
-    // Create assignments with the structure expected by ShiftBlock component
-    const assignments = shiftsInSlot.map(shift => ({
-      user: shift.profile_id, // Use profile_id as the user field
-      rooms: [], // Start with empty rooms array
-    }));
+    // Find all users who are working during this time period
+    const usersInPeriod = new Set<string>();
     
-    blocks.push({
-      date,
-      start_time: startTime,
-      end_time: endTime,
-      assignments,
+    sortedShifts.forEach(shift => {
+      // Check if this shift overlaps with the time period
+      const shiftStart = shift.start_time!;
+      const shiftEnd = shift.end_time!;
+      
+      // Shift overlaps if: shift starts before period ends AND shift ends after period starts
+      const overlaps = shiftStart < endTime && shiftEnd > startTime;
+      
+      if (overlaps) {
+        usersInPeriod.add(shift.profile_id!);
+      }
     });
-  });
+    
+    // Only create a block if there are users working during this period
+    if (usersInPeriod.size > 0) {
+      const assignments = Array.from(usersInPeriod).map(userId => ({
+        user: userId,
+        rooms: [], // Start with empty rooms array
+      }));
+      
+      blocks.push({
+        date,
+        start_time: startTime,
+        end_time: endTime,
+        assignments,
+      });
+    }
+  }
   
   return blocks;
 }
