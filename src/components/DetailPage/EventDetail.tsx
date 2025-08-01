@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
 import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
-import { useHandOffTime } from '../../hooks/useHandOffTime';
+import { useOwnerDisplay, useHandOffTime } from '../../hooks/useOwnerDisplay';
 import { parseEventResources } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';

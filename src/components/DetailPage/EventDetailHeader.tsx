@@ -57,8 +57,8 @@ export default function EventDetailHeader({
 }: EventDetailHeaderProps) {
   const navigate = useNavigate();
   const { date } = useParams<{ date: string }>();
-  const { data: ownerProfile, isLoading: isOwnerLoading } = useUserProfile(event.owner || '');
-  const { data: owner2Profile, isLoading: isOwner2Loading } = useUserProfile(event.owner_2 || '');
+  const { data: ownerProfile, isLoading: isOwnerLoading } = useUserProfile(event.man_owner || '');
+  const { data: owner2Profile, isLoading: isOwner2Loading } = useUserProfile(event.man_owner_2 || '');
 
   const handleOccurrencesClick = () => {
     navigate(`/${date}/${event.id}/occurrences`);
@@ -107,7 +107,7 @@ export default function EventDetailHeader({
            </div>
            
                        {/* Owner Display - Show for any owner or if there's a handoff time */}
-            {(event.man_owner || event.man_owner_2 || event.owner || event.owner_2 || handOffTime) && (
+            {(event.man_owner || event.man_owner_2 || handOffTime) && (
               <OwnerDisplay
                 event={event}
                 isHandOffTimeLoading={isHandOffTimeLoading}

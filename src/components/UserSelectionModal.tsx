@@ -69,11 +69,6 @@ export default function UserSelectionModal({
                     <div className="font-medium text-gray-900 dark:text-white">
                       {profile.name || profile.id}
                     </div>
-                    {profile.name && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {profile.id}
-                      </div>
-                    )}
                   </div>
                 </button>
               ))

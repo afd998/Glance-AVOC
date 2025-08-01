@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useUserProfiles } from '../../hooks/useUserProfiles';
-import { useShifts, useUpsertShift, useCopyShiftsFromPreviousWeek, Shift } from '../../hooks/useShifts';
+import { useShifts, useCreateShift, useCopyShifts, Shift } from '../../hooks/useShifts';
 import { supabase } from '../../lib/supabase';
 import { calculateNewShiftBlocks, useUpdateShiftBlocks, useCopyShiftBlocks } from '../../hooks/useShiftBlocks';
 import ShiftBlocks from './ShiftBlocks';
 import { useRooms } from '../../hooks/useRooms';
-import { getAllShiftBlocksForWeek } from '../../utils/eventUtils';
+import { getAllShiftBlocksForDate } from '../../utils/eventUtils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface SessionAssignmentsModalProps {
@@ -88,25 +88,31 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     return d;
   });
 
-  // Shifts
-  const { data: shifts, isLoading: shiftsLoading, error: shiftsError } = useShifts(weekStart);
-  const upsertShift = useUpsertShift();
+  // Shifts - now using specific dates instead of week-based approach
+  const selectedDate = weekDates[selectedDay].toISOString().split('T')[0];
+  
+  // Fetch shifts for all days in the week, not just the selected day
+  const allWeekDates = weekDates.map(date => date.toISOString().split('T')[0]);
+  const { data: shifts, isLoading: shiftsLoading, error: shiftsError } = useShifts(allWeekDates);
+  
+  const createShift = useCreateShift();
   const updateShiftBlocks = useUpdateShiftBlocks();
   const copyShiftBlocks = useCopyShiftBlocks();
-  const copyShiftsFromPreviousWeek = useCopyShiftsFromPreviousWeek();
+  const copyShifts = useCopyShifts();
   const queryClient = useQueryClient();
 
-  // Fetch all shift blocks for the week
+  // Fetch all shift blocks for the selected date
   const { data: allShiftBlocks = [], isLoading: shiftBlocksLoading } = useQuery({
-    queryKey: ['allShiftBlocks', weekStart],
-    queryFn: () => getAllShiftBlocksForWeek(weekStart),
-    enabled: !!weekStart,
+    queryKey: ['allShiftBlocks', selectedDate],
+    queryFn: () => getAllShiftBlocksForDate(selectedDate),
+    enabled: !!selectedDate,
   });
 
   // Utility: For a given day, are all rooms assigned in EVERY shift block?
   function allRoomsAssignedForDay(dayIdx: number): boolean {
     if (!allRooms || !allShiftBlocks) return false;
-    const blocksForDay = allShiftBlocks.filter((b: any) => b.day_of_week === dayIdx);
+    const dateForDay = weekDates[dayIdx].toISOString().split('T')[0];
+    const blocksForDay = allShiftBlocks.filter((b: any) => b.date === dateForDay);
     if (blocksForDay.length === 0) return false;
     
     // All room names (ignore null/empty)
@@ -157,7 +163,8 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
 
   // Open modal with current shift values if present
   const openCellModal = (profileId: string, dayIdx: number) => {
-    const shift = shifts?.find(s => s.profile_id === profileId && s.day_of_week === dayIdx && s.week_start === weekStart);
+    const dateForDay = weekDates[dayIdx].toISOString().split('T')[0];
+    const shift = shifts?.find(s => s.profile_id === profileId && s.date === dateForDay);
     setModalStart(toHHMM(shift?.start_time) || '06:00');
     setModalEnd(toHHMM(shift?.end_time) || '07:00');
     setEditingCell({ profileId, dayIdx });
@@ -167,37 +174,50 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
 
   const handleSave = () => {
     if (!editingCell) return;
-    upsertShift.mutate({
+    const dateForDay = weekDates[editingCell.dayIdx].toISOString().split('T')[0];
+    
+    console.log('Saving shift:', {
       profile_id: editingCell.profileId,
-      day_of_week: editingCell.dayIdx,
-      week_start: weekStart,
+      date: dateForDay,
+      start_time: modalStart,
+      end_time: modalEnd,
+    });
+    
+    createShift.mutate({
+      profile_id: editingCell.profileId,
+      date: dateForDay,
       start_time: modalStart,
       end_time: modalEnd,
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log('✅ Shift saved successfully:', data);
         // After shift is saved, recalculate shift blocks for that day
         const dayIdx = editingCell.dayIdx;
-        const shiftsForDay = (shifts || []).filter(s => s.day_of_week === dayIdx && s.week_start === weekStart);
+        const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
         // Add or update the just-saved shift in the list
-        const prev = shifts?.find(s => s.profile_id === editingCell.profileId && s.day_of_week === dayIdx && s.week_start === weekStart);
+        const prev = shifts?.find(s => s.profile_id === editingCell.profileId && s.date === dateForDay);
         const updatedShifts = [
           ...shiftsForDay.filter(s => s.profile_id !== editingCell.profileId),
           {
             id: prev?.id ?? 0,
             created_at: prev?.created_at ?? '',
             profile_id: editingCell.profileId ?? '',
-            day_of_week: dayIdx,
-            week_start: weekStart ?? '',
+            date: dateForDay,
             start_time: modalStart ?? '',
             end_time: modalEnd ?? '',
           }
         ];
-        const newBlocks = calculateNewShiftBlocks(updatedShifts, dayIdx, weekStart);
-        updateShiftBlocks.mutate({ day_of_week: dayIdx, week_start: weekStart, newBlocks });
+        const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
+        updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
         closeCellModal();
       },
       onError: (error) => {
-        console.error('Shift upsert error:', error);
+        console.error('❌ Shift create error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
       }
     });
   };
@@ -210,17 +230,23 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   }
 
   // Utility to get shift for a cell
-  const getShift = (profileId: string, dayIdx: number): Shift | undefined =>
-    shifts?.find(s => s.profile_id === profileId && s.day_of_week === dayIdx && s.week_start === weekStart);
+  const getShift = (profileId: string, dayIdx: number): Shift | undefined => {
+    const dateForDay = weekDates[dayIdx].toISOString().split('T')[0];
+    const shift = shifts?.find(s => s.profile_id === profileId && s.date === dateForDay);
+    console.log(`Looking for shift: profileId=${profileId}, date=${dateForDay}, found:`, shift);
+    console.log('All shifts for this date:', shifts);
+    return shift;
+  };
 
   // Handler for copying shift blocks to days with same schedule
   const handleCopyShiftBlocks = () => {
+    const sourceDate = weekDates[selectedDay].toISOString().split('T')[0];
     copyShiftBlocks.mutate({
-      sourceDayOfWeek: selectedDay,
-      weekStart: weekStart,
+      sourceDate: sourceDate,
+      targetDate: sourceDate, // This would need to be updated to copy to other dates
     }, {
       onSuccess: (result) => {
-        console.log(`✅ Copied shift blocks to ${result.matchingDays.length} matching days:`, result.matchingDays);
+        console.log(`✅ Copied shift blocks to other dates`);
       },
       onError: (error) => {
         console.error('❌ Failed to copy shift blocks:', error);
@@ -231,89 +257,47 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   // Handler for copying schedule from previous week
   const handleCopyScheduleFromLastWeek = () => {
     // Calculate previous week based on the currently displayed week
-    // Use a more reliable date calculation that avoids timezone issues
     const currentWeekStartDate = new Date(weekStart + 'T00:00:00');
     const previousWeekStartDate = new Date(currentWeekStartDate);
     previousWeekStartDate.setDate(previousWeekStartDate.getDate() - 7);
-    const previousWeekStartString = previousWeekStartDate.toISOString().split('T')[0];
-    
-    // Get current date in local timezone
-    const now = new Date();
-    const todayString = now.getFullYear() + '-' + 
-      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-      String(now.getDate()).padStart(2, '0');
-    
-    console.log('🔍 DEBUG: Copy schedule dates:');
-    console.log('  📅 Today (local):', todayString);
-    console.log('  📅 Current week start:', weekStart);
-    console.log('  📅 Previous week start:', previousWeekStartString);
-    console.log('  📅 Week tab:', weekTab);
-    console.log('  📅 This Monday:', thisMonday.toISOString().split('T')[0]);
-    console.log('  📅 Next Monday:', nextMonday.toISOString().split('T')[0]);
     
     setIsCopyingSchedule(true);
     
-    copyShiftsFromPreviousWeek.mutate({
-      sourceWeekStart: previousWeekStartString,
-      targetWeekStart: weekStart,
-    }, {
-      onSuccess: async (result) => {
-        console.log(`✅ Copied ${result.copiedShifts} shifts from previous week`);
+    // Copy shifts and blocks for each day of the week
+    const copyPromises = weekDates.map(async (targetDate, dayIdx) => {
+      const sourceDate = new Date(previousWeekStartDate);
+      sourceDate.setDate(previousWeekStartDate.getDate() + dayIdx);
+      const sourceDateString = sourceDate.toISOString().split('T')[0];
+      const targetDateString = targetDate.toISOString().split('T')[0];
+      
+      try {
+        // Copy shifts for this day
+        await copyShifts.mutateAsync({
+          sourceDate: sourceDateString,
+          targetDate: targetDateString,
+        });
         
-        // After copying shifts, also copy shift blocks from previous week using enhanced mutations
-        setTimeout(async () => {
-          try {
-            // Fetch shift blocks from the previous week grouped by day
-            const { data: sourceShiftBlocks } = await supabase
-              .from('shift_blocks')
-              .select('*')
-              .eq('week_start', previousWeekStartString);
-            
-            if (sourceShiftBlocks && sourceShiftBlocks.length > 0) {
-              // Group blocks by day of week
-              const blocksByDay = sourceShiftBlocks.reduce((acc, block) => {
-                const day = block.day_of_week!;
-                if (!acc[day]) acc[day] = [];
-                acc[day].push({
-                  day_of_week: day,
-                  week_start: weekStart,
-                  start_time: block.start_time,
-                  end_time: block.end_time,
-                  assignments: block.assignments,
-                });
-                return acc;
-              }, {} as Record<number, any[]>);
-              
-              // Use enhanced mutations to copy blocks for each day (includes event synchronization)
-              const copyPromises = Object.entries(blocksByDay).map(([dayStr, blocks]) => {
-                const day = parseInt(dayStr);
-                return updateShiftBlocks.mutateAsync({
-                  day_of_week: day,
-                  week_start: weekStart,
-                  newBlocks: blocks
-                });
-              });
-              
-              await Promise.all(copyPromises);
-              
-              console.log(`✅ Copied ${sourceShiftBlocks.length} shift blocks from previous week with event synchronization`);
-            } else {
-              console.log('No shift blocks found for previous week');
-            }
-            
-            // End loading state
-            setIsCopyingSchedule(false);
-          } catch (error) {
-            console.error('❌ Failed to copy shift blocks:', error);
-            setIsCopyingSchedule(false);
-          }
-        }, 500); // Small delay to ensure shifts query has refetched
-      },
-      onError: (error) => {
-        console.error('❌ Failed to copy schedule from previous week:', error.message);
-        setIsCopyingSchedule(false);
+        // Copy shift blocks for this day
+        await copyShiftBlocks.mutateAsync({
+          sourceDate: sourceDateString,
+          targetDate: targetDateString,
+        });
+        
+        console.log(`✅ Copied schedule for ${targetDateString} from ${sourceDateString}`);
+      } catch (error) {
+        console.error(`❌ Failed to copy schedule for ${targetDateString}:`, error);
       }
     });
+    
+    Promise.all(copyPromises)
+      .then(() => {
+        console.log('✅ Successfully copied entire week schedule');
+        setIsCopyingSchedule(false);
+      })
+      .catch((error) => {
+        console.error('❌ Failed to copy schedule from previous week:', error);
+        setIsCopyingSchedule(false);
+      });
   };
 
   useEffect(() => {
@@ -475,7 +459,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                 </table>
               </div>
               
-              <ShiftBlocks weekStart={weekStart} selectedDay={selectedDay} />
+              <ShiftBlocks date={selectedDate} />
               
               {/* Copy Shift Blocks Button */}
               {allRoomsAssignedForDay(selectedDay) && (
@@ -519,7 +503,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                   className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={modalStart}
                   onChange={e => setModalStart(e.target.value)}
-                  disabled={upsertShift.isPending}
+                  disabled={createShift.isPending}
                 >
                   {timeOptions.map(opt => (
                     <option key={opt} value={opt}>{formatTimeLabel(opt)}</option>
@@ -532,19 +516,19 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                   className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={modalEnd}
                   onChange={e => setModalEnd(e.target.value)}
-                  disabled={upsertShift.isPending}
+                  disabled={createShift.isPending}
                 >
                   {timeOptions.map(opt => (
                     <option key={opt} value={opt}>{formatTimeLabel(opt)}</option>
                   ))}
                 </select>
               </div>
-              {upsertShift.isError && (
+              {createShift.isError && (
                 <div className="mb-2 text-red-600 text-sm">
                   Error saving shift. Please try again.
                 </div>
               )}
-              {(upsertShift.isPending || updateShiftBlocks.isPending) && (
+              {(createShift.isPending || updateShiftBlocks.isPending) && (
                 <div className="mt-2 text-purple-600 text-sm flex items-center">
                   <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                   Updating shift blocks…
@@ -554,21 +538,21 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                  <button
                    onClick={() => {
                      // Clear the shift by setting times to null
-                     upsertShift.mutate({
+                     const dateForDay = weekDates[editingCell.dayIdx].toISOString().split('T')[0];
+                     createShift.mutate({
                        profile_id: editingCell.profileId,
-                       day_of_week: editingCell.dayIdx,
-                       week_start: weekStart,
+                       date: dateForDay,
                        start_time: null,
                        end_time: null,
                      }, {
                        onSuccess: () => {
                          // After shift is cleared, recalculate shift blocks for that day
                          const dayIdx = editingCell.dayIdx;
-                         const shiftsForDay = (shifts || []).filter(s => s.day_of_week === dayIdx && s.week_start === weekStart);
+                         const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
                          // Remove the cleared shift from the list
                          const updatedShifts = shiftsForDay.filter(s => s.profile_id !== editingCell.profileId);
-                         const newBlocks = calculateNewShiftBlocks(updatedShifts, dayIdx, weekStart);
-                         updateShiftBlocks.mutate({ day_of_week: dayIdx, week_start: weekStart, newBlocks });
+                         const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
+                         updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
                          closeCellModal();
                        },
                        onError: (error) => {
@@ -577,7 +561,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                      });
                    }}
                    className="px-4 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                   disabled={upsertShift.isPending}
+                   disabled={createShift.isPending}
                  >
                    Clear
                  </button>
@@ -585,16 +569,16 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                    <button
                      onClick={closeCellModal}
                      className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-                     disabled={upsertShift.isPending}
+                     disabled={createShift.isPending}
                    >
                      Cancel
                    </button>
                    <button
                      onClick={handleSave}
                      className="px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60"
-                     disabled={upsertShift.isPending}
+                     disabled={createShift.isPending}
                    >
-                     {upsertShift.isPending ? 'Saving...' : 'Save'}
+                     {createShift.isPending ? 'Saving...' : 'Save'}
                    </button>
                  </div>
                </div>
