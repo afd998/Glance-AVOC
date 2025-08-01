@@ -51,7 +51,6 @@ export type Database = {
           item_id2: number | null
           lecture_title: string | null
           man_owner: string | null
-          man_owner_2: string | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
@@ -70,7 +69,6 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
-          man_owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -89,7 +87,6 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
-          man_owner_2?: string | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -97,13 +94,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "events_man_owner_2_fkey"
-            columns: ["man_owner_2"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "events_man_owner_fkey"
             columns: ["man_owner"]

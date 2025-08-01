@@ -119,6 +119,100 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
 };
 
 /**
+ * Generate theme colors based on event type
+ */
+export const getEventThemeColors = (event: Event) => {
+  const eventType = event.event_type || '';
+  const eventName = event.event_name || '';
+  
+  const isLecture = eventType === 'Lecture';
+  const isStudentEvent = eventName.toLowerCase().includes('student');
+  const isFacStaffEvent = !isStudentEvent;
+  
+  // Define theme colors based on event type
+  if (eventType === 'KEC') {
+    return {
+      mainBg: 'bg-slate-600 border-slate-700',
+      mainBgDark: 'bg-slate-800 border-slate-900',
+      cardBg: 'bg-slate-500 border-slate-700',
+      itemBg: 'bg-slate-500 border-slate-700 hover:bg-slate-600',
+      badgeBg: 'bg-slate-700',
+      badgeText: 'text-slate-100',
+      iconBg: 'bg-slate-700',
+      iconText: 'text-slate-200',
+      buttonBg: 'bg-slate-700 hover:bg-slate-800',
+      buttonText: 'text-slate-100'
+    };
+  } else if (eventType === 'CMC') {
+    return {
+      mainBg: 'bg-red-700 border-red-800',
+      mainBgDark: 'bg-red-900 border-red-950',
+      cardBg: 'bg-red-600 border-red-800',
+      itemBg: 'bg-red-600 border-red-800 hover:bg-red-700',
+      badgeBg: 'bg-red-800',
+      badgeText: 'text-red-100',
+      iconBg: 'bg-red-800',
+      iconText: 'text-red-200',
+      buttonBg: 'bg-red-800 hover:bg-red-900',
+      buttonText: 'text-red-100'
+    };
+  } else if (isLecture) {
+    return {
+      mainBg: 'bg-[#7C6CA1] border-[#8D7DAD]',
+      mainBgDark: 'bg-[#605283] border-[#4A3E60]',
+      cardBg: 'bg-[#AFAFC5] border-[#8D7DAD]',
+      itemBg: 'bg-[#AFAFC5] border-[#8D7DAD] hover:bg-[#9E8EB9]',
+      badgeBg: 'bg-[#605283]',
+      badgeText: 'text-[#4A3E60]',
+      iconBg: 'bg-[#605283]',
+      iconText: 'text-[#4A3E60]',
+      buttonBg: 'bg-[#605283] hover:bg-[#4A3E60]',
+      buttonText: 'text-[#4A3E60]'
+    };
+  } else if (isStudentEvent) {
+    return {
+      mainBg: 'bg-amber-700 border-amber-800',
+      mainBgDark: 'bg-amber-900 border-amber-950',
+      cardBg: 'bg-amber-600 border-amber-800',
+      itemBg: 'bg-amber-600 border-amber-800 hover:bg-amber-700',
+      badgeBg: 'bg-amber-800',
+      badgeText: 'text-amber-100',
+      iconBg: 'bg-amber-800',
+      iconText: 'text-amber-200',
+      buttonBg: 'bg-amber-800 hover:bg-amber-900',
+      buttonText: 'text-amber-100'
+    };
+  } else if (isFacStaffEvent) {
+    return {
+      mainBg: 'bg-slate-700 border-slate-800',
+      mainBgDark: 'bg-slate-900 border-slate-950',
+      cardBg: 'bg-slate-600 border-slate-800',
+      itemBg: 'bg-slate-600 border-slate-800 hover:bg-slate-700',
+      badgeBg: 'bg-slate-800',
+      badgeText: 'text-slate-100',
+      iconBg: 'bg-slate-800',
+      iconText: 'text-slate-200',
+      buttonBg: 'bg-slate-800 hover:bg-slate-900',
+      buttonText: 'text-slate-100'
+    };
+  } else {
+    // Default gray theme
+    return {
+      mainBg: 'bg-slate-600 border-slate-700',
+      mainBgDark: 'bg-slate-800 border-slate-900',
+      cardBg: 'bg-slate-500 border-slate-700',
+      itemBg: 'bg-slate-500 border-slate-700 hover:bg-slate-600',
+      badgeBg: 'bg-slate-700',
+      badgeText: 'text-slate-100',
+      iconBg: 'bg-slate-700',
+      iconText: 'text-slate-200',
+      buttonBg: 'bg-slate-700 hover:bg-slate-800',
+      buttonText: 'text-slate-100'
+    };
+  }
+};
+
+/**
  * Calculate event position on the timeline
  */
 export const calculateEventPosition = (
