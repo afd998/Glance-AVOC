@@ -6,7 +6,7 @@ const Footer = () => {
     <footer className="fixed bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-800 py-2 px-4 border-t border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="text-sm text-gray-600 dark:text-gray-300">
-          AVOS 0.3.1 Gies Plaza
+          AVOC Home 0.3.1 Gies Plaza
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-600 dark:text-gray-300">Timezone: Chicago Standard Time</span>

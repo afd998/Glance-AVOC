@@ -101,11 +101,18 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const copyShifts = useCopyShifts();
   const queryClient = useQueryClient();
 
-  // Fetch all shift blocks for the selected date
+  // Fetch all shift blocks for all days in the week
   const { data: allShiftBlocks = [], isLoading: shiftBlocksLoading } = useQuery({
-    queryKey: ['allShiftBlocks', selectedDate],
-    queryFn: () => getAllShiftBlocksForDate(selectedDate),
-    enabled: !!selectedDate,
+    queryKey: ['allShiftBlocks', allWeekDates],
+    queryFn: async () => {
+      const allBlocks = [];
+      for (const date of allWeekDates) {
+        const blocks = await getAllShiftBlocksForDate(date);
+        allBlocks.push(...blocks);
+      }
+      return allBlocks;
+    },
+    enabled: allWeekDates.length > 0,
   });
 
   // Utility: For a given day, are all rooms assigned in EVERY shift block?
@@ -176,13 +183,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     if (!editingCell) return;
     const dateForDay = weekDates[editingCell.dayIdx].toISOString().split('T')[0];
     
-    console.log('Saving shift:', {
-      profile_id: editingCell.profileId,
-      date: dateForDay,
-      start_time: modalStart,
-      end_time: modalEnd,
-    });
-    
     createShift.mutate({
       profile_id: editingCell.profileId,
       date: dateForDay,
@@ -190,7 +190,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
       end_time: modalEnd,
     }, {
       onSuccess: (data) => {
-        console.log('✅ Shift saved successfully:', data);
         // After shift is saved, recalculate shift blocks for that day
         const dayIdx = editingCell.dayIdx;
         const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
@@ -212,12 +211,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
         closeCellModal();
       },
       onError: (error) => {
-        console.error('❌ Shift create error:', error);
-        console.error('Error details:', {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        });
+        console.error('Shift create error:', error);
       }
     });
   };
@@ -233,8 +227,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const getShift = (profileId: string, dayIdx: number): Shift | undefined => {
     const dateForDay = weekDates[dayIdx].toISOString().split('T')[0];
     const shift = shifts?.find(s => s.profile_id === profileId && s.date === dateForDay);
-    console.log(`Looking for shift: profileId=${profileId}, date=${dateForDay}, found:`, shift);
-    console.log('All shifts for this date:', shifts);
+    
     return shift;
   };
 
@@ -263,39 +256,76 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     
     setIsCopyingSchedule(true);
     
-    // Copy shifts and blocks for each day of the week
-    const copyPromises = weekDates.map(async (targetDate, dayIdx) => {
-      const sourceDate = new Date(previousWeekStartDate);
-      sourceDate.setDate(previousWeekStartDate.getDate() + dayIdx);
-      const sourceDateString = sourceDate.toISOString().split('T')[0];
+    // First, delete all existing shifts and shift blocks for the target week
+    const deletePromises = weekDates.map(async (targetDate) => {
       const targetDateString = targetDate.toISOString().split('T')[0];
       
       try {
-        // Copy shifts for this day
-        await copyShifts.mutateAsync({
-          sourceDate: sourceDateString,
-          targetDate: targetDateString,
-        });
+        // Delete all shifts for this date
+        const { error: shiftsDeleteError } = await supabase
+          .from('shifts')
+          .delete()
+          .eq('date', targetDateString);
         
-        // Copy shift blocks for this day
-        await copyShiftBlocks.mutateAsync({
-          sourceDate: sourceDateString,
-          targetDate: targetDateString,
-        });
+        if (shiftsDeleteError) throw shiftsDeleteError;
         
-        console.log(`✅ Copied schedule for ${targetDateString} from ${sourceDateString}`);
+        // Delete all shift blocks for this date
+        const { error: blocksDeleteError } = await supabase
+          .from('shift_blocks')
+          .delete()
+          .eq('date', targetDateString);
+        
+        if (blocksDeleteError) throw blocksDeleteError;
       } catch (error) {
-        console.error(`❌ Failed to copy schedule for ${targetDateString}:`, error);
+        console.error(`Failed to delete existing data for ${targetDateString}:`, error);
+        throw error;
       }
     });
     
-    Promise.all(copyPromises)
+    // After deleting, copy the new schedule
+    Promise.all(deletePromises)
       .then(() => {
-        console.log('✅ Successfully copied entire week schedule');
+        // Copy shifts and blocks for each day of the week
+        const copyPromises = weekDates.map(async (targetDate, dayIdx) => {
+          const sourceDate = new Date(previousWeekStartDate);
+          sourceDate.setDate(previousWeekStartDate.getDate() + dayIdx);
+          const sourceDateString = sourceDate.toISOString().split('T')[0];
+          const targetDateString = targetDate.toISOString().split('T')[0];
+          
+          try {
+            // Copy shifts for this day
+            await copyShifts.mutateAsync({
+              sourceDate: sourceDateString,
+              targetDate: targetDateString,
+            });
+            
+            // Copy shift blocks for this day
+            await copyShiftBlocks.mutateAsync({
+              sourceDate: sourceDateString,
+              targetDate: targetDateString,
+            });
+          } catch (error) {
+            console.error(`Failed to copy schedule for ${targetDateString}:`, error);
+          }
+        });
+        
+        return Promise.all(copyPromises);
+      })
+      .then(() => {
         setIsCopyingSchedule(false);
+        
+        // Force a refetch of the current week's data
+        queryClient.invalidateQueries({ 
+          queryKey: ['shifts'], 
+          predicate: (query) => {
+            const queryKey = query.queryKey;
+            return queryKey[0] === 'shifts' && Array.isArray(queryKey[1]);
+          }
+        });
+        queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       })
       .catch((error) => {
-        console.error('❌ Failed to copy schedule from previous week:', error);
+        console.error('Failed to copy schedule from previous week:', error);
         setIsCopyingSchedule(false);
       });
   };
@@ -545,16 +575,16 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                        start_time: null,
                        end_time: null,
                      }, {
-                       onSuccess: () => {
-                         // After shift is cleared, recalculate shift blocks for that day
-                         const dayIdx = editingCell.dayIdx;
-                         const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
-                         // Remove the cleared shift from the list
-                         const updatedShifts = shiftsForDay.filter(s => s.profile_id !== editingCell.profileId);
-                         const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
-                         updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
-                         closeCellModal();
-                       },
+                                               onSuccess: () => {
+                          // After shift is cleared, recalculate shift blocks for that day
+                          const dayIdx = editingCell.dayIdx;
+                          const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
+                          // Remove the cleared shift from the list
+                          const updatedShifts = shiftsForDay.filter(s => s.profile_id !== editingCell.profileId);
+                          const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
+                          updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
+                          closeCellModal();
+                        },
                        onError: (error) => {
                          console.error('Shift clear error:', error);
                        }

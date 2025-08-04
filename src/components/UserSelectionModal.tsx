@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useUserProfiles } from '../hooks/useUserProfiles';
 import Avatar from './Avatar';
 
@@ -16,14 +16,8 @@ export default function UserSelectionModal({
   title 
 }: UserSelectionModalProps) {
   const { profiles, isLoading } = useUserProfiles();
-  const [searchTerm, setSearchTerm] = useState('');
 
   if (!isOpen) return null;
-
-  const filteredProfiles = profiles?.filter(profile => 
-    profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.id.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -43,19 +37,11 @@ export default function UserSelectionModal({
             </button>
           </div>
           
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {isLoading ? (
               <div className="text-center py-4">Loading users...</div>
-            ) : filteredProfiles.length > 0 ? (
-              filteredProfiles.map((profile) => (
+            ) : profiles && profiles.length > 0 ? (
+              profiles.map((profile) => (
                 <button
                   key={profile.id}
                   onClick={() => {

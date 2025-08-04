@@ -132,16 +132,29 @@ export const getEventThemeColors = (event: Event) => {
   // Define theme colors based on event type
   if (eventType === 'KEC') {
     return {
-      mainBg: 'bg-slate-600 border-slate-700',
-      mainBgDark: 'bg-slate-800 border-slate-900',
-      cardBg: 'bg-slate-500 border-slate-700',
-      itemBg: 'bg-slate-500 border-slate-700 hover:bg-slate-600',
-      badgeBg: 'bg-slate-700',
-      badgeText: 'text-slate-100',
-      iconBg: 'bg-slate-700',
-      iconText: 'text-slate-200',
-      buttonBg: 'bg-slate-700 hover:bg-slate-800',
-      buttonText: 'text-slate-100'
+      mainBg: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+      mainBgDark: 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-600',
+      cardBg: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600',
+      itemBg: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600',
+      badgeBg: 'bg-gray-200 dark:bg-gray-600',
+      badgeText: 'text-gray-800 dark:text-gray-200',
+      iconBg: 'bg-gray-200 dark:bg-gray-600',
+      iconText: 'text-gray-700 dark:text-gray-300',
+      buttonBg: 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500',
+      buttonText: 'text-gray-800 dark:text-gray-200'
+    };
+  } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
+    return {
+      mainBg: 'bg-[#9b8ba5] border-[#8c7c94]',
+      mainBgDark: 'bg-[#7d6d83] border-[#6e5f72]',
+      cardBg: 'bg-[#b9abbd] border-[#8c7c94]',
+      itemBg: 'bg-[#b9abbd] border-[#8c7c94] hover:bg-[#aa9bb1]',
+      badgeBg: 'bg-[#7d6d83]',
+      badgeText: 'text-[#504250]',
+      iconBg: 'bg-[#7d6d83]',
+      iconText: 'text-[#504250]',
+      buttonBg: 'bg-[#7d6d83] hover:bg-[#6e5f72]',
+      buttonText: 'text-[#504250]'
     };
   } else if (eventType === 'CMC') {
     return {
