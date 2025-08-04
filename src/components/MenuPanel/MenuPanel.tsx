@@ -6,6 +6,7 @@ import FilterRoomsModal from './FilterRoomsModal';
 import useRoomStore from '../../stores/roomStore';
 import useModalStore from '../../stores/modalStore';
 import SessionAssignmentsModal from './SessionAssignmentsModal';
+import NotificationsModal from './NotificationsModal';
 import UserProfile from '../UserProfile';
 import { Database } from '../../types/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,6 +21,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
   const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const navigate = useNavigate();
   const { date } = useParams();
 
@@ -102,6 +104,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                     </svg>
                     Session Assignments
                   </button>
+                  {/* Notifications Button */}
+                  <button
+                    onClick={() => setIsNotificationsOpen(true)}
+                    className="w-full flex items-center justify-center mt-3 px-4 py-3 border border-orange-300 dark:border-orange-600 text-sm font-medium rounded-md text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM9 7H4a2 2 0 00-2 2v9a2 2 0 002 2h5l5-5V9a2 2 0 00-2-2z" />
+                    </svg>
+                    Scheduled Notifications
+                  </button>
                 </div>
                 {/* Notification Settings Section */}
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
@@ -147,6 +159,11 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
       <SessionAssignmentsModal 
         isOpen={isSessionAssignmentsOpen} 
         onClose={() => setIsSessionAssignmentsOpen(false)} 
+      />
+      {/* Notifications Modal */}
+      <NotificationsModal 
+        isOpen={isNotificationsOpen} 
+        onClose={() => setIsNotificationsOpen(false)} 
       />
     </>
   );
