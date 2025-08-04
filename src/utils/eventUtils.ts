@@ -297,3 +297,66 @@ export function sortShiftsByTime(shifts: Shift[]): Shift[] {
     return a.start_time.localeCompare(b.start_time);
   });
 } 
+
+// Check if a user is an owner of an event
+export function isUserEventOwner(
+  event: any,
+  userId: string,
+  shiftBlocks: any[] = []
+): boolean {
+  // Check if user is the manual owner
+  if (event.man_owner === userId) {
+    return true;
+  }
+
+  // For KEC events, there are no calculated owners, so only check manual ownership
+  if (event.event_type === "KEC") {
+    return false;
+  }
+
+  // Check if user is a calculated owner from shift blocks
+  if (!event.date || !event.start_time || !event.end_time || !event.room_name) {
+    return false;
+  }
+
+  const eventDate = event.date;
+  const eventStartTime = event.start_time;
+  const eventEndTime = event.end_time;
+  const eventRoom = event.room_name;
+
+  // Find shift blocks that overlap with the event
+  const relevantBlocks = shiftBlocks.filter((block: any) => {
+    if (!block.date || !block.start_time || !block.end_time) return false;
+    
+    // Check if block is for the same date
+    if (block.date !== eventDate) return false;
+    
+    // Check if block overlaps with event time
+    const blockStart = block.start_time;
+    const blockEnd = block.end_time;
+    
+    // Event overlaps with block
+    const overlaps = (eventStartTime >= blockStart && eventStartTime < blockEnd) ||
+           (eventEndTime > blockStart && eventEndTime <= blockEnd) ||
+           (eventStartTime <= blockStart && eventEndTime >= blockEnd);
+    
+    return overlaps;
+  });
+
+  // Check if user is assigned to the event's room in any of the relevant blocks
+  for (const block of relevantBlocks) {
+    if (!block.assignments) continue;
+    
+    if (Array.isArray(block.assignments)) {
+      for (const assignment of block.assignments) {
+        if (assignment && assignment.rooms && Array.isArray(assignment.rooms)) {
+          if (assignment.rooms.includes(eventRoom) && assignment.user === userId) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+} 

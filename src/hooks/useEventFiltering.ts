@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useProfile } from './useProfile';
 import { useFilters } from './useFilters';
-import { useAuth } from '../contexts/AuthContext';
+import { useMyEventsFilter } from './useMyEventsFilter';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -9,22 +9,16 @@ type Event = Database['public']['Tables']['events']['Row'];
 export const useEventFiltering = (events: Event[] | undefined) => {
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
-  const { user } = useAuth();
+  const { myEvents } = useMyEventsFilter(events);
 
   const filteredEvents = useMemo(() => {
     if (!events || events.length === 0) {
       return events || [];
     }
 
-
-
-    // Special case: MY_EVENTS filter
+    // Special case: MY_EVENTS filter - use the dedicated hook
     if (currentFilter === 'My Events') {
-      if (!user) return [];
-      // Filter events to only show those assigned to the current user
-      return events.filter(event => {
-        return event.man_owner === user.id;
-      });
+      return myEvents;
     }
 
     // If there's a current filter, filter events based on filter's display rooms
@@ -42,7 +36,7 @@ export const useEventFiltering = (events: Event[] | undefined) => {
 
     // No filter applied - show all events
     return events;
-  }, [events, currentFilter, filters, user]);
+  }, [events, currentFilter, filters, myEvents]);
 
   const getFilteredEventsForRoom = useMemo(() => {
     return (roomName: string) => {
