@@ -162,15 +162,51 @@ export function calculateNewShiftBlocks(shifts: Shift[], date: string): ShiftBlo
     // Find all users working during this time period
     const workingUsers = new Set<string>();
     
+    console.log(`🔍 Checking overlap for block: ${startTime} - ${endTime}`);
+    
     validShifts.forEach(shift => {
       const shiftStart = shift.start_time!;
       const shiftEnd = shift.end_time!;
       
+      console.log(`  📋 Shift: ${shift.profile_id} (${shiftStart} - ${shiftEnd})`);
+      
+      // Normalize time format to HH:MM:SS for consistent comparison
+      const normalizeTime = (time: string) => {
+        if (time.includes(':')) {
+          const parts = time.split(':');
+          if (parts.length === 2) {
+            return `${parts[0]}:${parts[1]}:00`;
+          }
+        }
+        return time;
+      };
+      
+      const normalizedShiftStart = normalizeTime(shiftStart);
+      const normalizedShiftEnd = normalizeTime(shiftEnd);
+      const normalizedBlockStart = normalizeTime(startTime);
+      const normalizedBlockEnd = normalizeTime(endTime);
+      
+      console.log(`    🔧 Normalized: ${normalizedShiftStart} - ${normalizedShiftEnd} vs block ${normalizedBlockStart} - ${normalizedBlockEnd}`);
+      
       // User is working if their shift overlaps with this time period
-      if (shiftStart < endTime && shiftEnd > startTime) {
+      // A shift overlaps if:
+      // 1. Shift starts before the block ends AND shift ends after the block starts
+      // 2. This means the shift is active during at least part of the block
+      const condition1 = normalizedShiftStart < normalizedBlockEnd;
+      const condition2 = normalizedShiftEnd > normalizedBlockStart;
+      const overlaps = condition1 && condition2;
+      
+      console.log(`    ✅ Condition 1 (${normalizedShiftStart} < ${normalizedBlockEnd}): ${condition1}`);
+      console.log(`    ✅ Condition 2 (${normalizedShiftEnd} > ${normalizedBlockStart}): ${condition2}`);
+      console.log(`    🎯 Overlaps: ${overlaps}`);
+      
+      if (overlaps) {
         workingUsers.add(shift.profile_id!);
+        console.log(`    👤 Added ${shift.profile_id} to working users`);
       }
     });
+    
+    console.log(`📊 Final working users for ${startTime} - ${endTime}:`, Array.from(workingUsers));
     
     // Only create block if someone is working
     if (workingUsers.size > 0) {
@@ -308,7 +344,7 @@ export function useUpdateShiftBlocks() {
           throw insertError;
         }
         
-              console.log('✅ Successfully inserted', data?.length, 'new blocks');
+        console.log('✅ Successfully inserted', data?.length, 'new blocks');
         
         // Auto-assign rooms to single users after creating blocks
         try {
@@ -321,15 +357,15 @@ export function useUpdateShiftBlocks() {
       }
       
       return [];
-  },
-  onSuccess: (data, variables) => {
-    queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-    queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-    // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-    queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
-    // Invalidate event ownership queries so useCalculateOwners updates
-    queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-  },
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
+      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
+      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
+      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+    },
   });
 }
 
@@ -482,4 +518,4 @@ export function useCopyShiftBlocks() {
       });
     },
   });
-} 
+}
