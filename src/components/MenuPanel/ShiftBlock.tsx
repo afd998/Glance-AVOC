@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useRooms } from '../../hooks/useRooms';
@@ -53,8 +53,32 @@ interface ShiftBlockProps {
   allBlocks: any[];
 }
 
-// Draggable room badge component
-function DraggableRoomBadge({ room, dragging }: { room: string; dragging: boolean }) {
+// Selection context for managing multi-selection across components
+interface SelectionContextType {
+  selectedRooms: Set<string>;
+  lastSelectedRoom: string | null;
+  selectRoom: (room: string, event: React.MouseEvent) => void;
+  clearSelection: () => void;
+  isSelected: (room: string) => boolean;
+  moveSelectedRooms: (targetUserId: string | null) => void;
+}
+
+const SelectionContext = React.createContext<SelectionContextType | null>(null);
+
+// Draggable room badge component with selection support
+function DraggableRoomBadge({ 
+  room, 
+  dragging, 
+  isSelected,
+  selectionContext,
+  isInSelectionMode
+}: { 
+  room: string; 
+  dragging: boolean;
+  isSelected: boolean;
+  selectionContext: SelectionContextType;
+  isInSelectionMode: boolean;
+}) {
   const {
     attributes,
     listeners,
@@ -63,6 +87,7 @@ function DraggableRoomBadge({ room, dragging }: { room: string; dragging: boolea
     isDragging,
   } = useDraggable({
     id: room,
+    disabled: false, // We'll control this manually
   });
 
   const style = transform ? {
@@ -73,28 +98,130 @@ function DraggableRoomBadge({ room, dragging }: { room: string; dragging: boolea
     return null; // Hide the original when dragging
   }
 
-  return (
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('🔍 Room clicked:', room, 'Shift key:', event.shiftKey, 'Ctrl key:', event.ctrlKey);
+    
+    // Only call selectRoom directly, not through onRoomClick
+    selectionContext.selectRoom(room, event);
+  };
+
+
+
+  const handleMouseDown = (event: React.MouseEvent) => {
+    // If it's a selection click (Shift, Ctrl, or Cmd), prevent drag from starting
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      event.stopPropagation();
+      event.preventDefault();
+      return false; // Prevent drag from starting
+    }
+  };
+
+  // Only apply drag listeners if we're not in selection mode and no modifier keys are pressed
+  const shouldEnableDrag = !isSelected && !selectionContext.selectedRooms.size && !isDragging && !isInSelectionMode;
+  const dragListeners = shouldEnableDrag ? listeners : {};
+
+    return (
     <span
       ref={setNodeRef}
       style={style}
-      {...listeners}
+      {...dragListeners}
       {...attributes}
-      className={`inline-block px-2 py-1 text-xs rounded cursor-grab active:cursor-grabbing ${getRoomBadgeColor(room)} ${isDragging ? 'opacity-50' : ''}`}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      className={`inline-block px-2 py-1 text-xs rounded cursor-pointer transition-all ${
+        getRoomBadgeColor(room)
+      } ${
+        isSelected 
+          ? 'ring-2 ring-blue-500 scale-105 bg-blue-100 dark:bg-blue-900/50' 
+          : 'hover:scale-105'
+      } ${isDragging ? 'opacity-50' : ''}`}
     >
       {displayRoomName(room)}
     </span>
   );
 }
 
+// Bulk move button component
+function BulkMoveButton({ 
+  selectedCount, 
+  onMoveToUser, 
+  onMoveToRooms,
+  availableUsers 
+}: { 
+  selectedCount: number;
+  onMoveToUser: (userId: string) => void;
+  onMoveToRooms: () => void;
+  availableUsers: string[];
+}) {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  if (selectedCount === 0) return null;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowDropdown(!showDropdown)}
+        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+      >
+        Move {selectedCount} selected
+      </button>
+      
+      {showDropdown && (
+        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50 min-w-[150px]">
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => {
+                onMoveToRooms();
+                setShowDropdown(false);
+              }}
+              className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              Move to Unassigned
+            </button>
+          </div>
+          {availableUsers.map(userId => (
+            <div key={userId} className="p-2">
+              <button
+                onClick={() => {
+                  onMoveToUser(userId);
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                Move to {userId}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Shift block assignment component (user section)
-function ShiftBlockAssignment({ userId, rooms, isOver, hasAllRooms }: { userId: string; rooms: string[]; isOver: boolean; hasAllRooms?: boolean }) {
-  // Always call the hooks, even if userId is undefined
+function ShiftBlockAssignment({ 
+  userId, 
+  rooms, 
+  isOver, 
+  hasAllRooms,
+  selectionContext,
+  isInSelectionMode
+}: { 
+  userId: string; 
+  rooms: string[]; 
+  isOver: boolean; 
+  hasAllRooms?: boolean;
+  selectionContext: SelectionContextType;
+  isInSelectionMode: boolean;
+}) {
   const { data: profile } = useUserProfile(userId || '');
   const { setNodeRef } = useDroppable({
     id: userId || '',
   });
 
-  // Add defensive check for undefined userId
   if (!userId) {
     console.warn('ShiftBlockAssignment: userId is undefined or null');
     return null;
@@ -124,7 +251,14 @@ function ShiftBlockAssignment({ userId, rooms, isOver, hasAllRooms }: { userId: 
       </div>
       <div className="flex flex-wrap gap-1">
         {rooms.map((room) => (
-          <DraggableRoomBadge key={room} room={room} dragging={false} />
+          <DraggableRoomBadge 
+            key={room} 
+            room={room} 
+            dragging={false}
+            isSelected={selectionContext.isSelected(room)}
+            selectionContext={selectionContext}
+            isInSelectionMode={isInSelectionMode}
+          />
         ))}
       </div>
     </div>
@@ -132,7 +266,19 @@ function ShiftBlockAssignment({ userId, rooms, isOver, hasAllRooms }: { userId: 
 }
 
 // Rooms section component (unassigned rooms)
-function RoomsSection({ rooms, isOver, roomsDropId }: { rooms: string[]; isOver: boolean; roomsDropId: string }) {
+function RoomsSection({ 
+  rooms, 
+  isOver, 
+  roomsDropId,
+  selectionContext,
+  isInSelectionMode
+}: { 
+  rooms: string[]; 
+  isOver: boolean; 
+  roomsDropId: string;
+  selectionContext: SelectionContextType;
+  isInSelectionMode: boolean;
+}) {
   const { setNodeRef } = useDroppable({
     id: roomsDropId,
   });
@@ -158,7 +304,14 @@ function RoomsSection({ rooms, isOver, roomsDropId }: { rooms: string[]; isOver:
       </div>
       <div className="flex flex-wrap gap-1">
         {rooms.map((room) => (
-          <DraggableRoomBadge key={room} room={room} dragging={false} />
+          <DraggableRoomBadge 
+            key={room} 
+            room={room} 
+            dragging={false}
+            isSelected={selectionContext.isSelected(room)}
+            selectionContext={selectionContext}
+            isInSelectionMode={isInSelectionMode}
+          />
         ))}
       </div>
     </div>
@@ -173,10 +326,38 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   const [assignments, setAssignments] = useState<Assignment[]>(block.assignments || []);
   const [draggingRoom, setDraggingRoom] = useState<string | null>(null);
 
+  // Selection state
+  const [selectedRooms, setSelectedRooms] = useState<Set<string>>(new Set());
+  const [lastSelectedRoom, setLastSelectedRoom] = useState<string | null>(null);
+  const [isInSelectionMode, setIsInSelectionMode] = useState(false);
+
   // Keep local state in sync with prop data
   React.useEffect(() => {
     setAssignments(block.assignments || []);
   }, [block.assignments]);
+
+  // Add global key event listeners to track modifier keys
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.shiftKey || event.ctrlKey || event.metaKey) {
+        setIsInSelectionMode(true);
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        setIsInSelectionMode(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   // Create unique drop ID for rooms section
   const roomsDropId = `rooms-${block.id}`;
@@ -194,6 +375,138 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   // Check if the single user has all rooms assigned
   const singleUserHasAllRooms = assignments.length === 1 && unassignedRooms.length === 0;
 
+  // Get all available user IDs for bulk move
+  const availableUserIds = assignments.map(a => a.user);
+
+  // Selection context functions
+  const selectRoom = (room: string, event: React.MouseEvent) => {
+    console.log('🎯 selectRoom called:', room, 'Shift:', event.shiftKey, 'Ctrl:', event.ctrlKey, 'Last selected:', lastSelectedRoom, 'Current selection size:', selectedRooms.size);
+    
+    // Set selection mode if using modifier keys
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      setIsInSelectionMode(true);
+    }
+    
+    if (event.shiftKey && lastSelectedRoom) {
+      // Shift+Click: select range
+      console.log('🔄 Shift+Click range selection');
+      const allRoomsInBlock = [
+        ...assignments.flatMap(a => a.rooms || []),
+        ...unassignedRooms
+      ];
+      const lastIndex = allRoomsInBlock.indexOf(lastSelectedRoom);
+      const currentIndex = allRoomsInBlock.indexOf(room);
+      
+      console.log('📍 Room indices:', { lastIndex, currentIndex, allRoomsInBlock });
+      
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeRooms = allRoomsInBlock.slice(start, end + 1);
+        
+        console.log('📋 Range rooms:', rangeRooms);
+        // Keep existing selections and add the range
+        const newSelected = new Set(selectedRooms);
+        rangeRooms.forEach(r => newSelected.add(r));
+        console.log('📋 New selection:', Array.from(newSelected));
+        setSelectedRooms(newSelected);
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      // Ctrl/Cmd+Click: toggle selection
+      console.log('🔄 Ctrl+Click toggle selection');
+      const newSelected = new Set(selectedRooms);
+      if (newSelected.has(room)) {
+        newSelected.delete(room);
+        console.log('❌ Removed from selection:', room);
+      } else {
+        newSelected.add(room);
+        console.log('✅ Added to selection:', room);
+      }
+      console.log('📋 New selection:', Array.from(newSelected));
+      setSelectedRooms(newSelected);
+    } else {
+      // Regular click: select single room
+      console.log('🔄 Regular click single selection');
+      setSelectedRooms(new Set([room]));
+      setIsInSelectionMode(false);
+    }
+    setLastSelectedRoom(room);
+  };
+
+  const clearSelection = () => {
+    setSelectedRooms(new Set());
+    setLastSelectedRoom(null);
+    setIsInSelectionMode(false);
+  };
+
+  const isSelected = (room: string) => selectedRooms.has(room);
+
+  const moveSelectedRooms = (targetUserId: string | null) => {
+    if (selectedRooms.size === 0) return;
+
+    let newAssignments = [...assignments];
+    
+    if (targetUserId === null) {
+      // Move to unassigned (remove from all users)
+      newAssignments = assignments.map((a: Assignment) => ({
+        ...a,
+        rooms: a.rooms.filter(r => !selectedRooms.has(r)),
+      }));
+    } else {
+      // Move to specific user
+      newAssignments = assignments.map((a: Assignment) => {
+                 if (a.user === targetUserId) {
+           return { 
+             ...a, 
+             rooms: Array.from(new Set([...(a.rooms || []), ...Array.from(selectedRooms)])) 
+           };
+         } else {
+           // Remove from other users
+           return { ...a, rooms: a.rooms.filter(r => !selectedRooms.has(r)) };
+         }
+      });
+    }
+    
+    setAssignments(newAssignments);
+    clearSelection();
+    
+    // Update the affected block in the allBlocks array
+    const updatedBlocks = allBlocks.map(b =>
+      b.id === block.id ? { ...b, assignments: newAssignments } : b
+    );
+    
+    // Convert to ShiftBlockInsert format
+    const newBlocks = updatedBlocks.map(b => ({
+      date: b.date,
+      start_time: b.start_time,
+      end_time: b.end_time,
+      assignments: b.assignments,
+    }));
+    
+    // Persist the changes
+    updateShiftBlocks.mutate({
+      date: block.date,
+      newBlocks,
+    }, {
+      onSuccess: (data) => {
+        console.log('✅ Shift blocks updated successfully:', data);
+      },
+      onError: (error) => {
+        console.error('❌ Failed to update shift blocks:', error);
+        setAssignments(block.assignments || []);
+      }
+    });
+  };
+
+  const selectionContext: SelectionContextType = {
+    selectedRooms,
+    lastSelectedRoom,
+    selectRoom,
+    clearSelection,
+    isSelected,
+    moveSelectedRooms,
+  };
+
   const handleDragStart = (event: any) => {
     setDraggingRoom(event.active.id);
   };
@@ -202,9 +515,31 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     const { over } = event;
     const draggedRoom = event.active.id;
     
-    console.log('🔄 Drag end event:', { over, draggedRoom, currentAssignments: assignments });
+    console.log('🔄 Drag ended:', { draggedRoom, overId: over?.id });
     
     if (over && over.id) {
+      // Check if the room is being dropped in the same location it came from
+      let isSameLocation = false;
+      
+      if (over.id === roomsDropId) {
+        // Check if room was already unassigned
+        const wasUnassigned = unassignedRooms.includes(draggedRoom);
+        isSameLocation = wasUnassigned;
+        console.log('📍 Dropped in rooms section, was unassigned:', wasUnassigned);
+      } else {
+        // Check if room was already assigned to this user
+        const assignment = assignments.find(a => a.user === over.id);
+        const wasAssignedToUser = assignment?.rooms?.includes(draggedRoom) || false;
+        isSameLocation = wasAssignedToUser;
+        console.log('📍 Dropped on user', over.id, 'was already assigned:', wasAssignedToUser);
+      }
+      
+      if (isSameLocation) {
+        console.log('⏭️ Skipping database update - room dropped in same location');
+        setDraggingRoom(null);
+        return;
+      }
+      
       let newAssignments = [...assignments];
       
       if (over.id === roomsDropId) {
@@ -213,7 +548,6 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
           ...a,
           rooms: a.rooms.filter(r => r !== draggedRoom),
         }));
-        console.log('🗑️ Unassigning room:', draggedRoom);
       } else {
         // Move to another user
         newAssignments = assignments.map((a: Assignment) => {
@@ -224,10 +558,8 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
             return { ...a, rooms: a.rooms.filter(r => r !== draggedRoom) };
           }
         });
-        console.log('👤 Assigning room to user:', { room: draggedRoom, user: over.id });
       }
       
-      console.log('📝 New assignments:', newAssignments);
       setAssignments(newAssignments);
       
       // Update the affected block in the allBlocks array
@@ -235,7 +567,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
         b.id === block.id ? { ...b, assignments: newAssignments } : b
       );
       
-      // Convert to ShiftBlockInsert format (remove database-generated fields)
+      // Convert to ShiftBlockInsert format
       const newBlocks = updatedBlocks.map(b => ({
         date: b.date,
         start_time: b.start_time,
@@ -243,15 +575,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
         assignments: b.assignments,
       }));
       
-      // Persist the full set of shift blocks for the date
-      console.log('🔄 Updating shift blocks with:', {
-        date: block.date,
-        newBlocks,
-        draggedRoom,
-        newAssignments
-      });
-      
-      console.log('🚀 Calling updateShiftBlocks mutation...');
+      // Persist the changes
       updateShiftBlocks.mutate({
         date: block.date,
         newBlocks,
@@ -261,7 +585,6 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
         },
         onError: (error) => {
           console.error('❌ Failed to update shift blocks:', error);
-          // Revert local state on error
           setAssignments(block.assignments || []);
         }
       });
@@ -269,37 +592,65 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     setDraggingRoom(null);
   };
 
-
-
-  return (
-    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                 <div className="flex justify-between items-center mb-4">
-           <h5 className="font-medium text-gray-900 dark:text-white">
-             {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
-           </h5>
-         </div>
-        
-        <div className="space-y-3">
-          {/* User assignments */}
-          {assignments.map((assignment: Assignment, idx: number) => (
-            <ShiftBlockAssignment
-              key={`${assignment.user}-${idx}`}
-              userId={assignment.user}
-              rooms={assignment.rooms || []}
-              isOver={false}
-              hasAllRooms={singleUserHasAllRooms && assignments.length === 1}
-            />
-          ))}
-          
-          {/* Unassigned rooms */}
-          <RoomsSection
-            rooms={unassignedRooms}
-            isOver={false}
-            roomsDropId={roomsDropId}
+  // Render content with or without drag context based on selection mode
+  const content = (
+    <div 
+      className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+      onClick={(event) => {
+        // Clear selection when clicking outside room badges
+        if (event.target === event.currentTarget) {
+          clearSelection();
+        }
+      }}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h5 className="font-medium text-gray-900 dark:text-white">
+          {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
+        </h5>
+        <div className="flex items-center gap-2">
+          {selectedRooms.size > 0 && (
+            <span className="text-xs text-blue-600 dark:text-blue-400">
+              Selected: {selectedRooms.size} ({Array.from(selectedRooms).join(', ')})
+            </span>
+          )}
+          <BulkMoveButton
+            selectedCount={selectedRooms.size}
+            onMoveToUser={(userId) => moveSelectedRooms(userId)}
+            onMoveToRooms={() => moveSelectedRooms(null)}
+            availableUsers={availableUserIds}
           />
         </div>
       </div>
+      
+      <div className="space-y-3">
+        {/* User assignments */}
+        {assignments.map((assignment: Assignment, idx: number) => (
+                     <ShiftBlockAssignment
+             key={`${assignment.user}-${idx}`}
+             userId={assignment.user}
+             rooms={assignment.rooms || []}
+             isOver={false}
+             hasAllRooms={singleUserHasAllRooms && assignments.length === 1}
+             selectionContext={selectionContext}
+             isInSelectionMode={isInSelectionMode}
+           />
+        ))}
+        
+        {/* Unassigned rooms */}
+                   <RoomsSection
+             rooms={unassignedRooms}
+             isOver={false}
+             roomsDropId={roomsDropId}
+             selectionContext={selectionContext}
+             isInSelectionMode={isInSelectionMode}
+           />
+      </div>
+    </div>
+  );
+
+    return (
+    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      {content}
       
       {/* Drag overlay */}
       <DragOverlay>
