@@ -16,117 +16,6 @@ interface EventProps {
   onEventClick: (event: Event) => void;
 }
 
-// Leader line component for non-lecture events that are too long
-const LeaderLineEvent = ({ 
-  event, 
-  position, 
-  bgColor, 
-  isHovering, 
-  onMouseEnter, 
-  onMouseLeave, 
-  onClick 
-}: {
-  event: Event;
-  position: { left: string; width: string; durationMinutes: number };
-  bgColor: string;
-  isHovering: boolean;
-  onMouseEnter: (e: React.MouseEvent) => void;
-  onMouseLeave: () => void;
-  onClick: () => void;
-}) => {
-  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event.instructor_name || '');
-  
-  // Maximum width for the content background before showing leader line
-  const maxContentWidth = 300; // pixels
-  const shouldShowLeaderLine = parseInt(position.width) > maxContentWidth;
-  
-  // Content width is either the max width or the actual width if smaller
-  const contentWidth = Math.min(parseInt(position.width), maxContentWidth);
-  
-  return (
-         <div
-       className="absolute transition-all duration-200 ease-in-out cursor-pointer group"
-       style={{
-         top: '4px',
-         left: position.left,
-         width: position.width,
-         height: '88px',
-         overflow: 'visible',
-         zIndex: isHovering ? 60 : 49
-       }}
-       title={event.event_name || ''}
-       onMouseEnter={onMouseEnter}
-       onMouseLeave={onMouseLeave}
-       onClick={onClick}
-     >
-               {/* Content background - limited width with background color */}
-        <div 
-          className={`${bgColor} text-white text-sm rounded px-2 py-1 h-full relative transition-all duration-200 ease-in-out`}
-          style={{ 
-            width: `${contentWidth}px`,
-            boxShadow: isHovering ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
-            transform: isHovering ? 'scale(1.05)' : 'scale(1)',
-            transformOrigin: 'left center'
-          }}
-        >
-        <div className="flex flex-col h-full transition-all duration-200 ease-in-out">
-          <EventHeader 
-            event={event}
-            isHovering={isHovering}
-          />
-          <EventContent 
-            event={event}
-            facultyMember={facultyMember || null}
-            isFacultyLoading={isFacultyLoading}
-            isHovering={isHovering}
-          />
-        </div>
-      </div>
-      
-             {/* Leader line - horizontal line extending to true width */}
-       {shouldShowLeaderLine && (
-         <div 
-           className="absolute top-1/2 transform -translate-y-1/2"
-           style={{ 
-             left: `${contentWidth}px`,
-             width: `calc(${position.width} - ${contentWidth}px)`,
-             height: '2px'
-           }}
-         >
-                       {/* Horizontal line */}
-            <div 
-              className="opacity-80"
-              style={{ 
-                width: '100%',
-                height: '4px',
-                backgroundColor: bgColor === 'bg-[#b8a68a]' ? '#b8a68a' : 
-                               bgColor === 'bg-[#9b8ba5]' ? '#9b8ba5' : 
-                               bgColor === 'bg-red-300' ? '#fca5a5' : 
-                               bgColor === 'bg-transparent border-2 border-gray-400' ? '#9ca3af' : 
-                               '#ffffff' // fallback to white
-              }}
-            />
-            
-                         {/* Vertical marker at the end */}
-             <div 
-               className="absolute right-0 opacity-80 rounded-full"
-               style={{ 
-                 width: '4px',
-                 height: '32px',
-                 top: '-14px',
-                 backgroundColor: bgColor === 'bg-[#b8a68a]' ? '#b8a68a' : 
-                                bgColor === 'bg-[#9b8ba5]' ? '#9b8ba5' : 
-                                bgColor === 'bg-red-300' ? '#fca5a5' : 
-                                bgColor === 'bg-transparent border-2 border-gray-400' ? '#9ca3af' : 
-                                '#ffffff' // fallback to white
-               }}
-             />
-         </div>
-       )}
-    </div>
-  );
-};
-
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
 
   // Disable hover card functionality
@@ -199,6 +88,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return null;
   }
 
+
+
   // Calculate event positioning using utility function
   const timelineStartMinutes = startHour * 60;
   const roomLabelWidth = 96; // Adjust this if needed
@@ -216,54 +107,13 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   
   const { left, width, durationMinutes } = position;
   
+ 
   // Determine if this is in the upper rows (first 4 rows)
   const isUpperRow = roomIndex < 4;
 
   // Get event type info using the utility function
-  const { bgColor, isLecture } = getEventTypeInfo(event);
+  const { bgColor } = getEventTypeInfo(event);
 
-  // For non-lecture events, use the leader line component
-  if (!isLecture) {
-    return (
-      <>
-        <LeaderLineEvent
-          event={event}
-          position={position}
-          bgColor={bgColor}
-          isHovering={isHoveringEvent}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => onEventClick && onEventClick(event)}
-        />
-        {HOVER_CARD_ENABLED && showHoverCard && (
-          <div 
-            className="absolute z-[100]"
-            style={{
-              left: 0,
-              [isUpperRow ? 'top' : 'bottom']: '100%',
-              marginTop: isUpperRow ? '8px' : 0,
-              marginBottom: isUpperRow ? 0 : '8px',
-              pointerEvents: 'auto'
-            }}
-            onMouseEnter={handleCardMouseEnter}
-            onMouseLeave={handleCardMouseLeave}
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg"></div>
-              <EventHoverCard
-                event={event}
-                facultyMember={facultyMember || null}
-                isFacultyLoading={isFacultyLoading}
-                style={{}}
-              />
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // For lecture events, use the original rendering
   return (
     <div
       className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1 transition-all duration-200 ease-in-out cursor-pointer group`}
@@ -290,12 +140,12 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           event={event}
           isHovering={isHoveringEvent}
         />
-        <EventContent 
+                <EventContent 
           event={event}
           facultyMember={facultyMember || null}
           isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
-        />
+                />
       </div>
       {HOVER_CARD_ENABLED && showHoverCard && (
         <div 

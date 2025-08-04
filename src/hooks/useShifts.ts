@@ -171,11 +171,14 @@ export function useCopyShifts() {
       }
       
       // Create new shifts for the target date
-      const newShifts = sourceShifts.map(shift => ({
-        ...shift,
-        id: undefined, // Remove id to create new records
-        date: targetDate,
-      }));
+      const newShifts = sourceShifts.map(shift => {
+        // Destructure to remove id and created_at, then create new object
+        const { id, created_at, ...shiftWithoutId } = shift;
+        return {
+          ...shiftWithoutId,
+          date: targetDate,
+        };
+      });
       
       const { data, error } = await supabase
         .from('shifts')

@@ -16,7 +16,8 @@ export function useShiftBlocks(date: string | null) {
       const { data, error } = await supabase
         .from('shift_blocks')
         .select('*')
-        .eq('date', date);
+        .eq('date', date)
+        .order('start_time', { ascending: true });
       if (error) throw error;
       console.log('Fetched shift blocks:', data);
       return data || [];
@@ -111,63 +112,155 @@ export function useDeleteShiftBlock() {
 export function calculateNewShiftBlocks(shifts: Shift[], date: string): ShiftBlockInsert[] {
   if (shifts.length === 0) return [];
   
-  // Sort shifts by start time
-  const sortedShifts = shifts
-    .filter(shift => shift.start_time && shift.end_time)
+  // Filter out invalid shifts and sort by start time
+  const validShifts = shifts
+    .filter(shift => shift.start_time && shift.end_time && shift.start_time !== shift.end_time)
     .sort((a, b) => a.start_time!.localeCompare(b.start_time!));
   
-  if (sortedShifts.length === 0) return [];
+  if (validShifts.length === 0) return [];
+  
+  console.log('🔍 Input shifts:', validShifts.map(s => ({
+    profile_id: s.profile_id,
+    start_time: s.start_time,
+    end_time: s.end_time
+  })));
+  
+  // Simple approach: create one block per unique time period where shifts overlap
+  const timePoints = new Set<string>();
+  validShifts.forEach(shift => {
+    // Normalize time format to HH:MM:SS to avoid duplicates
+    const normalizeTime = (time: string) => {
+      if (time.includes(':')) {
+        const parts = time.split(':');
+        if (parts.length === 2) {
+          return `${parts[0]}:${parts[1]}:00`;
+        }
+      }
+      return time;
+    };
+    
+    timePoints.add(normalizeTime(shift.start_time!));
+    timePoints.add(normalizeTime(shift.end_time!));
+  });
+  
+  const sortedTimePoints = Array.from(timePoints).sort();
+  console.log('🔍 Time points:', sortedTimePoints);
   
   const blocks: ShiftBlockInsert[] = [];
   
-  // Find all unique time boundaries (start and end times)
-  const timeBoundaries = new Set<string>();
-  sortedShifts.forEach(shift => {
-    timeBoundaries.add(shift.start_time!);
-    timeBoundaries.add(shift.end_time!);
-  });
-  
-  const sortedBoundaries = Array.from(timeBoundaries).sort();
-  
-  // Create blocks for each time period between boundaries
-  for (let i = 0; i < sortedBoundaries.length - 1; i++) {
-    const startTime = sortedBoundaries[i];
-    const endTime = sortedBoundaries[i + 1];
+  // Create blocks between consecutive time points
+  for (let i = 0; i < sortedTimePoints.length - 1; i++) {
+    const startTime = sortedTimePoints[i];
+    const endTime = sortedTimePoints[i + 1];
     
-    // Find all users who are working during this time period
-    const usersInPeriod = new Set<string>();
+    // Skip if start and end are the same (shouldn't happen with valid shifts, but safety first)
+    if (startTime === endTime) {
+      console.log(`⚠️ Skipping identical times: ${startTime}`);
+      continue;
+    }
     
-    sortedShifts.forEach(shift => {
-      // Check if this shift overlaps with the time period
+    // Find all users working during this time period
+    const workingUsers = new Set<string>();
+    
+    validShifts.forEach(shift => {
       const shiftStart = shift.start_time!;
       const shiftEnd = shift.end_time!;
       
-      // Shift overlaps if: shift starts before period ends AND shift ends after period starts
-      const overlaps = shiftStart < endTime && shiftEnd > startTime;
-      
-      if (overlaps) {
-        usersInPeriod.add(shift.profile_id!);
+      // User is working if their shift overlaps with this time period
+      if (shiftStart < endTime && shiftEnd > startTime) {
+        workingUsers.add(shift.profile_id!);
       }
     });
     
-    // Only create a block if there are users working during this period
-    if (usersInPeriod.size > 0) {
-      const assignments = Array.from(usersInPeriod).map(userId => ({
+    // Only create block if someone is working
+    if (workingUsers.size > 0) {
+      const assignments = Array.from(workingUsers).map(userId => ({
         user: userId,
-        rooms: [], // Start with empty rooms array
+        rooms: []
       }));
       
       blocks.push({
         date,
         start_time: startTime,
         end_time: endTime,
-        assignments,
+        assignments
       });
+      
+      console.log(`✅ Created block: ${startTime} - ${endTime} with ${workingUsers.size} users`);
     }
   }
   
+  console.log('🔍 Final blocks:', blocks.map(b => ({
+    start_time: b.start_time,
+    end_time: b.end_time,
+    users: Array.isArray(b.assignments) ? b.assignments.map((a: any) => a.user) : []
+  })));
+  
   return blocks;
 }
+
+// Function to automatically assign all rooms to single users in shift blocks
+export async function autoAssignRoomsToSingleUsers(date: string): Promise<void> {
+  try {
+    // Get all shift blocks for the date
+    const { data: blocks, error: blocksError } = await supabase
+      .from('shift_blocks')
+      .select('*')
+      .eq('date', date);
+    
+    if (blocksError) throw blocksError;
+    
+    if (!blocks || blocks.length === 0) return;
+    
+    // Get all available rooms
+    const { data: rooms, error: roomsError } = await supabase
+      .from('rooms')
+      .select('name')
+      .order('name');
+    
+    if (roomsError) throw roomsError;
+    
+    const allRoomNames = rooms.map(room => room.name).filter(Boolean);
+    
+    // Check each block for single users and auto-assign rooms
+    const updatedBlocks = blocks.map(block => {
+      const assignments = (block.assignments as any[]) || [];
+      
+      // If there's only one user and they have no rooms assigned
+      if (assignments.length === 1 && assignments[0].rooms.length === 0) {
+        const singleUser = assignments[0];
+        return {
+          ...block,
+          assignments: [{
+            ...singleUser,
+            rooms: allRoomNames
+          }]
+        };
+      }
+      
+      return block;
+    });
+    
+    // Update the blocks in the database
+    for (const block of updatedBlocks) {
+      const { error: updateError } = await supabase
+        .from('shift_blocks')
+        .update({ assignments: block.assignments })
+        .eq('id', block.id);
+      
+      if (updateError) {
+        console.error('Error updating block:', block.id, updateError);
+      }
+    }
+    
+    console.log('✅ Auto-assigned rooms to single users for date:', date);
+  } catch (error) {
+    console.error('❌ Error auto-assigning rooms to single users:', error);
+    throw error;
+  }
+}
+
+
 
 export function useUpdateShiftBlocks() {
   const queryClient = useQueryClient();
@@ -193,9 +286,21 @@ export function useUpdateShiftBlocks() {
       
       // Insert new blocks
       if (newBlocks.length > 0) {
+        // Filter out any zero-duration blocks before inserting
+        const validBlocks = newBlocks.filter(block => {
+          if (block.start_time === block.end_time) {
+            console.error(`🚨 ERROR: Attempting to insert zero-duration block: ${block.start_time} -> ${block.end_time}`);
+            return false;
+          }
+          return true;
+        });
+        
+        console.log(`🔍 Filtered ${newBlocks.length - validBlocks.length} zero-duration blocks`);
+        console.log('🔍 Valid blocks to insert:', validBlocks.map(b => ({ start: b.start_time, end: b.end_time })));
+        
         const { data, error: insertError } = await supabase
           .from('shift_blocks')
-          .insert(newBlocks)
+          .insert(validBlocks)
           .select();
         
         if (insertError) {
@@ -203,18 +308,28 @@ export function useUpdateShiftBlocks() {
           throw insertError;
         }
         
-        console.log('✅ Successfully inserted', data?.length, 'new blocks');
+              console.log('✅ Successfully inserted', data?.length, 'new blocks');
+        
+        // Auto-assign rooms to single users after creating blocks
+        try {
+          await autoAssignRoomsToSingleUsers(date);
+        } catch (error) {
+          console.error('Warning: Failed to auto-assign rooms to single users:', error);
+        }
+        
         return data;
       }
       
       return [];
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
-    },
+  },
+  onSuccess: (data, variables) => {
+    queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
+    queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
+    // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
+    queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+    // Invalidate event ownership queries so useCalculateOwners updates
+    queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+  },
   });
 }
 
@@ -312,11 +427,14 @@ export function useCopyShiftBlocks() {
       
       // Copy shifts to target date
       if (sourceShifts && sourceShifts.length > 0) {
-        const newShifts = sourceShifts.map(shift => ({
-          ...shift,
-          id: undefined,
-          date: targetDate,
-        }));
+        const newShifts = sourceShifts.map(shift => {
+          // Destructure to remove id and created_at, then create new object
+          const { id, created_at, ...shiftWithoutId } = shift;
+          return {
+            ...shiftWithoutId,
+            date: targetDate,
+          };
+        });
         
         const { error: insertShiftsError } = await supabase
           .from('shifts')
@@ -326,11 +444,14 @@ export function useCopyShiftBlocks() {
       }
       
       // Copy blocks to target date
-      const newBlocks = sourceBlocks.map(block => ({
-        ...block,
-        id: undefined,
-        date: targetDate,
-      }));
+      const newBlocks = sourceBlocks.map(block => {
+        // Destructure to remove id and created_at, then create new object
+        const { id, created_at, ...blockWithoutId } = block;
+        return {
+          ...blockWithoutId,
+          date: targetDate,
+        };
+      });
       
       const { data, error } = await supabase
         .from('shift_blocks')
@@ -341,11 +462,24 @@ export function useCopyShiftBlocks() {
       return data;
     },
     onSuccess: (data, variables) => {
+      // Invalidate shift blocks queries
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.sourceDate] });
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.targetDate] });
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      
+      // Invalidate shifts queries since we're also copying shifts
+      queryClient.invalidateQueries({ queryKey: ['shifts', variables.sourceDate] });
+      queryClient.invalidateQueries({ queryKey: ['shifts', variables.targetDate] });
+      // Also invalidate array-based shifts queries
+      queryClient.invalidateQueries({ 
+        queryKey: ['shifts'], 
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          return queryKey[0] === 'shifts' && Array.isArray(queryKey[1]);
+        }
+      });
     },
   });
 } 

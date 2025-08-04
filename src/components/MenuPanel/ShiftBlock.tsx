@@ -87,7 +87,7 @@ function DraggableRoomBadge({ room, dragging }: { room: string; dragging: boolea
 }
 
 // Shift block assignment component (user section)
-function ShiftBlockAssignment({ userId, rooms, isOver }: { userId: string; rooms: string[]; isOver: boolean }) {
+function ShiftBlockAssignment({ userId, rooms, isOver, hasAllRooms }: { userId: string; rooms: string[]; isOver: boolean; hasAllRooms?: boolean }) {
   // Always call the hooks, even if userId is undefined
   const { data: profile } = useUserProfile(userId || '');
   const { setNodeRef } = useDroppable({
@@ -106,6 +106,8 @@ function ShiftBlockAssignment({ userId, rooms, isOver }: { userId: string; rooms
       className={`flex flex-col p-3 rounded border-2 transition-colors ${
         isOver 
           ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' 
+          : hasAllRooms
+          ? 'border-green-300 bg-green-50 dark:bg-green-900/20'
           : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
       }`}
     >
@@ -114,6 +116,11 @@ function ShiftBlockAssignment({ userId, rooms, isOver }: { userId: string; rooms
         <span className="font-medium text-gray-900 dark:text-white">
           {profile?.name || userId}
         </span>
+        {hasAllRooms && (
+          <span className="px-1 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 rounded">
+            All Rooms
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-1">
         {rooms.map((room) => (
@@ -162,16 +169,14 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   const updateShiftBlocks = useUpdateShiftBlocks();
   const { rooms: allRooms } = useRooms();
   
-  // Local state for assignments
+  // Local state for assignments - sync with block.assignments when it changes
   const [assignments, setAssignments] = useState<Assignment[]>(block.assignments || []);
   const [draggingRoom, setDraggingRoom] = useState<string | null>(null);
 
-  // Debug logging
-  console.log('ShiftBlock render:', {
-    blockId: block.id,
-    assignments: assignments,
-    blockAssignments: block.assignments
-  });
+  // Keep local state in sync with prop data
+  React.useEffect(() => {
+    setAssignments(block.assignments || []);
+  }, [block.assignments]);
 
   // Create unique drop ID for rooms section
   const roomsDropId = `rooms-${block.id}`;
@@ -186,6 +191,9 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   const allRoomNames = allRooms?.filter((n): n is string => !!n) || [];
   const unassignedRooms = allRoomNames.filter((room: string) => !assignedRooms.has(room));
 
+  // Check if the single user has all rooms assigned
+  const singleUserHasAllRooms = assignments.length === 1 && unassignedRooms.length === 0;
+
   const handleDragStart = (event: any) => {
     setDraggingRoom(event.active.id);
   };
@@ -193,6 +201,8 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
   const handleDragEnd = (event: any) => {
     const { over } = event;
     const draggedRoom = event.active.id;
+    
+    console.log('🔄 Drag end event:', { over, draggedRoom, currentAssignments: assignments });
     
     if (over && over.id) {
       let newAssignments = [...assignments];
@@ -203,6 +213,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
           ...a,
           rooms: a.rooms.filter(r => r !== draggedRoom),
         }));
+        console.log('🗑️ Unassigning room:', draggedRoom);
       } else {
         // Move to another user
         newAssignments = assignments.map((a: Assignment) => {
@@ -213,8 +224,10 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
             return { ...a, rooms: a.rooms.filter(r => r !== draggedRoom) };
           }
         });
+        console.log('👤 Assigning room to user:', { room: draggedRoom, user: over.id });
       }
       
+      console.log('📝 New assignments:', newAssignments);
       setAssignments(newAssignments);
       
       // Update the affected block in the allBlocks array
@@ -238,6 +251,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
         newAssignments
       });
       
+      console.log('🚀 Calling updateShiftBlocks mutation...');
       updateShiftBlocks.mutate({
         date: block.date,
         newBlocks,
@@ -255,17 +269,16 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     setDraggingRoom(null);
   };
 
+
+
   return (
     <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h5 className="font-medium text-gray-900 dark:text-white">
-            {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
-          </h5>
-          <span className="text-sm text-gray-500">
-            {assignments.length} assigned
-          </span>
-        </div>
+                 <div className="flex justify-between items-center mb-4">
+           <h5 className="font-medium text-gray-900 dark:text-white">
+             {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
+           </h5>
+         </div>
         
         <div className="space-y-3">
           {/* User assignments */}
@@ -275,6 +288,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
               userId={assignment.user}
               rooms={assignment.rooms || []}
               isOver={false}
+              hasAllRooms={singleUserHasAllRooms && assignments.length === 1}
             />
           ))}
           

@@ -3,6 +3,7 @@ import { useUserProfile } from './useUserProfile';
 import { useUserProfiles } from './useUserProfiles';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { updateEventInCache } from './useEvents';
 import type { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -39,6 +40,8 @@ function getIntersectingBlocks(event: Event, shiftBlocks: ShiftBlock[]): Interse
   const eventEndTime = event.end_time;
   const eventRoom = event.room_name;
 
+
+
   // Find shift blocks that overlap with the event
   const relevantBlocks = shiftBlocks.filter(block => {
     if (!block.date || !block.start_time || !block.end_time) return false;
@@ -54,6 +57,8 @@ function getIntersectingBlocks(event: Event, shiftBlocks: ShiftBlock[]): Interse
     const overlaps = (eventStartTime >= blockStart && eventStartTime < blockEnd) ||
            (eventEndTime > blockStart && eventEndTime <= blockEnd) ||
            (eventStartTime <= blockStart && eventEndTime >= blockEnd);
+    
+
     
     return overlaps;
   });
@@ -75,6 +80,8 @@ function getIntersectingBlocks(event: Event, shiftBlocks: ShiftBlock[]): Interse
         }
       });
     }
+    
+
     
     intersectingBlocks.push({
       blockId: block.id,
@@ -155,9 +162,21 @@ function createOwnershipTimeline(owners: string[], handOffTimes: string[], manua
 // Main hook to get ownership data for an event
 export function useEventOwnership(event: Event | null) {
   return useQuery({
-    queryKey: ['eventOwnership', event?.id, event?.date],
+    queryKey: ['eventOwnership', event?.id, event?.date, event?.man_owner],
     queryFn: async () => {
       if (!event?.date) return null;
+      
+      // Return no owners for KEC events
+      if (event.event_type === "KEC") {
+        return {
+          intersectingBlocks: [],
+          owners: [],
+          handOffTimes: [],
+          timeline: []
+        };
+      }
+      
+
       
       // Get shift blocks for the event's date
       const { data: shiftBlocks, error } = await supabase
@@ -168,14 +187,22 @@ export function useEventOwnership(event: Event | null) {
       
       if (error) throw error;
       
+
+      
       // Get intersecting blocks
       const intersectingBlocks = getIntersectingBlocks(event, shiftBlocks || []);
+      
+
       
       // Process ownership data
       const ownershipData = processOwnershipData(intersectingBlocks);
       
+
+      
       // Create timeline for display
       const timeline = createOwnershipTimeline(ownershipData.owners, ownershipData.handOffTimes, event.man_owner);
+      
+
       
       return {
         intersectingBlocks,
@@ -206,9 +233,18 @@ export function useAssignManualOwner() {
       return data;
     },
     onSuccess: (updatedEvent) => {
-      // Update the event in cache
+      // Update the individual event cache
       queryClient.setQueryData(['event', updatedEvent.id], updatedEvent);
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      
+      // Update the specific date-based events query to avoid full refetch
+      const dateString = updatedEvent.date;
+      const existingEvents = queryClient.getQueryData(['events', dateString]) as Event[];
+      if (existingEvents) {
+        const updatedEvents = existingEvents.map(event => 
+          event.id === updatedEvent.id ? updatedEvent : event
+        );
+        queryClient.setQueryData(['events', dateString], updatedEvents);
+      }
     },
   });
 }
@@ -230,9 +266,18 @@ export function useClearManualOwner() {
       return data;
     },
     onSuccess: (updatedEvent) => {
-      // Update the event in cache
+      // Update the individual event cache
       queryClient.setQueryData(['event', updatedEvent.id], updatedEvent);
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      
+      // Update the specific date-based events query to avoid full refetch
+      const dateString = updatedEvent.date;
+      const existingEvents = queryClient.getQueryData(['events', dateString]) as Event[];
+      if (existingEvents) {
+        const updatedEvents = existingEvents.map(event => 
+          event.id === updatedEvent.id ? updatedEvent : event
+        );
+        queryClient.setQueryData(['events', dateString], updatedEvents);
+      }
     },
   });
 } 
