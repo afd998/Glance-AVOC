@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playNotificationAudio } from '../utils/notificationSound';
+import { notifySetupReminder } from '../utils/notificationUtils';
 import useRoomStore from '../stores/roomStore';
 
 export function useNotifications() {
@@ -31,7 +32,7 @@ export function useNotifications() {
     }
   }, [isSupported]);
 
-  const sendNotification = useCallback((event) => {
+  const sendNotification = useCallback(async (event) => {
     if (permission !== 'granted') return;
 
     const formatTime = (isoString) => {
@@ -75,6 +76,17 @@ export function useNotifications() {
       window.focus();
       notification.close();
     };
+
+    // Also send in-app notification
+    try {
+      await notifySetupReminder(
+        event.id,
+        event.man_owner || '',
+        event.event_name
+      );
+    } catch (error) {
+      console.error('Failed to send in-app setup reminder notification:', error);
+    }
   }, [permission]);
 
   const hasStaffAssistance = useCallback((event) => {

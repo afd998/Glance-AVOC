@@ -173,8 +173,8 @@ export const getEventThemeColors = (event: Event) => {
     return {
       mainBg: 'bg-[#7C6CA1] border-[#8D7DAD]',
       mainBgDark: 'bg-[#605283] border-[#4A3E60]',
-      cardBg: 'bg-[#AFAFC5] border-[#8D7DAD]',
-      itemBg: 'bg-[#AFAFC5] border-[#8D7DAD] hover:bg-[#9E8EB9]',
+      cardBg: 'bg-[#605283] border-[#8D7DAD]',
+      itemBg: 'bg-[#605283] border-[#8D7DAD] hover:bg-[#9E8EB9]',
       badgeBg: 'bg-[#605283]',
       badgeText: 'text-[#4A3E60]',
       iconBg: 'bg-[#605283]',

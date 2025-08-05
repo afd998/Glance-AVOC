@@ -4,6 +4,7 @@ import MenuPanel from './MenuPanel/MenuPanel';
 import AcademicCalendarInfo from './Grid/AcademicCalendarInfo';
 import CurrentFilterLink from './Grid/CurrentFilterLink';
 import QuarterCount from './Grid/QuarterCount';
+import { NotificationBell } from './NotificationBell';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -110,7 +111,8 @@ export default function AppHeader({
             <CurrentFilterLink />
           </div>
           
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <NotificationBell />
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
@@ -214,7 +216,8 @@ export default function AppHeader({
             {false && <CurrentFilterLink />}
           </div>
           
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <NotificationBell />
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
