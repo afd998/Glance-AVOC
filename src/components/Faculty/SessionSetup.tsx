@@ -160,7 +160,7 @@ export default function SessionSetup({
                     />
                     <span className={
                       `w-6 h-6 flex items-center justify-center border-2 rounded transition-colors duration-150
-                      ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : 'border-gray-400 bg-white dark:bg-gray-800'}
+                      ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors.cardBg}`}
                       ${updateFacultyAttributes.isPending ? 'opacity-60' : ''}`
                     }>
                       {updateFacultyAttributes.isPending ? (
@@ -181,7 +181,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
                           <button
                             onClick={() => openPanelModal('left')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBg}`}
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBgDark}`}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -208,7 +208,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
                           <button
                             onClick={() => openPanelModal('right')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBg}`}
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBgDark}`}
                             title="Click to change panel setup"
                           >
                             <img 

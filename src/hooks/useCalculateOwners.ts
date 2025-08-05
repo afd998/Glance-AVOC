@@ -4,6 +4,7 @@ import { useUserProfiles } from './useUserProfiles';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { updateEventInCache } from './useEvents';
+import { notifyEventAssignment } from '../utils/notificationUtils';
 import type { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -232,7 +233,7 @@ export function useAssignManualOwner() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (updatedEvent) => {
+    onSuccess: async (updatedEvent) => {
       // Update the individual event cache
       queryClient.setQueryData(['event', updatedEvent.id], updatedEvent);
       
@@ -244,6 +245,20 @@ export function useAssignManualOwner() {
           event.id === updatedEvent.id ? updatedEvent : event
         );
         queryClient.setQueryData(['events', dateString], updatedEvents);
+      }
+
+      // Invalidate event ownership queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership', updatedEvent.id] });
+
+      // Send notification to the assigned user
+      try {
+        await notifyEventAssignment(
+          updatedEvent.id,
+          updatedEvent.man_owner!,
+          updatedEvent.event_name || 'Event'
+        );
+      } catch (error) {
+        console.error('Failed to send event assignment notification:', error);
       }
     },
   });
@@ -278,6 +293,9 @@ export function useClearManualOwner() {
         );
         queryClient.setQueryData(['events', dateString], updatedEvents);
       }
+
+      // Invalidate event ownership queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership', updatedEvent.id] });
     },
   });
 } 

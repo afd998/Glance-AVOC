@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
 import { useFacultyUpdates, useCreateFacultyUpdate, useUpdateFacultyUpdate, useDeleteFacultyUpdate } from '../../hooks/useFacultyUpdates';
 import { useAuth } from '../../contexts/AuthContext';
+import { getEventThemeColors } from '../../utils/eventUtils';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -18,6 +19,9 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
   const [editingUpdateId, setEditingUpdateId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const { user } = useAuth();
+  
+  // Get theme colors based on event type
+  const themeColors = getEventThemeColors(event);
 
   // Fetch faculty updates if we have a faculty member
   const { data: facultyUpdates, isLoading } = useFacultyUpdates(facultyMember?.id || 0);
@@ -97,21 +101,21 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
 
   if (!facultyMember) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Setup History</h3>
-        <p className="text-gray-500 dark:text-gray-400">No faculty member assigned to this session.</p>
+      <div className={`${themeColors.cardBg} rounded-lg shadow-lg p-6`}>
+        <h3 className="text-xl font-semibold text-black mb-4">Setup History</h3>
+        <p className="text-black opacity-70">No faculty member assigned to this session.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2">
+    <div className={`${themeColors.cardBg} rounded-lg shadow-lg p-2`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Setup History</h3>
+        <h3 className="text-xl font-semibold text-black">Setup History</h3>
         {!isAddingNote && (
           <button
             onClick={() => setIsAddingNote(true)}
-            className="p-2 border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-full hover:border-blue-500 hover:text-blue-600 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-all duration-200 hover:scale-105"
+            className={`p-2 border-2 ${themeColors.iconBg} ${themeColors.iconText} rounded-full hover:${themeColors.buttonBg} hover:${themeColors.buttonText} transition-all duration-200 hover:scale-105`}
             title="Add note"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,25 +127,25 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
 
       {/* Add New Note Form */}
       {isAddingNote && (
-        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+        <div className={`mb-6 p-4 ${themeColors.itemBg} rounded-lg border`}>
           <textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             placeholder="Enter a new setup note..."
-            className="w-full h-24 p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-3"
+            className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors.cardBg} text-black mb-3`}
           />
           <div className="flex gap-2">
             <button
               onClick={handleAddNote}
               disabled={!newNote.trim() || createFacultyUpdate.isPending}
-              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+              className={`px-3 py-1.5 ${themeColors.buttonBg} ${themeColors.buttonText} text-sm rounded-md hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50 font-medium`}
             >
               {createFacultyUpdate.isPending ? 'Adding...' : 'Add Note'}
             </button>
             <button
               onClick={handleCancel}
               disabled={createFacultyUpdate.isPending}
-              className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 font-medium"
+              className={`px-3 py-1.5 ${themeColors.badgeBg} ${themeColors.badgeText} text-sm rounded-md hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50 font-medium`}
             >
               Cancel
             </button>
@@ -154,13 +158,13 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
         {isLoading ? (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading notes...</p>
+            <p className="text-sm text-black opacity-70 mt-2">Loading notes...</p>
           </div>
         ) : facultyUpdates && facultyUpdates.length > 0 ? (
           facultyUpdates.map((update) => (
             <div 
               key={update.id} 
-              className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+              className={`p-4 ${themeColors.itemBg} rounded-lg border`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
@@ -171,7 +175,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                       ?
                     </div>
                   )}
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-black opacity-70">
                     {formatDate(update.created_at)}
                   </span>
                 </div>
@@ -179,7 +183,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEditNote(update)}
-                      className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                      className={`p-1 ${themeColors.iconText} hover:text-blue-600 transition-colors`}
                       title="Edit note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +192,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                     </button>
                     <button
                       onClick={() => handleDeleteNote(update.id)}
-                      className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                      className={`p-1 ${themeColors.iconText} hover:text-red-600 transition-colors`}
                       title="Delete note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,27 +207,27 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                   <textarea
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
-                    className="w-full h-24 p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors.cardBg} text-black`}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveEdit}
                       disabled={!editingContent.trim() || updateFacultyUpdate.isPending}
-                      className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                      className={`px-3 py-1 ${themeColors.buttonBg} ${themeColors.buttonText} text-sm rounded hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50`}
                     >
                       {updateFacultyUpdate.isPending ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       onClick={handleCancelEdit}
                       disabled={updateFacultyUpdate.isPending}
-                      className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+                      className={`px-3 py-1 ${themeColors.badgeBg} ${themeColors.badgeText} text-sm rounded hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50`}
             >
               Cancel
             </button>
           </div>
         </div>
       ) : (
-                <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                <p className="text-black whitespace-pre-wrap">
                   {update.content}
                 </p>
               )}
@@ -231,8 +235,8 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
           ))
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400 italic">No setup notes available.</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-black opacity-70 italic">No setup notes available.</p>
+            <p className="text-sm text-black opacity-50 mt-1">
               Click "Add Note" to create the first note for this faculty member.
             </p>
           </div>
