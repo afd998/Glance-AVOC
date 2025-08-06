@@ -28,6 +28,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Database } from './types/supabase';
 import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
+import { PanoptoTest } from './components/PanoptoTest';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -214,6 +215,9 @@ function AppContent() {
       {isFacultyDetailModalRoute && (
         <FacultyDetailModal />
       )}
+      
+      {/* Panopto Test Component (Development Only) */}
+      {process.env.NODE_ENV === 'development' && <PanoptoTest />}
     </div>
   );
 }

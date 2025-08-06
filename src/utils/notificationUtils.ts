@@ -44,6 +44,35 @@ export const createNotification = async (
   return { notification: notification as Notification | null, error };
 };
 
+// Create Panopto check notification
+export const createPanoptoCheckNotification = async (
+  userId: string,
+  eventId: number,
+  eventName: string,
+  checkNumber: number,
+  roomName: string,
+  instructorName?: string
+): Promise<{ notification: Notification | null; error: any }> => {
+  const checkId = `${eventId}-check-${checkNumber}`;
+  
+  return createNotification(
+    userId,
+    `Panopto Check #${checkNumber}`,
+    `Time to check Panopto for ${eventName} in ${roomName}`,
+    'panopto_check',
+    eventId,
+    {
+      checkId,
+      eventId,
+      eventName,
+      checkNumber,
+      roomName,
+      instructorName,
+      createdAt: new Date().toISOString()
+    }
+  );
+};
+
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
   const { data, error } = await supabase
     .from('notifications')
