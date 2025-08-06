@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInAppNotifications } from '../hooks/useInAppNotifications';
+import { usePanoptoChecks } from '../hooks/usePanoptoChecks';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { createTestNotification } from '../utils/notificationUtils';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, Plus, Clock, FileText, X, Check } from 'lucide-react';
+import { Bell, Plus, Clock, FileText, X, Check, Video } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useInAppNotifications();
+  const { activeChecks, completePanoptoCheck } = usePanoptoChecks();
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -96,6 +98,9 @@ export const NotificationBell: React.FC = () => {
         return <FileText className="w-4 h-4" />;
       case 'setup_reminder':
         return <Clock className="w-4 h-4" />;
+      case 'panopto_check':
+      case 'panopto_monitoring':
+        return <Video className="w-4 h-4" />;
       default:
         return <Bell className="w-4 h-4" />;
     }
@@ -114,9 +119,9 @@ export const NotificationBell: React.FC = () => {
       >
         <Bell className="w-6 h-6" />
         
-        {unreadCount > 0 && (
+        {(unreadCount > 0 || activeChecks.length > 0) && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {Math.min(unreadCount + activeChecks.length, 99) > 99 ? '99+' : unreadCount + activeChecks.length}
           </span>
         )}
       </button>
@@ -172,7 +177,53 @@ export const NotificationBell: React.FC = () => {
             </div>
 
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {notifications.length === 0 ? (
+              {/* Panopto Checks Section */}
+              {activeChecks.length > 0 && (
+                <div className="mb-4">
+                  <h4 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
+                    Panopto Checks ({activeChecks.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {activeChecks.map((check) => (
+                      <div
+                        key={check.id}
+                        className={`p-3 rounded-lg border ${
+                          isDarkMode 
+                            ? 'bg-orange-900/20 border-orange-500/30 text-orange-200' 
+                            : 'bg-orange-50 border-orange-200 text-orange-800'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Video className="w-4 h-4" />
+                              <p className="font-medium text-sm">
+                                {check.eventName} - Check #{check.checkNumber}
+                              </p>
+                            </div>
+                            <p className="text-xs opacity-75">
+                              {check.roomName} • {check.createdAt ? formatTime(check.createdAt) : 'Unknown time'}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => completePanoptoCheck(check.id)}
+                            className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
+                              isDarkMode 
+                                ? 'bg-orange-600 hover:bg-orange-500 text-white' 
+                                : 'bg-orange-600 hover:bg-orange-700 text-white'
+                            }`}
+                          >
+                            Complete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Notifications Section */}
+              {notifications.length === 0 && activeChecks.length === 0 ? (
                 <div className="text-center py-8">
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     No notifications
