@@ -30,7 +30,6 @@ export function useShifts(dates: string | string[] | null) {
         }
       }
       
-      console.log('Fetched shifts:', allShifts);
       return allShifts;
     },
     enabled: !!dates && (Array.isArray(dates) ? dates.length > 0 : !!dates),

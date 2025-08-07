@@ -144,6 +144,12 @@ function DraggableRoomBadge({
   );
 }
 
+// User name component for dropdown
+function UserNameDisplay({ userId }: { userId: string }) {
+  const { data: profile } = useUserProfile(userId);
+  return <span>{profile?.name || userId}</span>;
+}
+
 // Bulk move button component
 function BulkMoveButton({ 
   selectedCount, 
@@ -191,7 +197,7 @@ function BulkMoveButton({
                 }}
                 className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
               >
-                Move to {userId}
+                Move to <UserNameDisplay userId={userId} />
               </button>
             </div>
           ))}
