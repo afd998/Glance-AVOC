@@ -52,29 +52,6 @@ export default function FacultyStatusBars({ facultyMember, onUpdate, isEditable 
 
   return (
     <div>
-      <style jsx>{`
-        input[type="range"]::-webkit-slider-thumb {
-          background: var(--slider-color) !important;
-          border: 2px solid var(--slider-color) !important;
-        }
-        input[type="range"]::-webkit-slider-track {
-          background: var(--slider-bg) !important;
-        }
-        input[type="range"]::-moz-range-thumb {
-          background: var(--slider-color) !important;
-          border: 2px solid var(--slider-color) !important;
-        }
-        input[type="range"]::-moz-range-track {
-          background: var(--slider-bg) !important;
-        }
-        input[type="range"]::-ms-thumb {
-          background: var(--slider-color) !important;
-          border: 2px solid var(--slider-color) !important;
-        }
-        input[type="range"]::-ms-track {
-          background: var(--slider-bg) !important;
-        }
-      `}</style>
       
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Attributes</h3>
@@ -144,10 +121,9 @@ export default function FacultyStatusBars({ facultyMember, onUpdate, isEditable 
                   max="5"
                   value={editValues.timing}
                   onChange={(e) => handleValueChange('timing', e.target.value)}
-                  className="flex-1 mx-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-track]:h-2 [&::-webkit-slider-track]:rounded-full [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
+                  className="flex-1 mx-2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    '--slider-color': getGradientColor(editValues.timing),
-                    '--slider-bg': '#e5e7eb'
+                    background: `linear-gradient(to right, ${getGradientColor(editValues.timing)} 0%, ${getGradientColor(editValues.timing)} ${(editValues.timing / 5) * 100}%, #e5e7eb ${(editValues.timing / 5) * 100}%, #e5e7eb 100%)`
                   }}
                   disabled={isUpdating}
                 />
@@ -186,10 +162,9 @@ export default function FacultyStatusBars({ facultyMember, onUpdate, isEditable 
                   max="5"
                   value={editValues.complexity}
                   onChange={(e) => handleValueChange('complexity', e.target.value)}
-                  className="flex-1 mx-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-track]:h-2 [&::-webkit-slider-track]:rounded-full [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
+                  className="flex-1 mx-2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    '--slider-color': getGradientColor(editValues.complexity),
-                    '--slider-bg': '#e5e7eb'
+                    background: `linear-gradient(to right, ${getGradientColor(editValues.complexity)} 0%, ${getGradientColor(editValues.complexity)} ${(editValues.complexity / 5) * 100}%, #e5e7eb ${(editValues.complexity / 5) * 100}%, #e5e7eb 100%)`
                   }}
                   disabled={isUpdating}
                 />
@@ -228,10 +203,9 @@ export default function FacultyStatusBars({ facultyMember, onUpdate, isEditable 
                   max="5"
                   value={editValues.temperment}
                   onChange={(e) => handleValueChange('temperment', e.target.value)}
-                  className="flex-1 mx-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-track]:h-2 [&::-webkit-slider-track]:rounded-full [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
+                  className="flex-1 mx-2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    '--slider-color': getGradientColor(editValues.temperment),
-                    '--slider-bg': '#e5e7eb'
+                    background: `linear-gradient(to right, ${getGradientColor(editValues.temperment)} 0%, ${getGradientColor(editValues.temperment)} ${(editValues.temperment / 5) * 100}%, #e5e7eb ${(editValues.temperment / 5) * 100}%, #e5e7eb 100%)`
                   }}
                   disabled={isUpdating}
                 />

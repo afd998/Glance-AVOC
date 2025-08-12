@@ -144,6 +144,14 @@ export const notifyEventAssignment = async (eventId: number, assignedUserId: str
       eventId,
       { eventName }
     );
+    
+    // Try to send system notification with basic info
+    try {
+      await sendSystemNotificationForAssignment(eventName);
+    } catch (error) {
+      console.error('Failed to send system notification for assignment:', error);
+    }
+    
     console.log('notifyEventAssignment result:', result);
     return result;
   }
@@ -189,6 +197,7 @@ export const notifyEventAssignment = async (eventId: number, assignedUserId: str
     ? `${eventName}\n${eventDate} at ${timeRange}`
     : eventName;
   
+  // Create in-app notification
   const result = await createNotification(
     assignedUserId,
     'You Have Been Assigned to an Event',
@@ -197,6 +206,19 @@ export const notifyEventAssignment = async (eventId: number, assignedUserId: str
     eventId,
     { eventName, date: event.date, startTime: event.start_time, endTime: event.end_time }
   );
+  
+  // Send system notification
+  try {
+    await sendSystemNotificationForAssignment(
+      eventName,
+      event.date || undefined,
+      event.start_time || undefined,
+      event.end_time || undefined
+    );
+  } catch (error) {
+    console.error('Failed to send system notification for assignment:', error);
+  }
+  
   console.log('notifyEventAssignment result:', result);
   return result;
 };
@@ -214,7 +236,7 @@ export const notifySetupReminder = async (eventId: number, userId: string, event
 
 // Test function for creating a test notification
 export const createTestNotification = async (userId: string) => {
-  return createNotification(
+  const result = await createNotification(
     userId,
     'Test Notification',
     'This is a test notification to verify the system is working!',
@@ -222,4 +244,109 @@ export const createTestNotification = async (userId: string) => {
     undefined,
     { test: true }
   );
+  
+  // Also send a system notification for testing
+  try {
+    await sendSystemNotificationForAssignment(
+      'Test Event Assignment',
+      new Date().toISOString().split('T')[0], // Today's date
+      '14:30:00', // 2:30 PM
+      '15:30:00'  // 3:30 PM
+    );
+  } catch (error) {
+    console.error('Failed to send test system notification:', error);
+  }
+  
+  return result;
+};
+
+// Send browser system notification for event assignment
+export const sendSystemNotificationForAssignment = async (
+  eventName: string,
+  eventDate?: string,
+  startTime?: string,
+  endTime?: string
+): Promise<boolean> => {
+  if (!('Notification' in window)) {
+    console.log('This browser does not support notifications');
+    return false;
+  }
+
+  if (Notification.permission !== 'granted') {
+    console.log('Notification permission not granted');
+    return false;
+  }
+
+  try {
+    // Format the date and time
+    const formatTime = (timeString?: string) => {
+      if (!timeString) return '';
+      try {
+        const date = new Date(`2000-01-01T${timeString}`);
+        return date.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      } catch (error) {
+        console.error('Error formatting time:', timeString, error);
+        return timeString || '';
+      }
+    };
+    
+    const formatDate = (dateString?: string) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+          weekday: 'long',
+          month: 'long', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch (error) {
+        console.error('Error formatting date:', dateString, error);
+        return dateString;
+      }
+    };
+
+    const formattedDate = formatDate(eventDate);
+    const formattedStartTime = formatTime(startTime);
+    const formattedEndTime = formatTime(endTime);
+    const timeRange = formattedStartTime && formattedEndTime 
+      ? `${formattedStartTime} - ${formattedEndTime}` 
+      : '';
+
+    const title = 'You Have Been Assigned to an Event';
+    const body = formattedDate && timeRange 
+      ? `${eventName}\n${formattedDate} at ${timeRange}`
+      : eventName;
+
+    console.log('Sending system notification for event assignment:', { title, body });
+
+    const notification = new Notification(title, {
+      body: body,
+      icon: '/wildcat2.png',
+      badge: '/wildcat2.png',
+      tag: `event-assignment-${Date.now()}`,
+      requireInteraction: false,
+      silent: false,
+    });
+
+    // Auto-close after 15 seconds (longer for assignment notifications)
+    setTimeout(() => {
+      notification.close();
+    }, 15000);
+
+    // Handle notification click
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+
+    return true;
+  } catch (error) {
+    console.error('Error sending event assignment notification:', error);
+    return false;
+  }
 }; 
