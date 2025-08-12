@@ -93,17 +93,25 @@ function handleNotificationAction(action, data) {
   }
 }
 
+// Initialize the database with all required object stores
+function getDBUpgradeConfig() {
+  return {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains('panopto-checks')) {
+        db.createObjectStore('panopto-checks', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('panopto-events')) {
+        db.createObjectStore('panopto-events', { keyPath: 'eventId' });
+      }
+    }
+  };
+}
+
 // Complete Panopto check
 async function completePanoptoCheck(checkId) {
   try {
     // Store completion in IndexedDB for offline sync
-    const db = await openDB('glance-avoc', 1, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('panopto-checks')) {
-          db.createObjectStore('panopto-checks', { keyPath: 'id' });
-        }
-      }
-    });
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     
     await db.put('panopto-checks', {
       id: checkId,
@@ -127,7 +135,7 @@ self.addEventListener('sync', (event) => {
 // Sync Panopto checks with server
 async function syncPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1);
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     const tx = db.transaction('panopto-checks', 'readonly');
     const store = tx.objectStore('panopto-checks');
     const getAllRequest = store.getAll();
@@ -207,13 +215,7 @@ self.addEventListener('message', (event) => {
 // Register Panopto checks for events
 async function registerPanoptoChecks(events) {
   try {
-    const db = await openDB('glance-avoc', 1, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('panopto-events')) {
-          db.createObjectStore('panopto-events', { keyPath: 'eventId' });
-        }
-      }
-    });
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     
     // Clear existing checks (use a transaction and object store API)
     const clearTx = db.transaction('panopto-events', 'readwrite');
@@ -286,7 +288,7 @@ function schedulePanoptoChecks() {
 // Check for Panopto checks that are due
 async function checkForPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1);
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     const tx = db.transaction('panopto-events', 'readonly');
     const store = tx.objectStore('panopto-events');
     const getAllRequest = store.getAll();
@@ -334,7 +336,7 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
   const checkId = `${event.eventId}-check-${checkNumber}`;
   
   // Check if this check has already been sent
-  const db = await openDB('glance-avoc', 1);
+  const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
   let existingCheck = null;
   {
     const tx = db.transaction('panopto-checks', 'readonly');
@@ -430,7 +432,7 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
 // Clean up expired checks
 async function cleanupExpiredChecks() {
   try {
-    const db = await openDB('glance-avoc', 1);
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     const txRead = db.transaction('panopto-checks', 'readonly');
     const readStore = txRead.objectStore('panopto-checks');
     const getAllReq = readStore.getAll();
@@ -469,7 +471,7 @@ async function cleanupExpiredChecks() {
 // Get Panopto checks and send to main app
 async function getPanoptoChecks(source) {
   try {
-    const db = await openDB('glance-avoc', 1);
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     const tx = db.transaction('panopto-checks', 'readonly');
     const store = tx.objectStore('panopto-checks');
     const getAllReq = store.getAll();
@@ -496,7 +498,7 @@ async function getPanoptoChecks(source) {
 // Clear all Panopto checks
 async function clearPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1);
+    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
     // Clear panopto-events
     const tx1 = db.transaction('panopto-events', 'readwrite');
     tx1.objectStore('panopto-events').clear();
