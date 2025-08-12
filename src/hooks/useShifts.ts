@@ -48,45 +48,32 @@ export function useCreateShift() {
       
       console.log('Creating/updating shift:', shift);
       
-      // First check if a shift already exists for this profile_id and date
-      const { data: existingShift, error: fetchError } = await supabase
+      // First, delete any existing shifts for this profile_id and date to prevent duplicates
+      const { error: deleteError } = await supabase
         .from('shifts')
-        .select('*')
+        .delete()
         .eq('profile_id', shift.profile_id)
-        .eq('date', shift.date)
-        .single();
+        .eq('date', shift.date);
       
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found"
-        throw fetchError;
+      if (deleteError) {
+        console.error('Error deleting existing shifts:', deleteError);
+        throw deleteError;
       }
       
-      let result;
-      if (existingShift) {
-        console.log('Updating existing shift:', existingShift);
-        // Update existing shift
-        const { data, error } = await supabase
-          .from('shifts')
-          .update({
-            start_time: shift.start_time,
-            end_time: shift.end_time,
-          })
-          .eq('id', existingShift.id)
-          .select();
-        if (error) throw error;
-        result = data;
-      } else {
+      // Only insert if we have start_time and end_time (not clearing the shift)
+      if (shift.start_time && shift.end_time) {
         console.log('Creating new shift');
-        // Insert new shift
         const { data, error } = await supabase
           .from('shifts')
           .insert([shift])
           .select();
         if (error) throw error;
-        result = data;
+        console.log('Shift operation result:', data);
+        return data;
+      } else {
+        console.log('Shift cleared (no start/end time provided)');
+        return [];
       }
-      
-      console.log('Shift operation result:', result);
-      return result;
     },
     onSuccess: (data, variables) => {
       console.log('Shift mutation success, invalidating queries for date:', variables.date);
@@ -169,6 +156,13 @@ export function useCopyShifts() {
         return [];
       }
       
+      // Replace target day's shifts to avoid duplicates
+      const { error: deleteTargetError } = await supabase
+        .from('shifts')
+        .delete()
+        .eq('date', targetDate);
+      if (deleteTargetError) throw deleteTargetError;
+
       // Create new shifts for the target date
       const newShifts = sourceShifts.map(shift => {
         // Destructure to remove id and created_at, then create new object
@@ -225,4 +219,6 @@ export function useDeleteShiftsForDate() {
       });
     },
   });
-} 
+}
+
+// Cleanup function removed; duplication is prevented at the source

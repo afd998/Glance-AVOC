@@ -167,6 +167,17 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   
   // Loading state for copy schedule operation
   const [isCopyingSchedule, setIsCopyingSchedule] = useState(false);
+  // Loading state for copy shift blocks operation
+  const [isCopyingShiftBlocks, setIsCopyingShiftBlocks] = useState(false);
+  // No cleanup UI/state; duplication should not occur
+
+  // Lightweight toast for copy shift blocks feedback
+  const [copyToast, setCopyToast] = useState<null | { type: 'success' | 'error' | 'info'; text: string }>(null);
+  useEffect(() => {
+    if (!copyToast) return;
+    const t = setTimeout(() => setCopyToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [copyToast]);
 
   // Open modal with current shift values if present
   const openCellModal = (profileId: string, dayIdx: number) => {
@@ -179,6 +190,16 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
 
   const closeCellModal = () => setEditingCell(null);
 
+  // Fetch latest shifts for a date directly from DB
+  const fetchShiftsForDate = async (date: string) => {
+    const { data, error } = await supabase
+      .from('shifts')
+      .select('*')
+      .eq('date', date);
+    if (error) throw error;
+    return data || [];
+  };
+
   const handleSave = () => {
     if (!editingCell) return;
     const dateForDay = weekDates[editingCell.dayIdx].toISOString().split('T')[0];
@@ -189,25 +210,17 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
       start_time: modalStart,
       end_time: modalEnd,
     }, {
-      onSuccess: (data) => {
-        // After shift is saved, recalculate shift blocks for that day
-        const dayIdx = editingCell.dayIdx;
-        const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
-        // Add or update the just-saved shift in the list
-        const prev = shifts?.find(s => s.profile_id === editingCell.profileId && s.date === dateForDay);
-        const updatedShifts = [
-          ...shiftsForDay.filter(s => s.profile_id !== editingCell.profileId),
-          {
-            id: prev?.id ?? 0,
-            created_at: prev?.created_at ?? '',
-            profile_id: editingCell.profileId ?? '',
-            date: dateForDay,
-            start_time: modalStart ?? '',
-            end_time: modalEnd ?? '',
-          }
-        ];
-        const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
-        updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
+      onSuccess: async (data) => {
+        // Get fresh shifts from DB, then fully replace shift blocks for that day
+        const latestShiftsForDay = await fetchShiftsForDate(dateForDay);
+        const newBlocks = calculateNewShiftBlocks(latestShiftsForDay, dateForDay);
+        await updateShiftBlocks.mutateAsync({ date: dateForDay, newBlocks });
+
+        // Refresh queries so UI shows latest shifts and blocks
+        queryClient.invalidateQueries({ queryKey: ['shifts'] });
+        queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
+        queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateForDay] });
+
         closeCellModal();
       },
       onError: (error) => {
@@ -231,21 +244,67 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     return shift;
   };
 
+  // Helper function to compare if two days have the same shift schedule
+  const hasSameShiftSchedule = (date1: string, date2: string): boolean => {
+    if (!shifts) return false;
+    
+    const shifts1 = shifts.filter(s => s.date === date1);
+    const shifts2 = shifts.filter(s => s.date === date2);
+    
+    if (shifts1.length !== shifts2.length) return false;
+    
+    // Create a normalized schedule string for comparison
+    const normalizeSchedule = (shifts: any[]) => {
+      return shifts
+        .map(s => `${s.profile_id}:${s.start_time}-${s.end_time}`)
+        .sort()
+        .join('|');
+    };
+    
+    return normalizeSchedule(shifts1) === normalizeSchedule(shifts2);
+  };
+
   // Handler for copying shift blocks to days with same schedule
   const handleCopyShiftBlocks = () => {
     const sourceDate = weekDates[selectedDay].toISOString().split('T')[0];
-    copyShiftBlocks.mutate({
-      sourceDate: sourceDate,
-      targetDate: sourceDate, // This would need to be updated to copy to other dates
-    }, {
-      onSuccess: (result) => {
-        console.log(`✅ Copied shift blocks to other dates`);
-      },
-      onError: (error) => {
+    
+    // Find all other days in the week that have the same shift schedule
+    const daysWithSameSchedule = weekDates
+      .map(date => date.toISOString().split('T')[0])
+      .filter(date => date !== sourceDate && hasSameShiftSchedule(sourceDate, date));
+    
+    if (daysWithSameSchedule.length === 0) {
+      console.log('No other days found with the same schedule');
+      setCopyToast({ type: 'info', text: "No other days have the same shift schedule." });
+      return;
+    }
+    
+    console.log(`Found ${daysWithSameSchedule.length} days with same schedule:`, daysWithSameSchedule);
+    
+    setIsCopyingShiftBlocks(true);
+    
+    // Copy shift blocks to all days with the same schedule
+    const copyPromises = daysWithSameSchedule.map(targetDate =>
+      copyShiftBlocks.mutateAsync({
+        sourceDate: sourceDate,
+        targetDate: targetDate,
+      })
+    );
+    
+    Promise.all(copyPromises)
+      .then(() => {
+        console.log(`✅ Copied shift blocks to ${daysWithSameSchedule.length} days with same schedule`);
+        setCopyToast({ type: 'success', text: `Copied shift blocks to ${daysWithSameSchedule.length} day(s).` });
+        setIsCopyingShiftBlocks(false);
+      })
+      .catch((error) => {
         console.error('❌ Failed to copy shift blocks:', error);
-      }
-    });
+        setCopyToast({ type: 'error', text: 'Failed to copy shift blocks. Please try again.' });
+        setIsCopyingShiftBlocks(false);
+      });
   };
+
+  // Removed cleanup handler; enforce correctness at source
 
   // Handler for copying schedule from previous week
   const handleCopyScheduleFromLastWeek = () => {
@@ -390,6 +449,25 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
         
         {/* Content */}
         <div className="mt-6 px-12 pb-12 min-h-[400px] flex flex-col relative">
+          {/* Local toast for copy shift blocks */}
+          {copyToast && (
+            <div className={`absolute top-4 right-4 z-50 px-4 py-2 rounded-md shadow-md text-sm flex items-center gap-2 
+              ${copyToast.type === 'success' ? 'bg-green-600 text-white' : ''}
+              ${copyToast.type === 'error' ? 'bg-red-600 text-white' : ''}
+              ${copyToast.type === 'info' ? 'bg-gray-800 text-white' : ''}
+            `}>
+              {copyToast.type === 'success' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              )}
+              {copyToast.type === 'error' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              )}
+              {copyToast.type === 'info' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+              )}
+              <span>{copyToast.text}</span>
+            </div>
+          )}
           {/* Copy Schedule Loading Overlay */}
           {isCopyingSchedule && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
@@ -412,7 +490,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
           {!profilesLoading && !shiftsLoading && !profilesError && !shiftsError && (
             <>
                              {/* Copy Schedule from Last Week Button */}
-               <div className="mb-4 flex justify-start">
+               <div className="mb-4 flex justify-start gap-4">
                  <button
                    onClick={handleCopyScheduleFromLastWeek}
                    disabled={isCopyingSchedule}
@@ -435,6 +513,8 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                     </>
                   )}
                 </button>
+                
+                {/* Cleanup button removed */}
               </div>
               
               <div className="overflow-x-auto w-full">
@@ -496,16 +576,16 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                 <div className="mt-4 flex justify-center">
                   <button
                     onClick={handleCopyShiftBlocks}
-                    disabled={copyShiftBlocks.isPending}
+                    disabled={isCopyingShiftBlocks}
                     className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium rounded-lg shadow-md transition-colors flex items-center gap-2"
                   >
-                    {copyShiftBlocks.isPending ? (
+                    {isCopyingShiftBlocks ? (
                       <>
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Copying...
+                        Copying shift blocks...
                       </>
                     ) : (
                       <>
@@ -575,16 +655,19 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                        start_time: null,
                        end_time: null,
                      }, {
-                                               onSuccess: () => {
-                          // After shift is cleared, recalculate shift blocks for that day
-                          const dayIdx = editingCell.dayIdx;
-                          const shiftsForDay = (shifts || []).filter(s => s.date === dateForDay);
-                          // Remove the cleared shift from the list
-                          const updatedShifts = shiftsForDay.filter(s => s.profile_id !== editingCell.profileId);
-                          const newBlocks = calculateNewShiftBlocks(updatedShifts, dateForDay);
-                          updateShiftBlocks.mutate({ date: dateForDay, newBlocks });
-                          closeCellModal();
-                        },
+                       onSuccess: async () => {
+                          // Fetch fresh shifts and fully replace shift blocks for that day
+                          const latestShiftsForDay = await fetchShiftsForDate(dateForDay);
+                          const newBlocks = calculateNewShiftBlocks(latestShiftsForDay, dateForDay);
+                          await updateShiftBlocks.mutateAsync({ date: dateForDay, newBlocks });
+
+                          // Refresh queries so UI shows latest shifts and blocks
+                          queryClient.invalidateQueries({ queryKey: ['shifts'] });
+                          queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
+                          queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateForDay] });
+
+                         closeCellModal();
+                       },
                        onError: (error) => {
                          console.error('Shift clear error:', error);
                        }

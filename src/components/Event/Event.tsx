@@ -106,6 +106,13 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   }
   
   const { left, width, durationMinutes } = position;
+
+  // Clamp overly long events to a max visible width and draw a continuation line to the real end
+  const MAX_VISIBLE_WIDTH_PX = 500;
+  const realWidthPx = parseFloat(width);
+  const isClamped = realWidthPx > MAX_VISIBLE_WIDTH_PX;
+  const displayWidth = isClamped ? `${MAX_VISIBLE_WIDTH_PX}px` : width;
+  const continuationWidth = isClamped ? Math.max(0, realWidthPx - MAX_VISIBLE_WIDTH_PX) : 0;
   
  
   // Determine if this is in the upper rows (first 4 rows)
@@ -114,28 +121,44 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Get event type info using the utility function
   const { bgColor } = getEventTypeInfo(event);
 
+  // Adjust height for specific event types and keep centered in the 96px room row
+  const ROW_HEIGHT_PX = 96;
+  const DEFAULT_EVENT_HEIGHT_PX = 88;
+  const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select KSM event types
+  const isReducedHeightEvent = (
+    event.event_type === 'KSM: Kellogg Special Events (KGH)' ||
+    event.event_type === 'KSM: Kellogg FacStaff (KGH)'
+  );
+  const eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
+  const eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
+
   return (
     <div
-      className={`absolute ${bgColor} text-white text-sm rounded px-2 py-1 transition-all duration-200 ease-in-out cursor-pointer group`}
+      className={`absolute transition-all duration-200 ease-in-out cursor-pointer group`}
       style={{
-        top: '4px',
+        top: eventTopPx,
         left: left,
-        width: width,
-        height: '88px',
+        width: displayWidth,
+        height: `${eventHeightPx}px`,
         overflow: 'visible',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         zIndex: isHoveringEvent ? 60 : (showHoverCard ? 50 : 49),
-        transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
-        transformOrigin: 'center center',
-        boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
+        // No transform/boxShadow here so continuation lines don't scale
       }}
       title={event.event_name || ''}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => onEventClick && onEventClick(event)}
     >
-      <div className="flex flex-col h-full transition-all duration-200 ease-in-out">
+      <div 
+        className={`flex flex-col h-full transition-all duration-200 ease-in-out ${bgColor} text-white text-sm rounded px-2 py-1`}
+        style={{
+          transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
+          transformOrigin: 'center center',
+          boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
+        }}
+      >
         <EventHeader 
           event={event}
           isHovering={isHoveringEvent}
@@ -147,6 +170,31 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           isHovering={isHoveringEvent}
                 />
       </div>
+      {isClamped && continuationWidth > 0 && (
+        <div
+          aria-hidden
+          className={`absolute pointer-events-none ${bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor}`}
+          style={{
+            left: `${MAX_VISIBLE_WIDTH_PX}px`,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: `${continuationWidth}px`,
+            height: '2px'
+          }}
+        />
+      )}
+      {isClamped && continuationWidth > 0 && (
+        <div
+          aria-hidden
+          className={`absolute pointer-events-none ${bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor}`}
+          style={{
+            left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
+            top: 0,
+            width: '2px',
+            height: '100%'
+          }}
+        />
+      )}
       {HOVER_CARD_ENABLED && showHoverCard && (
         <div 
           className="absolute z-[100]"
