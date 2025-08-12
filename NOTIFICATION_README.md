@@ -63,11 +63,6 @@ The notification system works in all modern browsers that support the Web Notifi
 
 ## Development Features
 
-### Test Component
-The `NotificationTest` component provides a "Test Notification" button that:
-- Only appears when notifications are enabled
-- Sends an immediate test notification
-- Helps verify the system is working
 
 ### Debug Information
 The system logs important events to the console:
@@ -80,7 +75,7 @@ The system logs important events to the console:
 ### Files
 - `src/hooks/useNotifications.js` - Main notification logic
 - `src/components/NotificationSettings.js` - UI for permission management
-- `src/components/NotificationTest.js` - Testing component
+
 - `src/App.js` - Integration with main app
 
 ### Key Functions

@@ -160,10 +160,7 @@ export const usePanoptoChecks = () => {
     // Skip creating 'panopto_monitoring' notifications.
   }, [user?.id, getPanoptoEvents]); // Simplified dependencies
 
-  // Removed monitoring notifications maintenance
-  const clearOldMonitoringNotifications = useCallback(async (_activeEvents: PanoptoEvent[]) => {
-    return;
-  }, []);
+
 
   // Create a Panopto monitoring notification for an event
   // Removed creation of monitoring notifications
@@ -323,28 +320,7 @@ export const usePanoptoChecks = () => {
   const activeChecks = panoptoChecks.filter(check => !check.completed);
   const completedChecks = panoptoChecks.filter(check => check.completed);
 
-  // Clear all Panopto monitoring notifications (for debugging/reset)
-  const clearAllPanoptoMonitoringNotifications = useCallback(async () => {
-    if (!user) return;
 
-    try {
-      console.log('🧹 Clearing ALL Panopto monitoring notifications...');
-      
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('type', 'panopto_monitoring');
-
-      if (error) {
-        console.error('Error clearing all Panopto monitoring notifications:', error);
-      } else {
-        console.log('✅ Cleared all Panopto monitoring notifications');
-      }
-    } catch (error) {
-      console.error('Error clearing all Panopto monitoring notifications:', error);
-    }
-  }, [user]);
 
   return {
     panoptoChecks,
@@ -354,7 +330,7 @@ export const usePanoptoChecks = () => {
     error,
     completePanoptoCheck,
     clearPanoptoChecks,
-    clearAllPanoptoMonitoringNotifications,
+
     registerPanoptoEvents
   };
 }; 
