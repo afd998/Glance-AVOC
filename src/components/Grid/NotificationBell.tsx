@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useInAppNotifications();
-  const { activeChecks, completePanoptoCheck } = usePanoptoChecks();
+  const { activeChecks, completePanoptoCheck, testPanoptoCheck, clearTestChecks } = usePanoptoChecks();
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -146,6 +146,28 @@ export const NotificationBell: React.FC = () => {
                 >
                   <Plus className="w-3 h-3" />
                   Test
+                </button>
+                <button
+                  onClick={testPanoptoCheck}
+                  className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
+                    isDarkMode 
+                      ? 'text-orange-400 hover:text-orange-300' 
+                      : 'text-orange-600 hover:text-orange-700'
+                  }`}
+                >
+                  <Video className="w-3 h-3" />
+                  Test Panopto
+                </button>
+                <button
+                  onClick={clearTestChecks}
+                  className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
+                    isDarkMode 
+                      ? 'text-yellow-400 hover:text-yellow-300' 
+                      : 'text-yellow-600 hover:text-yellow-700'
+                  }`}
+                >
+                  <X className="w-3 h-3" />
+                  Clear Tests
                 </button>
                 {notifications.length > 0 && (
                   <button
