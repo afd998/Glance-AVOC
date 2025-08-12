@@ -4,8 +4,8 @@ import MenuPanel from '../MenuPanel/MenuPanel';
 import AcademicCalendarInfo from './AcademicCalendarInfo';
 import CurrentFilterLink from './CurrentFilterLink';
 import QuarterCount from './QuarterCount';
-import { NotificationBell } from './NotificationBell';
 import { Database } from '../../types/supabase';
+import { NotificationBell } from './NotificationBell';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -129,6 +129,8 @@ export default function AppHeader({
         </div>
       </div>
 
+
+
       {/* Mobile Layout - below md */}
       <div className="md:hidden">
         {/* Mobile CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
@@ -217,7 +219,6 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-end gap-2">
-            <NotificationBell />
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           

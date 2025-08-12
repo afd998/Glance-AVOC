@@ -29,6 +29,13 @@ interface PanoptoEvent {
 }
 
 export const usePanoptoChecks = () => {
+  // Silence all console output in this hook
+  const console = {
+    log: (..._args: unknown[]) => {},
+    error: (..._args: unknown[]) => {},
+    warn: (..._args: unknown[]) => {},
+    info: (..._args: unknown[]) => {},
+  } as const;
   const { user } = useAuth();
   
   // Use local date instead of UTC to avoid timezone issues
@@ -55,7 +62,6 @@ export const usePanoptoChecks = () => {
     return () => clearInterval(interval);
   }, []);
   
-  console.log('📅 Requesting events for date:', localDate.toISOString().split('T')[0], 'at', new Date().toLocaleTimeString());
   const { events } = useEvents(localDate);
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
@@ -95,12 +101,7 @@ export const usePanoptoChecks = () => {
   const getPanoptoEvents = useCallback(() => {
     if (!user || !events) return [];
 
-    console.log('🔍 Checking events for Panopto monitoring...');
-    console.log('📅 Current time:', new Date().toTimeString().split(' ')[0]);
-    console.log('📅 Today:', new Date().toISOString().split('T')[0]);
-    console.log('📅 Events loaded for date:', events.length > 0 ? events[0]?.date : 'No events');
-    console.log('📅 Total events loaded:', events.length);
-
+  
     const filteredEvents = events.filter((event: any) => {
       console.log(`\n📋 Event: ${event.event_name} (${event.date} ${event.start_time}-${event.end_time})`);
       
@@ -111,7 +112,6 @@ export const usePanoptoChecks = () => {
       
       // Check if user is assigned to this event
       const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
-      console.log(`  👤 Is assigned: ${isAssigned}`);
       if (!isAssigned) return false;
       
       // Check if event is currently happening
@@ -144,9 +144,6 @@ export const usePanoptoChecks = () => {
     
     console.log('🔄 Registering Panopto events:', panoptoEvents.length, 'events found');
     
-    // Clear old monitoring notifications for events that are no longer active
-    await clearOldMonitoringNotifications(panoptoEvents);
-    
     if (panoptoEvents.length === 0) {
       console.log('📭 No active Panopto events to monitor');
       return;
@@ -160,112 +157,19 @@ export const usePanoptoChecks = () => {
       });
     }
 
-    // Clear any existing monitoring notifications for active events to prevent duplicates
-    console.log('🧹 Clearing existing monitoring notifications for active events to prevent duplicates...');
-    for (const event of panoptoEvents) {
-      try {
-        const { error } = await supabase
-          .from('notifications')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('event_id', event.eventId)
-          .eq('type', 'panopto_monitoring');
-        
-        if (error) {
-          console.error(`Error clearing existing monitoring notification for event ${event.eventId}:`, error);
-        } else {
-          console.log(`🧹 Cleared existing monitoring notification for event ${event.eventId}`);
-        }
-      } catch (error) {
-        console.error(`Error clearing existing monitoring notification for event ${event.eventId}:`, error);
-      }
-    }
-
-    // Create initial "monitoring active" notification for each event
-    console.log('📝 Creating new monitoring notifications for active events...');
-    for (const event of panoptoEvents) {
-      await checkExistingPanoptoNotification(event.eventId, event);
-    }
+    // Skip creating 'panopto_monitoring' notifications.
   }, [user?.id, getPanoptoEvents]); // Simplified dependencies
 
-  // Clear monitoring notifications for events that are no longer active
-  const clearOldMonitoringNotifications = useCallback(async (activeEvents: PanoptoEvent[]) => {
-    if (!user) return;
-
-    try {
-      console.log('🧹 Clearing old monitoring notifications...');
-      
-      // Get all monitoring notifications for this user
-      const { data: monitoringNotifications, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('type', 'panopto_monitoring');
-
-      if (error) {
-        console.error('Error fetching monitoring notifications:', error);
-        return;
-      }
-
-      if (!monitoringNotifications) {
-        console.log('📭 No existing monitoring notifications found');
-        return;
-      }
-
-      console.log(`📋 Found ${monitoringNotifications.length} existing monitoring notifications`);
-
-      // Find notifications for events that are no longer active
-      const activeEventIds = activeEvents.map(event => event.eventId);
-      const notificationsToDelete = monitoringNotifications.filter(notification => 
-        notification.event_id && !activeEventIds.includes(notification.event_id)
-      );
-
-      console.log(`🗑️ Found ${notificationsToDelete.length} notifications to delete`);
-
-      // Delete old monitoring notifications
-      for (const notification of notificationsToDelete) {
-        await deleteNotification(notification.id);
-        console.log(`🗑️ Deleted monitoring notification for event ${notification.event_id}`);
-      }
-
-      if (notificationsToDelete.length > 0) {
-        console.log(`✅ Cleared ${notificationsToDelete.length} old monitoring notifications`);
-      } else {
-        console.log('✅ No old monitoring notifications to clear');
-      }
-    } catch (error) {
-      console.error('Error clearing old monitoring notifications:', error);
-    }
-  }, [user]);
+  // Removed monitoring notifications maintenance
+  const clearOldMonitoringNotifications = useCallback(async (_activeEvents: PanoptoEvent[]) => {
+    return;
+  }, []);
 
   // Create a Panopto monitoring notification for an event
-  const checkExistingPanoptoNotification = useCallback(async (eventId: number, event: PanoptoEvent) => {
-    if (!user) return;
-
-    try {
-      console.log(`📝 Creating monitoring notification for event ${eventId}: ${event.eventName}`);
-      
-      // Since we've already cleared existing notifications, we can just create a new one
-      await createNotification(
-        user.id,
-        'Panopto Monitoring Active',
-        `Monitoring "${event.eventName}" in ${event.roomName} for Panopto checks`,
-        'panopto_monitoring',
-        eventId,
-        {
-          eventId: event.eventId,
-          eventName: event.eventName,
-          roomName: event.roomName,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          date: event.date
-        }
-      );
-      console.log(`✅ Successfully created monitoring notification for event ${eventId}`);
-    } catch (error) {
-      console.error(`Error creating monitoring notification for event ${eventId}:`, error);
-    }
-  }, [user]);
+  // Removed creation of monitoring notifications
+  const checkExistingPanoptoNotification = useCallback(async (_eventId: number, _event: PanoptoEvent) => {
+    return;
+  }, []);
 
   // Complete a Panopto check
   const completePanoptoCheck = useCallback(async (checkId: string) => {

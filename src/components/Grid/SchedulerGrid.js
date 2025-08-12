@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import TimeWindowPicker from "../TimeWindowPicker";
 import Event from "../Event/Event";
 import "../index.css";
 
@@ -56,13 +55,6 @@ export default function App() {
 
   return (
     <div className="p-4">
-      <TimeWindowPicker
-        startHour={startHour}
-        endHour={endHour}
-        onStartHourChange={setStartHour}
-        onEndHourChange={setEndHour}
-      />
-
       {/* Time labels */}
       <div className="flex ml-32 border-t border-b border-gray-300 bg-gray-100">
         {renderTimeLabels()}
