@@ -1,11 +1,13 @@
 // Service Worker for Glance AVOC
-const CACHE_NAME = 'glance-avoc-v1';
+const CACHE_NAME = 'glance-avoc-v2';
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 const PANOPTO_CHECK_EXPIRY = 30 * 60 * 1000; // 30 minutes expiry
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
+  // Activate updated SW immediately
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -30,7 +32,7 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -126,7 +128,18 @@ self.addEventListener('sync', (event) => {
 async function syncPanoptoChecks() {
   try {
     const db = await openDB('glance-avoc', 1);
-    const completedChecks = await db.getAll('panopto-checks');
+    const tx = db.transaction('panopto-checks', 'readonly');
+    const store = tx.objectStore('panopto-checks');
+    const getAllRequest = store.getAll();
+    const completedChecks = await new Promise((resolve, reject) => {
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
     
     // Send completed checks to server
     for (const check of completedChecks) {
@@ -141,15 +154,28 @@ async function syncPanoptoChecks() {
 }
 
 // IndexedDB helper
-function openDB(name, version, upgradeCallback) {
+function openDB(name, version, upgradeOrCallback) {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(name, version);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
-      if (upgradeCallback) {
-        upgradeCallback(event.target.result);
+      try {
+        const db = event.target.result;
+        // Support both a direct function argument and an object with an `upgrade` function
+        if (typeof upgradeOrCallback === 'function') {
+          upgradeOrCallback(db);
+        } else if (
+          upgradeOrCallback &&
+          typeof upgradeOrCallback.upgrade === 'function'
+        ) {
+          upgradeOrCallback.upgrade(db);
+        }
+      } catch (err) {
+        // Log and rethrow so callers see the failure
+        console.error('openDB onupgradeneeded error:', err);
+        throw err;
       }
     };
   });
@@ -189,13 +215,22 @@ async function registerPanoptoChecks(events) {
       }
     });
     
-    // Clear existing checks
-    await db.clear('panopto-events');
+    // Clear existing checks (use a transaction and object store API)
+    const clearTx = db.transaction('panopto-events', 'readwrite');
+    const eventsStore = clearTx.objectStore('panopto-events');
+    eventsStore.clear();
+    await new Promise((resolve, reject) => {
+      clearTx.oncomplete = resolve;
+      clearTx.onerror = () => reject(clearTx.error);
+      clearTx.onabort = () => reject(clearTx.error);
+    });
     
     // Register new events with recording resources
     for (const event of events) {
       if (hasRecordingResource(event)) {
-        await db.put('panopto-events', {
+        const tx = db.transaction('panopto-events', 'readwrite');
+        const store = tx.objectStore('panopto-events');
+        store.put({
           eventId: event.id,
           eventName: event.event_name,
           startTime: event.start_time,
@@ -204,6 +239,11 @@ async function registerPanoptoChecks(events) {
           roomName: event.room_name,
           instructorName: event.instructor_name,
           registeredAt: new Date().toISOString()
+        });
+        await new Promise((resolve, reject) => {
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
         });
       }
     }
@@ -247,7 +287,18 @@ function schedulePanoptoChecks() {
 async function checkForPanoptoChecks() {
   try {
     const db = await openDB('glance-avoc', 1);
-    const events = await db.getAll('panopto-events');
+    const tx = db.transaction('panopto-events', 'readonly');
+    const store = tx.objectStore('panopto-events');
+    const getAllRequest = store.getAll();
+    const events = await new Promise((resolve, reject) => {
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
     const now = new Date();
     
     for (const event of events) {
@@ -284,21 +335,43 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
   
   // Check if this check has already been sent
   const db = await openDB('glance-avoc', 1);
-  const existingCheck = await db.get('panopto-checks', checkId);
+  let existingCheck = null;
+  {
+    const tx = db.transaction('panopto-checks', 'readonly');
+    const store = tx.objectStore('panopto-checks');
+    const getReq = store.get(checkId);
+    existingCheck = await new Promise((resolve, reject) => {
+      getReq.onsuccess = () => resolve(getReq.result || null);
+      getReq.onerror = () => reject(getReq.error);
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  }
   
   if (existingCheck) {
     return; // Already sent
   }
   
   // Store the check
-  await db.put('panopto-checks', {
-    id: checkId,
-    eventId: event.eventId,
-    eventName: event.eventName,
-    checkNumber,
-    createdAt: new Date().toISOString(),
-    completed: false
-  });
+  {
+    const tx = db.transaction('panopto-checks', 'readwrite');
+    tx.objectStore('panopto-checks').put({
+      id: checkId,
+      eventId: event.eventId,
+      eventName: event.eventName,
+      checkNumber,
+      createdAt: new Date().toISOString(),
+      completed: false
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  }
   
   // Send push notification
   const title = `Panopto Check #${checkNumber}`;
@@ -358,7 +431,18 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
 async function cleanupExpiredChecks() {
   try {
     const db = await openDB('glance-avoc', 1);
-    const checks = await db.getAll('panopto-checks');
+    const txRead = db.transaction('panopto-checks', 'readonly');
+    const readStore = txRead.objectStore('panopto-checks');
+    const getAllReq = readStore.getAll();
+    const checks = await new Promise((resolve, reject) => {
+      getAllReq.onsuccess = () => resolve(getAllReq.result || []);
+      getAllReq.onerror = () => reject(getAllReq.error);
+    });
+    await new Promise((resolve, reject) => {
+      txRead.oncomplete = resolve;
+      txRead.onerror = () => reject(txRead.error);
+      txRead.onabort = () => reject(txRead.error);
+    });
     const now = new Date();
     
     for (const check of checks) {
@@ -367,7 +451,13 @@ async function cleanupExpiredChecks() {
       
       if (age > PANOPTO_CHECK_EXPIRY && !check.completed) {
         // Remove expired check
-        await db.delete('panopto-checks', check.id);
+        const txDel = db.transaction('panopto-checks', 'readwrite');
+        txDel.objectStore('panopto-checks').delete(check.id);
+        await new Promise((resolve, reject) => {
+          txDel.oncomplete = resolve;
+          txDel.onerror = () => reject(txDel.error);
+          txDel.onabort = () => reject(txDel.error);
+        });
         console.log('Removed expired check:', check.id);
       }
     }
@@ -380,7 +470,18 @@ async function cleanupExpiredChecks() {
 async function getPanoptoChecks(source) {
   try {
     const db = await openDB('glance-avoc', 1);
-    const checks = await db.getAll('panopto-checks');
+    const tx = db.transaction('panopto-checks', 'readonly');
+    const store = tx.objectStore('panopto-checks');
+    const getAllReq = store.getAll();
+    const checks = await new Promise((resolve, reject) => {
+      getAllReq.onsuccess = () => resolve(getAllReq.result || []);
+      getAllReq.onerror = () => reject(getAllReq.error);
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
     
     // Send checks to main app
     source.postMessage({
@@ -396,8 +497,24 @@ async function getPanoptoChecks(source) {
 async function clearPanoptoChecks() {
   try {
     const db = await openDB('glance-avoc', 1);
-    await db.clear('panopto-events');
-    await db.clear('panopto-checks');
+    // Clear panopto-events
+    const tx1 = db.transaction('panopto-events', 'readwrite');
+    tx1.objectStore('panopto-events').clear();
+    await new Promise((resolve, reject) => {
+      tx1.oncomplete = resolve;
+      tx1.onerror = () => reject(tx1.error);
+      tx1.onabort = () => reject(tx1.error);
+    });
+
+    // Clear panopto-checks
+    const tx2 = db.transaction('panopto-checks', 'readwrite');
+    tx2.objectStore('panopto-checks').clear();
+    await new Promise((resolve, reject) => {
+      tx2.oncomplete = resolve;
+      tx2.onerror = () => reject(tx2.error);
+      tx2.onabort = () => reject(tx2.error);
+    });
+
     console.log('Cleared all Panopto checks');
   } catch (error) {
     console.error('Error clearing Panopto checks:', error);

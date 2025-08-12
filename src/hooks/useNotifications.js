@@ -207,7 +207,6 @@ export function useNotifications() {
         const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         
         if (eventDay.getTime() !== today.getTime()) {
-          console.log('Skipping event - not today:', event.event_name);
           return;
         }
       } catch (error) {
