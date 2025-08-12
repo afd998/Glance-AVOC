@@ -92,33 +92,8 @@ export default function SessionSetup({
 
       {/* Two Column Layout - Attributes and Setup Options */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-        {/* Left Column - Attributes and Setup Options */}
+        {/* Left Column - Setup Options then Attributes */}
         <div className="space-y-4 sm:space-y-6">
-          {/* Attributes */}
-          {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
-            <div>
-              <FacultyStatusBars 
-                facultyMember={facultyMember} 
-                isEditable={true}
-                isUpdating={updateFacultyAttributes.isPending}
-                updateError={updateFacultyAttributes.error?.message}
-                onUpdate={(updatedValues: any) => {
-                  updateFacultyAttributes.mutate({
-                    twentyfiveliveName: event.instructor_name,
-                    attributes: {
-                      timing: updatedValues.timing,
-                      complexity: updatedValues.complexity,
-                      temperment: updatedValues.temperment,
-                      uses_mic: facultyMember.uses_mic ?? false,
-                      left_source: facultyMember.left_source ?? '',
-                      right_source: facultyMember.right_source ?? ''
-                    }
-                  });
-                }}
-              />
-            </div>
-          )}
-
           {/* Setup Options Group */}
           {event.instructor_name && facultyMember && (
             <div className={`p-3 sm:p-4 rounded-lg ${themeColors.itemBg}`}>
@@ -236,6 +211,31 @@ export default function SessionSetup({
               </div>
             </div>
             )}
+
+          {/* Attributes */}
+          {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
+            <div>
+              <FacultyStatusBars 
+                facultyMember={facultyMember} 
+                isEditable={true}
+                isUpdating={updateFacultyAttributes.isPending}
+                updateError={updateFacultyAttributes.error?.message}
+                onUpdate={(updatedValues: any) => {
+                  updateFacultyAttributes.mutate({
+                    twentyfiveliveName: event.instructor_name,
+                    attributes: {
+                      timing: updatedValues.timing,
+                      complexity: updatedValues.complexity,
+                      temperment: updatedValues.temperment,
+                      uses_mic: facultyMember.uses_mic ?? false,
+                      left_source: facultyMember.left_source ?? '',
+                      right_source: facultyMember.right_source ?? ''
+                    }
+                  });
+                }}
+              />
+            </div>
+          )}
           </div>
 
         {/* Right Column - Setup Notes */}

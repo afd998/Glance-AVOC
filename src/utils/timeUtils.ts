@@ -11,7 +11,23 @@ export const formatTime = (floatHours: number): string => {
 };
 
 export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  if (!dateString) return '';
+  // Parse YYYY-MM-DD as a LOCAL date to avoid UTC offset shifting it to the previous day
+  const [yearStr, monthStr, dayStr] = dateString.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day)
+  ) {
+    return '';
+  }
+
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
