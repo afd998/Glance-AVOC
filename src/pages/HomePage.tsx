@@ -17,7 +17,7 @@ import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
 import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
 import { Database } from "../types/supabase";
-import { PanoptoTest } from "../components/PanoptoTest";
+
 
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -193,9 +193,7 @@ export default function HomePage() {
       {isFacultyDetailModalRoute && (
         <FacultyDetailModal />
       )}
-      
-      {/* Panopto Test Component (Development Only) */}
-      {process.env.NODE_ENV === 'development' && <PanoptoTest />}
+
     </div>
   );
 }

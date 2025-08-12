@@ -72,10 +72,9 @@ The Panopto Time feature automatically monitors your assigned events with record
 4. **Monitor Status**: See active checks in the notification bell
 
 ### For Developers
-1. **Test Component**: Use the PanoptoTest component in development
-2. **Service Worker**: Check browser dev tools for service worker logs
-3. **IndexedDB**: Use browser dev tools to inspect stored checks
-4. **Push Notifications**: Test with browser notification permissions
+1. **Service Worker**: Check browser dev tools for service worker logs
+2. **IndexedDB**: Use browser dev tools to inspect stored checks
+3. **Push Notifications**: Test with browser notification permissions
 
 ## Configuration
 
@@ -109,9 +108,9 @@ The Panopto Time feature automatically monitors your assigned events with record
 ## Development
 
 ### Testing
-- Use the PanoptoTest component in development mode
-- Test button creates mock Panopto checks
-- Debug panel shows all check data
+- Use browser dev tools to monitor service worker logs
+- Check IndexedDB for stored Panopto checks
+- Test with browser notification permissions
 
 ### Debugging
 - Check browser console for service worker logs

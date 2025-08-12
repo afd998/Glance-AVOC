@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import NotificationSettings from './NotificationSettings';
-import NotificationTest from './NotificationTest';
+
 import FilterRoomsModal from './FilterRoomsModal';
 import useRoomStore from '../../stores/roomStore';
 import useModalStore from '../../stores/modalStore';
@@ -134,8 +134,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                         {isDarkMode ? 'Dark' : 'Light'}
                       </span>
                     </button>
-                    {/* Notification Test */}
-                    <NotificationTest />
+
                   </div>
                 </div>
               </div>
