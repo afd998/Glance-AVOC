@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useInAppNotifications } from '../hooks/useInAppNotifications';
-import { usePanoptoChecks } from '../hooks/usePanoptoChecks';
-import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
-import { createTestNotification } from '../utils/notificationUtils';
+import { useInAppNotifications } from '../../hooks/useInAppNotifications';
+import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { createTestNotification } from '../../utils/notificationUtils';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Plus, Clock, FileText, X, Check, Video } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -298,4 +298,6 @@ export const NotificationBell: React.FC = () => {
       )}
     </div>
   );
-}; 
+};
+
+

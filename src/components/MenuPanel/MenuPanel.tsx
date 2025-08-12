@@ -7,7 +7,7 @@ import useRoomStore from '../../stores/roomStore';
 import useModalStore from '../../stores/modalStore';
 import SessionAssignmentsModal from './SessionAssignmentsModal';
 import NotificationsModal from './NotificationsModal';
-import UserProfile from '../UserProfile';
+import UserProfileButton from './UserProfileButton';
 import { Database } from '../../types/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -68,7 +68,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
               {/* User Profile Section */}
               <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm mb-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Account</h3>
-                <UserProfile />
+                <UserProfileButton />
               </div>
               {/* Main Content */}
               <div className="flex-1 overflow-y-auto space-y-6">
