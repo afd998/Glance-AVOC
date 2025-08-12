@@ -1,7 +1,7 @@
 // Service Worker for Glance AVOC
 const CACHE_NAME = 'glance-avoc-v2';
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
-const PANOPTO_CHECK_EXPIRY = 30 * 60 * 1000; // 30 minutes expiry
+const PANOPTO_CHECK_EXPIRY = 29 * 60 * 1000; // 29 minutes expiry
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
@@ -97,12 +97,18 @@ function handleNotificationAction(action, data) {
 function getDBUpgradeConfig() {
   return {
     upgrade(db) {
+      console.log('Upgrading IndexedDB, existing stores:', Array.from(db.objectStoreNames));
+      
       if (!db.objectStoreNames.contains('panopto-checks')) {
+        console.log('Creating panopto-checks object store');
         db.createObjectStore('panopto-checks', { keyPath: 'id' });
       }
       if (!db.objectStoreNames.contains('panopto-events')) {
+        console.log('Creating panopto-events object store');
         db.createObjectStore('panopto-events', { keyPath: 'eventId' });
       }
+      
+      console.log('IndexedDB upgrade complete, stores:', Array.from(db.objectStoreNames));
     }
   };
 }
@@ -111,12 +117,18 @@ function getDBUpgradeConfig() {
 async function completePanoptoCheck(checkId) {
   try {
     // Store completion in IndexedDB for offline sync
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     
-    await db.put('panopto-checks', {
+    const tx = db.transaction('panopto-checks', 'readwrite');
+    tx.objectStore('panopto-checks').put({
       id: checkId,
       completed: true,
       completedAt: new Date().toISOString()
+    });
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
     });
     
     console.log('Panopto check completed:', checkId);
@@ -135,7 +147,7 @@ self.addEventListener('sync', (event) => {
 // Sync Panopto checks with server
 async function syncPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     const tx = db.transaction('panopto-checks', 'readonly');
     const store = tx.objectStore('panopto-checks');
     const getAllRequest = store.getAll();
@@ -207,7 +219,10 @@ self.addEventListener('message', (event) => {
       getPanoptoChecks(event.source);
       break;
     case 'TEST_PANOPTO_CHECK':
-      sendPanoptoCheckNotification(event.data.event, event.data.checkNumber);
+      sendPanoptoCheckNotification(event.data.event, event.data.checkNumber, true); // Force test notifications
+      break;
+    case 'CLEAR_TEST_CHECKS':
+      clearTestChecks();
       break;
   }
 });
@@ -215,7 +230,7 @@ self.addEventListener('message', (event) => {
 // Register Panopto checks for events
 async function registerPanoptoChecks(events) {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     
     // Clear existing checks (use a transaction and object store API)
     const clearTx = db.transaction('panopto-events', 'readwrite');
@@ -288,7 +303,7 @@ function schedulePanoptoChecks() {
 // Check for Panopto checks that are due
 async function checkForPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     const tx = db.transaction('panopto-events', 'readonly');
     const store = tx.objectStore('panopto-events');
     const getAllRequest = store.getAll();
@@ -318,7 +333,7 @@ async function checkForPanoptoChecks() {
         
         if (timeUntilCheck <= 0 && timeUntilCheck > -PANOPTO_CHECK_EXPIRY) {
           // Check is due - send notification
-          await sendPanoptoCheckNotification(event, checkNumber);
+          await sendPanoptoCheckNotification(event, checkNumber, false);
         }
       }
     }
@@ -332,47 +347,68 @@ async function checkForPanoptoChecks() {
 }
 
 // Send Panopto check notification
-async function sendPanoptoCheckNotification(event, checkNumber) {
+async function sendPanoptoCheckNotification(event, checkNumber, forceTest = false) {
   const checkId = `${event.eventId}-check-${checkNumber}`;
   
-  // Check if this check has already been sent
-  const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
-  let existingCheck = null;
-  {
-    const tx = db.transaction('panopto-checks', 'readonly');
-    const store = tx.objectStore('panopto-checks');
-    const getReq = store.get(checkId);
-    existingCheck = await new Promise((resolve, reject) => {
-      getReq.onsuccess = () => resolve(getReq.result || null);
-      getReq.onerror = () => reject(getReq.error);
-    });
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
-  }
-  
-  if (existingCheck) {
-    return; // Already sent
-  }
-  
-  // Store the check
-  {
-    const tx = db.transaction('panopto-checks', 'readwrite');
-    tx.objectStore('panopto-checks').put({
-      id: checkId,
-      eventId: event.eventId,
-      eventName: event.eventName,
-      checkNumber,
-      createdAt: new Date().toISOString(),
-      completed: false
-    });
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
+  try {
+    // Ensure database is properly initialized
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig()); // Increment version to force upgrade
+    
+    // Check if this check has already been sent (skip for test notifications)
+    let existingCheck = null;
+    if (!forceTest) {
+      try {
+        const tx = db.transaction('panopto-checks', 'readonly');
+        const store = tx.objectStore('panopto-checks');
+        const getReq = store.get(checkId);
+        existingCheck = await new Promise((resolve, reject) => {
+          getReq.onsuccess = () => resolve(getReq.result || null);
+          getReq.onerror = () => reject(getReq.error);
+        });
+        await new Promise((resolve, reject) => {
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+      } catch (error) {
+        console.error('Error checking existing check:', error);
+        // Continue anyway - the check might not exist
+      }
+      
+      if (existingCheck) {
+        console.log('Check already exists:', checkId);
+        return; // Already sent
+      }
+    } else {
+      console.log('Forcing test notification for:', checkId);
+    }
+    
+    // Store the check
+    try {
+      const tx = db.transaction('panopto-checks', 'readwrite');
+      tx.objectStore('panopto-checks').put({
+        id: checkId,
+        eventId: event.eventId,
+        eventName: event.eventName,
+        checkNumber,
+        createdAt: new Date().toISOString(),
+        completed: false,
+        roomName: event.roomName,
+        instructorName: event.instructorName
+      });
+      await new Promise((resolve, reject) => {
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      });
+      console.log('Stored Panopto check:', checkId);
+    } catch (error) {
+      console.error('Error storing check:', error);
+      // Continue anyway - we can still send the notification
+    }
+  } catch (error) {
+    console.error('Error with IndexedDB in sendPanoptoCheckNotification:', error);
+    // Continue with notification even if storage fails
   }
   
   // Send push notification
@@ -425,6 +461,18 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
           instructorName: event.instructorName
         }
       });
+      
+      // Also request the main app to create an in-app notification
+      client.postMessage({
+        type: 'CREATE_PANOPTO_IN_APP_NOTIFICATION',
+        data: {
+          eventId: event.eventId,
+          eventName: event.eventName,
+          checkNumber,
+          roomName: event.roomName,
+          instructorName: event.instructorName
+        }
+      });
     });
   });
 }
@@ -432,7 +480,7 @@ async function sendPanoptoCheckNotification(event, checkNumber) {
 // Clean up expired checks
 async function cleanupExpiredChecks() {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     const txRead = db.transaction('panopto-checks', 'readonly');
     const readStore = txRead.objectStore('panopto-checks');
     const getAllReq = readStore.getAll();
@@ -471,7 +519,7 @@ async function cleanupExpiredChecks() {
 // Get Panopto checks and send to main app
 async function getPanoptoChecks(source) {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     const tx = db.transaction('panopto-checks', 'readonly');
     const store = tx.objectStore('panopto-checks');
     const getAllReq = store.getAll();
@@ -498,7 +546,7 @@ async function getPanoptoChecks(source) {
 // Clear all Panopto checks
 async function clearPanoptoChecks() {
   try {
-    const db = await openDB('glance-avoc', 1, getDBUpgradeConfig());
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
     // Clear panopto-events
     const tx1 = db.transaction('panopto-events', 'readwrite');
     tx1.objectStore('panopto-events').clear();
@@ -520,5 +568,38 @@ async function clearPanoptoChecks() {
     console.log('Cleared all Panopto checks');
   } catch (error) {
     console.error('Error clearing Panopto checks:', error);
+  }
+}
+
+// Clear test checks only (for better testing experience)
+async function clearTestChecks() {
+  try {
+    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
+    
+    // Get all checks and remove test ones (those with eventId > 999000)
+    const tx = db.transaction('panopto-checks', 'readwrite');
+    const store = tx.objectStore('panopto-checks');
+    const getAllReq = store.getAll();
+    const checks = await new Promise((resolve, reject) => {
+      getAllReq.onsuccess = () => resolve(getAllReq.result || []);
+      getAllReq.onerror = () => reject(getAllReq.error);
+    });
+    
+    // Delete test checks
+    for (const check of checks) {
+      if (check.eventId >= 999000) {
+        store.delete(check.id);
+      }
+    }
+    
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+
+    console.log('Cleared test Panopto checks');
+  } catch (error) {
+    console.error('Error clearing test Panopto checks:', error);
   }
 } 

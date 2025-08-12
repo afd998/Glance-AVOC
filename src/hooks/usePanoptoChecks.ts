@@ -4,7 +4,7 @@ import { useEvents } from './useEvents';
 import { useAllShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { parseEventResources } from '../utils/eventUtils';
-import { createNotification, deleteNotification } from '../utils/notificationUtils';
+import { createNotification, deleteNotification, createPanoptoCheckNotification } from '../utils/notificationUtils';
 import { supabase } from '../lib/supabase';
 
 interface PanoptoCheck {
@@ -211,7 +211,7 @@ export const usePanoptoChecks = () => {
       });
     }
 
-    // Clear from Supabase
+    // Clear from Supabase (including the new in-app Panopto check notifications)
     if (user) {
       try {
         await supabase
@@ -274,7 +274,7 @@ export const usePanoptoChecks = () => {
 
   // Initialize and listen for service worker messages
   useEffect(() => {
-    const handleServiceWorkerMessage = (event: MessageEvent) => {
+    const handleServiceWorkerMessage = async (event: MessageEvent) => {
       if (event.data.type === 'PANOPTO_CHECKS_UPDATED') {
         setPanoptoChecks(event.data.checks);
       } else if (event.data.type === 'PANOPTO_CHECK_CREATED') {
@@ -284,6 +284,24 @@ export const usePanoptoChecks = () => {
           if (existing) return prev;
           return [...prev, event.data.check];
         });
+      } else if (event.data.type === 'CREATE_PANOPTO_IN_APP_NOTIFICATION') {
+        // Create an in-app notification for the Panopto check
+        if (user) {
+          try {
+            const { eventId, eventName, checkNumber, roomName, instructorName } = event.data.data;
+            await createPanoptoCheckNotification(
+              user.id,
+              eventId,
+              eventName,
+              checkNumber,
+              roomName,
+              instructorName
+            );
+            console.log('Created in-app notification for Panopto check:', { eventName, checkNumber });
+          } catch (error) {
+            console.error('Failed to create in-app Panopto check notification:', error);
+          }
+        }
       }
     };
 
@@ -292,7 +310,7 @@ export const usePanoptoChecks = () => {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, []);
+  }, [user]);
 
   // Register events when they change
   useEffect(() => {
@@ -322,6 +340,43 @@ export const usePanoptoChecks = () => {
 
 
 
+  // Test function to manually trigger a Panopto check notification
+  const testPanoptoCheck = useCallback(async () => {
+    if (!user) return;
+    
+    // Generate unique test ID to avoid "already exists" issues
+    const uniqueId = Date.now();
+    const testEvent = {
+      eventId: uniqueId,
+      eventName: 'Test Recording Event',
+      startTime: '14:00:00',
+      endTime: '15:00:00',
+      date: new Date().toISOString().split('T')[0],
+      roomName: 'Test Room',
+      instructorName: 'Test Instructor'
+    };
+    
+    console.log('Sending test Panopto check with unique ID:', uniqueId);
+    
+    // Send test message to service worker
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'TEST_PANOPTO_CHECK',
+        event: testEvent,
+        checkNumber: 1
+      });
+    }
+  }, [user]);
+
+  // Clear test checks only
+  const clearTestChecks = useCallback(async () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'CLEAR_TEST_CHECKS'
+      });
+    }
+  }, []);
+
   return {
     panoptoChecks,
     activeChecks,
@@ -330,7 +385,8 @@ export const usePanoptoChecks = () => {
     error,
     completePanoptoCheck,
     clearPanoptoChecks,
-
-    registerPanoptoEvents
+    registerPanoptoEvents,
+    testPanoptoCheck,
+    clearTestChecks
   };
 }; 
