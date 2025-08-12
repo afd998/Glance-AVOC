@@ -453,35 +453,15 @@ export function useCopyShiftBlocks() {
         return [];
       }
       
-      // Get all shifts for the source date to copy them too
-      const { data: sourceShifts, error: shiftsError } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('date', sourceDate);
-      
-      if (shiftsError) throw shiftsError;
-      
-      // Copy shifts to target date
-      if (sourceShifts && sourceShifts.length > 0) {
-        const newShifts = sourceShifts.map(shift => {
-          // Destructure to remove id and created_at, then create new object
-          const { id, created_at, ...shiftWithoutId } = shift;
-          return {
-            ...shiftWithoutId,
-            date: targetDate,
-          };
-        });
-        
-        const { error: insertShiftsError } = await supabase
-          .from('shifts')
-          .insert(newShifts);
-        
-        if (insertShiftsError) throw insertShiftsError;
-      }
+      // Replace target day's blocks instead of accumulating duplicates
+      const { error: deleteTargetBlocksError } = await supabase
+        .from('shift_blocks')
+        .delete()
+        .eq('date', targetDate);
+      if (deleteTargetBlocksError) throw deleteTargetBlocksError;
       
       // Copy blocks to target date
       const newBlocks = sourceBlocks.map(block => {
-        // Destructure to remove id and created_at, then create new object
         const { id, created_at, ...blockWithoutId } = block;
         return {
           ...blockWithoutId,
@@ -498,24 +478,12 @@ export function useCopyShiftBlocks() {
       return data;
     },
     onSuccess: (data, variables) => {
-      // Invalidate shift blocks queries
+      // Invalidate shift blocks queries only
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.sourceDate] });
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.targetDate] });
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
-      
-      // Invalidate shifts queries since we're also copying shifts
-      queryClient.invalidateQueries({ queryKey: ['shifts', variables.sourceDate] });
-      queryClient.invalidateQueries({ queryKey: ['shifts', variables.targetDate] });
-      // Also invalidate array-based shifts queries
-      queryClient.invalidateQueries({ 
-        queryKey: ['shifts'], 
-        predicate: (query) => {
-          const queryKey = query.queryKey;
-          return queryKey[0] === 'shifts' && Array.isArray(queryKey[1]);
-        }
-      });
     },
   });
 }
