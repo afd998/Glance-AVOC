@@ -93,13 +93,14 @@ export default function EventDetailHeader({
             {event.event_name}
           </p>
           
-          <p className="text-sm sm:text-lg text-black mb-1">{formatDate(event.date || '')}</p>
-          <p className="text-sm sm:text-lg text-black mb-3 sm:mb-4">
-            {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
-          </p>
-          
-          {/* Occurrences Button */}
-          <div className="mb-3 sm:mb-4">
+          {/* Date and Time Group with Occurrences Button */}
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
+            <div className="flex flex-col">
+              <p className="text-sm sm:text-lg text-black mb-1">{formatDate(event.date || '')}</p>
+              <p className="text-sm sm:text-lg text-black">
+                {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
+              </p>
+            </div>
             <button
               onClick={handleOccurrencesClick}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${themeColors.buttonBg} ${themeColors.buttonText}`}
@@ -118,22 +119,22 @@ export default function EventDetailHeader({
         {/* Right Side - Event Type/Room and Instructor Info */}
         <div className="flex-1 lg:w-1/2 lg:pl-8">
           {/* Event Details Card */}
-          <div className={`rounded-lg p-4 mb-4 ${themeColors.cardBg}`}>
-            <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-wide">
+          <div className={`rounded-lg p-3 mb-3 ${themeColors.cardBg}`}>
+            <h3 className="text-sm font-semibold text-black mb-2 uppercase tracking-wide">
               Event Details
             </h3>
             
             {/* Event Type and Room in a grid layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-black mb-1">Type</span>
-                <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
                   {event.event_type || 'Unknown'}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-black mb-1">Room</span>
-                <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
                   {event.room_name || 'Unknown'}
                 </span>
               </div>
@@ -142,18 +143,18 @@ export default function EventDetailHeader({
 
           {/* Resources Card */}
           {resources.length > 0 && (
-            <div className={`rounded-lg p-4 ${themeColors.cardBg}`}>
-              <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-wide">
+            <div className={`rounded-lg p-3 ${themeColors.cardBg}`}>
+              <h3 className="text-sm font-semibold text-black mb-2 uppercase tracking-wide">
                 Resources ({resources.length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {resources.map((item, index) => (
                   <div 
                     key={index} 
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${themeColors.itemBg}`}
+                    className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${themeColors.itemBg}`}
                   >
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${themeColors.iconBg}`}>
-                      <span className={`text-sm ${themeColors.iconText}`}>
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center ${themeColors.iconBg}`}>
+                      <span className={`text-xs ${themeColors.iconText}`}>
                         {getResourceIcon(item.itemName)}
                       </span>
                     </div>
@@ -163,13 +164,13 @@ export default function EventDetailHeader({
                           {getResourceDisplayName(item.itemName)}
                         </span>
                         {item.quantity && item.quantity > 1 && (
-                          <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                          <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
                             ×{item.quantity}
                           </span>
                         )}
                       </div>
                       {item.instruction && (
-                        <p className="text-xs text-black mt-1">
+                        <p className="text-xs text-black mt-0.5">
                           {item.instruction}
                         </p>
                       )}

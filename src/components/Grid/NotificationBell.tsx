@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useInAppNotifications();
-  const { activeChecks, completePanoptoCheck, testPanoptoCheck, clearTestChecks } = usePanoptoChecks();
+  const { activeChecks, testPanoptoCheck, clearPanoptoChecks } = usePanoptoChecks();
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export const NotificationBell: React.FC = () => {
     }
     
     // Navigate to event page if notification has an event_id
-    if (notification.event_id && notification.type === 'event_assignment') {
+    if (notification.event_id && (notification.type === 'event_assignment' || notification.type === 'panopto_check')) {
       try {
         // Fetch the event data to get the date
         const { data: event, error } = await supabase
@@ -127,11 +127,11 @@ export const NotificationBell: React.FC = () => {
       </button>
 
       {isOpen && (
-                 <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg border z-[9999] ${
-           isDarkMode 
-             ? 'bg-gray-800 border-gray-600 text-white' 
-             : 'bg-white border-gray-200 text-gray-900'
-         }`}>
+        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg border z-[9999] ${
+          isDarkMode 
+            ? 'bg-gray-800 border-gray-600 text-white' 
+            : 'bg-white border-gray-200 text-gray-900'
+        }`}>
           <div className="p-4">
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-3">Notifications</h3>
@@ -159,7 +159,7 @@ export const NotificationBell: React.FC = () => {
                   Test Panopto
                 </button>
                 <button
-                  onClick={clearTestChecks}
+                  onClick={clearPanoptoChecks}
                   className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
                     isDarkMode 
                       ? 'text-yellow-400 hover:text-yellow-300' 
@@ -167,7 +167,7 @@ export const NotificationBell: React.FC = () => {
                   }`}
                 >
                   <X className="w-3 h-3" />
-                  Clear Tests
+                  Clear Checks
                 </button>
                 {notifications.length > 0 && (
                   <button
@@ -209,13 +209,36 @@ export const NotificationBell: React.FC = () => {
                     {activeChecks.map((check) => (
                       <div
                         key={check.id}
-                        className={`p-3 rounded-lg border ${
+                        onClick={async () => {
+                          try {
+                            // Fetch the event data to get the date
+                            const { data: event, error } = await supabase
+                              .from('events')
+                              .select('date')
+                              .eq('id', check.eventId)
+                              .single();
+                            
+                            if (error) {
+                              console.error('Error fetching event data:', error);
+                              return;
+                            }
+                            
+                            if (event?.date) {
+                              // Navigate to the event page: /date/eventId
+                              navigate(`/${event.date}/${check.eventId}`);
+                              setIsOpen(false);
+                            }
+                          } catch (error) {
+                            console.error('Error navigating to event:', error);
+                          }
+                        }}
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors hover:opacity-80 ${
                           isDarkMode 
-                            ? 'bg-orange-900/20 border-orange-500/30 text-orange-200' 
-                            : 'bg-orange-50 border-orange-200 text-orange-800'
+                            ? 'bg-orange-900/20 border-orange-500/30 text-orange-200 hover:bg-orange-900/30' 
+                            : 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100'
                         }`}
                       >
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <Video className="w-4 h-4" />
@@ -226,17 +249,10 @@ export const NotificationBell: React.FC = () => {
                             <p className="text-xs opacity-75">
                               {check.roomName} • {check.createdAt ? formatTime(check.createdAt) : 'Unknown time'}
                             </p>
+                            <p className="text-xs mt-1 opacity-75">
+                              Click to view event and complete check
+                            </p>
                           </div>
-                          <button
-                            onClick={() => completePanoptoCheck(check.id)}
-                            className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
-                              isDarkMode 
-                                ? 'bg-orange-600 hover:bg-orange-500 text-white' 
-                                : 'bg-orange-600 hover:bg-orange-700 text-white'
-                            }`}
-                          >
-                            Complete
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -253,19 +269,19 @@ export const NotificationBell: React.FC = () => {
                 </div>
               ) : (
                 notifications.map((notification) => (
-                                     <div
-                     key={notification.id}
-                     onClick={() => handleNotificationClick(notification)}
-                     className={`p-3 rounded-lg cursor-pointer transition-colors group ${
-                       notification.read_at
-                         ? isDarkMode 
-                           ? 'bg-gray-700 hover:bg-gray-600' 
-                           : 'bg-gray-50 hover:bg-gray-100'
-                         : isDarkMode 
-                           ? 'bg-blue-900/20 hover:bg-blue-900/30 border border-blue-500/30' 
-                           : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-                     }`}
-                   >
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                      notification.read_at
+                        ? isDarkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                        : isDarkMode 
+                          ? 'bg-blue-900/20 hover:bg-blue-900/30 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    }`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className={`mt-1 ${
                         notification.read_at 
@@ -297,17 +313,17 @@ export const NotificationBell: React.FC = () => {
                             </p>
                           </div>
                           
-                                                     <button
-                             onClick={(e) => handleDeleteNotification(e, notification.id)}
-                             className={`ml-2 p-1 rounded transition-colors ${
-                               isDarkMode 
-                                 ? 'text-gray-400 hover:text-red-400' 
-                                 : 'text-gray-400 hover:text-red-600'
-                             }`}
-                             title="Delete notification"
-                           >
-                             <X className="w-3 h-3" />
-                           </button>
+                          <button
+                            onClick={(e) => handleDeleteNotification(e, notification.id)}
+                            className={`ml-2 p-1 rounded transition-colors ${
+                              isDarkMode 
+                                ? 'text-gray-400 hover:text-red-400' 
+                                : 'text-gray-400 hover:text-red-600'
+                            }`}
+                            title="Delete notification"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -321,5 +337,3 @@ export const NotificationBell: React.FC = () => {
     </div>
   );
 };
-
-

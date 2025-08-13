@@ -4,48 +4,34 @@ import { useEvents } from './useEvents';
 import { useAllShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { parseEventResources } from '../utils/eventUtils';
-import { createNotification, deleteNotification, createPanoptoCheckNotification } from '../utils/notificationUtils';
+import { createPanoptoCheckNotification } from '../utils/notificationUtils';
 import { supabase } from '../lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+
+const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 interface PanoptoCheck {
   id: string;
   eventId: number;
   eventName: string;
   checkNumber: number;
-  createdAt: string | null;
+  createdAt: string;
   completed: boolean;
   roomName: string;
   instructorName?: string;
 }
 
-interface PanoptoEvent {
-  eventId: number;
-  eventName: string;
-  startTime: string;
-  endTime: string;
-  date: string;
-  roomName: string;
-  instructorName?: string;
-}
-
 export const usePanoptoChecks = () => {
-  // Silence all console output in this hook
-  const console = {
-    log: (..._args: unknown[]) => {},
-    error: (..._args: unknown[]) => {},
-    warn: (..._args: unknown[]) => {},
-    info: (..._args: unknown[]) => {},
-  } as const;
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  // Use local date instead of UTC to avoid timezone issues
-  // Memoize the date to prevent infinite re-renders, but update it periodically
+  // Use local date for current day events
   const [localDate, setLocalDate] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), today.getDate());
   });
 
-  // Update the date every minute to ensure we're checking the right day
+  // Update date every minute
   useEffect(() => {
     const updateDate = () => {
       const today = new Date();
@@ -53,340 +39,571 @@ export const usePanoptoChecks = () => {
       setLocalDate(newDate);
     };
 
-    // Update immediately
     updateDate();
-
-    // Then update every minute
     const interval = setInterval(updateDate, 60000);
-
     return () => clearInterval(interval);
   }, []);
   
   const { events } = useEvents(localDate);
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
-  // Memoize allShiftBlocks to prevent unnecessary re-renders
   const memoizedAllShiftBlocks = useMemo(() => allShiftBlocks, [allShiftBlocks]);
-  const [panoptoChecks, setPanoptoChecks] = useState<PanoptoCheck[]>([]);
+  const [activeChecks, setActiveChecks] = useState<PanoptoCheck[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentChecks, setSentChecks] = useState<Set<string>>(new Set()); // Temporary tracking
 
   // Check if an event has recording resources
   const hasRecordingResource = useCallback((event: any) => {
-    if (!event.resources) return false;
+    if (!event.resources) {
+      console.log(`🔍 No resources found for ${event.event_name}`);
+      return false;
+    }
     
     const resourceFlags = parseEventResources(event);
-    return resourceFlags.resources.some((resource: any) => 
+    const hasRecording = resourceFlags.resources.some((resource: any) => 
       resource.itemName?.toLowerCase().includes('panopto') ||
       resource.itemName?.toLowerCase().includes('recording')
     );
+    
+ 
+    
+    return hasRecording;
   }, []);
 
   // Check if an event is currently happening
   const isEventCurrentlyActive = useCallback((event: any) => {
     const now = new Date();
-    // Use local date instead of UTC to avoid timezone issues
-    const localDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const today = localDate.toISOString().split('T')[0];
+    const today = now.toISOString().split('T')[0];
     
     // Check if event is today
-    if (event.date !== today) return false;
+    if (event.date !== today) {
+      console.log(`🔍 Event ${event.event_name} is not today:`, { eventDate: event.date, today });
+      return false;
+    }
     
     // Check if current time is between start and end time
     const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
-    return currentTime >= event.start_time && currentTime <= event.end_time;
-  }, []);
-
-  // Get events that have recording resources and are assigned to the user
-  const getPanoptoEvents = useCallback(() => {
-    if (!user || !events) return [];
-
-  
-    const filteredEvents = events.filter((event: any) => {
-      console.log(`\n📋 Event: ${event.event_name} (${event.date} ${event.start_time}-${event.end_time})`);
-      
-      // Check if event has recording resources
-      const hasRecording = hasRecordingResource(event);
-      console.log(`  📹 Has recording: ${hasRecording}`);
-      if (!hasRecording) return false;
-      
-      // Check if user is assigned to this event
-      const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
-      if (!isAssigned) return false;
-      
-      // Check if event is currently happening
-      const isActive = isEventCurrentlyActive(event);
-      console.log(`  ⏰ Is currently active: ${isActive}`);
-      if (!isActive) return false;
-      
-      console.log(`  ✅ Event will be monitored!`);
-      return true;
-    });
-
-    console.log(`\n🎯 Found ${filteredEvents.length} events to monitor`);
-
-    return filteredEvents.map((event: any) => ({
-      eventId: event.id,
-      eventName: event.event_name,
+    const isActive = currentTime >= event.start_time && currentTime <= event.end_time;
+    
+    console.log(`🔍 Event ${event.event_name} active status:`, {
+      currentTime,
       startTime: event.start_time,
       endTime: event.end_time,
-      date: event.date,
-      roomName: event.room_name,
-      instructorName: event.instructor_name
-    }));
-  }, [user?.id, events, memoizedAllShiftBlocks]); // Simplified dependencies
-
-  // Register Panopto events with the service worker
-  const registerPanoptoEvents = useCallback(async () => {
-    if (!user) return;
-
-    const panoptoEvents = getPanoptoEvents();
+      isActive
+    });
     
-    console.log('🔄 Registering Panopto events:', panoptoEvents.length, 'events found');
-    
-    if (panoptoEvents.length === 0) {
-      console.log('📭 No active Panopto events to monitor');
-      return;
-    }
-
-    // Send events to service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'REGISTER_PANOPTO_CHECKS',
-        events: panoptoEvents
-      });
-    }
-
-    // Skip creating 'panopto_monitoring' notifications.
-  }, [user?.id, getPanoptoEvents]); // Simplified dependencies
-
-
-
-  // Create a Panopto monitoring notification for an event
-  // Removed creation of monitoring notifications
-  const checkExistingPanoptoNotification = useCallback(async (_eventId: number, _event: PanoptoEvent) => {
-    return;
+    return isActive;
   }, []);
 
-  // Complete a Panopto check
-  const completePanoptoCheck = useCallback(async (checkId: string) => {
-    // Send completion message to service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'COMPLETE_PANOPTO_CHECK',
-        checkId
-      });
-    }
+  // Update event's panopto_checks JSONB column
+  const updateEventChecks = useCallback(async (eventId: number, checkNumber: number, completed: boolean) => {
+    try {
+      // First get the current event to understand how many checks should exist
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('panopto_checks, start_time, end_time, date')
+        .eq('id', eventId)
+        .single();
 
-    // Create completion notification in Supabase
-    if (user) {
-      const check = panoptoChecks.find(c => c.id === checkId);
-      if (check) {
-        await createNotification(
-          user.id,
-          'Panopto Check Completed',
-          `Completed check for ${check.eventName}`,
-          'panopto_check_completed',
-          check.eventId
-        );
+      if (error || !event) {
+        console.error('Error fetching event for check update:', error);
+        return false;
       }
-    }
 
-    // Update local state
-    setPanoptoChecks(prev => 
-      prev.map(check => 
-        check.id === checkId 
-          ? { ...check, completed: true }
-          : check
-      )
-    );
-  }, [user, panoptoChecks]);
-
-  // Clear all Panopto checks
-  const clearPanoptoChecks = useCallback(async () => {
-    // Clear from service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'CLEAR_PANOPTO_CHECKS'
-      });
-    }
-
-    // Clear from Supabase (including the new in-app Panopto check notifications)
-    if (user) {
-      try {
-        await supabase
-          .from('notifications')
-          .delete()
-          .eq('user_id', user.id)
-          .in('type', ['panopto_check', 'panopto_monitoring', 'panopto_check_completed']);
-      } catch (error) {
-        console.error('Error clearing Panopto notifications:', error);
+      // Calculate total number of checks this event should have
+      let totalChecks = 0;
+      if (event.start_time && event.end_time) {
+        const eventStart = new Date(`${event.date}T${event.start_time}`);
+        const eventEnd = new Date(`${event.date}T${event.end_time}`);
+        const eventDuration = eventEnd.getTime() - eventStart.getTime();
+        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
       }
+
+      // Initialize or get existing checks array
+      let checks = (event?.panopto_checks as boolean[] | null) || [];
+      
+      // If no array exists or it's shorter than needed, initialize properly
+      if (checks.length === 0 || checks.length < totalChecks) {
+        // Create new array with correct length, preserving existing values
+        const newChecks = new Array(totalChecks).fill(false);
+        // Copy over existing values
+        for (let i = 0; i < checks.length; i++) {
+          newChecks[i] = checks[i];
+        }
+        checks = newChecks;
+      }
+
+      const checkIndex = checkNumber - 1; // Convert to 0-based index
+      
+      // Ensure the index is valid
+      if (checkIndex < 0 || checkIndex >= checks.length) {
+        console.error(`Invalid check number ${checkNumber} for event with ${checks.length} checks`);
+        return false;
+      }
+
+      // Update the specific check
+      checks[checkIndex] = completed;
+
+      // Update the event
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ panopto_checks: checks } as any)
+        .eq('id', eventId);
+
+      if (updateError) {
+        console.error('Error updating event checks:', updateError);
+        return false;
+      }
+
+      console.log(`Updated check ${checkNumber} to ${completed} for event ${eventId}:`, checks);
+      return true;
+    } catch (error) {
+      console.error('Error in updateEventChecks:', error);
+      return false;
     }
+  }, []);
 
-    setPanoptoChecks([]);
-  }, [user]);
+  // Check if a check was sent/completed in database
+  const isCheckSent = useCallback(async (eventId: number, checkNumber: number): Promise<boolean> => {
+    try {
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('panopto_checks')
+        .eq('id', eventId)
+        .single();
 
-  // Load Panopto checks from Supabase
-  const loadPanoptoChecks = useCallback(async () => {
+      if (error || !event) return false;
+
+      const checks = (event.panopto_checks as boolean[] | null) || [];
+      const checkIndex = checkNumber - 1;
+
+      return checks[checkIndex] === true;
+    } catch (error) {
+      console.error('Error checking if check was sent:', error);
+      return false;
+    }
+  }, []);
+
+  const markCheckAsSent = useCallback(async (eventId: number, checkNumber: number) => {
+    await updateEventChecks(eventId, checkNumber, true);
+    // Also update local tracking for immediate UI feedback
+    const checkId = `${eventId}-check-${checkNumber}`;
+    setSentChecks(prev => new Set(Array.from(prev).concat([checkId])));
+  }, [updateEventChecks]);
+
+  // Initialize checks array for an event (useful for events that don't have the array yet)
+  const initializeEventChecks = useCallback(async (eventId: number) => {
+    try {
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('panopto_checks, start_time, end_time, date')
+        .eq('id', eventId)
+        .single();
+
+      if (error || !event) {
+        console.error('Error fetching event for initialization:', error);
+        return false;
+      }
+
+      // Skip if already has checks
+      if (event.panopto_checks && Array.isArray(event.panopto_checks) && event.panopto_checks.length > 0) {
+        return true;
+      }
+
+      // Calculate total number of checks this event should have
+      if (event.start_time && event.end_time) {
+        const eventStart = new Date(`${event.date}T${event.start_time}`);
+        const eventEnd = new Date(`${event.date}T${event.end_time}`);
+        const eventDuration = eventEnd.getTime() - eventStart.getTime();
+        const totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+        
+        if (totalChecks > 0) {
+          const checks = new Array(totalChecks).fill(false);
+          
+          const { error: updateError } = await supabase
+            .from('events')
+            .update({ panopto_checks: checks } as any)
+            .eq('id', eventId);
+
+          if (updateError) {
+            console.error('Error initializing event checks:', updateError);
+            return false;
+          }
+
+          console.log(`Initialized ${totalChecks} checks for event ${eventId}`);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in initializeEventChecks:', error);
+      return false;
+    }
+  }, []);
+
+  // Send both in-app and system notifications for a check
+  const sendPanoptoCheck = useCallback(async (event: any, checkNumber: number) => {
     if (!user) return;
 
-    setIsLoading(true);
+    const checkId = `${event.id}-check-${checkNumber}`;
+    console.log(`🎯 Starting to send Panopto check:`, { checkId, eventName: event.event_name });
+    
     try {
-      const { data: notifications, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('type', 'panopto_check')
-        .order('created_at', { ascending: false });
+      // Create in-app notification
+      console.log(`📝 Creating in-app notification for ${event.event_name}`);
+      await createPanoptoCheckNotification(
+        user.id,
+        event.id,
+        event.event_name,
+        checkNumber,
+        event.room_name,
+        event.instructor_name
+      );
+      console.log(`✅ In-app notification created for ${event.event_name}`);
 
-      if (error) {
-        console.error('Error loading Panopto checks:', error);
-        return;
-      }
-
-      if (notifications) {
-        const checks: PanoptoCheck[] = notifications
-          .filter(notification => notification.data && typeof notification.data === 'object')
-          .map(notification => {
-            const data = notification.data as any;
-            return {
-              id: data.checkId || notification.id.toString(),
-              eventId: data.eventId || 0,
-              eventName: data.eventName || 'Unknown Event',
-              checkNumber: data.checkNumber || 1,
-              createdAt: notification.created_at,
-              completed: false,
-              roomName: data.roomName || 'Unknown Room',
-              instructorName: data.instructorName
-            };
-          });
-
-        setPanoptoChecks(checks);
-      }
-    } catch (error) {
-      console.error('Error loading Panopto checks:', error);
-      setError('Failed to load Panopto checks');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
-
-  // Initialize and listen for service worker messages
-  useEffect(() => {
-    const handleServiceWorkerMessage = async (event: MessageEvent) => {
-      if (event.data.type === 'PANOPTO_CHECKS_UPDATED') {
-        setPanoptoChecks(event.data.checks);
-      } else if (event.data.type === 'PANOPTO_CHECK_CREATED') {
-        // Add new check to the list
-        setPanoptoChecks(prev => {
-          const existing = prev.find(check => check.id === event.data.check.id);
-          if (existing) return prev;
-          return [...prev, event.data.check];
+      // Create system notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        console.log(`🔔 Creating system notification for ${event.event_name}`);
+        const notification = new Notification(`Panopto Check #${checkNumber}`, {
+          body: `Time to check Panopto for ${event.event_name} in ${event.room_name}`,
+          icon: '/wildcat2.png',
+          badge: '/wildcat2.png',
+          tag: checkId,
+          requireInteraction: false,
+          silent: false
         });
-      } else if (event.data.type === 'CREATE_PANOPTO_IN_APP_NOTIFICATION') {
-        // Create an in-app notification for the Panopto check
-        if (user) {
-          try {
-            const { eventId, eventName, checkNumber, roomName, instructorName } = event.data.data;
-            await createPanoptoCheckNotification(
-              user.id,
-              eventId,
-              eventName,
-              checkNumber,
-              roomName,
-              instructorName
-            );
-            console.log('Created in-app notification for Panopto check:', { eventName, checkNumber });
-          } catch (error) {
-            console.error('Failed to create in-app Panopto check notification:', error);
+
+        // Auto-close after 15 seconds
+        setTimeout(() => {
+          notification.close();
+        }, 15000);
+
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+        console.log(`✅ System notification created for ${event.event_name}`);
+      } else {
+        console.log(`⚠️ System notification not created - permission: ${Notification.permission}`);
+      }
+
+      // Mark check as sent in database
+      console.log(`💾 Marking check as sent in database for ${event.event_name}`);
+      await markCheckAsSent(event.id, checkNumber);
+      console.log(`✅ Check marked as sent in database for ${event.event_name}`);
+
+      // Add to active checks for UI display
+      const newCheck: PanoptoCheck = {
+        id: checkId,
+        eventId: event.id,
+        eventName: event.event_name,
+        checkNumber,
+        createdAt: new Date().toISOString(),
+        completed: false,
+        roomName: event.room_name,
+        instructorName: event.instructor_name
+      };
+
+      setActiveChecks(prev => {
+        const existing = prev.find(check => check.id === checkId);
+        if (existing) return prev;
+        return [...prev, newCheck];
+      });
+      console.log(`✅ Added to active checks UI for ${event.event_name}`);
+
+      console.log('🎉 Successfully sent Panopto check:', { eventName: event.event_name, checkNumber });
+    } catch (error) {
+      console.error('❌ Error sending Panopto check:', error);
+    }
+  }, [user, markCheckAsSent]);
+
+  // Main timer that checks for due Panopto checks
+  useEffect(() => {
+    if (!user || !events) return;
+
+    const checkForDuePanoptoChecks = async () => {
+      const now = new Date();
+      console.log('🔍 Checking for due Panopto checks...', { 
+        user: user.id, 
+        eventsCount: events.length,
+        currentTime: now.toISOString()
+      });
+
+      for (const event of events) {
+        // Skip if not a recording event
+        if (!hasRecordingResource(event)) {
+          
+          continue;
+        }
+
+        // Skip if user is not assigned
+        const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
+        if (!isAssigned) {
+          console.log(`⏭️ Skipping ${event.event_name} - user not assigned:`, {
+            userId: user.id,
+            eventName: event.event_name,
+            shiftBlocksCount: memoizedAllShiftBlocks.length
+          });
+          continue;
+        }
+
+        // Skip if event is not currently active
+        if (!isEventCurrentlyActive(event)) {
+          console.log(`⏭️ Skipping ${event.event_name} - not currently active`);
+          continue;
+        }
+
+        console.log(`✅ Found active recording event: ${event.event_name}`);
+
+        // Calculate which check number should be due
+        const eventStart = new Date(`${event.date}T${event.start_time}`);
+        const timeSinceStart = now.getTime() - eventStart.getTime();
+        const checkNumber = Math.floor(timeSinceStart / PANOPTO_CHECK_INTERVAL) + 1;
+
+        // Skip if no checks are due yet
+        if (checkNumber < 1) {
+          console.log(`⏭️ Skipping ${event.event_name} - no checks due yet (check #${checkNumber})`);
+          continue;
+        }
+
+        // Calculate when this check should have been sent
+        const checkDueTime = eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL;
+        const timeUntilCheck = checkDueTime - now.getTime();
+
+        console.log(`📊 Check analysis for ${event.event_name}:`, {
+          checkNumber,
+          timeSinceStart: Math.floor(timeSinceStart / 60000), // minutes
+          timeUntilCheck: Math.floor(timeUntilCheck / 60000), // minutes
+          isDue: timeUntilCheck <= 0 && timeUntilCheck > -60000
+        });
+
+        // Check is due if it's within the last minute and hasn't been sent
+        if (timeUntilCheck <= 0 && timeUntilCheck > -60000) { // Within last minute
+          const alreadySent = await isCheckSent(event.id, checkNumber);
+          
+          console.log(`🔍 Check #${checkNumber} for ${event.event_name}:`, {
+            alreadySent,
+            willSend: !alreadySent
+          });
+          
+          if (!alreadySent) {
+            console.log(`🚀 Sending Panopto check #${checkNumber} for ${event.event_name}`);
+            await sendPanoptoCheck(event, checkNumber);
           }
         }
       }
     };
 
-    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
+    // Check immediately and then every minute
+    checkForDuePanoptoChecks();
+    const interval = setInterval(checkForDuePanoptoChecks, 60000);
 
-    return () => {
-      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
-    };
-  }, [user]);
+    return () => clearInterval(interval);
+  }, [user, events, memoizedAllShiftBlocks, hasRecordingResource, isEventCurrentlyActive, isUserEventOwner, isCheckSent, sendPanoptoCheck]);
 
-  // Register events when they change
-  useEffect(() => {
-    if (events && user) {
-      // Add more aggressive debounce to prevent multiple rapid calls
-      const timeoutId = setTimeout(() => {
-        console.log('⏰ Debounced registerPanoptoEvents call triggered');
-        registerPanoptoEvents();
-      }, 2000); // Increased to 2 seconds
+  // Complete a Panopto check
+  const completePanoptoCheck = useCallback(async (checkId: string) => {
+    const check = activeChecks.find(c => c.id === checkId);
+    if (!check || !user) return;
+
+    try {
+      // Update database - mark check as completed
+      const success = await updateEventChecks(check.eventId, check.checkNumber, true);
       
-      return () => {
-        console.log('⏰ Clearing previous debounce timeout');
-        clearTimeout(timeoutId);
-      };
+      if (!success) {
+        console.error('Failed to update check in database');
+        return;
+      }
+
+      // Create completion notification
+      await createPanoptoCheckNotification(
+        user.id,
+        check.eventId,
+        `${check.eventName} - Check Completed`,
+        check.checkNumber,
+        check.roomName,
+        check.instructorName
+      );
+
+      // Update local state
+      setActiveChecks(prev => 
+        prev.map(c => 
+          c.id === checkId 
+            ? { ...c, completed: true }
+            : c
+        ).filter(c => !c.completed) // Remove completed checks from active list
+      );
+
+      console.log('Completed Panopto check:', checkId);
+    } catch (error) {
+      console.error('Error completing Panopto check:', error);
     }
-  }, [events, user?.id, registerPanoptoEvents]);
+  }, [user, activeChecks, updateEventChecks]);
 
-  // Load existing checks on mount
-  useEffect(() => {
-    if (user) {
-      loadPanoptoChecks();
-    }
-  }, [user, loadPanoptoChecks]);
-
-  const activeChecks = panoptoChecks.filter(check => !check.completed);
-  const completedChecks = panoptoChecks.filter(check => check.completed);
-
-
-
-  // Test function to manually trigger a Panopto check notification
+  // Test function
   const testPanoptoCheck = useCallback(async () => {
-    if (!user) return;
-    
-    // Generate unique test ID to avoid "already exists" issues
-    const uniqueId = Date.now();
-    const testEvent = {
-      eventId: uniqueId,
-      eventName: 'Test Recording Event',
-      startTime: '14:00:00',
-      endTime: '15:00:00',
-      date: new Date().toISOString().split('T')[0],
-      roomName: 'Test Room',
-      instructorName: 'Test Instructor'
-    };
-    
-    console.log('Sending test Panopto check with unique ID:', uniqueId);
-    
-    // Send test message to service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'TEST_PANOPTO_CHECK',
-        event: testEvent,
-        checkNumber: 1
-      });
+    if (!user || !events || events.length === 0) {
+      console.log('❌ No events available for testing');
+      return;
     }
-  }, [user]);
+    
+    // Find the first event with recording resources that the user is assigned to
+    const testEvent = events.find(event => {
+      const hasRecording = hasRecordingResource(event);
+      const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
+      return hasRecording && isAssigned;
+    });
+    
+    if (!testEvent) {
+      console.log('❌ No suitable events found for testing (need recording resources + user assignment)');
+      return;
+    }
+    
+    console.log('🧪 Sending test Panopto check for real event:', testEvent.event_name);
+    await sendPanoptoCheck(testEvent, 1);
+  }, [user, events, hasRecordingResource, isUserEventOwner, memoizedAllShiftBlocks, sendPanoptoCheck]);
 
-  // Clear test checks only
-  const clearTestChecks = useCallback(async () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'CLEAR_TEST_CHECKS'
-      });
+  // Clear all checks (for UI)
+  const clearPanoptoChecks = useCallback(() => {
+    setActiveChecks([]);
+    setSentChecks(new Set()); // Clear tracking
+  }, []);
+
+  // Check if all Panopto checks are complete for an event
+  const areAllChecksComplete = useCallback(async (eventId: number): Promise<boolean> => {
+    try {
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('panopto_checks, start_time, end_time, date')
+        .eq('id', eventId)
+        .single();
+
+      if (error || !event) {
+        console.error('Error fetching event for completion check:', error);
+        return false;
+      }
+
+      // Calculate total number of checks this event should have
+      let totalChecks = 0;
+      if (event.start_time && event.end_time) {
+        const eventStart = new Date(`${event.date}T${event.start_time}`);
+        const eventEnd = new Date(`${event.date}T${event.end_time}`);
+        const eventDuration = eventEnd.getTime() - eventStart.getTime();
+        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+      }
+
+      if (totalChecks === 0) return true; // No checks needed
+
+      // Get checks array
+      const checks = (event?.panopto_checks as boolean[] | null) || [];
+      
+      // If checks array is shorter than expected, pad with false
+      const paddedChecks = [...checks];
+      while (paddedChecks.length < totalChecks) {
+        paddedChecks.push(false);
+      }
+
+      // Check if all checks are complete
+      return paddedChecks.slice(0, totalChecks).every(check => check === true);
+    } catch (error) {
+      console.error('Error checking if all checks are complete:', error);
+      return false;
+    }
+  }, []);
+
+  // Complete a specific Panopto check for an event (with cache invalidation)
+  const completePanoptoCheckForEvent = useCallback(async (eventId: number, checkNumber: number, eventDate: string) => {
+    try {
+      // Update database directly
+      const { data: eventData, error: fetchError } = await supabase
+        .from('events')
+        .select('panopto_checks, start_time, end_time, date')
+        .eq('id', eventId)
+        .single();
+
+      if (fetchError || !eventData) {
+        console.error('Error fetching event for completion:', fetchError);
+        return false;
+      }
+
+      // Calculate total checks needed
+      let totalChecks = 0;
+      if (eventData.start_time && eventData.end_time) {
+        const eventStart = new Date(`${eventData.date}T${eventData.start_time}`);
+        const eventEnd = new Date(`${eventData.date}T${eventData.end_time}`);
+        const eventDuration = eventEnd.getTime() - eventStart.getTime();
+        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+      }
+
+      // Get or initialize checks array
+      let checks = (eventData?.panopto_checks as boolean[] | null) || [];
+      if (checks.length === 0 || checks.length < totalChecks) {
+        checks = new Array(totalChecks).fill(false);
+      }
+
+      // Update the specific check
+      const checkIndex = checkNumber - 1;
+      if (checkIndex >= 0 && checkIndex < checks.length) {
+        checks[checkIndex] = true;
+
+        // Update database
+        const { error: updateError } = await supabase
+          .from('events')
+          .update({ panopto_checks: checks } as any)
+          .eq('id', eventId);
+
+        if (updateError) {
+          console.error('Error updating check completion:', updateError);
+          return false;
+        }
+
+        // Update the cache directly instead of invalidating to avoid flashing
+        if (eventDate) {
+          // Update the specific event in cache
+          queryClient.setQueryData(['event', eventId], (oldData: any) => {
+            if (oldData) {
+              return { ...oldData, panopto_checks: checks };
+            }
+            return oldData;
+          });
+          
+          // Update the event in the events list cache
+          queryClient.setQueryData(['events', eventDate], (oldEvents: any[]) => {
+            if (oldEvents) {
+              return oldEvents.map(event => 
+                event.id === eventId 
+                  ? { ...event, panopto_checks: checks }
+                  : event
+              );
+            }
+            return oldEvents;
+          });
+        }
+
+        console.log(`Successfully completed check ${checkNumber} for event ${eventId}`);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error completing check:', error);
+      return false;
     }
   }, []);
 
   return {
-    panoptoChecks,
+    panoptoChecks: activeChecks, // For backward compatibility
     activeChecks,
-    completedChecks,
+    completedChecks: [], // Not tracking completed checks in memory
     isLoading,
     error,
     completePanoptoCheck,
     clearPanoptoChecks,
-    registerPanoptoEvents,
     testPanoptoCheck,
-    clearTestChecks
+    initializeEventChecks,
+    areAllChecksComplete,
+    completePanoptoCheckForEvent
   };
-}; 
+};
