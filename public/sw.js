@@ -445,36 +445,8 @@ async function sendPanoptoCheckNotification(event, checkNumber, forceTest = fals
   
   await self.registration.showNotification(title, options);
   
-  // Notify the main app about the new check
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'PANOPTO_CHECK_CREATED',
-        check: {
-          id: checkId,
-          eventId: event.eventId,
-          eventName: event.eventName,
-          checkNumber,
-          createdAt: new Date().toISOString(),
-          completed: false,
-          roomName: event.roomName,
-          instructorName: event.instructorName
-        }
-      });
-      
-      // Also request the main app to create an in-app notification
-      client.postMessage({
-        type: 'CREATE_PANOPTO_IN_APP_NOTIFICATION',
-        data: {
-          eventId: event.eventId,
-          eventName: event.eventName,
-          checkNumber,
-          roomName: event.roomName,
-          instructorName: event.instructorName
-        }
-      });
-    });
-  });
+  // Remove the message sending to main app - we only want the main app to handle notifications
+  console.log('Push notification sent for Panopto check:', checkId);
 }
 
 // Clean up expired checks

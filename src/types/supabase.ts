@@ -51,6 +51,7 @@ export type Database = {
           item_id2: number | null
           lecture_title: string | null
           man_owner: string | null
+          panopto_checks: Json | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
@@ -69,6 +70,7 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
+          panopto_checks?: Json | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
+          panopto_checks?: Json | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -190,24 +193,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ideas: {
-        Row: {
-          content: string | null
-          created_at: string
-          id: number
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          content?: string | null
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           created_at: string | null
@@ -248,35 +233,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      push_subscriptions: {
-        Row: {
-          created_at: string
-          id: number
-          subscription: Json
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          subscription: Json
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          subscription?: Json
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "push_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

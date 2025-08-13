@@ -5,6 +5,8 @@ import { parseEventResources } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
+import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
+import { useEvent } from '../../hooks/useEvent';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -18,18 +20,65 @@ export default function EventHeader({
   event, 
   isHovering = false
 }: EventHeaderProps) {
+  // Get fresh event data from individual event cache (will use cache if available)
+  const { data: freshEvent } = useEvent(event.id);
+  
+  // Use fresh event data if available, otherwise fall back to prop
+  const currentEvent = freshEvent || event;
+  
   // Get all occurrences of this event
-  const { data: occurrences } = useOccurrences(event.event_name);
+  const { data: occurrences } = useOccurrences(currentEvent.event_name);
   
   // Get ownership data including timeline
-  const { data: ownershipData } = useEventOwnership(event);
+  const { data: ownershipData } = useEventOwnership(currentEvent);
   
   // Get timeline entries
   const timeline = ownershipData?.timeline || [];
   
+  // Get Panopto checks functionality
+  const { areAllChecksComplete } = usePanoptoChecks();
+  
+  // State to track if all Panopto checks are complete
+  const [allChecksComplete, setAllChecksComplete] = React.useState(false);
+  
+  // Parse event resources using the utility function
+  const { resources } = parseEventResources(currentEvent);
+  
+  // Check for specific resources by display name
+  const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
+  
+  // Check if all Panopto checks are complete for this event
+  React.useEffect(() => {
+    if (hasVideoRecording && currentEvent.panopto_checks) {
+      // Calculate expected number of checks
+      let totalChecks = 0;
+      if (currentEvent.start_time && currentEvent.end_time && currentEvent.date) {
+        const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const eventStart = new Date(`${currentEvent.date}T${currentEvent.start_time}`);
+        const eventEnd = new Date(`${currentEvent.date}T${currentEvent.end_time}`);
+        const eventDuration = eventEnd.getTime() - eventStart.getTime();
+        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+      }
+
+      if (totalChecks > 0) {
+        const checks = currentEvent.panopto_checks as boolean[] | null;
+        if (checks && checks.length >= totalChecks) {
+          const allComplete = checks.slice(0, totalChecks).every(check => check === true);
+          setAllChecksComplete(allComplete);
+        } else {
+          setAllChecksComplete(false);
+        }
+      } else {
+        setAllChecksComplete(true); // No checks needed
+      }
+    } else {
+      setAllChecksComplete(false);
+    }
+  }, [currentEvent.panopto_checks, currentEvent.start_time, currentEvent.end_time, currentEvent.date, hasVideoRecording]);
+  
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
-    if (!occurrences || occurrences.length === 0 || event.event_type !== 'Lecture') return false;
+    if (!occurrences || occurrences.length === 0 || currentEvent.event_type !== 'Lecture') return false;
     
     // Sort occurrences by start time and check if this event is the first one
     const sortedOccurrences = [...occurrences].sort((a, b) => {
@@ -38,14 +87,8 @@ export default function EventHeader({
       return timeA - timeB;
     });
     
-    return sortedOccurrences[0]?.id === event.id;
-  }, [occurrences, event.id, event.event_type]);
-  
-  // Parse event resources using the utility function
-  const { resources } = parseEventResources(event);
-  
-  // Check for specific resources by display name
-  const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
+    return sortedOccurrences[0]?.id === currentEvent.id;
+  }, [occurrences, currentEvent.id, currentEvent.event_type]);
   const hasStaffAssistance = resources.some(item => item.displayName === 'Staff Assistance');
   const hasHandheldMic = resources.some(item => item.displayName === 'Handheld Microphone');
   const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
@@ -70,14 +113,14 @@ export default function EventHeader({
     }
   };
 
-  const timeDisplay = `${formatTimeFromISO(event.start_time)} - ${formatTimeFromISO(event.end_time)}`;
+  const timeDisplay = `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
 
   return (
     <div className="flex justify-between items-center h-4 transition-all duration-200 ease-in-out">
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
-            event.event_type === 'KEC' ? 'text-gray-700 dark:text-white' : 'text-white'
+            currentEvent.event_type === 'KEC' ? 'text-gray-700 dark:text-white' : 'text-white'
           }`}
           title={timeDisplay}
           style={{
@@ -100,16 +143,33 @@ export default function EventHeader({
             !
           </span>
         )}
-        {event.event_type !== 'KEC' && hasVideoRecording && (
-          <span 
-            className="w-2 h-2 rounded-full bg-red-500 animate-pulse transition-all duration-200 ease-in-out" 
-            title="Video Recording"
+        {currentEvent.event_type !== 'KEC' && hasVideoRecording && (
+          <div 
+            className="relative w-3 h-3 rounded-full bg-red-500 transition-all duration-200 ease-in-out" 
+            title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              transform: isHovering ? 'scale(1.2)' : 'scale(1)',
+              animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
             }}
-          ></span>
+          >
+            {allChecksComplete && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg 
+                  className="w-3 h-3 text-green-400" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
         )}
-        {event.event_type !== 'KEC' && hasStaffAssistance && (
+        {currentEvent.event_type !== 'KEC' && hasStaffAssistance && (
           <div 
             className="flex items-center justify-center w-3 h-3 rounded-full bg-green-500 bg-opacity-90 transition-all duration-200 ease-in-out"
             title="Staff Assistance"
@@ -120,7 +180,7 @@ export default function EventHeader({
             <span className="text-white text-[8px]">🚶</span>
           </div>
         )}
-        {event.event_type !== 'KEC' && hasHandheldMic && (
+        {currentEvent.event_type !== 'KEC' && hasHandheldMic && (
           <span 
             className="text-xs transition-all duration-200 ease-in-out" 
             title="Handheld Microphone"
@@ -131,7 +191,7 @@ export default function EventHeader({
             🎤
           </span>
         )}
-        {event.event_type !== 'KEC' && hasWebConference && (
+        {currentEvent.event_type !== 'KEC' && hasWebConference && (
           <img 
             src="/zoomicon.png" 
             alt="Web Conference" 
@@ -142,7 +202,7 @@ export default function EventHeader({
             }}
           />
         )}
-        {event.event_type !== 'KEC' && hasClickers && (
+        {currentEvent.event_type !== 'KEC' && hasClickers && (
           <img 
             src="/tp.png" 
             alt="Clickers" 
@@ -153,7 +213,7 @@ export default function EventHeader({
             }}
           />
         )}
-        {event.event_type !== 'KEC' && hasAVNotes && (
+        {currentEvent.event_type !== 'KEC' && hasAVNotes && (
           <span 
             className="text-xs transition-all duration-200 ease-in-out" 
             title="AV Setup Notes"

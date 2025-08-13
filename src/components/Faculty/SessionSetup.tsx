@@ -4,6 +4,7 @@ import { getResourceIcon, getResourceDisplayName, getEventThemeColors } from '..
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 
+
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
 
@@ -36,6 +37,7 @@ export default function SessionSetup({
   return (
     <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
       
+
       {/* Faculty Information - Full Width at Top */}
       {event.instructor_name && (
         <div className="mb-4 sm:mb-6">
@@ -254,4 +256,4 @@ export default function SessionSetup({
 
     </div>
   );
-} 
+}

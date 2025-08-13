@@ -55,6 +55,12 @@ export const createPanoptoCheckNotification = async (
 ): Promise<{ notification: Notification | null; error: any }> => {
   const checkId = `${eventId}-check-${checkNumber}`;
   
+  // Validate that eventId is a reasonable number (not a timestamp)
+  if (eventId > 999999999) {
+    console.error('Invalid eventId (likely a timestamp):', eventId);
+    return { notification: null, error: { message: 'Invalid event ID' } };
+  }
+  
   return createNotification(
     userId,
     `Panopto Check #${checkNumber}`,

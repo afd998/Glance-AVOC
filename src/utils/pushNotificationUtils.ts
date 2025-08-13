@@ -139,7 +139,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 // Save subscription to Supabase
 export const savePushSubscription = async (subscription: PushSubscription, userId: string): Promise<void> => {
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .upsert({
         user_id: userId,
@@ -160,7 +160,7 @@ export const savePushSubscription = async (subscription: PushSubscription, userI
 // Remove subscription from Supabase
 export const removePushSubscription = async (userId: string): Promise<void> => {
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId);
@@ -186,4 +186,4 @@ export const getNotificationPermissionStatus = (): NotificationPermission => {
     return 'denied';
   }
   return Notification.permission;
-}; 
+};

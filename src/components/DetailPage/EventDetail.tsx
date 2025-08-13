@@ -6,6 +6,7 @@ import { useEventOwnership } from '../../hooks/useCalculateOwners';
 import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';
+import Panopto from './Panopto';
 import PanelModal from './PanelModal';
 import OccurrencesPage from '../../pages/OccurrencesPage';
 import { Database } from '../../types/supabase';
@@ -69,6 +70,12 @@ export default function EventDetail() {
   
   // Parse event resources using the utility function (only if event exists)
   const { resources } = event ? parseEventResources(event) : { resources: [] };
+  
+  // Check if this event has recording resources
+  const hasRecordingResource = resources.some(resource => 
+    resource.itemName?.toLowerCase().includes('panopto') ||
+    resource.itemName?.toLowerCase().includes('recording')
+  );
   
   // Get theme colors based on event type
   const themeColors = event ? getEventThemeColors(event) : null;
@@ -150,6 +157,11 @@ export default function EventDetail() {
                 handOffTime={handOffTime || null}
                 isHandOffTimeLoading={isHandOffTimeLoading}
               />
+              
+              {/* Panopto Recording Checks Timeline - Show if event has recording resources */}
+              {hasRecordingResource && (
+                <Panopto event={event} />
+              )}
               
               <SessionSetup
                 event={event}
