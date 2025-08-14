@@ -166,30 +166,28 @@ export default function HomePage() {
   return (
     <div className="flex-col items-center justify-center p-4 min-h-screen relative">
       {/* Blurred background image with 3D parallax effect */}
-                           <div 
-          className="absolute inset-0 -z-10"
-                    style={{
-             backgroundImage: `url('/${currentBackground}')`,
-             backgroundSize: "cover",
-             backgroundRepeat: "no-repeat",
-             backgroundPosition: "center",
-             backgroundAttachment: "fixed",
-             filter: "blur(8px)",
-             transform: "translateZ(0)",
-             transition: "transform 0.3s ease-out"
-           }}
-          id="parallax-background"
-        />
-      <AppHeader 
-        selectedDate={selectedDate}
-        setSelectedDate={handleDateChange}
-        isLoading={isLoading}
-        events={events}
-      />
-      <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container shadow-2xl">
-        <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
-          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+             <div 
+         className="absolute inset-0 -z-10 bg-gray-100 dark:bg-gray-900"
+         style={{
+           backgroundImage: currentBackground ? `url('/${currentBackground}')` : 'none',
+           backgroundSize: "cover",
+           backgroundRepeat: "no-repeat",
+           backgroundPosition: "center",
+           filter: "blur(8px)",
+           transform: "translateZ(0)"
+         }}
+         id="parallax-background"
+       />
+             <AppHeader 
+         selectedDate={selectedDate}
+         setSelectedDate={handleDateChange}
+         isLoading={isLoading}
+         events={events}
+       />
+       <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
+         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
+           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
             <CurrentTimeIndicator 
               currentTime={currentTimeRef.current}
