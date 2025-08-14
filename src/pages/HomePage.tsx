@@ -17,6 +17,7 @@ import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
 import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
 import { Database } from "../types/supabase";
+import { useBackground } from "../contexts/BackgroundContext";
 
 
 export default function HomePage() {
@@ -27,6 +28,7 @@ export default function HomePage() {
   const { date, eventId } = useParams();
   const { selectedRooms, setAllRooms } = useRoomStore();
   const { rooms, isLoading: roomsLoading } = useRooms();
+  const { currentBackground } = useBackground();
 
   React.useEffect(() => {
     if (rooms.length > 0) {
@@ -72,47 +74,47 @@ export default function HomePage() {
     return () => { clearInterval(timer); };
   }, []);
 
-  // 3D Parallax effect for background image
-  React.useEffect(() => {
-    const background = document.getElementById('parallax-background');
-    if (!background) return;
+  // 3D Parallax effect for background image - TOGGLED OFF
+  // React.useEffect(() => {
+  //   const background = document.getElementById('parallax-background');
+  //   if (!background) return;
 
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      const { alpha, beta, gamma } = event;
+  //   const handleOrientation = (event: DeviceOrientationEvent) => {
+  //     const { alpha, beta, gamma } = event;
       
-      // Convert device orientation to CSS transform - much stronger effect
-      const x = gamma ? (gamma / 90) * 80 : 0; // Left/right tilt - increased from 20 to 80
-      const y = beta ? ((beta - 45) / 45) * 80 : 0; // Forward/backward tilt - increased from 20 to 80
+  //     // Convert device orientation to CSS transform - reduced effect to prevent overflow
+  //     const x = gamma ? (gamma / 90) * 40 : 0; // Left/right tilt - reduced from 80 to 40
+  //     const y = beta ? ((beta - 45) / 45) * 40 : 0; // Forward/backward tilt - reduced from 80 to 40
       
-      background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    };
+  //     background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  //   };
 
-    const handleMouseMove = (event: MouseEvent) => {
-      const { clientX, clientY } = event;
-      const { innerWidth, innerHeight } = window;
+  //   const handleMouseMove = (event: MouseEvent) => {
+  //     const { clientX, clientY } = event;
+  //     const { innerWidth, innerHeight } = window;
       
-      // Calculate mouse position relative to center - much stronger effect
-      const x = ((clientX - innerWidth / 2) / innerWidth) * 120; // increased from 30 to 120
-      const y = ((clientY - innerHeight / 2) / innerHeight) * 120; // increased from 30 to 120
+  //     // Calculate mouse position relative to center - reduced effect to prevent overflow
+  //     const x = ((clientX - innerWidth / 2) / innerWidth) * 60; // reduced from 120 to 60
+  //     const y = ((clientY - innerHeight / 2) / innerHeight) * 60; // reduced from 120 to 60
       
-      background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    };
+  //     background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  //   };
 
-    // Add event listeners
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
+  //   // Add event listeners
+  //   if (window.DeviceOrientationEvent) {
+  //     window.addEventListener('deviceorientation', handleOrientation);
+  //   }
     
-    window.addEventListener('mousemove', handleMouseMove);
+  //   window.addEventListener('mousemove', handleMouseMove);
 
-    // Cleanup
-    return () => {
-      if (window.DeviceOrientationEvent) {
-        window.removeEventListener('deviceorientation', handleOrientation);
-      }
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
+  //   // Cleanup
+  //   return () => {
+  //     if (window.DeviceOrientationEvent) {
+  //       window.removeEventListener('deviceorientation', handleOrientation);
+  //     }
+  //     window.removeEventListener('mousemove', handleMouseMove);
+  //   };
+  // }, []);
 
   const handleDateChange = (newDate: Date) => {
     const localDate = new Date(newDate);
@@ -164,20 +166,20 @@ export default function HomePage() {
   return (
     <div className="flex-col items-center justify-center p-4 min-h-screen relative">
       {/* Blurred background image with 3D parallax effect */}
-             <div 
-         className="absolute inset-0 -z-10"
-         style={{
-           backgroundImage: "url('/Gies.avif')",
-           backgroundSize: "120% 120%",
-           backgroundRepeat: "no-repeat",
-           backgroundPosition: "center",
-           backgroundAttachment: "fixed",
-           filter: "blur(8px)",
-           transform: "translateZ(0)",
-           transition: "transform 0.3s ease-out"
-         }}
-         id="parallax-background"
-       />
+                           <div 
+          className="absolute inset-0 -z-10"
+                    style={{
+             backgroundImage: `url('/${currentBackground}')`,
+             backgroundSize: "cover",
+             backgroundRepeat: "no-repeat",
+             backgroundPosition: "center",
+             backgroundAttachment: "fixed",
+             filter: "blur(8px)",
+             transform: "translateZ(0)",
+             transition: "transform 0.3s ease-out"
+           }}
+          id="parallax-background"
+        />
       <AppHeader 
         selectedDate={selectedDate}
         setSelectedDate={handleDateChange}
@@ -224,10 +226,10 @@ export default function HomePage() {
           className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
           onClick={() => navigate(`/${date}`)}
         >
-          <div 
-            className="w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+                     <div 
+             className="w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl golden-lace-border"
+             onClick={(e) => e.stopPropagation()}
+           >
             <EventDetail />
           </div>
         </div>

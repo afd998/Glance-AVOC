@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { formatTime, formatDate } from '../utils/timeUtils';
-import { parseEventResources, getResourceIcon, getResourceDisplayName } from '../utils/eventUtils';
+import { parseEventResources, getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../utils/eventUtils';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -36,6 +36,8 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
   const navigate = useNavigate();
   // Parse event resources
   const { resources } = parseEventResources(event);
+  // Get theme colors based on event type
+  const themeColors = getEventThemeColors(event);
 
   const handleCardClick = () => {
     const eventDate = event.date || '';
@@ -48,7 +50,7 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
         className={`rounded-lg shadow-lg p-4 border cursor-pointer hover:shadow-xl transition-all ${
           isCurrentEvent 
             ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400' 
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+            : `${themeColors.cardBg} border ${themeColors.cardBg.split(' ')[1]?.replace('bg-', 'border-') || 'border-gray-200'}`
         }`}
         onClick={handleCardClick}
       >
@@ -91,7 +93,7 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
                   {resources.map((item, index) => (
                     <div 
                       key={`${event.id}-resource-${index}`} 
-                      className="flex flex-col gap-1 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-xs text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                      className={`flex flex-col gap-1 p-2 rounded-lg text-xs transition-colors ${themeColors.itemBg} ${themeColors.badgeText} hover:${themeColors.itemBg.split(' ')[0]?.replace('bg-', 'hover:bg-') || 'hover:bg-gray-100'}`}
                     >
                       <div className="flex items-center gap-2">
                         <span className="flex-shrink-0 text-sm">
@@ -99,14 +101,14 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
                         </span>
                         <span className="font-medium">{getResourceDisplayName(item.itemName)}</span>
                         {item.quantity && item.quantity > 1 && (
-                          <span className="ml-1 px-1 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold rounded-full">
+                          <span className={`ml-1 px-1 py-0.5 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
                             {item.quantity}
                           </span>
                         )}
                       </div>
                       {item.instruction && (
                         <div 
-                          className="text-xs text-blue-600 dark:text-blue-400 mt-1 pl-6 max-w-[200px] truncate"
+                          className={`text-xs mt-1 pl-6 max-w-[200px] truncate ${themeColors.iconText}`}
                           title={item.instruction}
                         >
                           {item.instruction}
@@ -127,6 +129,9 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
 export default function OccurrencesPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  
+  // Get theme colors for the current event (will be set after currentEvent loads)
+  const [themeColors, setThemeColors] = React.useState<any>(null);
 
   // First, get the current event to get its event_name
   const { data: currentEvent } = useQuery({
@@ -149,6 +154,13 @@ export default function OccurrencesPage() {
     },
     enabled: !!eventId,
   });
+
+  // Set theme colors when current event loads
+  React.useEffect(() => {
+    if (currentEvent) {
+      setThemeColors(getEventThemeColors(currentEvent));
+    }
+  }, [currentEvent]);
 
   // Then, get all occurrences with the same event_name
   const { data: occurrences, isLoading, error } = useQuery({
@@ -193,7 +205,7 @@ export default function OccurrencesPage() {
   return (
     <div className="relative bg-transparent w-full max-w-2xl max-h-[80vh] overflow-visible">
       {/* Header */}
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-t-xl shadow-lg flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className={`${themeColors ? themeColors.mainBg : 'bg-white/95 dark:bg-gray-900/95'} backdrop-blur-sm rounded-t-xl shadow-lg flex items-center justify-between p-6 border-b ${themeColors ? themeColors.mainBg.split(' ')[1]?.replace('bg-', 'border-') : 'border-gray-200 dark:border-gray-700'}`}>
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           {currentEvent?.event_name} - Occurrences
         </h2>
@@ -208,7 +220,7 @@ export default function OccurrencesPage() {
       </div>
 
       {/* Content */}
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible">
+      <div className={`${themeColors ? themeColors.mainBgDark : 'bg-white/95 dark:bg-gray-900/95'} backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible`}>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

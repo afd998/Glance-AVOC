@@ -22,7 +22,7 @@ export default function CurrentTimeIndicator({ currentTime, startHour, endHour, 
         }}
       >
         <div 
-          className="absolute -top-1.5 -translate-x-[4.5px] w-2 h-2 bg-green-500 rounded-full shadow-lg animate-pulse"
+          className="absolute top-0 -translate-x-[4.5px] w-2 h-2 bg-green-500 rounded-full shadow-lg animate-pulse"
           style={{ 
             zIndex: 1000,
             pointerEvents: 'none'

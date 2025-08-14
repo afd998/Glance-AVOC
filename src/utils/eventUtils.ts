@@ -104,7 +104,7 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   
   // Determine background color
   let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
-  if (eventType === 'KEC') bgColor = "bg-transparent border-2 border-gray-400"; // KEC events get transparent background with gray border
+  if (eventType === 'KEC') bgColor = "bg-gray-400"; // KEC events get medium gray background
   else if (eventType === 'CMC') bgColor = "bg-red-300"; // CMC events get pastel red background
   else if (isLecture) bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
   else if (isStudentEvent) bgColor = "bg-[#b8a68a]";
