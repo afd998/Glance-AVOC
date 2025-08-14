@@ -3,7 +3,7 @@ import { Database } from '../../types/supabase';
 import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
 import { supabase } from '../../lib/supabase';
 import { formatDistanceToNow, format } from 'date-fns';
-import { Video, Clock, CheckCircle, Circle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Video, Clock, CheckCircle, Circle, AlertCircle, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
 import { getEventThemeColors } from '../../utils/eventUtils';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -26,9 +26,29 @@ export default function Panopto({ event }: PanoptoProps) {
   const { activeChecks, completePanoptoCheck, initializeEventChecks, completePanoptoCheckForEvent } = usePanoptoChecks();
   const [completedChecks, setCompletedChecks] = useState<boolean[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
+  
+  // Check if all checks are complete
+  const allChecksComplete = useMemo(() => {
+    if (isLoading || completedChecks.length === 0) return false;
+    
+    // Calculate expected number of checks
+    let totalChecks = 0;
+    if (event.start_time && event.end_time) {
+      const eventStart = new Date(`${event.date}T${event.start_time}`);
+      const eventEnd = new Date(`${event.date}T${event.end_time}`);
+      const eventDuration = eventEnd.getTime() - eventStart.getTime();
+      totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+    }
+    
+    if (totalChecks === 0) return true; // No checks needed
+    
+    // Check if all checks are complete
+    return completedChecks.slice(0, totalChecks).every(check => check === true);
+  }, [completedChecks, event.start_time, event.end_time, event.date, isLoading]);
   
   // Load completion status from database
   useEffect(() => {
@@ -147,7 +167,7 @@ export default function Panopto({ event }: PanoptoProps) {
       case 'overdue':
         return <AlertCircle className="w-5 h-5 text-red-600" />;
       default:
-        return <Circle className="w-5 h-5 text-gray-400" />;
+        return <Circle className="w-5 h-5 text-black dark:text-white" />;
     }
   };
   
@@ -160,7 +180,7 @@ export default function Panopto({ event }: PanoptoProps) {
       case 'overdue':
         return 'bg-red-50 border-red-200 text-red-800';
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-600';
+        return 'bg-gray-50 border-gray-200 text-black dark:text-white';
     }
   };
   
@@ -190,11 +210,19 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show loading state first
   if (isLoading) {
     return (
-      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6 min-h-[400px]`}>
-        <div className="flex items-center justify-between mb-6">
+      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+        <div 
+          className="flex items-center justify-between mb-6 cursor-pointer select-none"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
           <div className="flex items-center gap-3">
-            <Video className={`w-6 h-6 ${themeColors.iconText}`} />
-            <h2 className={`text-xl font-bold ${themeColors.badgeText}`}>
+            {isCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-black dark:text-white" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-black dark:text-white" />
+            )}
+            <Video className="w-6 h-6 text-black dark:text-white" />
+            <h2 className="text-xl font-bold text-black dark:text-black">
               Panopto Recording Checks
             </h2>
           </div>
@@ -203,17 +231,19 @@ export default function Panopto({ event }: PanoptoProps) {
             target="_blank"
             rel="noopener noreferrer"
             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+            onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
             Go to Panopto
           </a>
         </div>
+        {!isCollapsed && (
         
         <div className="space-y-6">
           {/* Skeleton Timeline */}
           <div className="relative">
             {/* Skeleton Timeline line */}
-            <div className={`absolute top-8 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
+            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
             
             {/* Skeleton Timeline items - Always show 4 skeleton checks */}
             <div className="flex items-start gap-4 justify-between">
@@ -233,19 +263,9 @@ export default function Panopto({ event }: PanoptoProps) {
               ))}
             </div>
           </div>
-          
-          {/* Skeleton Summary */}
-          <div className={`p-4 ${themeColors.itemBg} rounded-lg`}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              {Array.from({ length: 4 }, (_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className={`h-6 ${themeColors.cardBg} rounded mb-1`}></div>
-                  <div className={`h-3 ${themeColors.cardBg} rounded`}></div>
-                </div>
-              ))}
-            </div>
-          </div>
+
         </div>
+        )}
       </div>
     );
   }
@@ -253,11 +273,19 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show "no checks" message only after loading is complete and there are no checks
   if (panoptoTimeline.length === 0) {
     return (
-      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6 min-h-[200px]`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+        <div 
+          className="flex items-center justify-between mb-4 cursor-pointer select-none"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
           <div className="flex items-center gap-3">
-            <Video className={`w-6 h-6 ${themeColors.iconText}`} />
-            <h2 className={`text-xl font-bold ${themeColors.badgeText}`}>
+            {isCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-black dark:text-white" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-black dark:text-white" />
+            )}
+            <Video className="w-6 h-6 text-black dark:text-white" />
+            <h2 className="text-xl font-bold text-black dark:text-black">
               Panopto Recording Checks
             </h2>
           </div>
@@ -266,25 +294,40 @@ export default function Panopto({ event }: PanoptoProps) {
             target="_blank"
             rel="noopener noreferrer"
             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+            onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
             Go to Panopto
           </a>
         </div>
-        <div className={`flex items-center gap-2 ${themeColors.iconText}`}>
-          <Clock className="w-4 h-4" />
-          <span>No Panopto checks scheduled for this event duration</span>
-        </div>
+        {!isCollapsed && (
+          <div className="flex items-center gap-2 text-black dark:text-white">
+            <Clock className="w-4 h-4" />
+            <span>No Panopto checks scheduled for this event duration</span>
+          </div>
+        )}
       </div>
     );
   }
   
   return (
-    <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6 min-h-[400px]`}>
-      <div className="flex items-center justify-between mb-6">
+    <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+      <div 
+        className="flex items-center justify-between mb-6 cursor-pointer select-none"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
         <div className="flex items-center gap-3">
-          <Video className={`w-6 h-6 ${themeColors.iconText}`} />
-          <h2 className={`text-xl font-bold ${themeColors.badgeText}`}>
+          {isCollapsed ? (
+            <ChevronRight className="w-5 h-5 text-black dark:text-white" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-black dark:text-white" />
+          )}
+          {allChecksComplete && !isLoading ? (
+            <CheckCircle className="w-6 h-6 text-green-600" />
+          ) : (
+            <Video className="w-6 h-6 text-black dark:text-white" />
+          )}
+          <h2 className="text-xl font-bold text-black dark:text-black">
             Panopto Recording Checks
           </h2>
         </div>
@@ -293,17 +336,19 @@ export default function Panopto({ event }: PanoptoProps) {
           target="_blank"
           rel="noopener noreferrer"
           className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+          onClick={(e) => e.stopPropagation()}
         >
           <ExternalLink className="w-4 h-4" />
           Go to Panopto
         </a>
       </div>
+      {!isCollapsed && (
       
       <>
           {/* Horizontal Timeline */}
           <div className="relative overflow-x-auto">
             {/* Timeline line */}
-            <div className={`absolute top-8 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
+            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
             
             {/* Timeline items */}
             <div className={`flex items-start gap-4 ${panoptoTimeline.length > 4 ? 'min-w-max px-4' : 'justify-between'}`}>
@@ -382,37 +427,9 @@ export default function Panopto({ event }: PanoptoProps) {
               ))}
             </div>
           </div>
-          
-          {/* Summary */}
-          <div className={`mt-6 p-4 ${themeColors.itemBg} rounded-lg`}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-lg font-bold text-green-600">
-                  {panoptoTimeline.filter(c => c.status === 'completed').length}
-                </div>
-                <div className={`text-xs ${themeColors.iconText}`}>Completed</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-orange-600">
-                  {panoptoTimeline.filter(c => c.status === 'current').length}
-                </div>
-                <div className={`text-xs ${themeColors.iconText}`}>Current</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-red-600">
-                  {panoptoTimeline.filter(c => c.status === 'overdue').length}
-                </div>
-                <div className={`text-xs ${themeColors.iconText}`}>Overdue</div>
-              </div>
-              <div>
-                <div className={`text-lg font-bold ${themeColors.iconText}`}>
-                  {panoptoTimeline.filter(c => c.status === 'upcoming').length}
-                </div>
-                <div className={`text-xs ${themeColors.iconText}`}>Upcoming</div>
-              </div>
-            </div>
-          </div>
+
         </>
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
+}

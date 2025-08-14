@@ -72,6 +72,48 @@ export default function HomePage() {
     return () => { clearInterval(timer); };
   }, []);
 
+  // 3D Parallax effect for background image
+  React.useEffect(() => {
+    const background = document.getElementById('parallax-background');
+    if (!background) return;
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      const { alpha, beta, gamma } = event;
+      
+      // Convert device orientation to CSS transform - much stronger effect
+      const x = gamma ? (gamma / 90) * 80 : 0; // Left/right tilt - increased from 20 to 80
+      const y = beta ? ((beta - 45) / 45) * 80 : 0; // Forward/backward tilt - increased from 20 to 80
+      
+      background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const { clientX, clientY } = event;
+      const { innerWidth, innerHeight } = window;
+      
+      // Calculate mouse position relative to center - much stronger effect
+      const x = ((clientX - innerWidth / 2) / innerWidth) * 120; // increased from 30 to 120
+      const y = ((clientY - innerHeight / 2) / innerHeight) * 120; // increased from 30 to 120
+      
+      background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
+
+    // Add event listeners
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+    
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Cleanup
+    return () => {
+      if (window.DeviceOrientationEvent) {
+        window.removeEventListener('deviceorientation', handleOrientation);
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   const handleDateChange = (newDate: Date) => {
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
@@ -95,7 +137,7 @@ export default function HomePage() {
 
   if (isLoading || roomsLoading) {
     return (
-      <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+      <div className="flex-col items-center justify-center p-4 min-h-screen relative">
         <AppHeader 
           selectedDate={selectedDate}
           setSelectedDate={handleDateChange}
@@ -116,18 +158,33 @@ export default function HomePage() {
   }
 
   if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-500 dark:bg-gray-900">Error: {error.message}</div>;
+    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
   }
 
   return (
-    <div className="flex-col items-center justify-center p-4 dark:bg-gray-900 min-h-screen bg-gray-200 relative">
+    <div className="flex-col items-center justify-center p-4 min-h-screen relative">
+      {/* Blurred background image with 3D parallax effect */}
+             <div 
+         className="absolute inset-0 -z-10"
+         style={{
+           backgroundImage: "url('/Gies.avif')",
+           backgroundSize: "120% 120%",
+           backgroundRepeat: "no-repeat",
+           backgroundPosition: "center",
+           backgroundAttachment: "fixed",
+           filter: "blur(8px)",
+           transform: "translateZ(0)",
+           transition: "transform 0.3s ease-out"
+         }}
+         id="parallax-background"
+       />
       <AppHeader 
         selectedDate={selectedDate}
         setSelectedDate={handleDateChange}
         isLoading={isLoading}
         events={events}
       />
-      <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container">
+      <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative wave-container shadow-2xl">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />

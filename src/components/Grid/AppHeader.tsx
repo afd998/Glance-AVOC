@@ -60,10 +60,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-12 w-12 p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-2 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
+                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
               }`}
               aria-label="Previous day"
             >
@@ -90,10 +90,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-12 w-12 p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-2 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
+                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
               }`}
               aria-label="Next day"
             >
@@ -167,10 +167,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-8 w-8 p-1 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-1 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
+                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
               }`}
               aria-label="Previous day"
             >
@@ -197,10 +197,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-8 w-8 p-1 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-1 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-sm'
+                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
               }`}
               aria-label="Next day"
             >

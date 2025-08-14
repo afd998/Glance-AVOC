@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  background-image: url('/wildcat.png');
+  background-size: 200px 200px;
+  background-position: center;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+  background: transparent;
+}
+
 .App {
   text-align: center;
 }

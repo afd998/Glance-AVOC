@@ -110,10 +110,10 @@ export const NotificationBell: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-full transition-colors ${
+        className={`relative p-2 rounded-xl transition-all duration-200 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transform hover:scale-105 ${
           isDarkMode 
-            ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            ? 'text-gray-300 hover:text-white hover:bg-white/20' 
+            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
         }`}
         title="Notifications"
       >
@@ -127,10 +127,10 @@ export const NotificationBell: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg border z-[9999] ${
+        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-xl border z-[9999] backdrop-blur-md ${
           isDarkMode 
-            ? 'bg-gray-800 border-gray-600 text-white' 
-            : 'bg-white border-gray-200 text-gray-900'
+            ? 'bg-gray-800/40 border-gray-600/30 text-white' 
+            : 'bg-white/40 border-gray-200/30 text-gray-900'
         }`}>
           <div className="p-4">
             <div className="mb-4">
@@ -232,10 +232,10 @@ export const NotificationBell: React.FC = () => {
                             console.error('Error navigating to event:', error);
                           }
                         }}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors hover:opacity-80 ${
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors hover:opacity-80 backdrop-blur-sm ${
                           isDarkMode 
                             ? 'bg-orange-900/20 border-orange-500/30 text-orange-200 hover:bg-orange-900/30' 
-                            : 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100'
+                            : 'bg-orange-50/80 border-orange-200/50 text-orange-800 hover:bg-orange-100/90'
                         }`}
                       >
                         <div className="flex items-start">
@@ -272,14 +272,14 @@ export const NotificationBell: React.FC = () => {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                    className={`p-3 rounded-lg cursor-pointer transition-colors group backdrop-blur-sm ${
                       notification.read_at
                         ? isDarkMode 
-                          ? 'bg-gray-700 hover:bg-gray-600' 
-                          : 'bg-gray-50 hover:bg-gray-100'
+                          ? 'bg-gray-700/80 hover:bg-gray-600/90' 
+                          : 'bg-gray-50/80 hover:bg-gray-100/90'
                         : isDarkMode 
                           ? 'bg-blue-900/20 hover:bg-blue-900/30 border border-blue-500/30' 
-                          : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                          : 'bg-blue-50/80 hover:bg-blue-100/90 border border-blue-200/50'
                     }`}
                   >
                     <div className="flex items-start gap-3">

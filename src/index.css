@@ -54,17 +54,9 @@ body {
   /* Handle iPhone safe areas */
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  
-  /* Default background colors that match the status bar */
-  background-color: #e5e7eb; /* Light mode background */
 }
 
-/* Dark mode body background */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #111827; /* Dark mode background */
-  }
-}
+/* Dark mode body background - removed to allow background image to show */
 
 /* Ensure the root element also handles safe areas */
 #root {

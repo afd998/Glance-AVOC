@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import NotificationSettings from './NotificationSettings';
 
@@ -18,6 +18,7 @@ interface MenuPanelProps {
 
 const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
   const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
@@ -25,13 +26,24 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
   const navigate = useNavigate();
   const { date } = useParams();
 
+  // Handle menu open animation
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to ensure the element is rendered before animation starts
+      const timer = setTimeout(() => setIsAnimating(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
+
   return (
     <>
       {/* Modern Menu Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 z-[9999] shadow-lg hover:shadow-xl transform hover:scale-105 group"
+          className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 rounded-xl bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-200 z-[9999] shadow-lg hover:shadow-xl transform hover:scale-105 group"
           aria-label="Open menu"
         >
           <div className="flex flex-col items-center justify-center space-y-1">
@@ -46,34 +58,35 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-25 z-[9998]"
-            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-black bg-opacity-25 z-[9998] animate-in fade-in duration-300"
+            onClick={() => {
+              setIsAnimating(false);
+              setTimeout(() => setIsOpen(false), 150);
+            }}
           />
           {/* Menu Panel */}
-          <div style={{zIndex: 9999}} className="fixed top-0 right-0 h-screen w-80 bg-gray-100 dark:bg-gray-800 shadow-lg">
+          <div 
+            style={{
+              zIndex: 9999,
+              transform: isAnimating ? 'translateX(0) scale(1)' : 'translateX(100%) scale(0.95)',
+              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              transformOrigin: 'right center'
+            }} 
+            className="fixed top-0 right-0 h-screen w-80"
+          >
             <div className="p-6 h-full flex flex-col">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Menu</h2>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 hover:text-gray-800 dark:hover:text-white transition-all duration-200 transform hover:scale-105"
-                  aria-label="Close menu"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+              <div className="mb-6">
               </div>
               {/* User Profile Section */}
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm mb-6">
+              <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-md rounded-lg p-4 shadow-lg border border-white/20 dark:border-gray-600/30 mb-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Account</h3>
                 <UserProfileButton />
               </div>
               {/* Main Content */}
               <div className="flex-1 overflow-y-auto space-y-6">
                 {/* Filter Rooms Button */}
-                <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+                <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-md rounded-lg p-4 shadow-lg border border-white/20 dark:border-gray-600/30">
                   <button
                     onClick={openFilterRoomsModal}
                     className="w-full flex items-center justify-center px-4 py-3 border border-blue-300 dark:border-blue-600 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
@@ -116,12 +129,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                   </button>
                 </div>
                 {/* Notification Settings Section */}
-                <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+                <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-md rounded-lg p-4 shadow-lg border border-white/20 dark:border-gray-600/30">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Notifications</h3>
                   <NotificationSettings />
                 </div>
                 {/* Quick Actions Section */}
-                <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+                <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-md rounded-lg p-4 shadow-lg border border-white/20 dark:border-gray-600/30">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Quick Actions</h3>
                   <div className="space-y-3">
                     {/* Theme Toggle */}
@@ -139,7 +152,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                 </div>
               </div>
               {/* Footer */}
-              <div className="pt-6 border-t border-gray-300 dark:border-gray-700">
+              <div className="pt-6 border-t border-white/20 dark:border-gray-600/30">
                 <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                   <p>Event notifications appear 15 minutes before events with staff assistance or web conferencing.</p>
                   <p className="mt-1">Only events in selected notification rooms will trigger alerts.</p>

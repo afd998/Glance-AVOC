@@ -5,7 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const CustomInput = React.forwardRef(({ value, onClick, disabled }, ref) => (
   <button
-    className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md text-base sm:text-lg font-semibold ${
+    className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 dark:bg-gray-800/70 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md text-base sm:text-lg font-semibold ${
       disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 dark:hover:border-blue-400'
     }`}
     onClick={onClick}
