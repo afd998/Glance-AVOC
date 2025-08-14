@@ -16,15 +16,15 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     const hour = startHour + i;
     const left = i * 60 * pixelsPerMinute;
     return (
-      <div
-        key={hour}
-        className="absolute text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-r border-gray-200 rounded px-1 dark:border-gray-700 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-md py-1"
-        style={{ 
-          left: left - 20,
-          top: '0px',
-          zIndex: 53
-        }}
-      >
+             <div
+         key={hour}
+         className="absolute text-center text-xs text-gray-700 dark:text-gray-300 px-2 py-1"
+         style={{ 
+           left: `${left}px`,
+           top: '0px',
+           zIndex: 53
+         }}
+       >
         {formatHour(hour)}
       </div>
     );
@@ -45,18 +45,8 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
   });
 
   return (
-    <div className="sticky top-0 transform -translate-y-5 w-full" style={{ zIndex: 53 }}>
-      {/* Y-axis background */}
-      <div 
-        className="absolute h-5" 
-        style={{ 
-          width: `${(endHour - startHour + 1) * 60 * pixelsPerMinute}px`,
-          top: '0',
-          zIndex: 52
-        }}
-      />
+    <div className="sticky top-0 w-full h-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/50 z-50" style={{ zIndex: 53 }}>
       {hourLabels}
-      <div className="h-[1px] bg-gray-200 dark:bg-gray-700 transform translate-y-5" style={{ width: `${(endHour - startHour + 1) * 60 * pixelsPerMinute}px` }}></div>
     </div>
   );
 } 
