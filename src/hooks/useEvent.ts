@@ -34,3 +34,5 @@ export function useEvent(eventId: number | null) {
     gcTime: 1000 * 60 * 60, // 1 hour
   });
 }
+
+

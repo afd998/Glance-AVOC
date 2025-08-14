@@ -6,7 +6,7 @@ export default function VerticalLines({ startHour, endHour, pixelsPerMinute }) {
     return (
       <div 
         key={i}
-        className="absolute top-0 w-px h-full bg-gray-300 dark:bg-gray-700"
+        className="absolute top-0 w-px h-full bg-white/60 dark:bg-white/60 backdrop-blur-sm"
         style={{ 
           left: `${left}px`,
           zIndex: 1

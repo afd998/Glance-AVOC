@@ -95,7 +95,7 @@ const QuarterCount: React.FC = () => {
   const quarterName = getQuarterName(closestQuarterStart);
 
   return (
-    <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+    <div className={`text-xs mt-1 px-3 py-1 rounded-full bg-white/60 dark:bg-white/20 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
       Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
     </div>
   );
