@@ -20,7 +20,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
         key={hour}
         className="absolute text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-r border-gray-200 rounded px-1 dark:border-gray-700 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-md py-1"
         style={{ 
-          left: left,
+          left: left - 20,
           top: '0px',
           zIndex: 53
         }}

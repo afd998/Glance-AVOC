@@ -124,10 +124,11 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Adjust height for specific event types and keep centered in the 96px room row
   const ROW_HEIGHT_PX = 96;
   const DEFAULT_EVENT_HEIGHT_PX = 88;
-  const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select KSM event types
+  const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
   const isReducedHeightEvent = (
     event.event_type === 'KSM: Kellogg Special Events (KGH)' ||
-    event.event_type === 'KSM: Kellogg FacStaff (KGH)'
+    event.event_type === 'KSM: Kellogg FacStaff (KGH)' ||
+    event.event_type === 'KEC'
   );
   const eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
   const eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;

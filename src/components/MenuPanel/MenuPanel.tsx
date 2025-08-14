@@ -7,9 +7,11 @@ import useRoomStore from '../../stores/roomStore';
 import useModalStore from '../../stores/modalStore';
 import SessionAssignmentsModal from './SessionAssignmentsModal';
 import NotificationsModal from './NotificationsModal';
+import BackgroundSelectorModal from './BackgroundSelectorModal';
 import UserProfileButton from './UserProfileButton';
 import { Database } from '../../types/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useBackground } from '../../contexts/BackgroundContext';
 
 interface MenuPanelProps {
   selectedDate: Date;
@@ -23,8 +25,10 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
   const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] = useState(false);
   const navigate = useNavigate();
   const { date } = useParams();
+  const { currentBackground, setCurrentBackground } = useBackground();
 
   // Handle menu open animation
   useEffect(() => {
@@ -147,6 +151,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                         {isDarkMode ? 'Dark' : 'Light'}
                       </span>
                     </button>
+                    {/* Background Selector */}
+                    <button
+                      onClick={() => setIsBackgroundSelectorOpen(true)}
+                      className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors"
+                    >
+                      <span>Background</span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        {currentBackground.replace(/\.(avif|jpeg|jpg|png)$/i, '')}
+                      </span>
+                    </button>
 
                   </div>
                 </div>
@@ -176,6 +190,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
       <NotificationsModal 
         isOpen={isNotificationsOpen} 
         onClose={() => setIsNotificationsOpen(false)} 
+      />
+      {/* Background Selector Modal */}
+      <BackgroundSelectorModal 
+        isOpen={isBackgroundSelectorOpen} 
+        onClose={() => setIsBackgroundSelectorOpen(false)}
+        currentBackground={currentBackground}
+        onBackgroundChange={setCurrentBackground}
       />
     </>
   );

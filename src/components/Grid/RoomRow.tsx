@@ -18,8 +18,8 @@ interface RoomRowProps {
 export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick, isEvenRow = false }: RoomRowProps) {
   return (
     <div className="flex h-24 border-b border-white/60 dark:border-white/60 bg-blue-50/40 dark:bg-blue-900/40">
-      <div className="sticky left-0 w-24 h-24 bg-gray-50/90 dark:bg-gray-800/90 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center" style={{ zIndex: 50 }}>
-        <span className="text-gray-900 dark:text-white font-semibold">{room}</span>
+      <div className="sticky left-0 w-24 h-24 bg-white/40 dark:bg-white/10 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex items-center justify-center shadow-lg" style={{ zIndex: 50 }}>
+        <span className="text-gray-900 dark:text-white font-semibold bg-white/60 dark:bg-white/20 backdrop-blur-sm px-2 py-1 rounded-md border border-white/20 dark:border-white/10 shadow-sm">{room}</span>
       </div>
       <div className="flex-1 h-24 relative">
         {roomEvents?.map((event) => (
