@@ -1,20 +1,18 @@
 import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBackground } from '../../hooks/useBackground';
 
 interface BackgroundSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentBackground: string;
-  onBackgroundChange: (background: string) => void;
 }
 
 const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
   isOpen,
-  onClose,
-  currentBackground,
-  onBackgroundChange
+  onClose
 }) => {
   const { isDarkMode } = useTheme();
+  const { currentBackground, setCurrentBackground, isUpdating } = useBackground();
 
   const backgroundOptions = [
     {
@@ -28,6 +26,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
       name: 'Gies',
       preview: '/Gies.avif',
       description: 'Gies College of Business background'
+    },
+    {
+      id: 'dusk.jpg',
+      name: 'Dusk',
+      preview: '/dusk.jpg',
+      description: 'Dusk background'
     },
     {
       id: 'Vista.avif',
@@ -71,10 +75,10 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : `${isDarkMode ? 'border-gray-600 hover:border-gray-500' : 'border-gray-200 hover:border-gray-300'}`
                 }`}
-                onClick={() => {
-                  onBackgroundChange(option.id);
-                  onClose();
-                }}
+                                 onClick={() => {
+                   setCurrentBackground(option.id);
+                   onClose();
+                 }}
               >
                                  {/* Preview Image */}
                  <div className="relative h-32 rounded-t-lg overflow-hidden">

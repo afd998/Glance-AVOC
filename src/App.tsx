@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
-import { BackgroundProvider } from './contexts/BackgroundContext';
+
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -29,25 +29,23 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <BackgroundProvider>
-          <QueryClientProvider client={queryClient}>
-            <Router>
-              <Layout>
-                <Routes>
-                  <Route path="/auth" element={<LandingPage />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/faculty" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/faculty/:facultyId" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-                  <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
-                </Routes>
-              </Layout>
-            </Router>
-          </QueryClientProvider>
-        </BackgroundProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/auth" element={<LandingPage />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path=":date" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path=":date/faculty" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path=":date/faculty/:facultyId" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+                <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+              </Routes>
+            </Layout>
+          </Router>
+        </QueryClientProvider>
       </ThemeProvider>
     </AuthProvider>
   );
