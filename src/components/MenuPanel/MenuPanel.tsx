@@ -11,7 +11,7 @@ import BackgroundSelectorModal from './BackgroundSelectorModal';
 import UserProfileButton from './UserProfileButton';
 import { Database } from '../../types/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBackground } from '../../contexts/BackgroundContext';
+import { useBackground } from '../../hooks/useBackground';
 
 interface MenuPanelProps {
   selectedDate: Date;
@@ -158,7 +158,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
                     >
                       <span>Background</span>
                       <span className="text-blue-600 dark:text-blue-400">
-                        {currentBackground.replace(/\.(avif|jpeg|jpg|png)$/i, '')}
+                        {currentBackground ? currentBackground.replace(/\.(avif|jpeg|jpg|png)$/i, '') : 'Loading...'}
                       </span>
                     </button>
 
@@ -195,8 +195,6 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
       <BackgroundSelectorModal 
         isOpen={isBackgroundSelectorOpen} 
         onClose={() => setIsBackgroundSelectorOpen(false)}
-        currentBackground={currentBackground}
-        onBackgroundChange={setCurrentBackground}
       />
     </>
   );

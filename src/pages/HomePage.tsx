@@ -17,7 +17,7 @@ import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
 import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
 import { Database } from "../types/supabase";
-import { useBackground } from "../contexts/BackgroundContext";
+
 
 
 export default function HomePage() {
@@ -28,7 +28,6 @@ export default function HomePage() {
   const { date, eventId } = useParams();
   const { selectedRooms, setAllRooms } = useRoomStore();
   const { rooms, isLoading: roomsLoading } = useRooms();
-  const { currentBackground } = useBackground();
 
   React.useEffect(() => {
     if (rooms.length > 0) {
@@ -163,21 +162,8 @@ export default function HomePage() {
     return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
   }
 
-  return (
+    return (
     <div className="flex-col items-center justify-center p-4 min-h-screen relative">
-      {/* Blurred background image with 3D parallax effect */}
-             <div 
-         className="absolute inset-0 -z-10 bg-gray-100 dark:bg-gray-900"
-         style={{
-           backgroundImage: currentBackground ? `url('/${currentBackground}')` : 'none',
-           backgroundSize: "cover",
-           backgroundRepeat: "no-repeat",
-           backgroundPosition: "center",
-           filter: "blur(8px)",
-           transform: "translateZ(0)"
-         }}
-         id="parallax-background"
-       />
              <AppHeader 
          selectedDate={selectedDate}
          setSelectedDate={handleDateChange}
