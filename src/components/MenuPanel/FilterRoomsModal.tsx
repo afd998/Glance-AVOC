@@ -37,21 +37,33 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[9999]"
       onClick={onClose}
     >
       <div 
-        className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-lg shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'
+        className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border transition-all duration-300 ${
+          isDarkMode 
+            ? 'bg-gray-900/40 backdrop-blur-xl border-white/10 text-white' 
+            : 'bg-white/40 backdrop-blur-xl border-white/20 text-gray-900'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold">Filter Events</h2>
+        <div className={`flex justify-between items-center p-6 border-b backdrop-blur-sm ${
+          isDarkMode 
+            ? 'border-white/10 bg-gray-800/20' 
+            : 'border-gray-200/30 bg-white/20'
+        }`}>
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Filter Events
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+              isDarkMode
+                ? 'text-gray-300 hover:text-white hover:bg-white/10'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-black/10'
+            }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -68,14 +80,28 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
 
             {/* Room Filter Table or Message */}
             {currentFilter === 'My Events' ? (
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Filter Events by Room</h3>
-                <div className="flex items-center justify-center h-80 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className={`rounded-xl p-4 shadow-lg border backdrop-blur-sm ${
+                isDarkMode 
+                  ? 'bg-gray-800/30 border-white/10' 
+                  : 'bg-white/30 border-white/30'
+              }`}>
+                <h3 className={`text-lg font-medium mb-3 ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>Filter Events by Room</h3>
+                <div className={`flex items-center justify-center h-80 rounded-xl border backdrop-blur-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-900/20 border-white/5' 
+                    : 'bg-white/20 border-gray-200/30'
+                }`}>
                   <div className="text-center">
-                    <svg className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-12 h-12 mx-auto mb-4 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    <p className={`text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
                       This filter will only show<br />
                       events assigned to you
                     </p>
@@ -89,14 +115,18 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className={`p-6 border-t backdrop-blur-sm ${
+          isDarkMode 
+            ? 'border-white/10 bg-gray-800/20' 
+            : 'border-gray-200/30 bg-white/20'
+        }`}>
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className={`px-4 py-2 text-sm font-medium rounded-md ${
+              className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm border ${
                 isDarkMode 
-                  ? 'text-gray-300 hover:text-gray-100' 
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-gray-300 hover:text-white bg-gray-700/30 hover:bg-gray-600/40 border-white/10 hover:border-white/20' 
+                  : 'text-gray-700 hover:text-gray-900 bg-white/30 hover:bg-white/50 border-gray-200/30 hover:border-gray-300/50'
               }`}
             >
               Close

@@ -5,8 +5,10 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const CustomInput = React.forwardRef(({ value, onClick, disabled }, ref) => (
   <button
-    className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 dark:bg-gray-800/70 dark:text-white text-center whitespace-nowrap transition-all duration-200 hover:shadow-md text-base sm:text-lg font-semibold ${
-      disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 dark:hover:border-blue-400'
+    className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-base sm:text-lg font-semibold ${
+      disabled 
+        ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-white/50 dark:bg-gray-800/50 dark:text-white' 
+        : 'border-gray-300/70 dark:border-gray-600/70 bg-white/80 dark:bg-gray-800/80 dark:text-white hover:border-blue-400/70 dark:hover:border-blue-400/70 hover:bg-white/90 dark:hover:bg-gray-800/90'
     }`}
     onClick={onClick}
     ref={ref}
@@ -33,10 +35,10 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
     setSelectedDate(newDate);
   };
 
-  // Custom CSS classes for dark mode
+  // Custom CSS classes for glassmorphism
   const customPopperClassName = isDarkMode 
-    ? "z-[9999] react-datepicker-dark" 
-    : "z-[9999]";
+    ? "z-[9999] react-datepicker-dark react-datepicker-glassmorphism" 
+    : "z-[9999] react-datepicker-glassmorphism";
 
   return (
     <>
@@ -59,7 +61,7 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading }) => {
         portalId="root"
         withPortal
         disabled={isLoading}
-        calendarClassName={isDarkMode ? "react-datepicker-dark" : ""}
+        calendarClassName={isDarkMode ? "react-datepicker-dark react-datepicker-glassmorphism" : "react-datepicker-glassmorphism"}
       />
     </>
   );

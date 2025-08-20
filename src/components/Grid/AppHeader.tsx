@@ -40,10 +40,10 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
+              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 shadow-sm hover:shadow-md transform hover:scale-102'
+                  ? 'opacity-50 cursor-not-allowed border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300' 
+                  : 'border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20'
               }`}
               aria-label="Go to today"
             >
@@ -147,10 +147,10 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
+              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 shadow-sm hover:shadow-md transform hover:scale-102'
+                  ? 'opacity-50 cursor-not-allowed border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300' 
+                  : 'border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20'
               }`}
               aria-label="Go to today"
             >

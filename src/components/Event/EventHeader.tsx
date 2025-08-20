@@ -119,9 +119,7 @@ export default function EventHeader({
     <div className="flex justify-between items-center h-4 transition-all duration-200 ease-in-out">
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
-          className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
-            currentEvent.event_type === 'KEC' ? 'text-gray-700 dark:text-white' : 'text-white'
-          }`}
+          className="text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out text-white"
           title={timeDisplay}
           style={{
             transform: isHovering ? 'scale(1.1)' : 'scale(1)',

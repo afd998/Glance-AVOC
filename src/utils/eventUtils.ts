@@ -18,6 +18,7 @@ interface EventTypeInfo {
   isFacStaffEvent: boolean;
   isLecture: boolean;
   bgColor: string;
+  contentBgColor: string;
 }
 
 interface EventPosition {
@@ -104,17 +105,34 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   
   // Determine background color
   let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
-  if (eventType === 'KEC') bgColor = "bg-gray-400"; // KEC events get medium gray background
-  else if (eventType === 'CMC') bgColor = "bg-red-300"; // CMC events get pastel red background
-  else if (isLecture) bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
-  else if (isStudentEvent) bgColor = "bg-[#b8a68a]";
-  else if (isFacStaffEvent) bgColor = "bg-[#9b8ba5]";
+  let contentBgColor = "bg-gray-500"; // Slightly darker version for content sections
+  
+  if (eventType === 'KEC') {
+    bgColor = "bg-gray-400"; // KEC events get medium gray background
+    contentBgColor = "bg-[#8a91a0]"; // Custom slightly darker version of #9da4b0
+  } else if (eventType === 'CMC') {
+    bgColor = "bg-red-300"; // CMC events get pastel red background
+    contentBgColor = "bg-red-400"; // Slightly darker red for content
+  } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
+    bgColor = "bg-[#9b8ba5]"; // KSM purple
+    contentBgColor = "bg-[#8f7f99]"; // Slightly darker purple for content
+  } else if (isLecture) {
+    bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
+    contentBgColor = "bg-[#5a4a7a]"; // Slightly darker purple for content
+  } else if (isStudentEvent) {
+    bgColor = "bg-[#b8a68a]";
+    contentBgColor = "bg-[#ad9b80]"; // Slightly darker beige for content
+  } else if (isFacStaffEvent) {
+    bgColor = "bg-[#9b8ba5]";
+    contentBgColor = "bg-[#8f7f99]"; // Slightly darker purple for content
+  }
   
   return {
     isStudentEvent,
     isFacStaffEvent,
     isLecture,
-    bgColor
+    bgColor,
+    contentBgColor
   };
 };
 

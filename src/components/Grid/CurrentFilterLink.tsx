@@ -22,11 +22,7 @@ const CurrentFilterLink: React.FC = () => {
   return (
     <button
       onClick={openFilterRoomsModal}
-      className={`ml-4 p-2 rounded-lg border transition-colors ${
-        isDarkMode 
-          ? 'bg-blue-900/20 border-blue-300/30 text-blue-200 hover:bg-blue-800/30' 
-          : 'bg-blue-50/50 border-blue-200/50 text-blue-700 hover:bg-blue-100/70'
-      }`}
+      className="ml-4 p-2 rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20"
     >
       <div className="flex items-center gap-2">
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

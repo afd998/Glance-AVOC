@@ -56,11 +56,11 @@ const AcademicCalendarInfo: React.FC = () => {
   return (
     <div className="ml-4 group relative">
       {/* Icon only - always visible */}
-      <div className={`flex items-center justify-center p-2 rounded-lg border ${
-        isDarkMode 
-          ? 'bg-purple-900/20 border-purple-300/30 text-purple-200' 
-          : 'bg-purple-50/50 border-purple-200/50 text-purple-700'
-      }`}>
+      <div className="flex items-center justify-center p-2 rounded-lg border" style={{
+        backgroundColor: isDarkMode ? 'rgba(139, 114, 196, 0.2)' : 'rgba(139, 114, 196, 0.1)',
+        borderColor: isDarkMode ? 'rgba(139, 114, 196, 0.3)' : 'rgba(139, 114, 196, 0.2)',
+        color: isDarkMode ? 'rgba(139, 114, 196, 0.9)' : '#8b72c4'
+      }}>
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
@@ -68,17 +68,26 @@ const AcademicCalendarInfo: React.FC = () => {
       
                            {/* Expanded content - visible on hover */}
                 <div className="absolute left-0 top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50">
-          <div className="p-3 min-w-max">
+          <div className="p-3 min-w-max rounded-lg border backdrop-blur-sm" style={{
+            backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            borderColor: isDarkMode ? 'rgba(139, 114, 196, 0.3)' : 'rgba(139, 114, 196, 0.2)'
+          }}>
           
           <div className="flex flex-wrap gap-2">
             {calendarItems.map((item) => (
               <div 
                 key={item.id} 
-                className={`text-xs p-2 rounded whitespace-nowrap ${
-                  isDarkMode 
-                    ? 'bg-purple-800/40 hover:bg-purple-700/50 text-purple-200' 
-                    : 'bg-purple-100/70 hover:bg-purple-200/80 text-purple-700'
-                } transition-colors`}
+                className="text-xs p-2 rounded whitespace-nowrap transition-colors"
+                style={{
+                  backgroundColor: isDarkMode ? 'rgba(139, 114, 196, 0.4)' : 'rgba(139, 114, 196, 0.15)',
+                  color: isDarkMode ? 'rgba(139, 114, 196, 0.9)' : '#8b72c4'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(139, 114, 196, 0.5)' : 'rgba(139, 114, 196, 0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(139, 114, 196, 0.4)' : 'rgba(139, 114, 196, 0.15)';
+                }}
               >
                 {item.label || 'No label'}
               </div>
