@@ -20,6 +20,9 @@ function LectureEvent({ event, facultyMember, isHovering }: EventContentProps) {
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
   
+  // Get theme colors for this event
+  const { contentBgColor } = getEventTypeInfo(event);
+  
   // Calculate avatar tilt
   const getAvatarTilt = (name: string | null | undefined): number => {
     if (!name) return 2;
@@ -32,20 +35,26 @@ function LectureEvent({ event, facultyMember, isHovering }: EventContentProps) {
          <div className="flex flex-row bg-[#6b5b95] h-16 w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out">
       {event.instructor_name && (
                  <div 
-           className="flex flex-col items-center justify-center gap-0.5  bg-[#3d3659] rounded  h-16 z-10 transition-all duration-200 ease-in-out"
+           className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded h-16 z-10 transition-all duration-200 ease-in-out`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
-          {facultyMember?.kelloggdirectory_image_url ? (
-            <div className="relative transition-all duration-200 ease-in-out">
+                    {facultyMember?.kelloggdirectory_image_url ? (
+            <div className="relative h-12 w-12 rounded-full overflow-hidden transition-all duration-200 ease-in-out">
                              <img 
-                 src={facultyMember.kelloggdirectory_image_url} 
-                 alt={event.instructor_name}
-                 className="h-12 w-12 rounded-full object-cover filter grayscale opacity-80 transition-all duration-200 ease-in-out"
-                 style={{ transform: 'scale(1)' }}
-                 onError={(e) => {
-                   (e.target as HTMLImageElement).style.display = 'none';
-                 }}
-               />
+                src={facultyMember.kelloggdirectory_image_url} 
+                alt={event.instructor_name}
+                className={`h-12 w-12 rounded-full object-cover transition-all duration-200 ease-in-out ${
+                  isHovering 
+                    ? 'scale-125 opacity-100' 
+                    : 'scale-100 opacity-80'
+                }`}
+                style={{
+                  filter: isHovering ? 'grayscale(1) brightness(1.15)' : 'grayscale(1) brightness(1)'
+                }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
               <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
             </div>
           ) : (
@@ -99,10 +108,16 @@ function ExamEvent({ event, isHovering }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
+  
+  // Get theme colors for this event
+  const { contentBgColor } = getEventTypeInfo(event);
+  
+  // Dynamic padding - exams are usually single line
+  const paddingY = 'py-1';
 
   return (
-    <div className="bg-red-600 rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
+    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
+      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
         <span 
           className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
           style={{ 
@@ -123,10 +138,16 @@ function LabEvent({ event, isHovering }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
+  
+  // Get theme colors for this event
+  const { contentBgColor } = getEventTypeInfo(event);
+  
+  // Dynamic padding - labs are usually single line
+  const paddingY = 'py-1';
 
   return (
-    <div className="bg-green-600 rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
+    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
+      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
         <span 
           className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
           style={{ 
@@ -149,14 +170,22 @@ function DefaultEvent({ event, isHovering }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
+  
+  // Get theme colors for this event
+  const { contentBgColor } = getEventTypeInfo(event);
+  
+  // Estimate number of lines based on text length and typical character width
+  const estimatedLineCount = Math.ceil(mainEventName.length / 25); // Rough estimate: 25 chars per line
+  const actualLineCount = Math.min(estimatedLineCount, 3); // Max 3 lines as per WebkitLineClamp
+  
+  // Dynamic padding based on line count
+  const paddingY = actualLineCount === 1 ? 'py-1' : actualLineCount === 2 ? 'py-0.5' : 'py-0.5';
 
   return (
-    <div className="rounded h-full transition-all duration-200 ease-in-out min-w-0 overflow-hidden">
-      <div className="flex items-center justify-start h-full transition-all duration-200 ease-in-out pl-1 pr-1 py-0.5">
+    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
+      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
         <span 
-          className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-tight break-words whitespace-normal ${
-            event.event_type === 'KEC' ? 'text-gray-700 dark:text-white' : 'text-white'
-          }`}
+          className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight break-words whitespace-normal"
           style={{ 
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
             transformOrigin: 'left center',

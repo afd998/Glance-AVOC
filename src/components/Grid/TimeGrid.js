@@ -13,12 +13,17 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
   };
 
   const hourLabels = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+    // Skip first and last labels
+    if (i === 0 || i === endHour - startHour) {
+      return null;
+    }
+    
     const hour = startHour + i;
     const left = i * 60 * pixelsPerMinute;
     return (
              <div
          key={hour}
-         className="absolute text-center text-xs text-gray-700 dark:text-gray-300 px-2 py-1"
+         className="absolute text-center text-xs text-white px-2 py-1"
          style={{ 
            left: `${left}px`,
            top: '0px',
@@ -28,25 +33,31 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
         {formatHour(hour)}
       </div>
     );
-  });
+  }).filter(Boolean);
 
-  const verticalLines = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+  const shortVerticalLines = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+    // Skip first and last lines to match the labels
+    if (i === 0 || i === endHour - startHour) {
+      return null;
+    }
+    
     const left = i * 60 * pixelsPerMinute;
     return (
       <div 
         key={i}
-        className="absolute top-5 w-px h-[calc(100vh-8rem)] bg-gray-900 dark:bg-gray-950"
+        className="absolute top-1 w-px h-6 bg-white"
         style={{ 
           left: `${left}px`,
-          zIndex: 1
+          zIndex: 70
         }}
       />
     );
-  });
+  }).filter(Boolean);
 
   return (
-    <div className="sticky top-0 w-full h-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/50 z-50" style={{ zIndex: 53 }}>
+    <div className="sticky top-0 w-full h-8 backdrop-blur-sm border-b border-purple-400/20 dark:border-purple-500/50 z-50" style={{ zIndex: 60, backgroundColor: '#8b72c4cc' }}>
       {hourLabels}
+      {shortVerticalLines}
     </div>
   );
 } 

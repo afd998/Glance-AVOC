@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import TimeGrid from "../components/Grid/TimeGrid";
 import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
@@ -23,6 +23,8 @@ import { Database } from "../types/supabase";
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const currentTimeRef = useRef(new Date());
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState({ left: 0, top: 0 });
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
@@ -65,11 +67,17 @@ export default function HomePage() {
   }, [events, scheduleNotificationsForEvents]);
 
   React.useEffect(() => {
+    // Initial time set
+    const now = new Date();
+    currentTimeRef.current = now;
+    setCurrentTime(now);
+    
+    // Update every 30 seconds for more responsive indicator
     const timer = setInterval(() => {
       const newTime = new Date();
       currentTimeRef.current = newTime;
       setCurrentTime(newTime);
-    }, 60000);
+    }, 30000);
     return () => { clearInterval(timer); };
   }, []);
 
@@ -116,6 +124,14 @@ export default function HomePage() {
   // }, []);
 
   const handleDateChange = (newDate: Date) => {
+    // Save current scroll position before navigating
+    if (gridContainerRef.current) {
+      setScrollPosition({
+        left: gridContainerRef.current.scrollLeft,
+        top: gridContainerRef.current.scrollTop
+      });
+    }
+    
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
     const formattedDate = localDate.toISOString().split('T')[0];
@@ -130,6 +146,21 @@ export default function HomePage() {
       navigate(`/${formattedDate}`, { replace: true });
     }
   }, [date, selectedDate, navigate]);
+
+  // Restore scroll position after date change and content is loaded
+  useEffect(() => {
+    if (gridContainerRef.current && !isLoading && !roomsLoading && selectedRooms.length > 0) {
+      // Use a small delay to ensure content is fully rendered
+      const timer = setTimeout(() => {
+        if (gridContainerRef.current) {
+          gridContainerRef.current.scrollLeft = scrollPosition.left;
+          gridContainerRef.current.scrollTop = scrollPosition.top;
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDate, isLoading, roomsLoading, selectedRooms.length, scrollPosition]);
 
   const handleEventClick = (event: Database['public']['Tables']['events']['Row']) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
@@ -170,7 +201,7 @@ export default function HomePage() {
          isLoading={isLoading}
          events={events}
        />
-       <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
+       <div ref={gridContainerRef} className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
          <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
@@ -188,6 +219,7 @@ export default function HomePage() {
             const nextRoom = selectedRooms[index + 1];
             const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
             const isFloorBreak = currentFloor !== nextFloor;
+            const isLastRow = index === selectedRooms.length - 1;
             return (
               <RoomRow
                 key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
@@ -199,6 +231,7 @@ export default function HomePage() {
                 isFloorBreak={isFloorBreak}
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}
+                isLastRow={isLastRow}
               />
             );
           })}

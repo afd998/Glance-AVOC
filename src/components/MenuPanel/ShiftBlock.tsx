@@ -396,7 +396,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     if (event.shiftKey && lastSelectedRoom) {
       // Shift+Click: select range
       console.log('🔄 Shift+Click range selection');
-      const allRoomsInBlock = [
+      const allRoomsInBlock: string[] = [
         ...assignments.flatMap(a => a.rooms || []),
         ...unassignedRooms
       ];

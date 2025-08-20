@@ -68,8 +68,14 @@ const PresetManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">My Filters</h3>
+    <div className={`rounded-xl p-4 shadow-lg border backdrop-blur-sm ${
+      isDarkMode 
+        ? 'bg-gray-800/30 border-white/10' 
+        : 'bg-white/30 border-white/30'
+    }`}>
+      <h3 className={`text-lg font-medium mb-3 ${
+        isDarkMode ? 'text-white' : 'text-gray-900'
+      }`}>My Filters</h3>
       
       <div className="space-y-3">
         {/* Filters List */}
@@ -77,10 +83,12 @@ const PresetManager: React.FC = () => {
           {/* My Events - Special built-in filter */}
           <div
             onClick={() => handleLoadMyEvents()}
-            className={`flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors ${
+            className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
               currentFilter === 'My Events'
-                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-                : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 bg-white dark:bg-gray-800'
+                ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
+                : isDarkMode
+                ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
+                : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
             }`}
           >
             <div className="flex items-center flex-1">
@@ -124,10 +132,12 @@ const PresetManager: React.FC = () => {
                 <div
                   key={filter.id}
                   onClick={() => handleLoadFilter(filter)}
-                  className={`flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
                     isCurrentFilter
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-                      : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 bg-white dark:bg-gray-800'
+                      ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
+                      : isDarkMode
+                      ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
+                      : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
                   }`}
                 >
                   <div className="flex items-center flex-1">
@@ -174,10 +184,12 @@ const PresetManager: React.FC = () => {
             {/* Add New Filter Button */}
             <div
               onClick={handleCreateNewFilter}
-              className={`flex items-center justify-between p-3 border-2 border-dashed rounded-md cursor-pointer transition-colors ${
+              className={`flex items-center justify-between p-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
                 isCreatingNew
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-25 dark:hover:bg-blue-900/10 bg-white dark:bg-gray-800'
+                  ? 'border-blue-400/50 bg-blue-500/20 hover:bg-blue-500/30 shadow-lg shadow-blue-500/20'
+                  : isDarkMode
+                  ? 'border-white/20 hover:border-blue-400/50 hover:bg-blue-500/10 bg-gray-700/20'
+                  : 'border-gray-300/50 hover:border-blue-400/50 hover:bg-blue-500/10 bg-white/20'
               }`}
             >
               <div className="flex items-center flex-1">
