@@ -1,6 +1,7 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
 import { getEventTypeInfo } from '../../utils/eventUtils';
+import { FacultyAvatar } from '../FacultyAvatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -39,24 +40,13 @@ function LectureEvent({ event, facultyMember, isHovering }: EventContentProps) {
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
                     {facultyMember?.kelloggdirectory_image_url ? (
-            <div className="relative h-12 w-12 rounded-full overflow-hidden transition-all duration-200 ease-in-out">
-                             <img 
-                src={facultyMember.kelloggdirectory_image_url} 
-                alt={event.instructor_name}
-                className={`h-12 w-12 rounded-full object-cover transition-all duration-200 ease-in-out ${
-                  isHovering 
-                    ? 'scale-125 opacity-100' 
-                    : 'scale-100 opacity-80'
-                }`}
-                style={{
-                  filter: isHovering ? 'grayscale(1) brightness(1.15)' : 'grayscale(1) brightness(1)'
-                }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
-            </div>
+            <FacultyAvatar
+              imageUrl={facultyMember.kelloggdirectory_image_url}
+              cutoutImageUrl={facultyMember.cutout_image}
+              instructorName={event.instructor_name || ''}
+              isHovering={isHovering}
+              size="md"
+            />
           ) : (
             <span className="text-sm transition-all duration-200 ease-in-out" style={{ transform: 'scale(1)' }}>
               👤
