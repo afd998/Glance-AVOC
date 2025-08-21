@@ -1,0 +1,19 @@
+{
+  "name": "glance-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Processing scripts for Glance faculty data",
+  "main": "process-faculty-cutouts.js",
+  "scripts": {
+    "process-cutouts": "node process-faculty-cutouts.js",
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "@imgly/background-removal-node": "^1.4.5",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
+  },
+  "author": "",
+  "license": "ISC"
+}

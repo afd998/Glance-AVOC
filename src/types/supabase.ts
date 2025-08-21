@@ -110,6 +110,7 @@ export type Database = {
         Row: {
           complexity: number | null
           created_at: string
+          cutout_image: string | null
           id: number
           kelloggdirectory_bio: string | null
           kelloggdirectory_bio_url: string | null
@@ -129,6 +130,7 @@ export type Database = {
         Insert: {
           complexity?: number | null
           created_at?: string
+          cutout_image?: string | null
           id?: number
           kelloggdirectory_bio?: string | null
           kelloggdirectory_bio_url?: string | null
@@ -148,6 +150,7 @@ export type Database = {
         Update: {
           complexity?: number | null
           created_at?: string
+          cutout_image?: string | null
           id?: number
           kelloggdirectory_bio?: string | null
           kelloggdirectory_bio_url?: string | null
