@@ -79,6 +79,8 @@ export function useEvents(date: Date) {
   
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
+  console.log('🔍 [useEvents] Received date object:', date);
+  console.log('🔍 [useEvents] Converted to dateString:', dateString);
   
   // Calculate days from today to determine if we should fetch
   const today = new Date();
