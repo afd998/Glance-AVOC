@@ -58,11 +58,11 @@ export function FacultyAvatar({
 
   return (
     <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-in-out ${className}`} style={{ overflow: 'visible' }}>
-      {/* Background image */}
+      {/* Purple gradient background */}
       <div 
         className="absolute inset-0 rounded-full z-0" 
         style={{ 
-          backgroundImage: 'url(/classroom.png)',
+          background: 'linear-gradient(135deg, #6b5b95 0%, #886ec4 50%, #9b8ce8 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -92,7 +92,7 @@ export function FacultyAvatar({
             transform={isHovering ? "translate(0 8)" : "translate(0 10)"}
             className="transition-all duration-300 ease-in-out"
           >
-            {/* Foreground image */}
+            {/* Foreground image with purple tint */}
             <image 
               width="120" 
               height="144" 
@@ -104,7 +104,10 @@ export function FacultyAvatar({
                 transformOrigin: '50% 50%',
                 transform: isHovering 
                   ? 'translateY(-30px) scale(1.7)' 
-                  : 'translateY(-30px) scale(1.5)'
+                  : 'translateY(-30px) scale(1.5)',
+                filter: isHovering 
+                  ? 'sepia(1) hue-rotate(240deg) saturate(0.8) brightness(0.9) contrast(1.2)'
+                  : 'sepia(1) hue-rotate(240deg) saturate(0.8) brightness(0.7) contrast(1.2)'
               }}
               href={cutoutImageUrl}
             />
