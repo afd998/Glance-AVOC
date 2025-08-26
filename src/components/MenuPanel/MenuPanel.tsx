@@ -23,6 +23,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
   const [isAnimating, setIsAnimating] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
+
   const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] = useState(false);

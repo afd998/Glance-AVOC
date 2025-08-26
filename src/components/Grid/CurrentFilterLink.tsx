@@ -22,13 +22,14 @@ const CurrentFilterLink: React.FC = () => {
   return (
     <button
       onClick={openFilterRoomsModal}
-      className="ml-4 p-2 rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20"
+      className="px-2 py-1 transition-all duration-200 hover:scale-105 text-white hover:text-gray-200"
+      title="Current Filter"
     >
-      <div className="flex items-center gap-2">
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <div className="flex items-center gap-1">
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
         </svg>
-        <span className="text-sm font-medium">{displayText}</span>
+        <span className="text-xs font-medium">{displayText}</span>
       </div>
     </button>
   );

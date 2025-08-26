@@ -42,11 +42,8 @@ export default function HomePage() {
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
     }
-    console.log('🔍 [HomePage] URL date parameter:', date);
     const [year, month, day] = date.split('-').map(Number);
-    console.log('🔍 [HomePage] Parsed date parts:', { year, month, day });
     const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
-    console.log('🔍 [HomePage] Final selectedDate:', parsedDate, 'ISO:', parsedDate.toISOString().split('T')[0]);
     return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   }, [date]);
 
@@ -216,7 +213,7 @@ export default function HomePage() {
               pixelsPerMinute={pixelsPerMinute}
             />
           </div>
-          {selectedRooms.map((room: string, index: number) => {
+          {selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
             const roomEvents = getFilteredEventsForRoom(room);
             const currentFloor = room.match(/GH (\d)/)?.[1];
             const nextRoom = selectedRooms[index + 1];

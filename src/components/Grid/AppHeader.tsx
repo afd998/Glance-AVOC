@@ -2,7 +2,7 @@ import React from 'react';
 import DatePickerComponent from './DatePickerComponent';
 import MenuPanel from '../MenuPanel/MenuPanel';
 import AcademicCalendarInfo from './AcademicCalendarInfo';
-import CurrentFilterLink from './CurrentFilterLink';
+
 import QuarterCount from './QuarterCount';
 import { Database } from '../../types/supabase';
 import { NotificationBell } from './NotificationBell';
@@ -108,7 +108,6 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-center">
-            <CurrentFilterLink />
           </div>
           
           <div className="flex items-center justify-end gap-2">
@@ -215,7 +214,6 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-center">
-            {false && <CurrentFilterLink />}
           </div>
           
           <div className="flex items-center justify-end gap-2">

@@ -82,7 +82,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Use the new room_name field instead of parsing subject_itemName
   const roomName = event.room_name;
   
-  const roomIndex = rooms.indexOf(roomName || '');
+  // For merged room events (containing &), find the base room index
+  let roomIndex: number;
+  if (roomName?.includes('&')) {
+    // Extract the base room name (everything before &)
+    const baseRoomName = roomName.split('&')[0];
+    roomIndex = rooms.indexOf(baseRoomName);
+  } else {
+    roomIndex = rooms.indexOf(roomName || '');
+  }
   
   if (roomIndex === -1) {
     return null;
@@ -125,13 +133,30 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const ROW_HEIGHT_PX = 96;
   const DEFAULT_EVENT_HEIGHT_PX = 88;
   const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
+  const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
+  
+  // Check if this is a merged room event (contains &)
+  const isMergedRoomEvent = event.room_name?.includes('&') || false;
+  
   const isReducedHeightEvent = (
     event.event_type === 'KSM: Kellogg Special Events (KGH)' ||
     event.event_type === 'KSM: Kellogg FacStaff (KGH)' ||
     event.event_type === 'KEC'
   );
-  const eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
-  const eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
+  
+  // Determine event height: merged rooms get double height, otherwise follow existing rules
+  let eventHeightPx: number;
+  let eventTopPx: string;
+  
+  if (isMergedRoomEvent) {
+    eventHeightPx = MERGED_ROOM_HEIGHT_PX;
+    // Position merged room events at the top of the row (they extend downward into next room space)
+    eventTopPx = '0px';
+  } else {
+    eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
+    // Center normal events in the row
+    eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
+  }
 
   return (
     <div
@@ -169,6 +194,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           facultyMember={facultyMember || null}
           isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
+          isMergedRoomEvent={isMergedRoomEvent}
                 />
       </div>
       {isClamped && continuationWidth > 0 && (
