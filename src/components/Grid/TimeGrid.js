@@ -1,6 +1,8 @@
 import React from 'react';
+import CurrentFilterLink from './CurrentFilterLink';
 
 export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
+  
   const hours = Array.from(
     { length: endHour - startHour + 1 },
     (_, i) => startHour + i
@@ -55,7 +57,11 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
   }).filter(Boolean);
 
   return (
-    <div className="sticky top-0 w-full h-8 backdrop-blur-sm border-b border-purple-400/20 dark:border-purple-500/50 z-50" style={{ zIndex: 60, backgroundColor: '#8b72c4cc' }}>
+    <div className="sticky top-0 w-full h-8 backdrop-blur-sm border-b border-purple-400/20 dark:border-purple-500/50 z-50 flex items-center" style={{ zIndex: 60, backgroundColor: '#8b72c4cc' }}>
+      {/* Current Filter Link at the beginning of x-axis */}
+      <div className="absolute left-2 top-0 h-full flex items-center z-[70]">
+        <CurrentFilterLink />
+      </div>
       {hourLabels}
       {shortVerticalLines}
     </div>

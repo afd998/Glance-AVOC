@@ -38,7 +38,6 @@ const fetchEvents = async ({ queryKey }: { queryKey: [string, Date, Date] }): Pr
     const endOfDay = new Date(targetDate);
     endOfDay.setDate(targetDate.getDate() + 1);
     
-    console.log(`📅 useEvents: Fetching events for ${targetDate.toISOString().split('T')[0]} (${daysDifference} days from today)`);
     
     // Query events for the target date using the new date column
     const { data, error } = await supabase
@@ -48,7 +47,6 @@ const fetchEvents = async ({ queryKey }: { queryKey: [string, Date, Date] }): Pr
       .order('start_time', { ascending: true });
       
     if (error) {
-      console.error('❌ useEvents: Supabase error:', error);
       throw error;
     }
     
@@ -79,8 +77,6 @@ export function useEvents(date: Date) {
   
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
-  console.log('🔍 [useEvents] Received date object:', date);
-  console.log('🔍 [useEvents] Converted to dateString:', dateString);
   
   // Calculate days from today to determine if we should fetch
   const today = new Date();

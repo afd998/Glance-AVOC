@@ -12,12 +12,14 @@ const useRoomStore = create(
       // Actions
       setAllRooms: (rooms) => {
         const { selectedRooms } = get();
-        // If selectedRooms is empty (first time), initialize with all rooms
-        const newSelectedRooms = selectedRooms.length === 0 ? rooms : selectedRooms;
+        // Filter out rooms with & since they don't get their own rows
+        const filteredRooms = rooms.filter(room => !room.includes('&'));
+        // If selectedRooms is empty (first time), initialize with filtered rooms
+        const newSelectedRooms = selectedRooms.length === 0 ? filteredRooms : selectedRooms.filter(room => !room.includes('&'));
         set({ 
-          allRooms: rooms,
+          allRooms: filteredRooms,
           selectedRooms: newSelectedRooms,
-          notificationRooms: rooms 
+          notificationRooms: filteredRooms 
         });
       },
       
