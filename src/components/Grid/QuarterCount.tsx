@@ -95,8 +95,12 @@ const QuarterCount: React.FC = () => {
   const quarterName = getQuarterName(closestQuarterStart);
 
   return (
-    <div className={`text-xs mt-1 px-3 py-1 rounded-full bg-white/60 dark:bg-white/20 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-      Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
+    <div className={`text-xs mt-1 px-3 py-1.5 rounded-full bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-white/40 dark:hover:bg-white/15 ${isDarkMode ? 'text-white' : 'text-gray-700'} relative overflow-hidden`}>
+      {/* Glassmorphic shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+      <div className="relative z-10">
+        Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
+      </div>
     </div>
   );
 };

@@ -13,7 +13,32 @@ const useRoomStore = create(
       setAllRooms: (rooms) => {
         const { selectedRooms } = get();
         // Filter out rooms with & since they don't get their own rows
-        const filteredRooms = rooms.filter(room => !room.includes('&'));
+        let filteredRooms = rooms.filter(room => !room.includes('&'));
+        
+        // Add missing constituent rooms that might be needed for merged events
+        // This ensures rooms like GH 1430, GH 2410B, etc. exist even if not in database
+        const additionalRooms = [];
+        const roomSet = new Set(filteredRooms);
+        
+        // Check for missing counterpart rooms
+        filteredRooms.forEach(room => {
+          // For 1420 -> ensure 1430 exists
+          if (room === 'GH 1420' && !roomSet.has('GH 1430')) {
+            additionalRooms.push('GH 1430');
+          }
+          // For A rooms -> ensure B counterpart exists
+          if (room.match(/GH \d+A$/) && !roomSet.has(room.replace('A', 'B'))) {
+            additionalRooms.push(room.replace('A', 'B'));
+          }
+          // For B rooms -> ensure A counterpart exists  
+          if (room.match(/GH \d+B$/) && !roomSet.has(room.replace('B', 'A'))) {
+            additionalRooms.push(room.replace('B', 'A'));
+          }
+        });
+        
+        // Add the additional rooms and sort
+        filteredRooms = [...filteredRooms, ...additionalRooms].sort((a, b) => a.localeCompare(b));
+        
         // If selectedRooms is empty (first time), initialize with filtered rooms
         const newSelectedRooms = selectedRooms.length === 0 ? filteredRooms : selectedRooms.filter(room => !room.includes('&'));
         set({ 
