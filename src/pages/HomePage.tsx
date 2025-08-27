@@ -16,6 +16,7 @@ import useRoomStore from "../stores/roomStore";
 import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
 import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
+
 import { Database } from "../types/supabase";
 
 

@@ -108,6 +108,7 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-center">
+            <QuarterCount />
           </div>
           
           <div className="flex items-center justify-end gap-2">
@@ -115,12 +116,10 @@ export default function AppHeader({
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
-          {/* Row 2: Empty, Empty, QuarterCount, Empty, Empty, Empty, Empty */}
+          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
           <div></div>
           <div></div>
-          <div className="flex items-center justify-center">
-            <QuarterCount />
-          </div>
+          <div></div>
           <div></div>
           <div></div>
           <div></div>
@@ -214,18 +213,17 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-center">
+            <QuarterCount />
           </div>
           
           <div className="flex items-center justify-end gap-2">
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
-          {/* Row 2: Empty, Empty, QuarterCount, Empty, Empty, Empty, Empty */}
+          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
           <div></div>
           <div></div>
-          <div className="flex items-center justify-center">
-            {false && <QuarterCount />}
-          </div>
+          <div></div>
           <div></div>
           <div></div>
           <div></div>
