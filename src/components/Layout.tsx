@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { useBackground } from '../hooks/useBackground';
 import { useRain } from '../contexts/RainContext';
 import RainOverlay from './RainOverlay';
+import LeavesOverlay from './LeavesOverlay';
 import Footer from './Footer';
 
 interface LayoutProps {
@@ -15,14 +16,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Background image - moved here to prevent re-rendering during navigation */}
-      <div 
-        className="fixed inset-0 -z-10 bg-white dark:bg-gray-900"
+      <div
+        className="fixed inset-0 -z-10"
         style={{
           backgroundImage: currentBackground ? `url('/${currentBackground}')` : 'none',
-          backgroundSize: "cover",
+          backgroundSize: "120% 120%",
           backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          filter: currentBackground ? "blur(8px)" : "none",
+          backgroundPosition: "center center",
+          backgroundAttachment: "fixed",
+          backgroundColor: "#000000",
+          filter: currentBackground
+            ? currentBackground === 'halloween.png'
+              ? "blur(4px)"
+              : "blur(8px)"
+            : "none",
           transform: "translateZ(0)"
         }}
         id="parallax-background"
@@ -30,6 +37,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Rain Overlay */}
       <RainOverlay isEnabled={isRainEnabled} />
+
+      {/* Leaves Overlay */}
+      <LeavesOverlay />
       
       <main className="flex-1">
         {children}

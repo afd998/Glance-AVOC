@@ -2,6 +2,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBackground } from '../../hooks/useBackground';
 import { useRain } from '../../contexts/RainContext';
+import { useLeaves } from '../../contexts/LeavesContext';
 
 interface BackgroundSelectorModalProps {
   isOpen: boolean;
@@ -12,9 +13,10 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const { currentBackground, setCurrentBackground, isUpdating } = useBackground();
   const { isRainEnabled, toggleRain } = useRain();
+  const { isLeavesEnabled, toggleLeaves } = useLeaves();
 
   const backgroundOptions = [
     {
@@ -40,6 +42,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
       name: 'Vista',
       preview: '/Vista.avif',
       description: 'Vista background'
+    },
+    {
+      id: 'halloween.png',
+      name: 'Halloween',
+      preview: '/halloween.png',
+      description: 'Halloween themed background'
     }
   ];
 
@@ -78,22 +86,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
           </div>
         </div>
 
-        {/* Theme Controls */}
+        {/* Theme Info */}
         <div className="px-6 py-4 border-b backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50">
-          <h3 className="text-md font-medium mb-3">Theme</h3>
-          <button
-            onClick={toggleDarkMode}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200 backdrop-blur-sm hover:scale-[1.02] ${
-              isDarkMode 
-                ? 'border-gray-600/50 bg-gray-800/30 hover:bg-gray-700/40 text-white' 
-                : 'border-gray-200/50 bg-gray-50/30 hover:bg-gray-100/40 text-gray-900'
-            }`}
-          >
-            <span>Color Theme</span>
-            <span className={`font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              {isDarkMode ? 'Dark' : 'Light'}
-            </span>
-          </button>
+          <h3 className="text-md font-medium mb-3">Current Theme</h3>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Background selection automatically sets the theme mode (light/dark)
+          </div>
         </div>
 
         {/* Content */}
@@ -173,6 +171,30 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
                       </div>
                       <span className={`font-medium ${isRainEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
                         {isRainEnabled ? 'On' : 'Off'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Leaves Effect Toggle for Halloween Background */}
+                {option.id === 'halloween.png' && currentBackground === 'halloween.png' && (
+                  <div className="mt-2 p-2 rounded-lg border border-gray-200/50 dark:border-gray-600/50 bg-gray-50/30 dark:bg-gray-800/30">
+                    <button
+                      onClick={toggleLeaves}
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all duration-200 backdrop-blur-sm hover:scale-[1.01] text-xs ${
+                        isDarkMode 
+                          ? 'border-gray-600/50 bg-gray-700/30 hover:bg-gray-600/40 text-white' 
+                          : 'border-gray-200/50 bg-white/50 hover:bg-gray-50/60 text-gray-900'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        <span>Leaves</span>
+                      </div>
+                      <span className={`font-medium ${isLeavesEnabled ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                        {isLeavesEnabled ? 'On' : 'Off'}
                       </span>
                     </button>
                   </div>

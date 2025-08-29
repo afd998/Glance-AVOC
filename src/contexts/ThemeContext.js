@@ -1,12 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useBackground } from '../hooks/useBackground';
 
 const ThemeContext = createContext();
 
+// Theme definitions with their light/dark settings
+const THEMES = {
+  'AVOC.JPEG': { isDark: false, name: 'AVOC' },
+  'Gies.avif': { isDark: false, name: 'Gies' },
+  'dusk.jpg': { isDark: false, name: 'Dusk' },
+  'Vista.avif': { isDark: false, name: 'Vista' },
+  'halloween.png': { isDark: true, name: 'Halloween' }
+};
+
 export function ThemeProvider({ children }) {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
-  });
+  const { currentBackground } = useBackground();
+  
+  // Get current theme based on background
+  const currentTheme = THEMES[currentBackground] || THEMES['Vista.avif'];
+  const isDarkMode = currentTheme.isDark;
 
   useEffect(() => {
     if (isDarkMode) {
@@ -14,15 +25,22 @@ export function ThemeProvider({ children }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+  const getTheme = () => {
+    return {
+      ...currentTheme,
+      isDarkMode,
+      background: currentBackground
+    };
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ 
+      isDarkMode, 
+      currentTheme: getTheme(),
+      getTheme 
+    }}>
       {children}
     </ThemeContext.Provider>
   );

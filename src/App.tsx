@@ -7,6 +7,7 @@ import "./index.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RainProvider } from './contexts/RainContext';
+import { LeavesProvider } from './contexts/LeavesContext';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
@@ -29,27 +30,29 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <RainProvider>
-          <QueryClientProvider client={queryClient}>
-            <Router>
-              <Layout>
-                <Routes>
-                  <Route path="/auth" element={<LandingPage />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/faculty" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path=":date/faculty/:facultyId" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                  <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-                  <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
-                </Routes>
-              </Layout>
-            </Router>
-          </QueryClientProvider>
-        </RainProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <RainProvider>
+            <LeavesProvider>
+              <Router>
+                <Layout>
+                  <Routes>
+                    <Route path="/auth" element={<LandingPage />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path=":date" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path=":date/faculty" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path=":date/faculty/:facultyId" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+                    <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+                  </Routes>
+                </Layout>
+              </Router>
+            </LeavesProvider>
+          </RainProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </AuthProvider>
   );
 } 

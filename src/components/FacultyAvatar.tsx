@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SimpleFacultyAvatar } from './SimpleFacultyAvatar';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FacultyAvatarProps {
   imageUrl: string;
@@ -26,10 +27,14 @@ export function FacultyAvatar({
   size = 'md',
   maskRadius = 63 // Default radius of 50, can be adjusted (smaller = tighter mask, larger = looser mask)
 }: FacultyAvatarProps) {
+  const { currentTheme } = useTheme();
   const [imageError, setImageError] = useState(false);
 
   // Check if we have a valid cutout image
   const hasCutout = cutoutImageUrl && typeof cutoutImageUrl === 'string' && cutoutImageUrl.length > 0;
+  
+  // Halloween theme detection
+  const isHalloweenTheme = currentTheme.name === 'Halloween';
 
   const handleImageError = () => {
     setImageError(true);
@@ -67,6 +72,18 @@ export function FacultyAvatar({
           backgroundPosition: 'center'
         }}
       ></div>
+      
+      {/* Halloween green glow effect */}
+      {isHalloweenTheme && isHovering && (
+        <div 
+          className="absolute inset-0 rounded-full z-10 animate-pulse" 
+          style={{ 
+            background: 'radial-gradient(circle, rgba(0, 255, 0, 0.3) 0%, rgba(0, 255, 0, 0.1) 50%, transparent 100%)',
+            boxShadow: '0 0 20px rgba(0, 255, 0, 0.6), 0 0 40px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2)',
+            filter: 'blur(1px)'
+          }}
+        ></div>
+      )}
 
       {/* Foreground layer - Clean SVG structure */}
       <div className="absolute inset-0 z-20" style={{ overflow: 'visible' }}>
@@ -106,7 +123,9 @@ export function FacultyAvatar({
                   ? 'translateY(-30px) scale(1.7)' 
                   : 'translateY(-30px) scale(1.5)',
                 filter: isHovering 
-                  ? 'sepia(1) hue-rotate(240deg) saturate(0.8) brightness(0.9) contrast(1.2)'
+                  ? isHalloweenTheme
+                    ? 'sepia(1) hue-rotate(120deg) saturate(1.5) brightness(1.2) contrast(1.3) drop-shadow(0 0 10px rgba(0, 255, 0, 0.8))'
+                    : 'sepia(1) hue-rotate(240deg) saturate(0.8) brightness(0.9) contrast(1.2)'
                   : 'sepia(1) hue-rotate(240deg) saturate(0.8) brightness(0.7) contrast(1.2)'
               }}
               href={cutoutImageUrl}
