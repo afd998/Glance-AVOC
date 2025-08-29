@@ -176,16 +176,16 @@ export const getEventThemeColors = (event: Event) => {
     };
   } else if (eventType === 'CMC') {
     return {
-      mainBg: 'bg-red-700 border-red-800',
-      mainBgDark: 'bg-red-900 border-red-950',
-      cardBg: 'bg-red-600 border-red-800',
-      itemBg: 'bg-red-600 border-red-800 hover:bg-red-700',
-      badgeBg: 'bg-red-800',
-      badgeText: 'text-red-100',
-      iconBg: 'bg-red-800',
-      iconText: 'text-red-200',
-      buttonBg: 'bg-red-800 hover:bg-red-900',
-      buttonText: 'text-red-100'
+      mainBg: 'bg-red-300 border-red-400',
+      mainBgDark: 'bg-red-400 border-red-500',
+      cardBg: 'bg-red-200 border-red-400',
+      itemBg: 'bg-red-200 border-red-400 hover:bg-red-300',
+      badgeBg: 'bg-red-500',
+      badgeText: 'text-red-900',
+      iconBg: 'bg-red-500',
+      iconText: 'text-red-900',
+      buttonBg: 'bg-red-500 hover:bg-red-600',
+      buttonText: 'text-red-900'
     };
   } else if (isLecture) {
     return {

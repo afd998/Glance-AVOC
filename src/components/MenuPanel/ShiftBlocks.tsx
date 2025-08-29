@@ -9,23 +9,28 @@ interface ShiftBlocksProps {
 const ShiftBlocks: React.FC<ShiftBlocksProps> = ({ date }) => {
   const { data: blocks, isLoading, error } = useShiftBlocks(date);
 
-  return (
+  const content = (
     <div className="mt-10">
-      <h4 className="text-lg font-semibold mb-2">Shift Blocks</h4>
-      {isLoading && <div className="text-gray-500">Loading shift blocks…</div>}
-      {error && <div className="text-red-500">Error loading shift blocks</div>}
+      <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Shift Blocks</h4>
+      {isLoading && <div className="text-gray-500 dark:text-gray-400 p-4 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">Loading shift blocks…</div>}
+      {error && <div className="text-red-500 dark:text-red-400 p-4 rounded-lg bg-red-100/50 dark:bg-red-900/20 backdrop-blur-sm border border-red-300/50 dark:border-red-700/50">Error loading shift blocks</div>}
       {!isLoading && !error && (
-        <div className="flex flex-row gap-4 overflow-x-auto pb-2">
-          {blocks && blocks.length === 0 && <div className="text-gray-400">No shift blocks for this day.</div>}
+        <div className="flex flex-row gap-4 overflow-x-auto pb-4">
+          {blocks && blocks.length === 0 && <div className="text-gray-400 dark:text-gray-500 p-4 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-300/30 dark:border-gray-700/30">No shift blocks for this day.</div>}
           {blocks && blocks.map(block => (
             <div key={block.id} className="w-[300px] flex-shrink-0">
-              <ShiftBlock block={block} allBlocks={blocks} />
+              <ShiftBlock 
+                block={block} 
+                allBlocks={blocks}
+              />
             </div>
           ))}
         </div>
       )}
     </div>
   );
+
+  return content;
 };
 
 export default ShiftBlocks; 

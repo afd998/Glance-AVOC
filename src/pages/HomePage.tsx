@@ -16,6 +16,7 @@ import useRoomStore from "../stores/roomStore";
 import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
 import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
+import NoEventsMessage from "../components/NoEventsMessage";
 
 import { Database } from "../types/supabase";
 
@@ -55,8 +56,8 @@ export default function HomePage() {
   const { scheduleNotificationsForEvents } = useNotifications();
   const { filteredEvents, getFilteredEventsForRoom } = useEventFiltering(events);
   useAutoHideLogic(filteredEvents, selectedDate);
-  const { currentFilter } = useProfile();
-  const { filters } = useFilters();
+  const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
+  const { filters, loadFilter, getFilterByName } = useFilters();
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
@@ -66,6 +67,54 @@ export default function HomePage() {
       scheduleNotificationsForEvents(events);
     }
   }, [events, scheduleNotificationsForEvents]);
+
+  // Check if there are any events that match the current filter
+  const hasFilteredEvents = React.useMemo(() => {
+    if (!filteredEvents || filteredEvents.length === 0) return false;
+    // Check if any room has events after filtering
+    return selectedRooms.some((room: string) => {
+      const roomEvents = getFilteredEventsForRoom(room);
+      return roomEvents && roomEvents.length > 0;
+    });
+  }, [filteredEvents, selectedRooms, getFilteredEventsForRoom]);
+
+  // Handler to clear the current filter
+  const handleClearFilter = async () => {
+    try {
+      // Check if there's already an "All Rooms" filter
+      let allRoomsFilter = getFilterByName('All Rooms');
+
+      if (!allRoomsFilter) {
+        // If no "All Rooms" filter exists, create one with all available rooms
+        const { allRooms } = useRoomStore.getState();
+        const roomNames = allRooms.filter((room: string) => !room.includes('&')); // Exclude merged rooms
+
+        // Create the "All Rooms" filter
+        const newFilter = {
+          name: 'All Rooms',
+          display: roomNames,
+          owner: null, // Make it a default filter
+          isDefault: true,
+          id: 0, // This will be set by the database
+          createdAt: new Date().toISOString()
+        };
+
+        allRoomsFilter = newFilter;
+      }
+
+      // Load the "All Rooms" filter
+      if (allRoomsFilter) {
+        await loadFilter(allRoomsFilter);
+      }
+    } catch (error) {
+      console.error('Error clearing filter:', error);
+      // Fallback: just reset to null if loading fails
+      updateCurrentFilter(null);
+      updateAutoHide(false);
+      const { selectAllRooms } = useRoomStore.getState();
+      selectAllRooms();
+    }
+  };
 
   React.useEffect(() => {
     // Initial time set
@@ -202,19 +251,23 @@ export default function HomePage() {
          isLoading={isLoading}
          events={events}
        />
-       <div ref={gridContainerRef} className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
-         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
-           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-           <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
-            <CurrentTimeIndicator 
-              currentTime={currentTimeRef.current}
-              startHour={startHour}
-              endHour={endHour}
-              pixelsPerMinute={pixelsPerMinute}
-            />
-          </div>
-          {selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
+                          <div ref={gridContainerRef} className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-9rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
+        <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
+          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+          {hasFilteredEvents && (
+            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+          )}
+          {hasFilteredEvents && (
+            <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+              <CurrentTimeIndicator
+                currentTime={currentTimeRef.current}
+                startHour={startHour}
+                endHour={endHour}
+                pixelsPerMinute={pixelsPerMinute}
+              />
+            </div>
+          )}
+          {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
             const roomEvents = getFilteredEventsForRoom(room);
             const currentFloor = room.match(/GH (\d)/)?.[1];
             const nextRoom = selectedRooms[index + 1];
@@ -238,6 +291,10 @@ export default function HomePage() {
           })}
         </div>
       </div>
+      {/* Absolutely positioned no-events message */}
+      {!hasFilteredEvents && (
+        <NoEventsMessage onClearFilter={handleClearFilter} />
+      )}
       {/* Event Detail Modal Overlay */}
       {isEventDetailRoute && eventId && (
         <div 

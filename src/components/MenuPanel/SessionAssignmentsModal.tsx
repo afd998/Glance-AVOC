@@ -9,9 +9,34 @@ import { useRooms } from '../../hooks/useRooms';
 import { getAllShiftBlocksForDate } from '../../utils/eventUtils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+
 interface SessionAssignmentsModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+// Color map for 4th character of room name
+const roomColorMap: Record<string, string> = {
+  'L': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+  '1': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+  '2': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
+  '3': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-200',
+  '4': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200',
+  '5': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200',
+  '7': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200',
+  '9': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200',
+  '0': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200',
+};
+
+function getRoomBadgeColor(roomName: string) {
+  if (!roomName || roomName.length < 4) return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
+  const key = roomName[3];
+  return roomColorMap[key] || 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
+}
+
+// Helper to display room name without 'GH '
+function displayRoomName(name: string) {
+  return name.startsWith('GH ') ? name.slice(3) : name;
 }
 
 function getNextMonday(today: Date): Date {
@@ -57,6 +82,8 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const { isDarkMode } = useTheme();
   const { profiles, isLoading: profilesLoading, error: profilesError } = useUserProfiles();
   const { rooms: allRooms, isLoading: roomsLoading } = useRooms();
+  
+
 
   const today = new Date();
   // Tab state: 'this' or 'next'
@@ -94,6 +121,8 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   // Fetch shifts for all days in the week, not just the selected day
   const allWeekDates = weekDates.map(date => date.toISOString().split('T')[0]);
   const { data: shifts, isLoading: shiftsLoading, error: shiftsError } = useShifts(allWeekDates);
+
+
   
   const createShift = useCreateShift();
   const updateShiftBlocks = useUpdateShiftBlocks();
@@ -408,23 +437,33 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
       onClick={onClose}
     >
-      <div 
-        className={`max-w-6xl w-full mx-4 max-h-[95vh] overflow-y-auto rounded-lg shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'
-        }`}
-        onClick={e => e.stopPropagation()}
-      >
+        <div 
+          className={`max-w-6xl w-full mx-4 max-h-[95vh] overflow-y-auto rounded-xl shadow-2xl backdrop-blur-xl border ${
+            isDarkMode 
+              ? 'bg-gray-900/10 text-white border-white/20' 
+              : 'bg-white/10 text-gray-900 border-gray-300/20'
+          }`}
+          onClick={e => e.stopPropagation()}
+        >
         {/* Header */}
-        <div className="flex flex-col gap-0 border-b border-gray-200 dark:border-gray-700">
+        <div className={`flex flex-col gap-0 border-b backdrop-blur-sm ${
+          isDarkMode 
+            ? 'border-white/10 bg-gray-800/5' 
+            : 'border-gray-200/20 bg-white/5'
+        }`}>
           <div className="flex justify-between items-center px-6 pt-6 pb-2">
-            <h2 className="text-2xl font-semibold">Session Assignments</h2>
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Session Assignments</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+                isDarkMode
+                  ? 'text-gray-300 hover:text-white hover:bg-white/10'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-black/10'
+              }`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -433,13 +472,13 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
           </div>
           <div className="flex justify-center pb-2 gap-2">
             <button
-              className={`px-4 py-2 rounded-t-lg font-medium text-sm focus:outline-none transition-colors ${weekTab === 'this' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
+              className={`px-4 py-2 rounded-t-lg font-medium text-sm focus:outline-none transition-all duration-200 ${weekTab === 'this' ? 'bg-purple-600/90 text-white backdrop-blur-sm' : 'bg-gray-200/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 backdrop-blur-sm hover:bg-gray-300/50 dark:hover:bg-gray-600/50'}`}
               onClick={() => setWeekTab('this')}
             >
               This Week
             </button>
             <button
-              className={`px-4 py-2 rounded-t-lg font-medium text-sm focus:outline-none transition-colors ${weekTab === 'next' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
+              className={`px-4 py-2 rounded-t-lg font-medium text-sm focus:outline-none transition-all duration-200 ${weekTab === 'next' ? 'bg-purple-600/90 text-white backdrop-blur-sm' : 'bg-gray-200/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 backdrop-blur-sm hover:bg-gray-300/50 dark:hover:bg-gray-600/50'}`}
               onClick={() => setWeekTab('next')}
             >
               Next Week
@@ -518,14 +557,14 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
               </div>
               
               <div className="overflow-x-auto w-full">
-                <table className="min-w-full border border-gray-400 dark:border-gray-600 rounded-lg overflow-hidden table-fixed">
+                <table className="min-w-full border border-gray-400/30 dark:border-gray-600/30 rounded-xl overflow-hidden table-fixed backdrop-blur-sm bg-white/5 dark:bg-gray-800/5">
                   <thead>
                     <tr>
-                      <th className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-left border border-gray-400 dark:border-gray-600 w-40">Name</th>
+                      <th className="px-4 py-2 bg-gray-200/20 dark:bg-gray-700/20 backdrop-blur-sm text-left border border-gray-400/30 dark:border-gray-600/30 w-40">Name</th>
                       {weekDates.map((date, idx) => (
                         <th
                           key={idx}
-                          className={`px-2 py-2 text-center border border-gray-400 dark:border-gray-600 cursor-pointer transition-colors ${selectedDay === idx ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
+                          className={`px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 cursor-pointer transition-all duration-200 ${selectedDay === idx ? 'bg-purple-600/90 text-white backdrop-blur-sm' : 'bg-gray-200/20 dark:bg-gray-700/20 text-gray-700 dark:text-gray-200 backdrop-blur-sm hover:bg-gray-300/30 dark:hover:bg-gray-600/30'}`}
                           onClick={() => setSelectedDay(idx)}
                         >
                           <div className="flex flex-col items-center">
@@ -543,13 +582,13 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                       .filter(profile => profile.role === 'TECHNICIAN')
                       .map(profile => (
                       <tr key={profile.id} className="border-t border-gray-400 dark:border-gray-600">
-                        <td className="px-4 py-2 font-medium text-gray-900 dark:text-white whitespace-nowrap border border-gray-400 dark:border-gray-600">{profile.name || profile.id}</td>
+                        <td className="px-4 py-2 font-medium text-gray-900 dark:text-white whitespace-nowrap border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">{profile.name || profile.id}</td>
                         {weekDates.map((date, dayIdx) => {
                           const shift = getShift(profile.id, dayIdx);
                           return (
                             <td
                               key={dayIdx}
-                              className={`px-2 py-2 text-center border border-gray-400 dark:border-gray-600 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors ${selectedDay === dayIdx ? 'bg-purple-100 dark:bg-purple-900/30' : ''}`}
+                              className={`px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 cursor-pointer hover:bg-purple-100/30 dark:hover:bg-purple-900/15 transition-all duration-200 backdrop-blur-sm ${selectedDay === dayIdx ? 'bg-purple-100/30 dark:bg-purple-900/15' : 'bg-white/5 dark:bg-gray-800/5'}`}
                               onClick={() => openCellModal(profile.id, dayIdx)}
                             >
                               {shift && shift.start_time && shift.end_time
@@ -605,12 +644,12 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
         {/* Time Range Picker Modal */}
         {editingCell && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[10000]" onClick={closeCellModal}>
-            <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-xs mx-4`} onClick={e => e.stopPropagation()}>
+            <div className={`bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-300/50 dark:border-gray-700/50 rounded-xl shadow-2xl p-8 w-full max-w-xs mx-4`} onClick={e => e.stopPropagation()}>
               <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Set Time Range</h4>
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Start Time</label>
                 <select
-                  className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full p-2 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                   value={modalStart}
                   onChange={e => setModalStart(e.target.value)}
                   disabled={createShift.isPending}
@@ -623,7 +662,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">End Time</label>
                 <select
-                  className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full p-2 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                   value={modalEnd}
                   onChange={e => setModalEnd(e.target.value)}
                   disabled={createShift.isPending}
@@ -673,7 +712,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                        }
                      });
                    }}
-                   className="px-4 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                   className="px-4 py-2 text-sm font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-100/80 dark:bg-red-900/30 backdrop-blur-sm hover:bg-red-200/80 dark:hover:bg-red-900/50 transition-all duration-200 border border-red-300/50 dark:border-red-700/50"
                    disabled={createShift.isPending}
                  >
                    Clear
@@ -681,14 +720,14 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                  <div className="flex space-x-2">
                    <button
                      onClick={closeCellModal}
-                     className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                     className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 bg-gray-200/80 dark:bg-gray-700/80 backdrop-blur-sm hover:bg-gray-300/80 dark:hover:bg-gray-600/80 transition-all duration-200 border border-gray-300/50 dark:border-gray-600/50"
                      disabled={createShift.isPending}
                    >
                      Cancel
                    </button>
                    <button
                      onClick={handleSave}
-                     className="px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60"
+                     className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-purple-600/90 backdrop-blur-sm hover:bg-purple-700/90 disabled:opacity-60 transition-all duration-200 border border-purple-500/50"
                      disabled={createShift.isPending}
                    >
                      {createShift.isPending ? 'Saving...' : 'Save'}
@@ -700,20 +739,26 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
         )}
         
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-          <button
-            onClick={onClose}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              isDarkMode 
-                ? 'text-gray-300 hover:text-gray-100' 
-                : 'text-gray-700 hover:text-gray-900'
-            }`}
-          >
-            Close
-          </button>
+        <div className={`p-6 border-t backdrop-blur-sm ${
+          isDarkMode 
+            ? 'border-white/10 bg-gray-800/5' 
+            : 'border-gray-200/20 bg-white/5'
+        }`}>
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm border ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:text-white bg-gray-700/30 hover:bg-gray-600/40 border-white/10 hover:border-white/20' 
+                  : 'text-gray-700 hover:text-gray-900 bg-white/30 hover:bg-white/50 border-gray-200/30 hover:border-gray-300/50'
+              }`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
         </div>
       </div>
-    </div>
   );
 };
 

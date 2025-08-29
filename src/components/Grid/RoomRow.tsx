@@ -27,7 +27,7 @@ export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, 
 
 
   return (
-    <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-blue-50/40 dark:bg-blue-900/40 ${isLastRow ? 'rounded-b-md' : ''}`}>
+    <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-50/40 dark:bg-gray-800/40 ${isLastRow ? 'rounded-b-md' : ''}`}>
       <div className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg ${isLastRow ? 'rounded-bl-md' : ''}`} style={{ zIndex: 50 }}>
         <span 
           className={`font-smooth font-light ${fontSize}`} 
