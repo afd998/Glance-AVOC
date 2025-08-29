@@ -2,6 +2,7 @@ import React from 'react';
 import Event from '../Event/Event';
 import { Database } from '../../types/supabase';
 import { useRoom } from '../../hooks/useRoom';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -18,11 +19,14 @@ interface RoomRowProps {
 }
 
 export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick, isEvenRow = false, isLastRow = false }: RoomRowProps) {
+  const { currentTheme } = useTheme();
   const roomText = room.replace(/^GH\s+/, '');
   // const roomSpelling = useRoom(room); // Commented out since we're not using spelling anymore
   
-  // Dynamic font size based on room name length
-  const fontSize = roomText.length > 4 ? 'text-md' : 'text-lg';
+  // Use Halloween font and larger size if Halloween theme is active
+  const isHalloweenTheme = currentTheme.name === 'Halloween';
+  const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Smooth Circulars';
+  const fontSize = isHalloweenTheme ? 'text-4xl' : (roomText.length > 4 ? 'text-md' : 'text-lg');
   
 
 
@@ -30,8 +34,9 @@ export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, 
     <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-50/40 dark:bg-gray-800/40 ${isLastRow ? 'rounded-b-md' : ''}`}>
       <div className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg ${isLastRow ? 'rounded-bl-md' : ''}`} style={{ zIndex: 50 }}>
         <span 
-          className={`font-smooth font-light ${fontSize}`} 
+          className={`font-light ${fontSize}`} 
           style={{ 
+            fontFamily: fontFamily,
             color: 'white',
             mixBlendMode: 'overlay', 
             textShadow: '0 0 40px rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.4)',
