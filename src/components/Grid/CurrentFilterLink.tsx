@@ -17,7 +17,7 @@ const CurrentFilterLink: React.FC = () => {
   }
 
   // Determine what text to display
-  const displayText = currentFilter || (autoHide ? "Empty Rooms Hidden" : "");
+  const displayText = currentFilter || (autoHide ? "Empty Rooms Hidden" : "All Rooms");
 
   return (
     <button

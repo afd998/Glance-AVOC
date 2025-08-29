@@ -13,16 +13,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
 
   // Calculate what rooms should be displayed
   const targetRooms = useMemo(() => {
-    console.log('=== AUTO-HIDE DEBUG START ===');
-    console.log('autoHide:', autoHide);
-    console.log('filteredEvents length:', filteredEvents?.length || 0);
-    console.log('allRooms length:', allRooms.length);
-    console.log('currentFilter:', currentFilter);
-    
-    if (!filteredEvents) {
-      console.log('No filtered events, returning allRooms');
-      return allRooms;
-    }
+    if (!filteredEvents) return allRooms;
 
     // Determine the base rooms that should be shown (based on current filter)
     let baseRooms = allRooms;
@@ -35,32 +26,24 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
         baseRooms = allRooms;
       }
     }
-    console.log('baseRooms length:', baseRooms.length);
 
     if (autoHide) {
       // Get rooms that have filtered events for the current day
       const roomsWithEvents = new Set();
-      console.log('Processing events for auto-hide...');
-      
-      filteredEvents.forEach((event, index) => {
+      filteredEvents.forEach(event => {
         const roomName = event.room_name;
-        console.log(`Event ${index}: ${event.event_name} in room: ${roomName}`);
-        
         if (roomName) {
           // Add the room itself
           roomsWithEvents.add(roomName);
-          console.log(`Added room: ${roomName}`);
           
           // If this is a merged room event (contains &), also add the constituent rooms
           if (roomName.includes('&')) {
-            console.log(`Found merged room event: ${roomName}`);
             const parts = roomName.split('&');
             if (parts.length === 2) {
               const baseRoom = parts[0].trim(); // e.g., "GH 1420"
               const suffix = parts[1].trim(); // e.g., "30", "B"
               
               roomsWithEvents.add(baseRoom);
-              console.log(`Added base room: ${baseRoom}`);
               
               // Handle different merge patterns
               if (suffix === '30') {
@@ -69,32 +52,22 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
                 if (roomNumber) {
                   const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
                   roomsWithEvents.add(secondRoom);
-                  console.log(`Added second room: ${secondRoom}`);
                 }
               } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
                 // A&B case: show both A and B variants
                 const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
                 roomsWithEvents.add(`${baseRoomWithoutSuffix}A`);
                 roomsWithEvents.add(`${baseRoomWithoutSuffix}B`);
-                console.log(`Added A&B rooms: ${baseRoomWithoutSuffix}A, ${baseRoomWithoutSuffix}B`);
               }
             }
           }
         }
       });
 
-      console.log('Final roomsWithEvents:', Array.from(roomsWithEvents));
-      console.log('baseRooms sample:', baseRooms.slice(0, 10));
-      
       // When auto-hide is enabled, show only base rooms that have events
-      const result = baseRooms.filter((room: string) => roomsWithEvents.has(room));
-      console.log('Final filtered result:', result);
-      console.log('=== AUTO-HIDE DEBUG END ===');
-      return result;
+      return baseRooms.filter((room: string) => roomsWithEvents.has(room));
     } else {
       // When auto-hide is disabled, show all base rooms
-      console.log('Auto-hide disabled, returning baseRooms');
-      console.log('=== AUTO-HIDE DEBUG END ===');
       return baseRooms;
     }
   }, [filteredEvents, selectedDate, autoHide, currentFilter, filters, allRooms]);

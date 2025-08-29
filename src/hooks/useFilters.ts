@@ -127,13 +127,22 @@ export const useFilters = () => {
   const loadFilterMutation = useMutation({
     mutationFn: async (filter: Filter) => {
       if (!user) throw new Error('No user');
-      
-      // Update profile with current filter name
+
+      // First get the current auto_hide setting
+      const { data: currentProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('auto_hide')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update profile with current filter name, preserving auto_hide setting
       const { error } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           current_filter: filter.name,
-          auto_hide: false 
+          auto_hide: currentProfile?.auto_hide || false
         })
         .eq('id', user.id);
 

@@ -6,6 +6,7 @@ import { parseEventResources, isUserEventOwner } from '../../utils/eventUtils';
 import useRoomStore from '../../stores/roomStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAllShiftBlocks } from '../../hooks/useShiftBlocks';
+import NotificationSettings from './NotificationSettings';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -227,6 +228,12 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
           </button>
         </div>
         
+        {/* Notification Settings Section */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Notification Settings</h3>
+          <NotificationSettings />
+        </div>
+        
         {/* Content */}
         <div className="p-6">
           {isLoading && (
@@ -348,28 +355,37 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {scheduledNotifications.length > 0 && (
-              <span>
-                {scheduledNotifications.length} notification{scheduledNotifications.length !== 1 ? 's' : ''} scheduled
-              </span>
-            )}
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          {/* Notification explanation text */}
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
+            <p>Event notifications appear 15 minutes before events with staff assistance or web conferencing.</p>
+            <p className="mt-1">Only events in selected notification rooms will trigger alerts.</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={fetchScheduledNotifications}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium rounded-md text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              Close
-            </button>
+          
+          {/* Action buttons and count */}
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {scheduledNotifications.length > 0 && (
+                <span>
+                  {scheduledNotifications.length} notification{scheduledNotifications.length !== 1 ? 's' : ''} scheduled
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={fetchScheduledNotifications}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm font-medium rounded-md text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAcademicCalendar } from '../../hooks/useAcademicCalendar';
+import { GraduationCap } from 'lucide-react';
 
 const AcademicCalendarInfo: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -54,43 +55,43 @@ const AcademicCalendarInfo: React.FC = () => {
   }
 
   return (
-    <div className="ml-4 group relative">
-      {/* Icon only - always visible */}
-      <div className="flex items-center justify-center p-2 rounded-lg border" style={{
-        backgroundColor: isDarkMode ? 'rgba(139, 114, 196, 0.2)' : 'rgba(139, 114, 196, 0.1)',
-        borderColor: isDarkMode ? 'rgba(139, 114, 196, 0.3)' : 'rgba(139, 114, 196, 0.2)',
-        color: isDarkMode ? 'rgba(139, 114, 196, 0.9)' : '#8b72c4'
-      }}>
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-        </svg>
+    <div className="group relative inline-block">
+      {/* Container with info icon - matching QuarterCount style */}
+      <div
+        className={`text-xs mt-1 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
+          isDarkMode
+            ? 'bg-white/10 border-white/20 text-purple-300 hover:bg-white/15'
+            : 'bg-white/30 border-white/40 text-purple-600 hover:bg-white/40'
+        }`}
+      >
+        {/* Glassmorphic shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+        <div className="relative z-10 flex items-center gap-2">
+        {/* Graduation cap icon */}
+        <GraduationCap className="w-4 h-4 flex-shrink-0" />
+
+        {/* Hover indicator */}
+        <span className="font-medium opacity-75">
+          {calendarItems.length} item{calendarItems.length !== 1 ? 's' : ''}
+        </span>
+        </div>
       </div>
-      
-                           {/* Expanded content - visible on hover */}
-                <div className="absolute left-0 top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50">
-          <div className="p-3 min-w-max rounded-lg border backdrop-blur-sm" style={{
-            backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-            borderColor: isDarkMode ? 'rgba(139, 114, 196, 0.3)' : 'rgba(139, 114, 196, 0.2)'
-          }}>
-          
-          <div className="flex flex-wrap gap-2">
-            {calendarItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="text-xs p-2 rounded whitespace-nowrap transition-colors"
-                style={{
-                  backgroundColor: isDarkMode ? 'rgba(139, 114, 196, 0.4)' : 'rgba(139, 114, 196, 0.15)',
-                  color: isDarkMode ? 'rgba(139, 114, 196, 0.9)' : '#8b72c4'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(139, 114, 196, 0.5)' : 'rgba(139, 114, 196, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(139, 114, 196, 0.4)' : 'rgba(139, 114, 196, 0.15)';
-                }}
-              >
-                {item.label || 'No label'}
-              </div>
+
+      {/* Expanded content on hover - slides out to the right */}
+      <div className="absolute left-full top-0 ml-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out transform translate-x-0 group-hover:translate-x-0 z-[100]">
+        <div className={`flex items-center gap-2 p-3 rounded-lg border backdrop-blur-sm shadow-xl ${
+          isDarkMode
+            ? 'bg-gray-800/95 border-gray-600/50 text-gray-200'
+            : 'bg-white/95 border-gray-300/50 text-gray-800'
+        }`}>
+          <div className="flex flex-wrap items-center gap-2">
+            {calendarItems.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {index > 0 && <span className="text-current opacity-50">•</span>}
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {item.label || 'No label'}
+                </span>
+              </React.Fragment>
             ))}
           </div>
         </div>

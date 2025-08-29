@@ -27,7 +27,7 @@ export default function AppHeader({
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
         {/* CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
-        <div className="grid gap-0 mb-3" style={{ 
+        <div className="grid gap-2 mb-3" style={{ 
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
@@ -42,8 +42,8 @@ export default function AppHeader({
               disabled={isLoading}
               className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300' 
-                  : 'border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20'
+                  ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
+                  : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
               }`}
               aria-label="Go to today"
             >
@@ -60,10 +60,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-2 ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
+                  : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
               }`}
               aria-label="Previous day"
             >
@@ -90,10 +90,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-2 ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
+                  : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
               }`}
               aria-label="Next day"
             >
@@ -132,7 +132,7 @@ export default function AppHeader({
       {/* Mobile Layout - below md */}
       <div className="md:hidden">
         {/* Mobile CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
-        <div className="grid gap-0 mb-3" style={{ 
+        <div className="grid gap-2 mb-3" style={{ 
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
@@ -147,8 +147,8 @@ export default function AppHeader({
               disabled={isLoading}
               className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300' 
-                  : 'border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/20'
+                  ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
+                  : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
               }`}
               aria-label="Go to today"
             >
@@ -165,10 +165,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-1 ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
+                  : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
               }`}
               aria-label="Previous day"
             >
@@ -195,10 +195,10 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl mx-1 ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:bg-white/60 dark:hover:bg-white/20 hover:scale-105'
+                  : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
               }`}
               aria-label="Next day"
             >

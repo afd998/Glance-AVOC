@@ -80,43 +80,164 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
+      className="fixed inset-0 flex items-center justify-center z-[9999] backdrop-blur-sm"
+      style={{
+        background: isDarkMode 
+          ? 'rgba(0, 0, 0, 0.4)'
+          : 'rgba(255, 255, 255, 0.3)'
+      }}
       onClick={onClose}
     >
       <div 
-        className={`max-w-5xl w-full mx-4 max-h-[90vh] rounded-lg shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'
-        }`}
+        className="max-w-5xl w-full mx-4 max-h-[90vh] rounded-2xl backdrop-blur-md border overflow-hidden"
+        style={{
+          background: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.05)'
+            : 'rgba(255, 255, 255, 0.25)',
+          borderColor: isDarkMode 
+            ? 'rgba(255, 255, 255, 0.2)' 
+            : 'rgba(255, 255, 255, 0.4)',
+          boxShadow: isDarkMode 
+            ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            : '0 8px 32px rgba(31, 38, 135, 0.37), 0 0 0 1px rgba(255, 255, 255, 0.5)',
+          color: isDarkMode ? '#ffffff' : '#1a1a1a'
+        }}
         onClick={e => e.stopPropagation()}
       >
                  {/* Sticky Header + Search */}
-         <div className="sticky top-0 z-10 bg-inherit rounded-t-lg overflow-hidden" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}}>
-           <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-             <h2 className="text-2xl font-semibold">Faculty List</h2>
+         <div 
+           className="sticky top-0 z-10 backdrop-blur-lg border-b overflow-hidden"
+           style={{
+             background: isDarkMode 
+               ? 'rgba(255, 255, 255, 0.05)'
+               : 'rgba(255, 255, 255, 0.3)',
+             borderBottomColor: isDarkMode 
+               ? 'rgba(255, 255, 255, 0.1)' 
+               : 'rgba(255, 255, 255, 0.3)'
+           }}
+         >
+           <div className="flex justify-between items-center p-6">
+             <h2 
+               className="text-2xl font-bold"
+               style={{
+                 color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                 textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+               }}
+             >
+               Faculty List
+             </h2>
              <button
                onClick={onClose}
-               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+               className="rounded-full p-2 transition-all duration-300 backdrop-blur-sm border"
+               style={{
+                 background: isDarkMode 
+                   ? 'rgba(255, 255, 255, 0.1)'
+                   : 'rgba(255, 255, 255, 0.4)',
+                 borderColor: isDarkMode 
+                   ? 'rgba(255, 255, 255, 0.2)'
+                   : 'rgba(255, 255, 255, 0.5)',
+                 color: isDarkMode ? '#ffffff' : '#1a1a1a'
+               }}
+               onMouseEnter={e => {
+                 e.currentTarget.style.transform = 'translateY(-1px) scale(1.05)';
+                 e.currentTarget.style.background = isDarkMode 
+                   ? 'rgba(255, 255, 255, 0.15)'
+                   : 'rgba(255, 255, 255, 0.6)';
+                 e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+               }}
+               onMouseLeave={e => {
+                 e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                 e.currentTarget.style.background = isDarkMode 
+                   ? 'rgba(255, 255, 255, 0.1)'
+                   : 'rgba(255, 255, 255, 0.4)';
+                 e.currentTarget.style.boxShadow = 'none';
+               }}
              >
                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                </svg>
              </button>
            </div>
-           <form className="px-6 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 bg-inherit flex gap-2 items-center" style={{background: isDarkMode ? '#1f2937' : '#f9fafb'}} onSubmit={handleSearch}>
+           <form 
+             className="px-6 pt-4 pb-6 flex gap-3 items-center backdrop-blur-sm border-b" 
+             style={{
+               borderBottomColor: isDarkMode 
+                 ? 'rgba(255, 255, 255, 0.1)' 
+                 : 'rgba(255, 255, 255, 0.3)',
+               background: isDarkMode 
+                 ? 'rgba(255, 255, 255, 0.02)'
+                 : 'rgba(255, 255, 255, 0.1)'
+             }} 
+             onSubmit={handleSearch}
+           >
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search faculty (name, title, bio, etc)"
-              className={`w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className="w-full px-4 py-3 rounded-xl border backdrop-blur-sm focus:outline-none transition-all duration-300"
+              style={{
+                background: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(255, 255, 255, 0.3)',
+                borderColor: isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.15)'
+                  : 'rgba(255, 255, 255, 0.4)',
+                color: isDarkMode ? '#ffffff' : '#1a1a1a'
+              }}
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') handleSearch(e); }}
+              onFocus={e => {
+                e.target.style.borderColor = isDarkMode 
+                  ? 'rgba(139, 92, 246, 0.5)'
+                  : 'rgba(139, 92, 246, 0.6)';
+                e.target.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.3)';
+                e.target.style.background = isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.12)'
+                  : 'rgba(255, 255, 255, 0.5)';
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.15)'
+                  : 'rgba(255, 255, 255, 0.4)';
+                e.target.style.boxShadow = 'none';
+                e.target.style.background = isDarkMode 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(255, 255, 255, 0.3)';
+              }}
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-3 rounded-xl border backdrop-blur-sm transition-all duration-300"
+              style={{
+                background: isDarkMode 
+                  ? 'rgba(139, 92, 246, 0.2)'
+                  : 'rgba(139, 92, 246, 0.3)',
+                borderColor: isDarkMode 
+                  ? 'rgba(139, 92, 246, 0.4)'
+                  : 'rgba(139, 92, 246, 0.5)',
+                color: isDarkMode ? '#ffffff' : '#1a1a1a'
+              }}
               disabled={isSearching}
               aria-label="Search"
+              onMouseEnter={e => {
+                if (!isSearching) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.background = isDarkMode 
+                    ? 'rgba(139, 92, 246, 0.3)'
+                    : 'rgba(139, 92, 246, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.4)';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isSearching) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background = isDarkMode 
+                    ? 'rgba(139, 92, 246, 0.2)'
+                    : 'rgba(139, 92, 246, 0.3)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
             >
               {isSearching ? (
                 <svg className="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24">
@@ -132,12 +253,38 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
           </form>
         </div>
                  {/* Scrollable Faculty List */}
-         <div className="p-6 pt-2 overflow-y-auto" style={{maxHeight: '60vh'}}>
-           {isLoading && <div>Loading faculty...</div>}
-           {error && <div className="text-red-600">Error loading faculty.</div>}
+         <div 
+           className="p-6 pt-4 overflow-y-auto backdrop-blur-sm"
+           style={{
+             maxHeight: '60vh',
+             background: isDarkMode 
+               ? 'rgba(255, 255, 255, 0.02)'
+               : 'rgba(255, 255, 255, 0.1)'
+           }}
+         >
+           {isLoading && (
+             <div 
+               className="text-center py-8"
+               style={{ color: isDarkMode ? '#ffffff' : '#1a1a1a' }}
+             >
+               Loading faculty...
+             </div>
+           )}
+           {error && (
+             <div 
+               className="text-center py-8"
+               style={{ color: '#ef4444' }}
+             >
+               Error loading faculty.
+             </div>
+           )}
            {isSearching ? (
              <div className="flex justify-center items-center py-8">
-               <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+               <svg 
+                 className="animate-spin h-8 w-8" 
+                 viewBox="0 0 24 24"
+                 style={{ color: '#8b5cf6' }}
+               >
                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                </svg>
@@ -148,29 +295,122 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
                  {filteredFaculty.map((f: FacultyMember) => (
                    <div
                      key={f.id}
-                     className="bg-white dark:bg-gray-700 rounded-lg shadow p-4 flex flex-col items-center hover:ring-2 hover:ring-purple-400 hover:scale-105 transition-transform transition-shadow duration-150 cursor-pointer"
+                     className="p-5 flex flex-col items-center cursor-pointer transition-all duration-300 rounded-xl backdrop-blur-md border"
+                     style={{
+                       background: isDarkMode 
+                         ? 'rgba(255, 255, 255, 0.05)'
+                         : 'rgba(255, 255, 255, 0.25)',
+                       borderColor: isDarkMode 
+                         ? 'rgba(255, 255, 255, 0.1)'
+                         : 'rgba(255, 255, 255, 0.3)',
+                       boxShadow: isDarkMode 
+                         ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                         : '0 8px 32px rgba(31, 38, 135, 0.37)'
+                     }}
                      onClick={() => navigate(`/${date}/faculty/${f.id}`)}
+                     onMouseEnter={e => {
+                       e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)';
+                       e.currentTarget.style.background = isDarkMode 
+                         ? 'rgba(255, 255, 255, 0.08)'
+                         : 'rgba(255, 255, 255, 0.35)';
+                       e.currentTarget.style.borderColor = isDarkMode 
+                         ? 'rgba(139, 92, 246, 0.4)'
+                         : 'rgba(139, 92, 246, 0.5)';
+                       e.currentTarget.style.boxShadow = isDarkMode 
+                         ? '0 15px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.3)'
+                         : '0 15px 40px rgba(31, 38, 135, 0.5), 0 0 20px rgba(139, 92, 246, 0.4)';
+                     }}
+                     onMouseLeave={e => {
+                       e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                       e.currentTarget.style.background = isDarkMode 
+                         ? 'rgba(255, 255, 255, 0.05)'
+                         : 'rgba(255, 255, 255, 0.25)';
+                       e.currentTarget.style.borderColor = isDarkMode 
+                         ? 'rgba(255, 255, 255, 0.1)'
+                         : 'rgba(255, 255, 255, 0.3)';
+                       e.currentTarget.style.boxShadow = isDarkMode 
+                         ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                         : '0 8px 32px rgba(31, 38, 135, 0.37)';
+                     }}
                    >
                      {f.kelloggdirectory_image_url && (
-                       <div className="relative mb-2">
-                         <img
-                           src={f.kelloggdirectory_image_url}
-                           alt={f.kelloggdirectory_name || 'Faculty'}
-                           className="w-24 h-24 rounded-full object-cover filter grayscale opacity-80"
-                         />
-                         <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
+                       <div className="relative mb-4">
+                         <div 
+                           className="w-24 h-24 rounded-full overflow-hidden border backdrop-blur-sm"
+                           style={{
+                             borderColor: isDarkMode 
+                               ? 'rgba(255, 255, 255, 0.2)'
+                               : 'rgba(255, 255, 255, 0.4)',
+                             boxShadow: isDarkMode 
+                               ? '0 4px 15px rgba(0, 0, 0, 0.3)'
+                               : '0 4px 15px rgba(31, 38, 135, 0.3)'
+                           }}
+                         >
+                           <img
+                             src={f.kelloggdirectory_image_url}
+                             alt={f.kelloggdirectory_name || 'Faculty'}
+                             className="w-full h-full object-cover filter grayscale opacity-80"
+                           />
+                           <div className="absolute inset-0 rounded-full bg-[#8b5cf6] mix-blend-overlay opacity-30"></div>
+                         </div>
                        </div>
                      )}
-                     <div className="text-lg font-semibold text-center mb-1">{f.kelloggdirectory_name || f.twentyfivelive_name || 'Unknown'}</div>
-                     <div className="text-sm text-gray-600 dark:text-gray-300 text-center mb-1">{f.kelloggdirectory_title}</div>
-                     <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">{f.kelloggdirectory_subtitle}</div>
+                     <div 
+                       className="text-lg font-bold text-center mb-2"
+                       style={{
+                         color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                         textShadow: '0 0 10px rgba(255, 255, 255, 0.5)'
+                       }}
+                     >
+                       {f.kelloggdirectory_name || f.twentyfivelive_name || 'Unknown'}
+                     </div>
+                     <div 
+                       className="text-sm text-center mb-1"
+                       style={{ 
+                         color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(26, 26, 26, 0.8)'
+                       }}
+                     >
+                       {f.kelloggdirectory_title}
+                     </div>
+                     <div 
+                       className="text-xs text-center mb-3"
+                       style={{ 
+                         color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(26, 26, 26, 0.6)'
+                       }}
+                     >
+                       {f.kelloggdirectory_subtitle}
+                     </div>
                      {f.kelloggdirectory_bio_url && (
                        <a
                          href={f.kelloggdirectory_bio_url}
                          target="_blank"
                          rel="noopener noreferrer"
-                         className="text-blue-600 dark:text-blue-400 text-xs underline mt-1"
+                         className="text-xs mt-1 px-3 py-1 rounded-full transition-all duration-300 backdrop-blur-sm border"
+                         style={{
+                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                           background: isDarkMode 
+                             ? 'rgba(139, 92, 246, 0.2)'
+                             : 'rgba(139, 92, 246, 0.3)',
+                           borderColor: isDarkMode 
+                             ? 'rgba(139, 92, 246, 0.4)'
+                             : 'rgba(139, 92, 246, 0.5)',
+                           textDecoration: 'none'
+                         }}
                          onClick={e => e.stopPropagation()}
+                         onMouseEnter={e => {
+                           e.currentTarget.style.background = isDarkMode 
+                             ? 'rgba(139, 92, 246, 0.3)'
+                             : 'rgba(139, 92, 246, 0.4)';
+                           e.currentTarget.style.transform = 'scale(1.05)';
+                           e.currentTarget.style.boxShadow = '0 5px 15px rgba(139, 92, 246, 0.4)';
+                         }}
+                         onMouseLeave={e => {
+                           e.currentTarget.style.background = isDarkMode 
+                             ? 'rgba(139, 92, 246, 0.2)'
+                             : 'rgba(139, 92, 246, 0.3)';
+                           e.currentTarget.style.transform = 'scale(1)';
+                           e.currentTarget.style.boxShadow = 'none';
+                         }}
                        >
                          View Bio
                        </a>
@@ -179,7 +419,12 @@ const FacultyListModal: React.FC<FacultyListModalProps> = ({ isOpen, onClose }) 
                  ))}
                </div>
              ) : (
-               <div>No faculty found.</div>
+               <div 
+                 className="text-center py-8"
+                 style={{ color: isDarkMode ? '#ffffff' : '#1a1a1a' }}
+               >
+                 No faculty found.
+               </div>
              )
            ) : null}
          </div>

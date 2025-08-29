@@ -7,8 +7,8 @@ const CustomInput = React.forwardRef(({ value, onClick, disabled }, ref) => (
   <button
     className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-base sm:text-lg font-semibold ${
       disabled 
-        ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-white/50 dark:bg-gray-800/50 dark:text-white' 
-        : 'border-gray-300/70 dark:border-gray-600/70 bg-white/80 dark:bg-gray-800/80 dark:text-white hover:border-blue-400/70 dark:hover:border-blue-400/70 hover:bg-white/90 dark:hover:bg-gray-800/90'
+        ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
+        : 'border-gray-300/70 dark:border-gray-600/70 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:border-gray-400/70 dark:hover:border-gray-400/70 hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
     }`}
     onClick={onClick}
     ref={ref}
