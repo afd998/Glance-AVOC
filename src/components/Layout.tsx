@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useBackground } from '../hooks/useBackground';
 import { useRain } from '../contexts/RainContext';
+import { useLocation } from 'react-router-dom';
 import RainOverlay from './RainOverlay';
 import LeavesOverlay from './LeavesOverlay';
 import Footer from './Footer';
@@ -12,6 +13,10 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
   const { isRainEnabled } = useRain();
+  const location = useLocation();
+  
+  // Don't show footer on the landing page
+  const showFooter = location.pathname !== '/auth';
   
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -44,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
+      {showFooter && <Footer />}
     </div>
   );
 };
