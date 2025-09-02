@@ -248,6 +248,7 @@ export type Database = {
           created_at: string | null
           event_id: number
           id: number
+          status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -257,6 +258,7 @@ export type Database = {
           created_at?: string | null
           event_id: number
           id?: number
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -266,9 +268,17 @@ export type Database = {
           created_at?: string | null
           event_id?: number
           id?: number
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "panopto_checks_completed_by_user_id_fkey"
+            columns: ["completed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "panopto_checks_event_id_fkey"
             columns: ["event_id"]
@@ -421,6 +431,10 @@ export type Database = {
     }
     Functions: {
       initialize_panopto_checks_for_existing_events: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      mark_missed_panopto_checks: {
         Args: Record<PropertyKey, never>
         Returns: number
       }
