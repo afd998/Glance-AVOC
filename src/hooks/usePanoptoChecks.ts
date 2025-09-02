@@ -499,6 +499,7 @@ export const usePanoptoChecks = () => {
         .update({
           completed_time: new Date().toTimeString().split(' ')[0], // Current time
           completed_by_user_id: user?.id || null,
+          status: 'completed', // Mark as completed
           updated_at: new Date().toISOString()
         })
         .eq('event_id', eventId)
