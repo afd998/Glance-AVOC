@@ -36,7 +36,7 @@ export default function EventHeader({
   const timeline = ownershipData?.timeline || [];
   
   // Get Panopto checks functionality
-  const { areAllChecksComplete } = usePanoptoChecks();
+  const { areAllChecksComplete, useEventChecksComplete } = usePanoptoChecks();
   
   // State to track if all Panopto checks are complete
   const [allChecksComplete, setAllChecksComplete] = React.useState(false);
@@ -47,34 +47,36 @@ export default function EventHeader({
   // Check for specific resources by display name
   const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
   
-  // Check if all Panopto checks are complete for this event
-  React.useEffect(() => {
-    if (hasVideoRecording && currentEvent.panopto_checks) {
-      // Calculate expected number of checks
-      let totalChecks = 0;
-      if (currentEvent.start_time && currentEvent.end_time && currentEvent.date) {
-        const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
-        const eventStart = new Date(`${currentEvent.date}T${currentEvent.start_time}`);
-        const eventEnd = new Date(`${currentEvent.date}T${currentEvent.end_time}`);
-        const eventDuration = eventEnd.getTime() - eventStart.getTime();
-        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
-      }
+  // Check if all Panopto checks are complete for this event (using React Query properly)
+  const { isComplete, isLoading, error } = useEventChecksComplete(
+    currentEvent.id,
+    currentEvent.start_time || undefined,
+    currentEvent.end_time || undefined,
+    currentEvent.date || undefined
+  );
 
-      if (totalChecks > 0) {
-        const checks = currentEvent.panopto_checks as boolean[] | null;
-        if (checks && checks.length >= totalChecks) {
-          const allComplete = checks.slice(0, totalChecks).every(check => check === true);
-          setAllChecksComplete(allComplete);
-        } else {
-          setAllChecksComplete(false);
-        }
+  // Update state when completion status changes
+  React.useEffect(() => {
+    console.log('EventHeader: Completion status update:', {
+      eventId: currentEvent.id,
+      hasVideoRecording,
+      isLoading,
+      error,
+      isComplete,
+      allChecksComplete
+    });
+    
+    if (hasVideoRecording && !isLoading) {
+      if (error) {
+        console.error('Error checking completion status:', error);
+        setAllChecksComplete(false);
       } else {
-        setAllChecksComplete(true); // No checks needed
+        setAllChecksComplete(isComplete);
       }
-    } else {
+    } else if (!hasVideoRecording) {
       setAllChecksComplete(false);
     }
-  }, [currentEvent.panopto_checks, currentEvent.start_time, currentEvent.end_time, currentEvent.date, hasVideoRecording]);
+  }, [isComplete, isLoading, error, hasVideoRecording, currentEvent.id, allChecksComplete]);
   
   // Check if this is the first session (earliest occurrence) - only for lectures
   const isFirstSession = React.useMemo(() => {
