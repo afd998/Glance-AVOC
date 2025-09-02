@@ -240,6 +240,44 @@ export type Database = {
           },
         ]
       }
+      panopto_checks: {
+        Row: {
+          check_time: string
+          completed_by_user_id: string | null
+          completed_time: string | null
+          created_at: string | null
+          event_id: number
+          id: number
+          updated_at: string | null
+        }
+        Insert: {
+          check_time: string
+          completed_by_user_id?: string | null
+          completed_time?: string | null
+          created_at?: string | null
+          event_id: number
+          id?: number
+          updated_at?: string | null
+        }
+        Update: {
+          check_time?: string
+          completed_by_user_id?: string | null
+          completed_time?: string | null
+          created_at?: string | null
+          event_id?: number
+          id?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panopto_checks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auto_hide: boolean
@@ -382,7 +420,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      initialize_panopto_checks_for_existing_events: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

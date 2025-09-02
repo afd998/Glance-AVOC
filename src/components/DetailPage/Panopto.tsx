@@ -23,8 +23,9 @@ interface PanoptoCheckTimeline {
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export default function Panopto({ event }: PanoptoProps) {
-  const { activeChecks, completePanoptoCheck, initializeEventChecks, completePanoptoCheckForEvent } = usePanoptoChecks();
+  const { activeChecks, completePanoptoCheck, completePanoptoCheckForEvent } = usePanoptoChecks();
   const [completedChecks, setCompletedChecks] = useState<boolean[]>([]);
+  const [panoptoChecksData, setPanoptoChecksData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
@@ -50,40 +51,61 @@ export default function Panopto({ event }: PanoptoProps) {
     return completedChecks.slice(0, totalChecks).every(check => check === true);
   }, [completedChecks, event.start_time, event.end_time, event.date, isLoading]);
   
-  // Load completion status from database
+  // Load panopto checks from the new table structure
   useEffect(() => {
-    const loadCompletionStatus = async () => {
+    const loadPanoptoChecks = async () => {
       try {
-        // First initialize the event checks if they don't exist
-        await initializeEventChecks(event.id);
-        
-        // Then load the completion status
-        const { data, error } = await supabase
-          .from('events')
-          .select('panopto_checks')
-          .eq('id', event.id)
-          .single();
-          
+        // Load checks from panopto_checks table with user details from profiles
+        const { data: checksData, error } = await supabase
+          .from('panopto_checks')
+          .select(`
+            check_time, 
+            completed_time, 
+            completed_by_user_id,
+            profiles!panopto_checks_completed_by_user_id_fkey(id, name)
+          `)
+          .eq('event_id', event.id)
+          .order('check_time');
+
         if (error) {
-          console.error('Error loading check completion status:', error);
+          console.error('Error loading panopto checks:', error);
+          setIsLoading(false);
           return;
         }
+
+        // Store the full check data for display
+        setPanoptoChecksData(checksData || []);
         
-        const checks = (data?.panopto_checks as boolean[] | null) || [];
-        setCompletedChecks(checks);
+        // Convert to boolean array format for backward compatibility with existing UI
+        const completedChecksArray = checksData?.map(check => check.completed_time !== null) || [];
+        setCompletedChecks(completedChecksArray);
         setIsLoading(false);
+        
+        // Debug logging
+        console.log('Panopto checks loaded:', {
+          eventId: event.id,
+          checksData: checksData,
+          completedChecksArray: completedChecksArray,
+          isLoading: false
+        });
+        
+        // Debug the first check to see the structure
+        if (checksData && checksData.length > 0) {
+          console.log('First check data structure:', checksData[0]);
+          console.log('Profiles data available:', checksData[0].profiles);
+        }
       } catch (error) {
-        console.error('Error in loadCompletionStatus:', error);
+        console.error('Error in loadPanoptoChecks:', error);
         setIsLoading(false);
       }
     };
-    
-    loadCompletionStatus();
-    
+
+    loadPanoptoChecks();
+
     // Refresh every 30 seconds to pick up changes
-    const interval = setInterval(loadCompletionStatus, 30000);
+    const interval = setInterval(loadPanoptoChecks, 30000);
     return () => clearInterval(interval);
-  }, [event.id, initializeEventChecks]);
+  }, [event.id]);
   
   // Calculate expected number of checks for skeleton loading
   const expectedChecks = useMemo(() => {
@@ -97,14 +119,25 @@ export default function Panopto({ event }: PanoptoProps) {
 
   // Calculate all Panopto checks for this event
   const panoptoTimeline = useMemo((): PanoptoCheckTimeline[] => {
-    if (!event.date || !event.start_time || !event.end_time || isLoading) return [];
+    if (!event.date || !event.start_time || !event.end_time || isLoading) {
+      console.log('Panopto timeline calculation skipped:', {
+        hasDate: !!event.date,
+        hasStartTime: !!event.start_time,
+        hasEndTime: !!event.end_time,
+        isLoading
+      });
+      return [];
+    }
     
     const eventStart = new Date(`${event.date}T${event.start_time}`);
     const eventEnd = new Date(`${event.date}T${event.end_time}`);
     const eventDuration = eventEnd.getTime() - eventStart.getTime();
     const totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
     
-    if (totalChecks === 0) return [];
+    if (totalChecks === 0) {
+      console.log('No checks needed for event duration:', eventDuration);
+      return [];
+    }
     
     const now = new Date();
 
@@ -119,6 +152,17 @@ export default function Panopto({ event }: PanoptoProps) {
       // Check if this check has been completed (from database)
       const isCompleted = completedChecks[checkNumber - 1] === true;
       
+      // Debug logging for first few checks
+      if (checkNumber <= 3) {
+        console.log(`Check ${checkNumber} status:`, {
+          checkNumber,
+          completedChecksLength: completedChecks.length,
+          isCompleted,
+          completedChecksIndex: checkNumber - 1,
+          completedChecksValue: completedChecks[checkNumber - 1]
+        });
+      }
+      
       let status: 'upcoming' | 'current' | 'overdue' | 'completed' = 'upcoming';
       let canComplete = false;
       
@@ -132,8 +176,6 @@ export default function Panopto({ event }: PanoptoProps) {
         canComplete = true;
       }
       
-
-      
       checks.push({
         checkNumber,
         scheduledTime,
@@ -144,10 +186,55 @@ export default function Panopto({ event }: PanoptoProps) {
     }
     
     return checks;
-  }, [event, activeChecks, completedChecks, isLoading]);
+  }, [event, activeChecks, completedChecks, isLoading, panoptoChecksData]);
   
   const formatTime = (date: Date) => {
     return format(date, 'h:mm a');
+  };
+
+  const formatCompletionTime = (timeString: string) => {
+    // timeString is in HH:MM:SS format, convert to readable time
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const minute = parseInt(minutes);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+  };
+
+  const calculateCheckLatency = (checkTime: string, completedTime: string, eventDate: string) => {
+    // Parse the times and calculate how late the check was completed
+    const checkDateTime = new Date(`${eventDate}T${checkTime}`);
+    const completedDateTime = new Date(`${eventDate}T${completedTime}`);
+    
+    // Calculate difference in minutes
+    const diffMs = completedDateTime.getTime() - checkDateTime.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    // 10 minutes grace period
+    const gracePeriod = 10;
+    const actualLatency = diffMinutes - gracePeriod;
+    
+    if (actualLatency <= 0) {
+      return { isLate: false, minutesLate: 0, message: 'On time' };
+    } else {
+      // Convert to hours and minutes
+      const hours = Math.floor(actualLatency / 60);
+      const minutes = actualLatency % 60;
+      
+      let message = '';
+      if (hours > 0) {
+        message = `${hours}h ${minutes}m late`;
+      } else {
+        message = `${minutes}m late`;
+      }
+      
+      return { 
+        isLate: true, 
+        minutesLate: actualLatency, 
+        message: message
+      };
+    }
   };
   
   const formatTimeDistance = (date: Date) => {
@@ -193,16 +280,25 @@ export default function Panopto({ event }: PanoptoProps) {
     const success = await completePanoptoCheckForEvent(event.id, checkNumber, event.date);
     
     if (success) {
-      // Refresh the completion status
-      const { data, error } = await supabase
-        .from('events')
-        .select('panopto_checks')
-        .eq('id', event.id)
-        .single();
+              // Refresh the completion status from the new panopto_checks table
+        const { data: checksData, error } = await supabase
+          .from('panopto_checks')
+          .select(`
+            check_time, 
+            completed_time, 
+            completed_by_user_id,
+            profiles!panopto_checks_completed_by_user_id_fkey(id, name)
+          `)
+          .eq('event_id', event.id)
+          .order('check_time');
         
-      if (!error && data) {
-        const checks = (data?.panopto_checks as boolean[] | null) || [];
-        setCompletedChecks(checks);
+      if (!error && checksData) {
+        // Store the full check data for display
+        setPanoptoChecksData(checksData);
+        
+        // Convert to boolean array format for backward compatibility with existing UI
+        const completedChecksArray = checksData.map(check => check.completed_time !== null);
+        setCompletedChecks(completedChecksArray);
       }
     }
   };
@@ -399,9 +495,53 @@ export default function Panopto({ event }: PanoptoProps) {
                       {check.status === 'overdue' && (
                         <>Late by {formatTimeDistance(check.dueTime).replace(' ago', '')}</>
                       )}
-                      {check.status === 'completed' && (
-                        <>✓ Completed</>
-                      )}
+                                          {check.status === 'completed' && (
+                      <>
+                        ✓ Completed
+                        {/* Show completion details */}
+                        {(() => {
+                          const eventStart = new Date(`${event.date}T${event.start_time}`);
+                          const checkData = panoptoChecksData.find(c => {
+                            const checkTime = new Date(`${event.date}T${c.check_time}`);
+                            const scheduledTime = new Date(eventStart.getTime() + ((check.checkNumber - 1) * PANOPTO_CHECK_INTERVAL));
+                            return Math.abs(checkTime.getTime() - scheduledTime.getTime()) < 60000; // Within 1 minute
+                          });
+                          
+                          if (checkData?.completed_time) {
+                            // Debug the check data
+                            console.log('Check data for display:', checkData);
+                            console.log('Profiles data:', checkData.profiles);
+                            
+                            const userName = checkData.profiles?.name || (checkData.completed_by_user_id ? `User ${checkData.completed_by_user_id.slice(0, 8)}...` : 'Unknown User');
+                            
+                            // Calculate how late the check was completed
+                            const latency = calculateCheckLatency(
+                              checkData.check_time, 
+                              checkData.completed_time, 
+                              event.date!
+                            );
+                            
+                            return (
+                              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 text-center">
+                                <div>by {userName}</div>
+                                <div>at {formatCompletionTime(checkData.completed_time)}</div>
+                                <div className={`mt-1 font-medium flex items-center justify-center gap-1 ${
+                                  latency.isLate ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+                                }`}>
+                                  {latency.isLate ? (
+                                    <Clock className="w-3 h-3" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3" />
+                                  )}
+                                  {latency.message}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </>
+                    )}
                     </div>
                     
                     {check.canComplete && check.status !== 'completed' && (
@@ -416,12 +556,7 @@ export default function Panopto({ event }: PanoptoProps) {
                         Complete
                       </button>
                     )}
-                    {check.status === 'completed' && (
-                      <div className="text-xs font-medium text-green-600 flex items-center justify-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        Done
-                      </div>
-                    )}
+
                   </div>
                 </div>
               ))}
