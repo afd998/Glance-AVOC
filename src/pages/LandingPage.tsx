@@ -144,42 +144,40 @@ const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={toggleDarkMode}
-          className={`p-2 rounded-lg transition-colors ${
-            isDarkMode 
-              ? 'bg-gray-700 text-white hover:bg-gray-600' 
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          } shadow-lg`}
-        >
-          {isDarkMode ? '🌞' : '🌙'}
-        </button>
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center relative">
+      {/* Blurred background image */}
+      <div 
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: 'url(/image.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'blur(2px)'
+        }}
+      />
+      
       <div className="max-w-md w-full mx-4">
-        <div className={`p-8 rounded-2xl shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-        }`}>
+        <div className="p-8 rounded-2xl shadow-2xl backdrop-blur-md bg-white/20 border border-white/30 text-white">
           {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">G</span>
+          <div className="text-center mb-8 relative">
+            <h1 className="text-3xl font-bold mb-2">AVOC</h1>
+            <div className="w-48 h-48 mx-auto mb-4 flex items-center justify-center relative">
+              <img src="/curtain.png" alt="AVOC Logo" className="w-full h-full object-contain" />
+              <h1 
+                className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-white drop-shadow-lg" 
+                style={{ fontFamily: 'Smooth Circulars, sans-serif' }}
+              >
+                HOME
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Glance</h1>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Northwestern University Room Scheduler
-            </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {!otpSent ? (
               <div>
-                <label htmlFor="email" className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                }`}>
+                <label htmlFor="email" className="block text-sm font-medium mb-2 text-white">
                   Northwestern Email Address
                 </label>
                 <input
@@ -188,19 +186,13 @@ const LandingPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@northwestern.edu"
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                  className="w-full px-4 py-3 rounded-lg border border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/10 text-white placeholder-white/60 backdrop-blur-sm"
                   disabled={isLoading}
                 />
               </div>
             ) : (
               <div>
-                <label htmlFor="otp" className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                }`}>
+                <label htmlFor="otp" className="block text-sm font-medium mb-2 text-white">
                   Verification Code
                 </label>
                 <input
@@ -209,15 +201,11 @@ const LandingPage: React.FC = () => {
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456"
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-2xl tracking-widest ${
-                    isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                  className="w-full px-4 py-3 rounded-lg border border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 text-center text-2xl tracking-widest bg-white/10 text-white placeholder-white/60 backdrop-blur-sm"
                   disabled={isLoading}
                   maxLength={6}
                 />
-                <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className="text-xs mt-2 text-white/70">
                   Enter the 6-digit code sent to {email}
                 </p>
               </div>
@@ -229,7 +217,7 @@ const LandingPage: React.FC = () => {
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  : 'bg-purple-500 hover:bg-purple-600 text-white'
               }`}
             >
               {isLoading ? (
@@ -273,13 +261,6 @@ const LandingPage: React.FC = () => {
               {message}
             </div>
           )}
-
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Only authorized users can access this system. Contact support for access.
-            </p>
-          </div>
         </div>
       </div>
     </div>

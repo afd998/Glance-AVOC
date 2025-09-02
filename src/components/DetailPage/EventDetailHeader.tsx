@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
@@ -7,6 +7,7 @@ import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
+import { FacultyAvatar } from '../FacultyAvatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -61,6 +62,9 @@ export default function EventDetailHeader({
 
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
+  
+  // State for faculty photo hover effects
+  const [isFacultyHovering, setIsFacultyHovering] = useState(false);
 
   const handleOccurrencesClick = () => {
     navigate(`/${date}/${event.id}/occurrences`);
@@ -70,43 +74,95 @@ export default function EventDetailHeader({
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Event Info */}
         <div className="flex-1 lg:w-1/2 mb-4 lg:mb-0">
-          {/* Main Heading - Department Name for Lectures, Full Title for others */}
-          {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ? (
-            <h1 className="text-xl sm:text-3xl font-bold text-black mb-2">
-              {getDepartmentName(event.event_name.substring(0, 4))}
-            </h1>
-          ) : event.event_name ? (
-            <h1 className="text-xl sm:text-3xl font-bold text-black mb-2">
-              {event.event_name}
-            </h1>
-          ) : null}
-          
-          {/* Lecture Title */}
-          {event.lecture_title && (
-            <h2 className="text-lg sm:text-2xl font-semibold text-black mb-2">
-              {event.lecture_title}
-            </h2>
-          )}
-          
-          {/* Session Code */}
-          <p className="text-sm sm:text-lg text-black mb-3 sm:mb-4">
-            {event.event_name}
-          </p>
-          
-          {/* Date and Time Group with Occurrences Button */}
-          <div className="flex items-center gap-3 mb-3 sm:mb-4">
-            <div className="flex flex-col">
-              <p className="text-sm sm:text-lg text-black mb-1">{formatDate(event.date || '')}</p>
-              <p className="text-sm sm:text-lg text-black">
-                {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
-              </p>
+          {/* Background container for the first 3 elements with faculty photo */}
+          <div className={`${themeColors.cardBg} rounded-lg p-4 mb-4`}>
+            <div className="flex items-center gap-4">
+              {/* Left side - Faculty photo */}
+              {event.instructor_name && facultyMember?.kelloggdirectory_image_url && (
+                <div className="flex-shrink-0">
+                  <div className="flex flex-col items-center gap-2">
+                    <div
+                      onMouseEnter={() => setIsFacultyHovering(true)}
+                      onMouseLeave={() => setIsFacultyHovering(false)}
+                      className="bg-purple-900/30 p-2 rounded-lg flex items-center justify-center"
+                    >
+                      <FacultyAvatar
+                        imageUrl={facultyMember.kelloggdirectory_image_url}
+                        cutoutImageUrl={facultyMember.cutout_image}
+                        instructorName={event.instructor_name || ''}
+                        isHovering={isFacultyHovering}
+                        size="lg"
+                        className="h-20 w-20"
+                      />
+                    </div>
+                    <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-20 line-clamp-2 transition-all duration-200">
+                      {event.instructor_name ? (() => {
+                        const parts = event.instructor_name.split(',');
+                        if (parts.length >= 2) {
+                          return parts[0].trim();
+                        }
+                        return event.instructor_name;
+                      })() : ''}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Right side - Event info */}
+              <div className="flex-1">
+                {/* Course Code - Beginning part in bold */}
+                {event.event_name && (
+                  <h1 className="text-xl sm:text-3xl font-bold text-black mb-2">
+                    {(() => {
+                      const eventNameCopy = event.event_name ? String(event.event_name) : '';
+                      const dashIndex = eventNameCopy.indexOf('-');
+                      return dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
+                    })()}
+                  </h1>
+                )}
+                
+                {/* Lecture Title */}
+                {event.lecture_title && (
+                  <h2 className="text-lg sm:text-2xl font-semibold text-black mb-2">
+                    {event.lecture_title}
+                  </h2>
+                )}
+                
+                {/* Session Code */}
+                <p className="text-sm sm:text-lg text-black mb-0">
+                  {event.event_name}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={handleOccurrencesClick}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${themeColors.buttonBg} ${themeColors.buttonText}`}
-            >
-              Occurrences
-            </button>
+          </div>
+          
+          {/* Room and Occurrences Row */}
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
+            {/* Room Section */}
+            <div className={`${themeColors.cardBg} rounded-lg p-3`}>
+              <span className="text-xs font-medium text-black mb-1 block">Room</span>
+              <span className="text-lg font-bold text-black">
+                {event.room_name || 'Unknown'}
+              </span>
+            </div>
+            
+            {/* Occurrences Section with Date, Time, and Button */}
+            <div className={`${themeColors.cardBg} rounded-lg p-3 flex items-center gap-3 transition-all duration-200 hover:${themeColors.itemBg} cursor-pointer`} onClick={handleOccurrencesClick}>
+              <div className="flex flex-col items-center justify-center p-2 rounded-lg">
+                <svg className="w-5 h-5 text-black mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                </svg>
+                <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm sm:text-lg text-black mb-1">{formatDate(event.date || '')}</p>
+                <p className="text-sm sm:text-lg text-black">
+                  {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
+                </p>
+              </div>
+            </div>
           </div>
           
           {/* Owner Display - Show for any event */}
@@ -124,56 +180,60 @@ export default function EventDetailHeader({
               Event Details
             </h3>
             
-            {/* Event Type and Room in a grid layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-black mb-1">Type</span>
-                <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
-                  {event.event_type || 'Unknown'}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-black mb-1">Room</span>
-                <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
-                  {event.room_name || 'Unknown'}
-                </span>
-              </div>
+            {/* Department Name/Event Name */}
+            <div className="mb-3">
+              <span className="text-xs font-medium text-black mb-1 block">Event</span>
+              <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ? 
+                  getDepartmentName(event.event_name.substring(0, 4)) : 
+                  (event.event_name || 'Unknown')}
+              </span>
+            </div>
+            
+            {/* Event Type */}
+            <div className="mb-2">
+              <span className="text-xs font-medium text-black mb-1 block">Type</span>
+              <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                {event.event_type || 'Unknown'}
+              </span>
             </div>
           </div>
 
           {/* Resources Card */}
           {resources.length > 0 && (
-            <div className={`rounded-lg p-3 ${themeColors.cardBg}`}>
-              <h3 className="text-sm font-semibold text-black mb-2 uppercase tracking-wide">
+            <div className={`rounded-lg p-4 ${themeColors.cardBg} shadow-lg`}>
+              <h3 className="text-lg font-bold mb-4 text-black">
                 Resources ({resources.length})
               </h3>
-              <div className="space-y-1.5">
+              <div className="space-y-3">
                 {resources.map((item, index) => (
                   <div 
                     key={index} 
-                    className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${themeColors.itemBg}`}
+                    className={`rounded-lg p-3 shadow-md hover:shadow-lg transition-all duration-200 ${themeColors.itemBg}`}
                   >
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center ${themeColors.iconBg}`}>
-                      <span className={`text-xs ${themeColors.iconText}`}>
-                        {getResourceIcon(item.itemName)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-black truncate">
-                          {getResourceDisplayName(item.itemName)}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${themeColors.iconBg}`}>
+                        <span className={`text-sm font-bold ${themeColors.iconText}`}>
+                          {getResourceIcon(item.itemName)}
                         </span>
-                        {item.quantity && item.quantity > 1 && (
-                          <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
-                            ×{item.quantity}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-semibold text-black">
+                            {getResourceDisplayName(item.itemName)}
                           </span>
+                          {item.quantity && item.quantity > 1 && (
+                            <span className={`px-2 py-1 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                              ×{item.quantity}
+                            </span>
+                          )}
+                        </div>
+                        {item.instruction && (
+                          <p className="text-xs leading-relaxed text-black">
+                            {item.instruction}
+                          </p>
                         )}
                       </div>
-                      {item.instruction && (
-                        <p className="text-xs text-black mt-0.5">
-                          {item.instruction}
-                        </p>
-                      )}
                     </div>
                   </div>
                 ))}

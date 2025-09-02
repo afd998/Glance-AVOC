@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
 import { getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../../utils/eventUtils';
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
+import { FacultyAvatar } from '../FacultyAvatar';
 
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -34,6 +35,9 @@ export default function SessionSetup({
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
   
+  // State for faculty photo hover effects
+  const [isFacultyHovering, setIsFacultyHovering] = useState(false);
+  
   return (
     <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
       
@@ -44,17 +48,17 @@ export default function SessionSetup({
           <div className={`border rounded-lg p-3 sm:p-4 ${themeColors.itemBg}`}>
             <div className="flex items-center gap-2 sm:gap-3">
               {facultyMember?.kelloggdirectory_image_url ? (
-                <div className="relative">
-                  <img 
-                    src={facultyMember.kelloggdirectory_image_url} 
-                    alt={event.instructor_name}
-                    className="h-12 w-12 sm:h-16 sm:w-16 rounded-full object-cover filter grayscale opacity-80"
-                    onError={(e) => {
-                      console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
+                <div
+                  onMouseEnter={() => setIsFacultyHovering(true)}
+                  onMouseLeave={() => setIsFacultyHovering(false)}
+                >
+                  <FacultyAvatar
+                    imageUrl={facultyMember.kelloggdirectory_image_url}
+                    cutoutImageUrl={facultyMember.cutout_image}
+                    instructorName={event.instructor_name || ''}
+                    isHovering={isFacultyHovering}
+                    size="lg"
                   />
-                  <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
                 </div>
               ) : (
                 <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
