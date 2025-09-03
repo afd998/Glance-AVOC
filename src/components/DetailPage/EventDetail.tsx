@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
-import { useFacultyMember, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
+import { useMultipleFacultyMembers, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
 import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
@@ -19,6 +19,21 @@ interface PanelOption {
   label: string;
   image: string;
 }
+
+// Helper function to parse instructor names from JSON
+const parseInstructorNames = (instructorNamesJson: any): string[] => {
+  if (!instructorNamesJson) return [];
+
+  if (Array.isArray(instructorNamesJson)) {
+    return instructorNamesJson.filter(name => typeof name === 'string' && name.trim() !== '');
+  }
+
+  if (typeof instructorNamesJson === 'string') {
+    return [instructorNamesJson];
+  }
+
+  return [];
+};
 
 export default function EventDetail() {
   const navigate = useNavigate();
@@ -58,8 +73,14 @@ export default function EventDetail() {
     if (!events || !eventId) return null;
     return events.find(e => e.id === parseInt(eventId, 10)) || null;
   }, [events, eventId]);
-  
-  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event?.instructor_name || '');
+
+  // Parse instructor names from JSON field
+  const instructorNames = React.useMemo(() => {
+    if (!event) return [];
+    return parseInstructorNames(event.instructor_names);
+  }, [event]);
+
+  const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   const updateFacultyAttributes = useUpdateFacultyAttributes();
   
   // Get ownership data including hand-off times
@@ -95,8 +116,12 @@ export default function EventDetail() {
   };
 
   const selectPanelImage = (imageId: string) => {
-    if (!editingPanel || !facultyMember || !event) return;
-    
+    if (!editingPanel || !facultyMembers || facultyMembers.length === 0 || !event) return;
+
+    // For multiple instructors, update the first one found
+    // In a real application, you might want to show a selector for which instructor to update
+    const facultyMember = facultyMembers[0];
+
     const updatedAttributes = {
       timing: facultyMember.timing ?? 0,
       complexity: facultyMember.complexity ?? 0,
@@ -107,12 +132,12 @@ export default function EventDetail() {
       setup_notes: facultyMember.setup_notes ?? '',
       [editingPanel === 'left' ? 'left_source' : 'right_source']: imageId
     };
-    
+
     updateFacultyAttributes.mutate({
-      twentyfiveliveName: event.instructor_name || '',
+      twentyfiveliveName: facultyMember.twentyfivelive_name || '',
       attributes: updatedAttributes
     });
-    
+
     closeModal();
   };
 
@@ -151,7 +176,8 @@ export default function EventDetail() {
             <div className="flex-1 w-full">
               <EventDetailHeader
                 event={event}
-                facultyMember={facultyMember}
+                facultyMembers={facultyMembers || []}
+                instructorNames={instructorNames}
                 isFacultyLoading={isFacultyLoading}
                 resources={resources}
                 handOffTime={handOffTime || null}
@@ -166,7 +192,8 @@ export default function EventDetail() {
               <SessionSetup
                 event={event}
                 resources={resources}
-                facultyMember={facultyMember}
+                facultyMembers={facultyMembers || []}
+                instructorNames={instructorNames}
                 isFacultyLoading={isFacultyLoading}
                 updateFacultyAttributes={updateFacultyAttributes}
                 openPanelModal={openPanelModal}

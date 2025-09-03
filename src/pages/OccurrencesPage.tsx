@@ -49,8 +49,8 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
       <div 
         className={`rounded-lg shadow-lg p-4 border cursor-pointer hover:shadow-xl transition-all ${
           isCurrentEvent 
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400' 
-            : `${themeColors.cardBg} border ${themeColors.cardBg.split(' ')[1]?.replace('bg-', 'border-') || 'border-gray-200'}`
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400 shadow-green-200/50 dark:shadow-green-900/30 ring-2 ring-green-200 dark:ring-green-800/30' 
+            : 'bg-white/95 dark:bg-gray-800/95 border-gray-200 dark:border-gray-600 shadow-gray-200/50 dark:shadow-gray-900/30 hover:bg-white dark:hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.02]'
         }`}
         onClick={handleCardClick}
       >
@@ -61,17 +61,20 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {formatDate(event.date || '')}
               </p>
-              <p className="text-base font-medium text-gray-700 dark:text-gray-300">
+              <p className="text-base font-medium text-gray-700 dark:text-gray-200">
                 {formatTime(timeToFloatHours(event.start_time))} - {formatTime(timeToFloatHours(event.end_time))}
               </p>
             </div>
             <div className="space-y-1 text-sm">
-              <p className="text-gray-700 dark:text-gray-300 font-medium">
+              <p className="text-gray-800 dark:text-gray-100 font-medium">
                 {event.room_name || 'Unknown Room'}
               </p>
-              {event.instructor_name && (
-                <p className="text-gray-600 dark:text-gray-400">
-                  {event.instructor_name}
+              {event.instructor_names && Array.isArray(event.instructor_names) && event.instructor_names.length > 0 && (
+                <p className="text-gray-700 dark:text-gray-300">
+                  {event.instructor_names.length === 1
+                    ? String(event.instructor_names[0])
+                    : `${event.instructor_names.length} instructors`
+                  }
                 </p>
               )}
             </div>
@@ -88,27 +91,27 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
             )}
             {resources.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Resources:</p>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Resources:</p>
                 <div className="flex flex-col gap-1">
                   {resources.map((item, index) => (
                     <div 
                       key={`${event.id}-resource-${index}`} 
-                      className={`flex flex-col gap-1 p-2 rounded-lg text-xs transition-colors ${themeColors.itemBg} ${themeColors.badgeText} hover:${themeColors.itemBg.split(' ')[0]?.replace('bg-', 'hover:bg-') || 'hover:bg-gray-100'}`}
+                      className="flex flex-col gap-1 p-2 rounded-lg text-xs transition-colors bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-600 shadow-sm hover:shadow-md"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="flex-shrink-0 text-sm">
+                        <span className="flex-shrink-0 text-sm text-gray-600 dark:text-gray-300">
                           {getResourceIcon(item.itemName)}
                         </span>
-                        <span className="font-medium">{getResourceDisplayName(item.itemName)}</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200">{getResourceDisplayName(item.itemName)}</span>
                         {item.quantity && item.quantity > 1 && (
-                          <span className={`ml-1 px-1 py-0.5 text-xs font-bold rounded-full ${themeColors.badgeBg} ${themeColors.badgeText}`}>
+                          <span className="ml-1 px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 shadow-sm border border-blue-200 dark:border-blue-700">
                             {item.quantity}
                           </span>
                         )}
                       </div>
                       {item.instruction && (
                         <div 
-                          className={`text-xs mt-1 pl-6 max-w-[200px] truncate ${themeColors.iconText}`}
+                          className="text-xs mt-1 pl-6 max-w-[200px] truncate text-gray-600 dark:text-gray-400"
                           title={item.instruction}
                         >
                           {item.instruction}
@@ -205,13 +208,13 @@ export default function OccurrencesPage() {
   return (
     <div className="relative bg-transparent w-full max-w-2xl max-h-[80vh] overflow-visible">
       {/* Header */}
-      <div className={`${themeColors ? themeColors.mainBg : 'bg-white/95 dark:bg-gray-900/95'} backdrop-blur-sm rounded-t-xl shadow-lg flex items-center justify-between p-6 border-b ${themeColors ? themeColors.mainBg.split(' ')[1]?.replace('bg-', 'border-') : 'border-gray-200 dark:border-gray-700'}`}>
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-t-xl shadow-lg flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           {currentEvent?.event_name} - Occurrences
         </h2>
         <button
           onClick={handleClose}
-          className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -220,33 +223,33 @@ export default function OccurrencesPage() {
       </div>
 
       {/* Content */}
-      <div className={`${themeColors ? themeColors.mainBgDark : 'bg-white/95 dark:bg-gray-900/95'} backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible`}>
+      <div className="bg-gradient-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible border-t border-gray-200 dark:border-gray-700">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-red-500">
+          <div className="text-center py-8 text-red-600 dark:text-red-400">
             Error loading occurrences
           </div>
         ) : occurrences && occurrences.length > 0 ? (
           <div className="relative h-96 overflow-y-auto">
             <div className="relative w-full px-8 py-12" style={{ minHeight: `${occurrences.length * 120}px` }}>
-                              {occurrences.map((event, index) => (
-                  <div
-                    key={event.id}
-                    className="group relative mb-4 transition-all duration-300 ease-out hover:z-50"
-                    onMouseEnter={(e) => {
-                      const target = e.currentTarget;
-                      target.style.zIndex = '9999';
-                      target.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      const target = e.currentTarget;
-                      target.style.zIndex = '';
-                      target.style.transform = '';
-                    }}
-                  >
+              {occurrences.map((event, index) => (
+                <div
+                  key={event.id}
+                  className="group relative mb-4 transition-all duration-300 ease-out hover:z-50"
+                  onMouseEnter={(e) => {
+                    const target = e.currentTarget;
+                    target.style.zIndex = '9999';
+                    target.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.currentTarget;
+                    target.style.zIndex = '';
+                    target.style.transform = '';
+                  }}
+                >
                   <OccurrenceCard
                     event={event}
                     index={index}
@@ -258,7 +261,7 @@ export default function OccurrencesPage() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-gray-600 dark:text-gray-300">
             No other occurrences found
           </div>
         )}

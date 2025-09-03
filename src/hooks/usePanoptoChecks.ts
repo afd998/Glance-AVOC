@@ -210,7 +210,9 @@ export const usePanoptoChecks = () => {
         event.event_name,
         checkNumber,
         event.room_name,
-        event.instructor_name
+        Array.isArray(event.instructor_names) && event.instructor_names.length > 0
+          ? event.instructor_names[0]
+          : 'Unknown Instructor'
       );
       console.log(`✅ In-app notification created for ${event.event_name}`);
 
@@ -255,7 +257,9 @@ export const usePanoptoChecks = () => {
         createdAt: new Date().toISOString(),
         completed: false,
         roomName: event.room_name,
-        instructorName: event.instructor_name
+        instructorName: Array.isArray(event.instructor_names) && event.instructor_names.length > 0
+          ? event.instructor_names[0]
+          : 'Unknown Instructor'
       };
 
       setActiveChecks(prev => {

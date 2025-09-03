@@ -323,11 +323,16 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
                             </div>
                           </div>
                           
-                          {notification.event.instructor_name && (
+                          {notification.event.instructor_names && Array.isArray(notification.event.instructor_names) && notification.event.instructor_names.length > 0 && (
                             <div className="mt-2 text-sm">
-                              <span className="font-medium text-gray-700 dark:text-gray-300">Instructor:</span>
+                              <span className="font-medium text-gray-700 dark:text-gray-300">
+                                Instructor{notification.event.instructor_names.length > 1 ? 's' : ''}:
+                              </span>
                               <span className="text-gray-900 dark:text-white ml-1">
-                                {notification.event.instructor_name}
+                                {notification.event.instructor_names.length === 1
+                                  ? String(notification.event.instructor_names[0])
+                                  : `${notification.event.instructor_names.length} instructors`
+                                }
                               </span>
                             </div>
                           )}

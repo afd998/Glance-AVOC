@@ -1,56 +1,69 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
 import { getEventTypeInfo } from '../../utils/eventUtils';
-import { FacultyAvatar } from '../FacultyAvatar';
+import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
 
 interface EventContentProps {
   event: Event;
-  facultyMember: FacultyMember | null | undefined;
+  facultyMembers: FacultyMember[];
+  instructorNames: string[];
   isFacultyLoading: boolean;
   isHovering: boolean;
   isMergedRoomEvent?: boolean;
 }
 
 // Lecture Event Component
-function LectureEvent({ event, facultyMember, isHovering, isMergedRoomEvent }: EventContentProps) {
+function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const baseName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
-  
+
   // Get theme colors for this event
   const { contentBgColor } = getEventTypeInfo(event);
-  
-  // Calculate avatar tilt
-  const getAvatarTilt = (name: string | null | undefined): number => {
+
+  // Calculate avatar tilt based on first instructor name
+  const getAvatarTilt = (name: string | undefined): number => {
     if (!name) return 2;
     const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return sum % 2 === 0 ? 2 : -2;
   };
-  const avatarTilt = getAvatarTilt(event.instructor_name);
+  const avatarTilt = getAvatarTilt(instructorNames[0]);
 
   // Adjust height for merged room events
   const containerHeight = isMergedRoomEvent ? 'h-40' : 'h-16'; // h-40 = 160px for merged events
   const avatarContainerHeight = 'h-16'; // Keep avatar section the same height always
 
+  // Find faculty member for first instructor (for single avatar case)
+  const firstFacultyMember = facultyMembers.find(fm =>
+    fm.twentyfivelive_name === instructorNames[0]
+  );
+
   return (
          <div className={`flex flex-row bg-[#6b5b95] ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''}`}>
-      {event.instructor_name && (
-                 <div 
+      {instructorNames.length > 0 && (
+                 <div
            className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} z-10 transition-all duration-200 ease-in-out`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
-                    {facultyMember?.kelloggdirectory_image_url ? (
+                    {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
             <FacultyAvatar
-              imageUrl={facultyMember.kelloggdirectory_image_url}
-              cutoutImageUrl={facultyMember.cutout_image}
-              instructorName={event.instructor_name || ''}
+              imageUrl={firstFacultyMember.kelloggdirectory_image_url}
+              cutoutImageUrl={firstFacultyMember.cutout_image}
+              instructorName={instructorNames[0]}
               isHovering={isHovering}
               size="md"
+            />
+          ) : instructorNames.length > 1 ? (
+            <MultipleFacultyAvatars
+              instructorNames={instructorNames}
+              isHovering={isHovering}
+              size="md"
+              maxAvatars={2}
             />
           ) : (
             <span className="text-sm transition-all duration-200 ease-in-out" style={{ transform: 'scale(1)' }}>
@@ -58,19 +71,20 @@ function LectureEvent({ event, facultyMember, isHovering, isMergedRoomEvent }: E
             </span>
           )}
                      <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-16 -mt-0.5 line-clamp-2 transition-all duration-200 ease-in-out">
-            {event.instructor_name ? (() => {
-              const parts = event.instructor_name.split(',');
+            {instructorNames.length > 0 ? (() => {
+              const firstName = instructorNames[0];
+              const parts = firstName.split(',');
               if (parts.length >= 2) {
                 return parts[0].trim();
               }
-              return event.instructor_name;
+              return firstName;
             })() : ''}
           </span>
         </div>
       )}
 
       <div className={`flex flex-col min-w-0 pl-1 flex-1 gap-0.5 transition-all duration-200 ease-in-out overflow-hidden ${isMergedRoomEvent ? 'justify-center' : ''}`}>
-        <span 
+        <span
           className="truncate font-medium text-white transition-all duration-200 ease-in-out max-w-full"
           style={{
             transform: isHovering ? 'scale(1.05)' : 'scale(1)',
@@ -86,7 +100,7 @@ function LectureEvent({ event, facultyMember, isHovering, isMergedRoomEvent }: E
           </span>
         )}
         {event.lecture_title && (
-          <span 
+          <span
             className="text-[10px] text-white opacity-80 truncate leading-tight transition-all duration-200 ease-in-out max-w-full"
             title={event.lecture_title}
           >
@@ -99,7 +113,7 @@ function LectureEvent({ event, facultyMember, isHovering, isMergedRoomEvent }: E
 }
 
 // Exam Event Component
-function ExamEvent({ event, isHovering, isMergedRoomEvent }: EventContentProps) {
+function ExamEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
@@ -129,7 +143,7 @@ function ExamEvent({ event, isHovering, isMergedRoomEvent }: EventContentProps) 
 }
 
 // Lab Event Component
-function LabEvent({ event, isHovering, isMergedRoomEvent }: EventContentProps) {
+function LabEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
@@ -161,7 +175,7 @@ function LabEvent({ event, isHovering, isMergedRoomEvent }: EventContentProps) {
 
 
 // Default Event Component
-function DefaultEvent({ event, isHovering, isMergedRoomEvent }: EventContentProps) {
+function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const dashIndex = eventNameCopy.indexOf('-');
   const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
@@ -198,23 +212,24 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent }: EventContentProp
   );
 }
 
-export default function EventContent({ 
-  event, 
-  facultyMember, 
-  isFacultyLoading, 
+export default function EventContent({
+  event,
+  facultyMembers,
+  instructorNames,
+  isFacultyLoading,
   isHovering,
-  isMergedRoomEvent 
+  isMergedRoomEvent
 }: EventContentProps) {
   return (
     <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
       {event.event_type === 'Lecture' ? (
-        <LectureEvent event={event} facultyMember={facultyMember} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       ) : event.event_type === 'Exam' ? (
-        <ExamEvent event={event} facultyMember={facultyMember} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <ExamEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       ) : event.event_type === 'Lab' ? (
-        <LabEvent event={event} facultyMember={facultyMember} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <LabEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       ) : (
-        <DefaultEvent event={event} facultyMember={facultyMember} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       )}
     </div>
   );

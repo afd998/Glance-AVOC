@@ -76,6 +76,38 @@ export const useFacultyMember = (twentyfiveliveName: string) => {
   });
 };
 
+// React Query hook for multiple faculty members
+export const useMultipleFacultyMembers = (twentyfiveliveNames: string[]) => {
+  return useQuery({
+    queryKey: ['facultyMembers', twentyfiveliveNames.sort().join(',')], // Sort for consistent cache key
+    queryFn: async () => {
+      if (!twentyfiveliveNames || twentyfiveliveNames.length === 0) {
+        return [];
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('faculty')
+          .select('*')
+          .in('twentyfivelive_name', twentyfiveliveNames);
+
+        if (error) {
+          console.error('Error fetching faculty members:', error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error in fetchMultipleFacultyMembers:', error);
+        return [];
+      }
+    },
+    enabled: !!twentyfiveliveNames && twentyfiveliveNames.length > 0,
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};
+
 // React Query mutation hook for updating faculty attributes
 export const useUpdateFacultyAttributes = () => {
   const queryClient = useQueryClient();
