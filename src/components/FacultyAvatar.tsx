@@ -12,6 +12,14 @@ interface FacultyAvatarProps {
   maskRadius?: number; // Configurable radius for the circular mask (default: 50)
 }
 
+interface MultipleFacultyAvatarsProps {
+  instructorNames: string[];
+  isHovering: boolean;
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  maxAvatars?: number; // Maximum number of avatars to show
+}
+
 const sizeClasses = {
   sm: 'h-8 w-8',
   md: 'h-12 w-12', 
@@ -133,6 +141,72 @@ export function FacultyAvatar({
           </g>
         </svg>
       </div>
+    </div>
+  );
+}
+
+// New component to handle multiple instructor avatars
+export function MultipleFacultyAvatars({
+  instructorNames,
+  isHovering,
+  className = '',
+  size = 'md',
+  maxAvatars = 3
+}: MultipleFacultyAvatarsProps) {
+  const { currentTheme } = useTheme();
+
+  // If no instructors, return null
+  if (!instructorNames || instructorNames.length === 0) {
+    return null;
+  }
+
+  // If only one instructor, use the single avatar component
+  if (instructorNames.length === 1) {
+    return (
+      <SimpleFacultyAvatar
+        imageUrl=""
+        instructorName={instructorNames[0]}
+        isHovering={isHovering}
+        className={className}
+        size={size}
+      />
+    );
+  }
+
+  // For multiple instructors, show up to maxAvatars
+  const displayNames = instructorNames.slice(0, maxAvatars);
+  const remainingCount = instructorNames.length - maxAvatars;
+
+  const sizeClasses = {
+    sm: 'h-6 w-6 text-xs',
+    md: 'h-8 w-8 text-sm',
+    lg: 'h-10 w-10 text-base'
+  };
+
+  return (
+    <div className={`flex -space-x-2 ${className}`}>
+      {displayNames.map((name, index) => (
+        <div
+          key={`${name}-${index}`}
+          className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-white font-medium shadow-sm transition-all duration-200 ${
+            isHovering ? 'scale-110 shadow-md' : ''
+          }`}
+          title={name}
+        >
+          {name.charAt(0).toUpperCase()}
+        </div>
+      ))}
+
+      {remainingCount > 0 && (
+        <div
+          className={`${sizeClasses[size]} rounded-full bg-gray-400 dark:bg-gray-600 border-2 border-white dark:border-gray-800 flex items-center justify-center text-white font-medium shadow-sm transition-all duration-200 ${
+            isHovering ? 'scale-110 shadow-md' : ''
+          }`}
+          title={`+${remainingCount} more instructor${remainingCount > 1 ? 's' : ''}`}
+        >
+          +{remainingCount}
+        </div>
+      )}
     </div>
   );
 }

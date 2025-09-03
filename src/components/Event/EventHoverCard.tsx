@@ -8,12 +8,13 @@ type FacultyMember = Database['public']['Tables']['faculty']['Row'];
 
 interface EventHoverCardProps {
   event: Event;
-  facultyMember: FacultyMember | null | undefined;
+  facultyMembers: FacultyMember[];
+  instructorNames: string[];
   isFacultyLoading: boolean;
   style: React.CSSProperties;
 }
 
-export default function EventHoverCard({ event, facultyMember, isFacultyLoading, style }: EventHoverCardProps) {
+export default function EventHoverCard({ event, facultyMembers, instructorNames, isFacultyLoading, style }: EventHoverCardProps) {
   // Parse event resources using the utility function
   const { resources } = parseEventResources(event);
 
@@ -62,39 +63,49 @@ export default function EventHoverCard({ event, facultyMember, isFacultyLoading,
           </div>
         )}
 
-        {event.instructor_name && (
+        {instructorNames.length > 0 && (
           <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 mt-3 bg-gray-50 dark:bg-gray-700">
-            <div className="flex items-center gap-2">
-              {facultyMember?.kelloggdirectory_image_url ? (
-                <a 
-                  href={facultyMember?.kelloggdirectory_bio_url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0"
-                  title={`View ${event.instructor_name}'s bio`}
-                >
-                  <img 
-                    src={facultyMember.kelloggdirectory_image_url} 
-                    alt={event.instructor_name}
-                    className="h-10 w-10 rounded-full object-cover"
-                    onError={(e) => {
-                      console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </a>
-              ) : (
-                <span className="text-sm">👤</span>
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                Instructor{instructorNames.length > 1 ? 's' : ''}:
+              </h4>
+              {instructorNames.map((instructorName, index) => {
+                const facultyMember = facultyMembers.find(fm => fm.twentyfivelive_name === instructorName);
+                return (
+                  <div key={`${instructorName}-${index}`} className="flex items-center gap-2">
+                    {facultyMember?.kelloggdirectory_image_url ? (
+                      <a
+                        href={facultyMember?.kelloggdirectory_bio_url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0"
+                        title={`View ${instructorName}'s bio`}
+                      >
+                        <img
+                          src={facultyMember.kelloggdirectory_image_url}
+                          alt={instructorName}
+                          className="h-8 w-8 rounded-full object-cover"
+                          onError={(e) => {
+                            console.error('Error loading faculty image:', facultyMember.kelloggdirectory_image_url);
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </a>
+                    ) : (
+                      <span className="text-sm">👤</span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{instructorName}</p>
+                      {facultyMember?.kelloggdirectory_title && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{facultyMember.kelloggdirectory_title}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {isFacultyLoading && (
+                <span className="text-xs text-gray-400">(Loading faculty info...)</span>
               )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{event.instructor_name}</p>
-                {facultyMember?.kelloggdirectory_title && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{facultyMember.kelloggdirectory_title}</p>
-                )}
-                {isFacultyLoading && (
-                  <span className="text-xs text-gray-400">(Loading faculty info...)</span>
-                )}
-              </div>
             </div>
           </div>
         )}

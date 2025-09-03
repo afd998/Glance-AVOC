@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
 import { parseEventResources } from '../../utils/eventUtils';
@@ -96,6 +96,11 @@ export default function EventHeader({
   const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
   const hasClickers = resources.some(item => item.displayName === 'Clickers (Polling)');
   const hasAVNotes = resources.some(item => item.displayName === 'AV Setup Notes');
+  
+  // State for fisheye effect
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const iconOrder = ['firstSession', 'videoRecording', 'staffAssistance', 'handheldMic', 'webConference', 'clickers', 'avNotes'];
+  
   // Format start and end times from HH:MM:SS format
   const formatTimeFromISO = (timeString: string | null) => {
     if (!timeString) return '';
@@ -117,8 +122,44 @@ export default function EventHeader({
 
   const timeDisplay = `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
 
+  // Calculate fisheye scale based on proximity to hovered icon
+  const getFisheyeScale = useCallback((iconKey: string) => {
+    if (!hoveredIcon) return 1;
+
+    const hoveredIndex = iconOrder.indexOf(hoveredIcon);
+    const currentIndex = iconOrder.indexOf(iconKey);
+
+    if (hoveredIndex === -1 || currentIndex === -1) return 1;
+
+    const distance = Math.abs(currentIndex - hoveredIndex);
+
+    if (distance === 0) {
+      // Hovered icon: 1.7x scale
+      return 1.7;
+    } else if (distance === 1) {
+      // Adjacent icons: 1.3x scale
+      return 1.3;
+    } else {
+      // Other icons: normal scale
+      return 1;
+    }
+  }, [hoveredIcon, iconOrder]);
+
+  // Hover handlers for fisheye effect
+  const handleIconHover = useCallback((iconKey: string) => {
+    setHoveredIcon(iconKey);
+  }, []);
+
+  const handleIconLeave = useCallback(() => {
+    setHoveredIcon(null);
+  }, []);
+
+
+
+  
+
   return (
-    <div className="flex justify-between items-center h-4 transition-all duration-200 ease-in-out">
+    <div className="flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-2 right-2 z-50">
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className="text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out text-white"
@@ -131,102 +172,179 @@ export default function EventHeader({
           {timeDisplay}
         </span>
       </div>
-      <div className="flex items-center gap-1.5 flex-shrink-0 transition-all duration-200 ease-in-out">
+            <div className="flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible">
         {isFirstSession && (
-          <span 
-            className="text-yellow-500 dark:text-yellow-400 text-sm font-bold transition-all duration-200 ease-in-out"
+          <span
+            className="text-yellow-500 dark:text-yellow-400 text-sm font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="First Session"
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              transform: `scale(${getFisheyeScale('firstSession')})`,
+              fontSize: `${getFisheyeScale('firstSession')}em`
             }}
+            onMouseEnter={() => handleIconHover('firstSession')}
+            onMouseLeave={handleIconLeave}
           >
             !
+            {hoveredIcon === 'firstSession' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none" style={{ fontSize: '12px' }}>
+                First Session
+              </span>
+            )}
           </span>
         )}
         {currentEvent.event_type !== 'KEC' && hasVideoRecording && (
-          <div 
-            className="relative w-3 h-3 rounded-full bg-red-500 transition-all duration-200 ease-in-out" 
+          <div
+            className="relative rounded-full bg-red-500 transition-all duration-[250ms] ease-in-out cursor-pointer"
             title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)',
+              width: `${12 * getFisheyeScale('videoRecording')}px`,
+              height: `${12 * getFisheyeScale('videoRecording')}px`,
               animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
             }}
+            onMouseEnter={() => handleIconHover('videoRecording')}
+            onMouseLeave={handleIconLeave}
           >
             {allChecksComplete && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg 
-                  className="w-3 h-3 text-green-400" 
-                  fill="currentColor" 
+                <svg
+                  className="text-green-400"
+                  fill="currentColor"
                   viewBox="0 0 20 20"
+                  style={{
+                    width: `${8 * getFisheyeScale('videoRecording')}px`,
+                    height: `${8 * getFisheyeScale('videoRecording')}px`
+                  }}
                 >
-                  <path 
-                    fillRule="evenodd" 
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                    clipRule="evenodd" 
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
                   />
                 </svg>
               </div>
             )}
+            {hoveredIcon === 'videoRecording' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                {allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
+              </span>
+            )}
           </div>
         )}
         {currentEvent.event_type !== 'KEC' && hasStaffAssistance && (
-          <div 
-            className="flex items-center justify-center w-3 h-3 rounded-full bg-green-500 bg-opacity-90 transition-all duration-200 ease-in-out"
+          <div
+            className="flex items-center justify-center rounded-full bg-green-500 bg-opacity-90 transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Staff Assistance"
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              width: `${16 * getFisheyeScale('staffAssistance')}px`,
+              height: `${16 * getFisheyeScale('staffAssistance')}px`
             }}
+            onMouseEnter={() => handleIconHover('staffAssistance')}
+            onMouseLeave={handleIconLeave}
           >
-            <span className="text-white text-[8px]">🚶</span>
+            <span
+              className="text-white transition-all duration-[250ms] ease-in-out"
+              style={{
+                fontSize: `${12 * getFisheyeScale('staffAssistance')}px`
+              }}
+            >
+              🚶
+            </span>
+            {hoveredIcon === 'staffAssistance' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                Staff Assistance
+              </span>
+            )}
           </div>
         )}
         {currentEvent.event_type !== 'KEC' && hasHandheldMic && (
-          <span 
-            className="text-xs transition-all duration-200 ease-in-out" 
+          <span
+            className="transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Handheld Microphone"
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              fontSize: `${getFisheyeScale('handheldMic')}em`
             }}
+            onMouseEnter={() => handleIconHover('handheldMic')}
+            onMouseLeave={handleIconLeave}
           >
             🎤
+            {hoveredIcon === 'handheldMic' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                Handheld Microphone
+              </span>
+            )}
           </span>
         )}
         {currentEvent.event_type !== 'KEC' && hasWebConference && (
-          <img 
-            src="/zoomicon.png" 
-            alt="Web Conference" 
-            className="w-3 h-3 object-contain dark:invert transition-all duration-200 ease-in-out"
-            title="Web Conference"
-            style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-            }}
-          />
+          <div className="relative">
+            <img
+              src="/zoomicon.png"
+              alt="Web Conference"
+              className="object-contain dark:invert transition-all duration-[250ms] ease-in-out cursor-pointer"
+              title="Web Conference"
+              style={{
+                width: `${12 * getFisheyeScale('webConference')}px`,
+                height: `${12 * getFisheyeScale('webConference')}px`
+              }}
+              onMouseEnter={() => handleIconHover('webConference')}
+              onMouseLeave={handleIconLeave}
+            />
+            {hoveredIcon === 'webConference' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                Web Conference
+              </span>
+            )}
+          </div>
         )}
         {currentEvent.event_type !== 'KEC' && hasClickers && (
-          <img 
-            src="/tp.png" 
-            alt="Clickers" 
-            className="w-3 h-3 object-contain dark:invert transition-all duration-200 ease-in-out"
-            title="Clickers (Polling)"
-            style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
-            }}
-          />
+          <div className="relative overflow-visible">
+            <div
+              className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+              style={{
+                width: `${20 * getFisheyeScale('clickers')}px`,
+                height: `${20 * getFisheyeScale('clickers')}px`
+              }}
+              onMouseEnter={() => handleIconHover('clickers')}
+              onMouseLeave={handleIconLeave}
+            >
+              <img
+                src="/tp.png"
+                alt="Clickers"
+                className="object-contain dark:invert transition-all duration-[250ms] ease-in-out"
+                style={{
+                  width: `${18 * getFisheyeScale('clickers')}px`,
+                  height: `${18 * getFisheyeScale('clickers')}px`
+                }}
+                title="Clickers (Polling)"
+              />
+              {hoveredIcon === 'clickers' && (
+                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                  Clickers (Polling)
+                </span>
+              )}
+            </div>
+          </div>
         )}
         {currentEvent.event_type !== 'KEC' && hasAVNotes && (
-          <span 
-            className="text-xs transition-all duration-200 ease-in-out" 
+          <span
+            className="text-xs transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="AV Setup Notes"
             style={{
-              transform: isHovering ? 'scale(1.2)' : 'scale(1)'
+              fontSize: `${getFisheyeScale('avNotes')}em`
             }}
+            onMouseEnter={() => handleIconHover('avNotes')}
+            onMouseLeave={handleIconLeave}
           >
             📝
+            {hoveredIcon === 'avNotes' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                AV Setup Notes
+              </span>
+            )}
           </span>
         )}
                 {/* Owner Avatars */}
         {timeline.length > 0 && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             {timeline.map((entry, index) => (
               <React.Fragment key={entry.ownerId}>
                 {/* Owner Avatar */}

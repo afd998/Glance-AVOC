@@ -31,7 +31,7 @@ const FacultyDetailModal: React.FC = () => {
   
   // Create a mock event object for the SessionSetup component
   const mockEvent = facultyMember ? {
-    instructor_name: facultyMember.twentyfivelive_name || facultyMember.kelloggdirectory_name || 'Unknown Faculty',
+    instructor_names: [facultyMember.twentyfivelive_name || facultyMember.kelloggdirectory_name || 'Unknown Faculty'],
     // Add other required event properties as needed
   } as Database['public']['Tables']['events']['Row'] : null;
   
@@ -74,7 +74,11 @@ const FacultyDetailModal: React.FC = () => {
           <SessionSetup
             event={mockEvent}
             resources={[]}
-            facultyMember={facultyMember}
+            facultyMembers={[facultyMember]}
+            instructorNames={Array.isArray(mockEvent.instructor_names)
+              ? mockEvent.instructor_names.filter((name): name is string => typeof name === 'string' && name.trim() !== '')
+              : []
+            }
             isFacultyLoading={false}
             updateFacultyAttributes={updateFacultyAttributes}
             openPanelModal={handlePanelModal}

@@ -17,7 +17,7 @@ export interface PanoptoCheckWithEvent extends PanoptoCheck {
   start_time: string;
   end_time: string;
   room_name: string | null;
-  instructor_name: string | null;
+  instructor_names: string[] | null;
   status: 'upcoming' | 'current' | 'overdue' | 'completed';
 }
 
@@ -60,7 +60,7 @@ export interface PanoptoCheckView extends PanoptoCheck {
   start_time: string;
   end_time: string;
   room_name: string | null;
-  instructor_name: string | null;
+  instructor_names: string[] | null;
   status: CheckStatus;
 }
 

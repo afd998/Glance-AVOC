@@ -46,7 +46,7 @@ export type Database = {
           event_name: string | null
           event_type: string | null
           id: number
-          instructor_name: string | null
+          instructor_names: Json | null
           item_id: number | null
           item_id2: number | null
           lecture_title: string | null
@@ -65,7 +65,7 @@ export type Database = {
           event_name?: string | null
           event_type?: string | null
           id?: number
-          instructor_name?: string | null
+          instructor_names?: Json | null
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null
@@ -84,7 +84,7 @@ export type Database = {
           event_name?: string | null
           event_type?: string | null
           id?: number
-          instructor_name?: string | null
+          instructor_names?: Json | null
           item_id?: number | null
           item_id2?: number | null
           lecture_title?: string | null

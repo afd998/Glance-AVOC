@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
-import { useFacultyMember } from "../../hooks/useFaculty";
+import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
 import { parseEventResources, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
 import { Database } from '../../types/supabase';
 
@@ -16,6 +16,21 @@ interface EventProps {
   onEventClick: (event: Event) => void;
 }
 
+// Helper function to parse instructor names from JSON
+const parseInstructorNames = (instructorNamesJson: any): string[] => {
+  if (!instructorNamesJson) return [];
+
+  if (Array.isArray(instructorNamesJson)) {
+    return instructorNamesJson.filter(name => typeof name === 'string' && name.trim() !== '');
+  }
+
+  if (typeof instructorNamesJson === 'string') {
+    return [instructorNamesJson];
+  }
+
+  return [];
+};
+
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
 
   // Disable hover card functionality
@@ -25,7 +40,11 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const [isHoveringCard, setIsHoveringCard] = useState(false);
   const [isHoveringEvent, setIsHoveringEvent] = useState(false);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const { data: facultyMember, isLoading: isFacultyLoading } = useFacultyMember(event.instructor_name || '');
+
+  // Parse instructor names from JSON field
+  const instructorNames = parseInstructorNames(event.instructor_names);
+
+  const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringRef = useRef(false);
 
@@ -177,8 +196,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       onMouseLeave={handleMouseLeave}
       onClick={() => onEventClick && onEventClick(event)}
     >
-      <div 
-        className={`flex flex-col h-full transition-all duration-200 ease-in-out ${bgColor} text-white text-sm rounded px-2 py-1`}
+      <div
+        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
@@ -189,9 +208,10 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           event={event}
           isHovering={isHoveringEvent}
         />
-                <EventContent 
+                <EventContent
           event={event}
-          facultyMember={facultyMember || null}
+          facultyMembers={facultyMembers || []}
+          instructorNames={instructorNames}
           isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
           isMergedRoomEvent={isMergedRoomEvent}
@@ -239,7 +259,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
             <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg"></div>
             <EventHoverCard
               event={event}
-              facultyMember={facultyMember || null}
+              facultyMembers={facultyMembers || []}
+              instructorNames={instructorNames}
               isFacultyLoading={isFacultyLoading}
               style={{}}
             />

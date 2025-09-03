@@ -18,20 +18,26 @@ interface ResourceItem {
 interface SessionSetupProps {
   event: Event;
   resources: ResourceItem[];
-  facultyMember: FacultyMember | null | undefined;
+  facultyMembers: FacultyMember[];
+  instructorNames: string[];
   isFacultyLoading: boolean;
   updateFacultyAttributes: any; // Type this properly when the hook is converted
   openPanelModal: (panel: 'left' | 'right') => void;
 }
 
-export default function SessionSetup({ 
-  event, 
-  resources, 
-  facultyMember, 
+export default function SessionSetup({
+  event,
+  resources,
+  facultyMembers,
+  instructorNames,
   isFacultyLoading,
   updateFacultyAttributes,
   openPanelModal
 }: SessionSetupProps) {
+  // For multiple instructors, use the first one for configuration
+  // In a real application, you might want to show a selector
+  const facultyMember = facultyMembers && facultyMembers.length > 0 ? facultyMembers[0] : null;
+  const primaryInstructorName = instructorNames && instructorNames.length > 0 ? instructorNames[0] : '';
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
   
@@ -43,7 +49,7 @@ export default function SessionSetup({
       
 
       {/* Faculty Information - Full Width at Top */}
-      {event.instructor_name && (
+      {instructorNames.length > 0 && (
         <div className="mb-4 sm:mb-6">
           <div className={`border rounded-lg p-3 sm:p-4 ${themeColors.itemBg}`}>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -55,7 +61,7 @@ export default function SessionSetup({
                   <FacultyAvatar
                     imageUrl={facultyMember.kelloggdirectory_image_url}
                     cutoutImageUrl={facultyMember.cutout_image}
-                    instructorName={event.instructor_name || ''}
+                    instructorName={primaryInstructorName}
                     isHovering={isFacultyHovering}
                     size="lg"
                   />
@@ -68,7 +74,7 @@ export default function SessionSetup({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-base sm:text-lg font-medium text-black truncate">
-                    {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : event.instructor_name || ''}
+                    {facultyMember?.kelloggdirectory_name ? `Dr. ${facultyMember.kelloggdirectory_name}` : primaryInstructorName}
                   </h3>
                   {facultyMember?.kelloggdirectory_bio_url && (
                     <a 
@@ -101,14 +107,14 @@ export default function SessionSetup({
         {/* Left Column - Setup Options then Attributes */}
         <div className="space-y-4 sm:space-y-6">
           {/* Setup Options Group */}
-          {event.instructor_name && facultyMember && (
+          {instructorNames.length > 0 && facultyMember && (
             <div className={`p-3 sm:p-4 rounded-lg ${themeColors.itemBg}`}>
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="relative m-0 p-0">
-                      <div className="absolute top-0 left-0 w-10 h-10 sm:w-12 sm:h-12 bg-white dark:bg-gray-300 rounded-full"></div>
+                      <div className="absolute top-0 left-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-200 rounded-full"></div>
                     <img 
                       src="/lapel.png" 
                       alt="Lapel microphone" 
@@ -125,7 +131,7 @@ export default function SessionSetup({
                       onChange={() => {
                         if (!updateFacultyAttributes.isPending) {
                           updateFacultyAttributes.mutate({
-                            twentyfiveliveName: event.instructor_name,
+                            twentyfiveliveName: primaryInstructorName,
                             attributes: {
                               timing: facultyMember.timing ?? 0,
                               complexity: facultyMember.complexity ?? 0,
@@ -167,7 +173,7 @@ export default function SessionSetup({
                           >
                             <img 
                               src={`/panel-images/${facultyMember.left_source}.png`}
-                              alt={`Left panel setup for ${event.instructor_name}`}
+                              alt={`Left panel setup for ${primaryInstructorName}`}
                               className="max-w-full max-h-full object-contain"
                               onError={(e) => {
                                 console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
@@ -194,7 +200,7 @@ export default function SessionSetup({
                           >
                             <img 
                               src={`/panel-images/${facultyMember.right_source}.png`}
-                              alt={`Right panel setup for ${event.instructor_name}`}
+                              alt={`Right panel setup for ${primaryInstructorName}`}
                               className="max-w-full max-h-full object-contain"
                               onError={(e) => {
                                 console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
@@ -219,16 +225,17 @@ export default function SessionSetup({
             )}
 
           {/* Attributes */}
-          {event.instructor_name && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
+          {instructorNames.length > 0 && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
             <div>
               <FacultyStatusBars 
                 facultyMember={facultyMember} 
                 isEditable={true}
                 isUpdating={updateFacultyAttributes.isPending}
                 updateError={updateFacultyAttributes.error?.message}
+                event={event}
                 onUpdate={(updatedValues: any) => {
                   updateFacultyAttributes.mutate({
-                    twentyfiveliveName: event.instructor_name,
+                    twentyfiveliveName: primaryInstructorName,
                     attributes: {
                       timing: updatedValues.timing,
                       complexity: updatedValues.complexity,
@@ -246,7 +253,7 @@ export default function SessionSetup({
 
         {/* Right Column - Setup Notes */}
         <div className="">
-          {event.instructor_name && facultyMember && (
+          {instructorNames.length > 0 && facultyMember && (
             <div>
               <SetupNotesEditor
                 event={event}
