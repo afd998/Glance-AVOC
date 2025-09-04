@@ -23,7 +23,7 @@ export function SimpleFacultyAvatar({
   size = 'md'
 }: SimpleFacultyAvatarProps) {
   return (
-    <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-out ${className}`}>
+    <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-out ${className}`} title={instructorName}>
       {/* Background layer - original image contained within circle */}
       <div className="absolute inset-0 rounded-full overflow-hidden z-10">
         <img 

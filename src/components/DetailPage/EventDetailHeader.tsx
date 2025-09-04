@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getAVResourceIcon, shouldUseZoomIcon } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -36,15 +36,24 @@ const formatTimeFromISO = (timeString: string | null): string => {
     const [hours, minutes] = timeString.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes, 0, 0);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   } catch (error) {
     console.error('Error formatting time:', timeString, error);
     return '';
   }
+};
+
+// Helper function to extract last names from instructor names
+const extractLastNames = (instructorNames: string[]): string => {
+  return instructorNames.map(name => {
+    // Split by space and get the last part (assuming it's the last name)
+    const nameParts = name.trim().split(' ');
+    return nameParts[nameParts.length - 1];
+  }).join(', ');
 };
 
 
@@ -64,6 +73,7 @@ export default function EventDetailHeader({
 
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
+  const themeHexColors = getEventThemeHexColors(event);
   
   // State for faculty photo hover effects
   const [isFacultyHovering, setIsFacultyHovering] = useState(false);
@@ -72,21 +82,21 @@ export default function EventDetailHeader({
     navigate(`/${date}/${event.id}/occurrences`);
   };
   return (
-    <div className={`${themeColors[5]} rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6 ${themeColors.border3}`}>
+    <div className=" rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-4 sm:p-6 mb-4 sm:mb-6" style={{ background: `linear-gradient(135deg, ${themeHexColors[4]}, ${themeHexColors[5]})` }}>
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Event Info */}
         <div className="flex-1 lg:w-1/2 mb-4 lg:mb-0">
           {/* Background container for the first 3 elements with faculty photo */}
-          <div className={`${themeColors[3]} rounded-lg p-4 mb-4 ${themeColors.border2}`}>
+          <div className="backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10 dark:border-white/5 shadow-lg" style={{ backgroundColor: `${themeHexColors[3]}` }}>
             <div className="flex items-center gap-4">
               {/* Left side - Faculty photos */}
               {instructorNames.length > 0 && (
-                <div className="flex-shrink-0">
-                  <div className="flex flex-col items-center gap-2">
+                <div className="flex-shrink-0 relative">
+                  <div className="flex flex-col items-center mb-4">
                     <div
                       onMouseEnter={() => setIsFacultyHovering(true)}
                       onMouseLeave={() => setIsFacultyHovering(false)}
-                      className="bg-purple-900/30 p-2 rounded-lg flex items-center justify-center z-20 relative"
+                      className="backdrop-blur-sm bg-gradient-to-br from-purple-900/20 to-blue-900/20 p-2 rounded-lg flex items-center justify-center z-20 relative border border-purple-300/20 shadow-lg"
                     >
                       {instructorNames.length === 1 ? (
                         (() => {
@@ -141,9 +151,39 @@ export default function EventDetailHeader({
                         </div>
                       )}
                     </div>
-                    <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-20 line-clamp-2 transition-all duration-200">
-                      {instructorNames.length === 1 ? instructorNames[0] : `${instructorNames.length} instructors`}
-                    </span>
+                    <div className="absolute bottom-[-8px] left-[30%] transform -translate-x-1/2 text-[20px] leading-tight font-medium opacity-90 text-center whitespace-normal w-28 transition-all duration-200 uppercase flex flex-col items-center z-30" style={{
+                      fontFamily: "'Olympus Mount', sans-serif",
+                      color: "transparent",
+                      background: "linear-gradient(-45deg, black 50%, white 50%)",
+                      backgroundClip: "text",
+                      WebkitBackgroundClip: "text"
+                    }}>
+                      {instructorNames.length === 1
+                        ? (() => {
+                            const facultyMember = facultyMembers.find(fm => fm.twentyfivelive_name === instructorNames[0]);
+                            const fullName = facultyMember?.kelloggdirectory_name || instructorNames[0];
+                            const nameParts = fullName.split(' ');
+                            const isLongName = fullName.length > 18; // Adjust threshold as needed
+                            const fontSize = isLongName ? 'text-[16px]' : 'text-[20px]';
+                            return nameParts.length >= 2 ? (
+                              <>
+                                <div className={`-ml-2 whitespace-nowrap ${fontSize}`}>{nameParts[0]}</div>
+                                <div className={`ml-2 whitespace-nowrap ${fontSize}`}>{nameParts.slice(1).join(' ')}</div>
+                              </>
+                            ) : (
+                              <div className={`whitespace-nowrap ${fontSize}`}>{fullName}</div>
+                            );
+                          })()
+                        : instructorNames.map(name => {
+                            const facultyMember = facultyMembers.find(fm => fm.twentyfivelive_name === name);
+                            return facultyMember?.kelloggdirectory_name || name;
+                          }).map(name => {
+                            // Extract last name from "FirstName LastName" format for multiple instructors
+                            const parts = name.split(' ');
+                            return parts.length > 1 ? parts[parts.length - 1] : name;
+                          }).join(', ')
+                      }
+                    </div>
                   </div>
                 </div>
               )}
@@ -152,7 +192,7 @@ export default function EventDetailHeader({
               <div className="flex-1">
                 {/* Course Code - Beginning part in bold */}
                 {event.event_name && (
-                  <h1 className="text-xl sm:text-3xl font-bold text-black mb-2">
+                  <h1 className="text-2xl sm:text-4xl font-bold text-black mb-0.5 uppercase" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
                     {(() => {
                       const eventNameCopy = event.event_name ? String(event.event_name) : '';
                       const dashIndex = eventNameCopy.indexOf('-');
@@ -163,13 +203,13 @@ export default function EventDetailHeader({
                 
                 {/* Lecture Title */}
                 {event.lecture_title && (
-                  <h2 className="text-lg sm:text-2xl font-semibold text-black mb-2">
+                  <h2 className="text-lg sm:text-2xl font-medium text-black mb-2 ml-4 break-words" style={{ fontFamily: "'GoudyBookletter1911', serif" }}>
                     {event.lecture_title}
                   </h2>
                 )}
                 
                 {/* Session Code */}
-                <p className="text-sm sm:text-lg text-black mb-0">
+                <p className="text-xs sm:text-sm text-gray-600 mb-0" style={{ fontFamily: "'Pixellari', sans-serif" }}>
                   {event.event_name}
                 </p>
               </div>
@@ -179,18 +219,20 @@ export default function EventDetailHeader({
           {/* Room and Occurrences Row */}
           <div className="flex items-start gap-3 mb-3 sm:mb-4">
             {/* Room Section */}
-            <div className={`${themeColors[3]} rounded-lg p-3 ${themeColors.border2}`}>
-              <span className={`text-xs font-medium text-black mb-1 block`}>Room</span>
-              <span className={`text-lg font-bold text-black`}>
-                {event.room_name || 'Unknown'}
-              </span>
+            <div className="backdrop-blur-sm rounded-lg p-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[2]}, ${themeHexColors[3]})` }}>
+              <span className={`text-xs font-medium text-black mb-3 block`}>Room</span>
+              <div className="backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30 dark:border-white/20 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[3]}, ${themeHexColors[4]})` }}>
+                <span className={`text-lg font-medium text-black`} style={{ fontFamily: "'Pixellari', sans-serif" }}>
+                  {(event.room_name || 'Unknown').replace(/^GH\s+/i, '')}
+                </span>
+              </div>
             </div>
 
             {/* Occurrences Section with Date, Time, and Button */}
-            <div className={`${themeColors[3]} rounded-lg p-3 z-20 relative ${themeColors.border2}`}>
+            <div className="backdrop-blur-sm rounded-lg p-2 z-20 relative border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
               <span className={`text-xs font-medium text-black mb-1 block`}>Occurrences</span>
-              <div className={`flex items-center gap-3 transition-all duration-200 hover:${themeColors[4]} cursor-pointer rounded-lg p-2`} onClick={handleOccurrencesClick}>
-                <div className="flex flex-col items-center justify-center p-2 rounded-lg">
+              <div className={`flex items-center gap-2 transition-all duration-200 hover:${themeColors[4]} cursor-pointer rounded-lg p-1 border-2 border-transparent hover:${themeColors[3]} hover:${themeColors[4]}`} onClick={handleOccurrencesClick}>
+                <div className="flex flex-col items-center justify-center p-1 rounded-lg">
                   <svg className={`w-5 h-5 text-black mb-1`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                   </svg>
@@ -199,9 +241,9 @@ export default function EventDetailHeader({
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <p className={`text-sm sm:text-lg text-black mb-0`}>{formatDate(event.date || '')}</p>
-                  <p className={`text-sm sm:text-lg text-black`}>
-                    {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} CST
+                  <p className="text-xs sm:text-sm text-black mb-0">{formatDate(event.date || '')}</p>
+                  <p className="text-xs sm:text-sm text-black">
+                    {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} <span className="text-xs text-gray-500">CST</span>
                   </p>
                 </div>
               </div>
@@ -218,40 +260,42 @@ export default function EventDetailHeader({
         {/* Right Side - Event Type/Room and Instructor Info */}
         <div className="flex-1 lg:w-1/2 lg:pl-8">
           {/* Event Details Card */}
-          <div className={`rounded-lg p-3 mb-3 ${themeColors[3]} ${themeColors.border2}`}>
-            <h3 className={`text-sm font-semibold text-black mb-2 uppercase tracking-wide`}>
+          <div className="backdrop-blur-sm rounded-lg p-2 mb-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[7]}, ${themeHexColors[8]})` }}>
+            <h3 className={`text-xs font-semibold text-black mb-1 uppercase tracking-wide`}>
               Event Details
             </h3>
 
-            {/* Department Name/Event Name */}
-            <div className="mb-3">
-              <span className={`text-xs font-medium text-black mb-1 block`}>Event</span>
-              <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors[7]} text-black`}>
-                {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ?
-                  getDepartmentName(event.event_name.substring(0, 4)) :
-                  (event.event_name || 'Unknown')}
-              </span>
-            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {/* Department Name/Event Name */}
+              <div>
+                <span className={`text-xs font-medium text-black mb-0.5 block`}>Event</span>
+                <span className={`px-1.5 py-0.5 text-xs font-medium rounded inline-flex items-center justify-center ${themeColors[7]} text-black`}>
+                  {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ?
+                    getDepartmentName(event.event_name.substring(0, 4)) :
+                    (event.event_name || 'Unknown')}
+                </span>
+              </div>
 
-            {/* Event Type */}
-            <div className="mb-2">
-              <span className={`text-xs font-medium text-black mb-1 block`}>Type</span>
-              <span className={`px-2 py-1 text-sm font-medium rounded-lg inline-flex items-center justify-center ${themeColors[7]} text-black`}>
-                {event.event_type || 'Unknown'}
-              </span>
+              {/* Event Type */}
+              <div>
+                <span className={`text-xs font-medium text-black mb-0.5 block`}>Type</span>
+                <span className={`px-1.5 py-0.5 text-xs font-medium rounded inline-flex items-center justify-center ${themeColors[7]} text-black`}>
+                  {event.event_type || 'Unknown'}
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Resources Card */}
           {resources.length > 0 && (
-            <div className={`rounded-xl shadow-lg ${themeColors.border3} overflow-hidden ${themeColors[1]}`}>
+            <div className="backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 dark:border-white/10 overflow-visible" style={{ background: `linear-gradient(135deg, ${themeHexColors[3]}, ${themeHexColors[4]})` }}>
               {/* Header */}
-              <div className={`bg-gradient-to-r ${themeColors[2]} ${themeColors[3]} px-6 py-4 ${themeColors.border2}`}>
+              <div className="backdrop-blur-sm px-4 py-2 border-b border-white/10 dark:border-white/5" style={{ background: `linear-gradient(to right, ${themeHexColors[2]}, ${themeHexColors[3]})` }}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-black tracking-tight">
+                  <h3 className="text-lg font-bold text-white tracking-tight">
                     Resources
                   </h3>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${themeColors[6]} text-white`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${themeColors[8]} text-white`}>
                     {resources.length} total
                   </span>
                 </div>
@@ -269,31 +313,30 @@ export default function EventDetailHeader({
                 );
 
                 return (
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="p-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Left Column - AV Resources */}
                       <div>
                         {(ksmResources.length > 0 || otherResources.length === 0) && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-8 w-1 bg-gradient-to-b ${themeColors[8]} ${themeColors[9]} rounded-full`}></div>
-                              <h4 className="text-lg font-bold text-black">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`h-6 w-1 bg-gradient-to-b ${themeColors[10]} ${themeColors[9]} rounded-full`}></div>
+                              <h4 className="text-base font-bold text-white">
                                 AV Resources
                               </h4>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${themeColors[4]} text-black`}>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${themeColors[7]} text-white`}>
                                 {ksmResources.length}
                               </span>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {ksmResources.map((item, index) => (
                                 <div
                                   key={`ksm-${index}`}
-                                  className={`group bg-gradient-to-r ${themeColors[1]} ${themeColors[2]} rounded-xl p-3 ${themeColors.border2} hover:${themeColors.border4} hover:shadow-md transition-all duration-300`}
-                                >
+                                  className="group backdrop-blur-sm rounded-lg p-3 border border-white/20 dark:border-white/10 hover:border-white/30 dark:hover:border-white/20 hover:shadow-lg transition-all duration-300" style={{ background: `linear-gradient(135deg, ${themeHexColors[5]}CC, ${themeHexColors[6]}AA)` }}>
                                   <div className="flex items-start gap-3">
                                     {/* Icon */}
-                                    <div className={`flex-shrink-0 w-8 h-8 bg-gradient-to-br ${themeColors[8]} ${themeColors[9]} rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                                    <div className={`flex-shrink-0 w-8 h-8 bg-gradient-to-br ${themeColors[9]} ${themeColors[10]} rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
                                       {shouldUseZoomIcon(item.itemName) ? (
                                         <img
                                           src="/zoomicon.png"
@@ -312,18 +355,18 @@ export default function EventDetailHeader({
                                       <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
                                           {/* Display Name */}
-                                          <h5 className="text-base font-semibold text-black mb-1 leading-tight">
+                                          <h5 className="text-base font-semibold text-white mb-1 leading-tight">
                                             {getResourceDisplayName(item.itemName)}
                                           </h5>
 
                                           {/* Raw Name */}
-                                          <p className="text-xs text-gray-500 font-medium mb-2 truncate">
+                                          <p className="text-xs text-gray-400 font-normal mb-1 truncate">
                                             {item.itemName}
                                           </p>
 
                                           {/* Instructions */}
                                           {item.instruction && (
-                                            <p className="text-sm text-gray-600 leading-relaxed">
+                                            <p className="text-xs text-white leading-snug">
                                               {item.instruction}
                                             </p>
                                           )}
@@ -332,7 +375,7 @@ export default function EventDetailHeader({
                                         {/* Quantity Badge */}
                                         {item.quantity && item.quantity > 1 && (
                                           <div className="flex-shrink-0">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${themeColors[8]} ${themeColors[9]} text-white shadow-sm`}>
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${themeColors[9]} ${themeColors[10]} text-white shadow-sm`}>
                                               {item.quantity}x
                                             </span>
                                           </div>
@@ -350,33 +393,32 @@ export default function EventDetailHeader({
                       {/* Right Column - Other Resources */}
                       <div>
                         {otherResources.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-8 w-1 bg-gradient-to-b ${themeColors[6]} ${themeColors[7]} rounded-full`}></div>
-                              <h4 className="text-lg font-bold text-black">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`h-6 w-1 bg-gradient-to-b ${themeColors[10]} ${themeColors[9]} rounded-full`}></div>
+                              <h4 className="text-base font-bold text-white">
                                 General Resources
                               </h4>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${themeColors[3]} text-black`}>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${themeColors[7]} text-white`}>
                                 {otherResources.length}
                               </span>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                               {otherResources.map((item, index) => (
                                 <div
                                   key={`other-${index}`}
-                                  className={`group ${themeColors[1]} rounded-lg p-3 ${themeColors.border2} hover:${themeColors.border3} hover:shadow-sm transition-all duration-200`}
-                                >
+                                  className="group backdrop-blur-sm rounded-lg p-3 border border-white/20 dark:border-white/10 hover:border-white/30 dark:hover:border-white/20 hover:shadow-lg transition-all duration-200" style={{ background: `linear-gradient(135deg, ${themeHexColors[6]}CC, ${themeHexColors[7]}AA)` }}>
                                   <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                       {/* Raw Name Only */}
-                                      <p className="text-sm text-black font-medium">
+                                      <p className="text-xs text-gray-300 font-normal">
                                         {item.itemName}
                                       </p>
 
                                       {/* Instructions */}
                                       {item.instruction && (
-                                        <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                                        <p className="text-xs text-white leading-snug mt-1">
                                           {item.instruction}
                                         </p>
                                       )}
@@ -385,7 +427,7 @@ export default function EventDetailHeader({
                                     {/* Quantity Badge */}
                                     {item.quantity && item.quantity > 1 && (
                                       <div className="flex-shrink-0 ml-3">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${themeColors[4]} text-black`}>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${themeColors[8]} text-white`}>
                                           {item.quantity}x
                                         </span>
                                       </div>

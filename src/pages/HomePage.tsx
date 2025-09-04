@@ -301,8 +301,8 @@ export default function HomePage() {
           className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
           onClick={() => navigate(`/${date}`)}
         >
-                     <div 
-             className="w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl golden-lace-border"
+                     <div
+             className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg"
              onClick={(e) => e.stopPropagation()}
            >
             <EventDetail />

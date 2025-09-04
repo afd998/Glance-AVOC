@@ -3,7 +3,7 @@ import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router
 import { useMultipleFacultyMembers, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
-import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
+import { parseEventResources, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';
 import Panopto from './Panopto';
@@ -100,6 +100,7 @@ export default function EventDetail() {
   
   // Get theme colors based on event type
   const themeColors = event ? getEventThemeColors(event) : null;
+  const themeHexColors = event ? getEventThemeHexColors(event) : null;
 
   const handleBack = () => {
     navigate(`/${date}`);
@@ -157,11 +158,11 @@ export default function EventDetail() {
   }
 
   return (
-    <div className={`relative ${themeColors ? themeColors[6] : ''}`}>
+    <div className="relative  min-h-screen">
       {/* Close Button */}
       <button
         onClick={handleBack}
-        className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 backdrop-blur-sm bg-white/20 dark:bg-black/20 text-gray-600 dark:text-gray-300 rounded-full hover:bg-white/30 dark:hover:bg-black/30 border border-white/20 dark:border-white/10 transition-colors shadow-lg"
         aria-label="Close"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,15 +190,22 @@ export default function EventDetail() {
                 <Panopto event={event} />
               )}
               
-              <SessionSetup
-                event={event}
-                resources={resources}
-                facultyMembers={facultyMembers || []}
-                instructorNames={instructorNames}
-                isFacultyLoading={isFacultyLoading}
-                updateFacultyAttributes={updateFacultyAttributes}
-                openPanelModal={openPanelModal}
-              />
+              {/* Session Setup Components - One for each instructor */}
+              {instructorNames.length > 0 && instructorNames.map((instructorName, index) => {
+                const facultyMember = facultyMembers?.find(fm => fm.twentyfivelive_name === instructorName);
+                return (
+                  <SessionSetup
+                    key={`session-setup-${index}`}
+                    event={event}
+                    resources={resources}
+                    facultyMembers={facultyMember ? [facultyMember] : []}
+                    instructorNames={[instructorName]}
+                    isFacultyLoading={isFacultyLoading}
+                    updateFacultyAttributes={updateFacultyAttributes}
+                    openPanelModal={openPanelModal}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
 import { supabase } from '../../lib/supabase';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Video, Clock, CheckCircle, Circle, AlertCircle, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
-import { getEventThemeColors } from '../../utils/eventUtils';
+import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -31,6 +31,7 @@ export default function Panopto({ event }: PanoptoProps) {
   
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
+  const themeHexColors = getEventThemeHexColors(event);
   
   // Check if all checks are complete
   const allChecksComplete = useMemo(() => {
@@ -279,13 +280,13 @@ export default function Panopto({ event }: PanoptoProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-50 border-green-200 text-green-800';
+        return 'bg-green-100 border-green-300 text-green-800';
       case 'current':
         return 'bg-orange-50 border-orange-200 text-orange-800';
       case 'overdue':
         return 'bg-red-50 border-red-200 text-red-800';
       case 'missed':
-        return 'bg-gray-100 border-gray-300 text-gray-600';
+        return 'bg-gray-200 border-gray-400 text-gray-700';
       default:
         return 'bg-gray-50 border-gray-200 text-black dark:text-white';
     }
@@ -327,8 +328,8 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show loading state first
   if (isLoading) {
     return (
-      <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
-        <div 
+      <div className="rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-6 mb-6" style={{ background: `${themeHexColors[7]}` }}>
+        <div
           className="flex items-center justify-between mb-6 cursor-pointer select-none"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
@@ -339,15 +340,17 @@ export default function Panopto({ event }: PanoptoProps) {
               <ChevronDown className="w-5 h-5 text-black dark:text-white" />
             )}
             <Video className="w-6 h-6 text-black dark:text-white" />
-            <h2 className="text-xl font-bold text-black dark:text-black">
-              Panopto Recording Checks
+            <Circle className="w-2 h-2 bg-red-500 rounded-full -ml-1" />
+            <h2 className="text-xl font-bold text-black dark:text-black" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
+              PANOPTO RECORDING CHECKS
             </h2>
           </div>
           <a
             href="https://kellogg-northwestern.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#status=%5B2%2C5%5D"
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.text1} ${themeColors[8]} rounded-lg transition-colors`}
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-80`}
+            style={{ background: `linear-gradient(135deg, ${themeHexColors[8]}, ${themeHexColors[9]})` }}
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
@@ -370,7 +373,7 @@ export default function Panopto({ event }: PanoptoProps) {
                   <div className={`w-4 h-4 rounded-full border-2 ${themeColors[3]} ${themeColors[7]} animate-pulse`}></div>
                   
                   {/* Skeleton Check details card */}
-                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 ${themeColors[4]} animate-pulse`}>
+                  <div className="mt-4 p-3 rounded-lg border border-white/10 dark:border-white/5 text-center w-32 sm:w-36 animate-pulse" style={{ background: `${themeHexColors[1]}` }}>
                     <div className={`h-4 ${themeColors[3]} rounded mb-2`}></div>
                     <div className={`h-3 ${themeColors[3]} rounded mb-3`}></div>
                     <div className={`h-6 ${themeColors[3]} rounded mb-2`}></div>
@@ -390,8 +393,8 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show "no checks" message only after loading is complete and there are no checks
   if (panoptoTimeline.length === 0) {
     return (
-      <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
-        <div 
+      <div className="rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-6 mb-6" style={{ background: `${themeHexColors[7]}` }}>
+        <div
           className="flex items-center justify-between mb-4 cursor-pointer select-none"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
@@ -402,15 +405,17 @@ export default function Panopto({ event }: PanoptoProps) {
               <ChevronDown className="w-5 h-5 text-black dark:text-white" />
             )}
             <Video className="w-6 h-6 text-black dark:text-white" />
-            <h2 className="text-xl font-bold text-black dark:text-black">
-              Panopto Recording Checks
+            <Circle className="w-2 h-2 bg-red-500 rounded-full -ml-1" />
+            <h2 className="text-xl font-bold text-black dark:text-black" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
+              PANOPTO RECORDING CHECKS
             </h2>
           </div>
           <a
             href="https://kellogg-northwestern.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#status=%5B2%2C5%5D"
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.text1} ${themeColors[8]} rounded-lg transition-colors`}
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-80`}
+            style={{ background: `linear-gradient(135deg, ${themeHexColors[8]}, ${themeHexColors[9]})` }}
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
@@ -428,7 +433,7 @@ export default function Panopto({ event }: PanoptoProps) {
   }
   
   return (
-    <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
+    <div className="rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-6 mb-6" style={{ background: `${themeHexColors[7]}` }}>
       <div 
         className="flex items-center justify-between mb-6 cursor-pointer select-none"
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -444,8 +449,11 @@ export default function Panopto({ event }: PanoptoProps) {
           ) : (
             <Video className="w-6 h-6 text-black dark:text-white" />
           )}
-          <h2 className="text-xl font-bold text-black dark:text-black">
-            Panopto Recording Checks
+          {allChecksComplete && !isLoading ? null : (
+            <Circle className="w-2 h-2 bg-red-500 rounded-full -ml-1" />
+          )}
+          <h2 className="text-xl font-bold text-black dark:text-black" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
+            PANOPTO RECORDING CHECKS
           </h2>
         </div>
         <a
@@ -494,7 +502,7 @@ export default function Panopto({ event }: PanoptoProps) {
                   </div>
                   
                   {/* Check details card */}
-                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 transition-colors ${getStatusColor(check.status)}`}>
+                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 transition-colors backdrop-blur-sm shadow-lg ${getStatusColor(check.status)}`}>
                     <div className="font-semibold text-xs sm:text-sm mb-1">
                       Check #{check.checkNumber}
                     </div>

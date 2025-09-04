@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 import { FacultyAvatar } from '../FacultyAvatar';
@@ -34,24 +34,48 @@ export default function SessionSetup({
   updateFacultyAttributes,
   openPanelModal
 }: SessionSetupProps) {
-  // For multiple instructors, use the first one for configuration
-  // In a real application, you might want to show a selector
+  // Use the provided instructor data (now handles individual instructors properly)
   const facultyMember = facultyMembers && facultyMembers.length > 0 ? facultyMembers[0] : null;
   const primaryInstructorName = instructorNames && instructorNames.length > 0 ? instructorNames[0] : '';
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
-  
+  const themeHexColors = getEventThemeHexColors(event);
+
   // State for faculty photo hover effects
   const [isFacultyHovering, setIsFacultyHovering] = useState(false);
+
+  // State for collapsible functionality
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   return (
-    <div className={`${themeColors[5]} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
-      
+    <div className="backdrop-blur-md rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-3 sm:p-6 mb-8" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}CC, ${themeHexColors[2]}AA)` }}>
+      {/* Collapsible Header */}
+      <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
+        <h2 className="text-lg sm:text-xl font-semibold text-black">
+          Faculty Profile{facultyMember?.kelloggdirectory_name ? ` - ${facultyMember.kelloggdirectory_name.split(' ').pop()}` : primaryInstructorName ? ` - ${primaryInstructorName.split(' ').pop()}` : ''}
+        </h2>
+        <button
+          className="flex items-center justify-center w-8 h-8 backdrop-blur-sm bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 border border-white/20 dark:border-white/10 rounded-full transition-colors shadow-lg"
+          aria-label={isCollapsed ? "Expand session setup" : "Collapse session setup"}
+        >
+          <svg
+            className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
 
-      {/* Faculty Information - Full Width at Top */}
-      {instructorNames.length > 0 && (
+      {/* Collapsible Content */}
+      {!isCollapsed && (
+        <>
+          {/* Faculty Information - Full Width at Top */}
+          {instructorNames.length > 0 && (
         <div className="mb-4 sm:mb-6">
-          <div className={`border rounded-lg p-3 sm:p-4 ${themeColors[4]}`}>
+          <div className="backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 sm:p-4 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
             <div className="flex items-center gap-2 sm:gap-3">
               {facultyMember?.kelloggdirectory_image_url ? (
                 <div
@@ -108,7 +132,7 @@ export default function SessionSetup({
         <div className="space-y-4 sm:space-y-6">
           {/* Setup Options Group */}
           {instructorNames.length > 0 && facultyMember && (
-            <div className={`p-3 sm:p-4 rounded-lg ${themeColors[4]}`}>
+            <div className="backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 sm:p-4 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
@@ -168,7 +192,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
                           <button
                             onClick={() => openPanelModal('left')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors[4]} hover:${themeColors[6]}`}
+                            className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -195,7 +219,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
                           <button
                             onClick={() => openPanelModal('right')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors[4]} hover:${themeColors[6]}`}
+                            className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -264,7 +288,8 @@ export default function SessionSetup({
         </div>
       </div>
 
-
+        </>
+      )}
     </div>
   );
 }

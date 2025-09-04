@@ -3,6 +3,15 @@ import { Database } from '../../types/supabase';
 import { getEventTypeInfo } from '../../utils/eventUtils';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
 
+// Helper function to extract last names from instructor names
+const extractLastNames = (instructorNames: string[]): string => {
+  return instructorNames.map(name => {
+    // Split by space and get the last part (assuming it's the last name)
+    const nameParts = name.trim().split(' ');
+    return nameParts[nameParts.length - 1];
+  }).join(', ');
+};
+
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
 
@@ -59,12 +68,30 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
               size="md"
             />
           ) : instructorNames.length > 1 ? (
-            <MultipleFacultyAvatars
-              instructorNames={instructorNames}
-              isHovering={isHovering}
-              size="md"
-              maxAvatars={2}
-            />
+            <div className="flex -space-x-2">
+              {instructorNames.slice(0, 2).map((instructorName, index) => {
+                const facultyMember = facultyMembers.find(fm => fm.twentyfivelive_name === instructorName);
+                return (
+                  <FacultyAvatar
+                    key={`${instructorName}-${index}`}
+                    imageUrl={facultyMember?.kelloggdirectory_image_url || ''}
+                    cutoutImageUrl={facultyMember?.cutout_image}
+                    instructorName={instructorName}
+                    isHovering={isHovering}
+                    size="md"
+                    className="h-10 w-10"
+                  />
+                );
+              })}
+              {instructorNames.length > 2 && (
+                <div
+                  className="h-10 w-10 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-white font-medium text-sm"
+                  title={instructorNames.slice(2).join(', ')}
+                >
+                  +{instructorNames.length - 2}
+                </div>
+              )}
+            </div>
           ) : (
             <span className="text-sm transition-all duration-200 ease-in-out" style={{ transform: 'scale(1)' }}>
               👤
@@ -72,12 +99,16 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
           )}
                      <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-normal w-16 -mt-0.5 line-clamp-2 transition-all duration-200 ease-in-out">
             {instructorNames.length > 0 ? (() => {
-              const firstName = instructorNames[0];
-              const parts = firstName.split(',');
-              if (parts.length >= 2) {
-                return parts[0].trim();
+              if (instructorNames.length === 1) {
+                const firstName = instructorNames[0];
+                const parts = firstName.split(',');
+                if (parts.length >= 2) {
+                  return parts[0].trim();
+                }
+                return firstName;
+              } else {
+                return extractLastNames(instructorNames);
               }
-              return firstName;
             })() : ''}
           </span>
         </div>

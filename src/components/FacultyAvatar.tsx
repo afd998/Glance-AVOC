@@ -63,14 +63,14 @@ export function FacultyAvatar({
 
   if (imageError) {
     return (
-      <div className={`${sizeClasses[size]} rounded-full bg-purple-200 flex items-center justify-center ${className}`}>
+      <div className={`${sizeClasses[size]} rounded-full bg-purple-200 flex items-center justify-center ${className}`} title={instructorName}>
         <span className="text-sm transition-all duration-200 ease-in-out">👤</span>
       </div>
     );
   }
 
   return (
-    <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-in-out ${className}`} style={{ overflow: 'visible' }}>
+    <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-in-out ${className}`} style={{ overflow: 'visible' }} title={instructorName}>
       {/* Purple gradient background */}
       <div 
         className="absolute inset-0 rounded-full z-0" 

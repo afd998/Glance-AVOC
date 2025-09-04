@@ -180,6 +180,99 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
 };
 
 /**
+ * Extract hex color from Tailwind bg class
+ */
+const extractHexFromBgClass = (bgClass: string): string => {
+  // Extract hex color from classes like 'bg-[#f0e8f5]' or 'bg-gray-50'
+  const hexMatch = bgClass.match(/bg-\[#([a-fA-F0-9]{6})\]/);
+  if (hexMatch) return `#${hexMatch[1]}`;
+
+  // Handle standard Tailwind colors
+  const colorMap: { [key: string]: string } = {
+    'bg-white': '#ffffff',
+    'bg-gray-50': '#f9fafb',
+    'bg-gray-100': '#f3f4f6',
+    'bg-gray-200': '#e5e7eb',
+    'bg-gray-300': '#d1d5db',
+    'bg-gray-400': '#9ca3af',
+    'bg-gray-500': '#6b7280',
+    'bg-gray-600': '#4b5563',
+    'bg-gray-700': '#374151',
+    'bg-gray-800': '#1f2937',
+    'bg-gray-900': '#111827',
+    'bg-red-50': '#fef2f2',
+    'bg-red-100': '#fee2e2',
+    'bg-red-200': '#fecaca',
+    'bg-red-300': '#fca5a5',
+    'bg-red-400': '#f87171',
+    'bg-red-500': '#ef4444',
+    'bg-red-600': '#dc2626',
+    'bg-red-700': '#b91c1c',
+    'bg-red-800': '#991b1b',
+    'bg-red-900': '#7f1d1d',
+    'bg-amber-50': '#fffbeb',
+    'bg-amber-100': '#fef3c7',
+    'bg-amber-200': '#fde68a',
+    'bg-amber-300': '#fcd34d',
+    'bg-amber-400': '#fbbf24',
+    'bg-amber-500': '#f59e0b',
+    'bg-amber-600': '#d97706',
+    'bg-amber-700': '#b45309',
+    'bg-amber-800': '#92400e',
+    'bg-amber-900': '#78350f',
+    'bg-slate-50': '#f8fafc',
+    'bg-slate-100': '#f1f5f9',
+    'bg-slate-200': '#e2e8f0',
+    'bg-slate-300': '#cbd5e1',
+    'bg-slate-400': '#94a3b8',
+    'bg-slate-500': '#64748b',
+    'bg-slate-600': '#475569',
+    'bg-slate-700': '#334155',
+    'bg-slate-800': '#1e293b',
+    'bg-slate-900': '#0f172a'
+  };
+
+  return colorMap[bgClass] || '#ffffff'; // Default to white if not found
+};
+
+/**
+ * Generate theme colors as hex values for inline styles
+ */
+export const getEventThemeHexColors = (event: Event) => {
+  const themeColors = getEventThemeColors(event);
+
+  return {
+    // Convert Tailwind classes to hex colors
+    1: extractHexFromBgClass(themeColors[1]),
+    2: extractHexFromBgClass(themeColors[2]),
+    3: extractHexFromBgClass(themeColors[3]),
+    4: extractHexFromBgClass(themeColors[4]),
+    5: extractHexFromBgClass(themeColors[5]),
+    6: extractHexFromBgClass(themeColors[6]),
+    7: extractHexFromBgClass(themeColors[7]),
+    8: extractHexFromBgClass(themeColors[8]),
+    9: extractHexFromBgClass(themeColors[9]),
+    10: extractHexFromBgClass(themeColors[10]),
+    // Keep text and border colors as Tailwind classes for className usage
+    text1: themeColors.text1,
+    text2: themeColors.text2,
+    text3: themeColors.text3,
+    text4: themeColors.text4,
+    text5: themeColors.text5,
+    text6: themeColors.text6,
+    text7: themeColors.text7,
+    text8: themeColors.text8,
+    text9: themeColors.text9,
+    text10: themeColors.text10,
+    border1: themeColors.border1,
+    border2: themeColors.border2,
+    border3: themeColors.border3,
+    border4: themeColors.border4,
+    border5: themeColors.border5
+  };
+};
+
+/**
  * Generate theme colors based on event type
  */
 export const getEventThemeColors = (event: Event) => {
