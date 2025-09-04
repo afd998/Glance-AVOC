@@ -31,8 +31,8 @@ export default function FacultyStatusBars({
 
   // Get theme colors based on event type
   const themeColors = event ? getEventThemeColors(event) : null;
-  const mainBg = themeColors?.mainBg || 'bg-white dark:bg-gray-800';
-  const cardBg = themeColors?.cardBg || 'bg-gray-50 dark:bg-gray-700';
+  const mainBg = themeColors?.[5] || 'bg-white dark:bg-gray-800';
+  const cardBg = themeColors?.[3] || 'bg-gray-50 dark:bg-gray-700';
 
   const getGradientColor = (value: number) => {
     const percentage = (value / 5) * 100;
