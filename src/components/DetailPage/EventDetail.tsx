@@ -157,7 +157,7 @@ export default function EventDetail() {
   }
 
   return (
-    <div className={`relative ${themeColors ? themeColors.mainBgDark : ''}`}>
+    <div className={`relative ${themeColors ? themeColors[6] : ''}`}>
       {/* Close Button */}
       <button
         onClick={handleBack}

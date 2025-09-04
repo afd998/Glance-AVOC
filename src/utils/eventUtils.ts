@@ -61,7 +61,7 @@ export const parseEventResources = (event: Event): ResourceFlags => {
  */
 export const getResourceIcon = (itemName: string): string => {
   const name = itemName?.toLowerCase() || '';
-  
+
   if (name.includes('laptop') || name.includes('computer')) return '💻';
   if (name.includes('camera') || name.includes('doc cam')) return '📷';
   if (name.includes('zoom') || name.includes('video')) return '📹';
@@ -69,8 +69,49 @@ export const getResourceIcon = (itemName: string): string => {
   if (name.includes('audio') || name.includes('microphone')) return '🎤';
   if (name.includes('display') || name.includes('monitor')) return '🖥️';
   if (name.includes('ksm-kgh-av-kis notes') || name.includes('notes')) return '📝';
-  
+
   return '📱'; // Default icon
+};
+
+/**
+ * Get specific icon for AV resources (similar to EventHeader style)
+ */
+export const getAVResourceIcon = (itemName: string): string => {
+  const name = itemName?.toLowerCase() || '';
+
+  // Special case for web conferencing - should use Zoom icon image
+  if (name.includes('video-conferencing') || name.includes('web conference') || name.includes('zoom')) {
+    return 'ZOOM_ICON'; // Special marker for zoom icon image
+  }
+
+  // Video-related resources
+  if (name.includes('video-recording') || name.includes('recording')) return '🔴';
+  if (name.includes('camera') || name.includes('doc cam')) return '📷';
+
+  // Audio-related resources
+  if (name.includes('microphone') || name.includes('mic')) return '🎤';
+  if (name.includes('audio')) return '🔊';
+
+  // Control/display resources
+  if (name.includes('panel') || name.includes('control')) return '🎛️';
+  if (name.includes('display') || name.includes('monitor')) return '🖥️';
+
+  // Notes/assistance
+  if (name.includes('staff') || name.includes('assistance')) return '🚶';
+  if (name.includes('notes') || name.includes('kis')) return '📝';
+
+  // Computer/laptop resources
+  if (name.includes('laptop') || name.includes('computer')) return '💻';
+
+  return '📱'; // Default icon
+};
+
+/**
+ * Check if a resource should use the Zoom icon image instead of emoji
+ */
+export const shouldUseZoomIcon = (itemName: string): boolean => {
+  const name = itemName?.toLowerCase() || '';
+  return name.includes('video-conferencing') || name.includes('web conference') || name.includes('zoom');
 };
 
 /**
@@ -84,6 +125,8 @@ export const getResourceDisplayName = (itemName: string): string => {
     ?.replace(/zoom/i, 'Zoom')
     ?.replace(/^.*staff assistance$/i, 'Staff Assistance')
     ?.replace(/^.*web conference$/i, 'Web Conference')
+    ?.replace(/^ksm-kgh-video-conferencing$/i, 'Web Conference')
+    ?.replace(/^ksm-kgh-video-recording.*$/i, 'Video Recording')
     ?.replace(/^.*handheld microphone$/i, 'Handheld Microphone')
     ?.replace(/^.*clickers.*polling.*$/i, 'Clickers (Polling)')
     ?.replace(/^ksm-kgh-av-kis notes$/i, 'AV Setup Notes')
@@ -142,103 +185,257 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
 export const getEventThemeColors = (event: Event) => {
   const eventType = event.event_type || '';
   const eventName = event.event_name || '';
-  
+
   const isLecture = eventType === 'Lecture';
   const isStudentEvent = eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
-  
-  // Define theme colors based on event type
+
+  // Define theme colors using numerical scale (1 = lightest, 10 = darkest)
   if (eventType === 'KEC') {
     return {
-      mainBg: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-      mainBgDark: 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-600',
-      cardBg: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600',
-      itemBg: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600',
-      badgeBg: 'bg-gray-200 dark:bg-gray-600',
-      badgeText: 'text-gray-800 dark:text-gray-200',
-      iconBg: 'bg-gray-200 dark:bg-gray-600',
-      iconText: 'text-gray-700 dark:text-gray-300',
-      buttonBg: 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500',
-      buttonText: 'text-gray-800 dark:text-gray-200'
+      // Light backgrounds and surfaces
+      1: 'bg-white dark:bg-gray-900',
+      2: 'bg-gray-50 dark:bg-gray-800',
+      3: 'bg-gray-100 dark:bg-gray-700',
+      // Medium colors for cards and containers
+      4: 'bg-gray-200 dark:bg-gray-600',
+      5: 'bg-gray-300 dark:bg-gray-500',
+      // Medium-dark for icons and badges
+      6: 'bg-gray-400 dark:bg-gray-400',
+      7: 'bg-gray-500 dark:bg-gray-300',
+      // Dark colors for borders and accents
+      8: 'bg-gray-600 dark:bg-gray-200',
+      9: 'bg-gray-700 dark:bg-gray-100',
+      // Darkest for text
+      10: 'bg-gray-800 dark:bg-white',
+      // Text colors
+      text1: 'text-gray-100',
+      text2: 'text-gray-200',
+      text3: 'text-gray-300',
+      text4: 'text-gray-400',
+      text5: 'text-gray-500',
+      text6: 'text-gray-600',
+      text7: 'text-gray-700',
+      text8: 'text-gray-800',
+      text9: 'text-gray-900',
+      text10: 'text-black dark:text-white',
+      // Border colors
+      border1: 'border-gray-200',
+      border2: 'border-gray-300',
+      border3: 'border-gray-400',
+      border4: 'border-gray-500',
+      border5: 'border-gray-600'
     };
   } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
     return {
-      mainBg: 'bg-[#9b8ba5] border-[#8c7c94]',
-      mainBgDark: 'bg-[#7d6d83] border-[#6e5f72]',
-      cardBg: 'bg-[#b9abbd] border-[#8c7c94]',
-      itemBg: 'bg-[#b9abbd] border-[#8c7c94] hover:bg-[#aa9bb1]',
-      badgeBg: 'bg-[#7d6d83]',
-      badgeText: 'text-[#504250]',
-      iconBg: 'bg-[#7d6d83]',
-      iconText: 'text-[#504250]',
-      buttonBg: 'bg-[#7d6d83] hover:bg-[#6e5f72]',
-      buttonText: 'text-[#504250]'
+      // Light backgrounds and surfaces
+      1: 'bg-[#f0e8f5]',
+      2: 'bg-[#e8d8ed]',
+      3: 'bg-[#d4c2dc]',
+      // Medium colors for cards and containers
+      4: 'bg-[#b9abbd]',
+      5: 'bg-[#9b8ba5]',
+      // Medium-dark for icons and badges
+      6: 'bg-[#8c7c94]',
+      7: 'bg-[#7d6d83]',
+      // Dark colors for borders and accents
+      8: 'bg-[#6e5f72]',
+      9: 'bg-[#5f5061]',
+      // Darkest for text
+      10: 'bg-[#504250]',
+      // Text colors
+      text1: 'text-[#504250]',
+      text2: 'text-[#5f5061]',
+      text3: 'text-[#6e5f72]',
+      text4: 'text-[#7d6d83]',
+      text5: 'text-[#8c7c94]',
+      text6: 'text-[#9b8ba5]',
+      text7: 'text-[#aa9bb1]',
+      text8: 'text-[#b9abbd]',
+      text9: 'text-[#c8bad9]',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-[#d4c2dc]',
+      border2: 'border-[#b9abbd]',
+      border3: 'border-[#9b8ba5]',
+      border4: 'border-[#8c7c94]',
+      border5: 'border-[#7d6d83]'
     };
   } else if (eventType === 'CMC') {
     return {
-      mainBg: 'bg-red-300 border-red-400',
-      mainBgDark: 'bg-red-400 border-red-500',
-      cardBg: 'bg-red-200 border-red-400',
-      itemBg: 'bg-red-200 border-red-400 hover:bg-red-300',
-      badgeBg: 'bg-red-500',
-      badgeText: 'text-red-900',
-      iconBg: 'bg-red-500',
-      iconText: 'text-red-900',
-      buttonBg: 'bg-red-500 hover:bg-red-600',
-      buttonText: 'text-red-900'
+      // Light backgrounds and surfaces
+      1: 'bg-red-50',
+      2: 'bg-red-100',
+      3: 'bg-red-200',
+      // Medium colors for cards and containers
+      4: 'bg-red-300',
+      5: 'bg-red-400',
+      // Medium-dark for icons and badges
+      6: 'bg-red-500',
+      7: 'bg-red-600',
+      // Dark colors for borders and accents
+      8: 'bg-red-700',
+      9: 'bg-red-800',
+      // Darkest for text
+      10: 'bg-red-900',
+      // Text colors
+      text1: 'text-red-100',
+      text2: 'text-red-200',
+      text3: 'text-red-300',
+      text4: 'text-red-400',
+      text5: 'text-red-500',
+      text6: 'text-red-600',
+      text7: 'text-red-700',
+      text8: 'text-red-800',
+      text9: 'text-red-900',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-red-200',
+      border2: 'border-red-300',
+      border3: 'border-red-400',
+      border4: 'border-red-500',
+      border5: 'border-red-600'
     };
   } else if (isLecture) {
     return {
-      mainBg: 'bg-[#7C6CA1] border-[#8D7DAD]',
-      mainBgDark: 'bg-[#605283] border-[#4A3E60]',
-      cardBg: 'bg-[#605283] border-[#8D7DAD]',
-      itemBg: 'bg-[#605283] border-[#8D7DAD] hover:bg-[#9E8EB9]',
-      badgeBg: 'bg-[#605283]',
-      badgeText: 'text-[#4A3E60]',
-      iconBg: 'bg-[#605283]',
-      iconText: 'text-[#4A3E60]',
-      buttonBg: 'bg-[#605283] hover:bg-[#4A3E60]',
-      buttonText: 'text-[#4A3E60]'
+      // Light backgrounds and surfaces
+      1: 'bg-[#f0e6ff]',
+      2: 'bg-[#d4c2ff]',
+      3: 'bg-[#b19cd9]',
+      // Medium colors for cards and containers
+      4: 'bg-[#8d7dad]',
+      5: 'bg-[#7c6ca1]',
+      // Medium-dark for icons and badges
+      6: 'bg-[#6b5b8f]',
+      7: 'bg-[#605283]',
+      // Dark colors for borders and accents
+      8: 'bg-[#4a3e60]',
+      9: 'bg-[#3e3250]',
+      // Darkest for text
+      10: 'bg-[#332640]',
+      // Text colors
+      text1: 'text-[#332640]',
+      text2: 'text-[#3e3250]',
+      text3: 'text-[#4a3e60]',
+      text4: 'text-[#605283]',
+      text5: 'text-[#6b5b8f]',
+      text6: 'text-[#7c6ca1]',
+      text7: 'text-[#8d7dad]',
+      text8: 'text-[#9e8eb9]',
+      text9: 'text-[#af9fc5]',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-[#b19cd9]',
+      border2: 'border-[#8d7dad]',
+      border3: 'border-[#7c6ca1]',
+      border4: 'border-[#6b5b8f]',
+      border5: 'border-[#605283]'
     };
   } else if (isStudentEvent) {
     return {
-      mainBg: 'bg-amber-700 border-amber-800',
-      mainBgDark: 'bg-amber-900 border-amber-950',
-      cardBg: 'bg-amber-600 border-amber-800',
-      itemBg: 'bg-amber-600 border-amber-800 hover:bg-amber-700',
-      badgeBg: 'bg-amber-800',
-      badgeText: 'text-amber-100',
-      iconBg: 'bg-amber-800',
-      iconText: 'text-amber-200',
-      buttonBg: 'bg-amber-800 hover:bg-amber-900',
-      buttonText: 'text-amber-100'
+      // Light backgrounds and surfaces
+      1: 'bg-amber-50',
+      2: 'bg-amber-100',
+      3: 'bg-amber-200',
+      // Medium colors for cards and containers
+      4: 'bg-amber-300',
+      5: 'bg-amber-400',
+      // Medium-dark for icons and badges
+      6: 'bg-amber-500',
+      7: 'bg-amber-600',
+      // Dark colors for borders and accents
+      8: 'bg-amber-700',
+      9: 'bg-amber-800',
+      // Darkest for text
+      10: 'bg-amber-900',
+      // Text colors
+      text1: 'text-amber-100',
+      text2: 'text-amber-200',
+      text3: 'text-amber-300',
+      text4: 'text-amber-400',
+      text5: 'text-amber-500',
+      text6: 'text-amber-600',
+      text7: 'text-amber-700',
+      text8: 'text-amber-800',
+      text9: 'text-amber-900',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-amber-200',
+      border2: 'border-amber-300',
+      border3: 'border-amber-400',
+      border4: 'border-amber-500',
+      border5: 'border-amber-600'
     };
   } else if (isFacStaffEvent) {
     return {
-      mainBg: 'bg-slate-700 border-slate-800',
-      mainBgDark: 'bg-slate-900 border-slate-950',
-      cardBg: 'bg-slate-600 border-slate-800',
-      itemBg: 'bg-slate-600 border-slate-800 hover:bg-slate-700',
-      badgeBg: 'bg-slate-800',
-      badgeText: 'text-slate-100',
-      iconBg: 'bg-slate-800',
-      iconText: 'text-slate-200',
-      buttonBg: 'bg-slate-800 hover:bg-slate-900',
-      buttonText: 'text-slate-100'
+      // Light backgrounds and surfaces
+      1: 'bg-slate-50',
+      2: 'bg-slate-100',
+      3: 'bg-slate-200',
+      // Medium colors for cards and containers
+      4: 'bg-slate-300',
+      5: 'bg-slate-400',
+      // Medium-dark for icons and badges
+      6: 'bg-slate-500',
+      7: 'bg-slate-600',
+      // Dark colors for borders and accents
+      8: 'bg-slate-700',
+      9: 'bg-slate-800',
+      // Darkest for text
+      10: 'bg-slate-900',
+      // Text colors
+      text1: 'text-slate-100',
+      text2: 'text-slate-200',
+      text3: 'text-slate-300',
+      text4: 'text-slate-400',
+      text5: 'text-slate-500',
+      text6: 'text-slate-600',
+      text7: 'text-slate-700',
+      text8: 'text-slate-800',
+      text9: 'text-slate-900',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-slate-200',
+      border2: 'border-slate-300',
+      border3: 'border-slate-400',
+      border4: 'border-slate-500',
+      border5: 'border-slate-600'
     };
   } else {
     // Default gray theme
     return {
-      mainBg: 'bg-slate-600 border-slate-700',
-      mainBgDark: 'bg-slate-800 border-slate-900',
-      cardBg: 'bg-slate-500 border-slate-700',
-      itemBg: 'bg-slate-500 border-slate-700 hover:bg-slate-600',
-      badgeBg: 'bg-slate-700',
-      badgeText: 'text-slate-100',
-      iconBg: 'bg-slate-700',
-      iconText: 'text-slate-200',
-      buttonBg: 'bg-slate-700 hover:bg-slate-800',
-      buttonText: 'text-slate-100'
+      // Light backgrounds and surfaces
+      1: 'bg-gray-50',
+      2: 'bg-gray-100',
+      3: 'bg-gray-200',
+      // Medium colors for cards and containers
+      4: 'bg-gray-300',
+      5: 'bg-gray-400',
+      // Medium-dark for icons and badges
+      6: 'bg-gray-500',
+      7: 'bg-gray-600',
+      // Dark colors for borders and accents
+      8: 'bg-gray-700',
+      9: 'bg-gray-800',
+      // Darkest for text
+      10: 'bg-gray-900',
+      // Text colors
+      text1: 'text-gray-100',
+      text2: 'text-gray-200',
+      text3: 'text-gray-300',
+      text4: 'text-gray-400',
+      text5: 'text-gray-500',
+      text6: 'text-gray-600',
+      text7: 'text-gray-700',
+      text8: 'text-gray-800',
+      text9: 'text-gray-900',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-gray-200',
+      border2: 'border-gray-300',
+      border3: 'border-gray-400',
+      border4: 'border-gray-500',
+      border5: 'border-gray-600'
     };
   }
 };

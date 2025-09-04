@@ -101,7 +101,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
 
   if (!facultyMember) {
     return (
-      <div className={`${themeColors.cardBg} rounded-lg shadow-lg p-6`}>
+      <div className={`${themeColors[3]} rounded-lg shadow-lg p-6`}>
         <h3 className="text-xl font-semibold text-black mb-4">Setup History</h3>
         <p className="text-black opacity-70">No faculty member assigned to this session.</p>
       </div>
@@ -109,13 +109,13 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
   }
 
   return (
-    <div className={`${themeColors.cardBg} rounded-lg shadow-lg p-2`}>
+    <div className={`${themeColors[3]} rounded-lg shadow-lg p-2`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-black">Setup History</h3>
         {!isAddingNote && (
           <button
             onClick={() => setIsAddingNote(true)}
-            className={`p-2 border-2 ${themeColors.iconBg} ${themeColors.iconText} rounded-full hover:${themeColors.buttonBg} hover:${themeColors.buttonText} transition-all duration-200 hover:scale-105`}
+            className={`p-2 border-2 ${themeColors[6]} ${themeColors.text10} rounded-full hover:${themeColors[8]} hover:${themeColors.text1} transition-all duration-200 hover:scale-105`}
             title="Add note"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,25 +127,25 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
 
       {/* Add New Note Form */}
       {isAddingNote && (
-        <div className={`mb-6 p-4 ${themeColors.itemBg} rounded-lg border`}>
+        <div className={`mb-6 p-4 ${themeColors[4]} rounded-lg border`}>
           <textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             placeholder="Enter a new setup note..."
-            className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors.cardBg} text-black mb-3`}
+            className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors[3]} text-black mb-3`}
           />
           <div className="flex gap-2">
             <button
               onClick={handleAddNote}
               disabled={!newNote.trim() || createFacultyUpdate.isPending}
-              className={`px-3 py-1.5 ${themeColors.buttonBg} ${themeColors.buttonText} text-sm rounded-md hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50 font-medium`}
+              className={`px-3 py-1.5 ${themeColors[8]} ${themeColors.text1} text-sm rounded-md hover:${themeColors[6]} transition-colors disabled:opacity-50 font-medium`}
             >
               {createFacultyUpdate.isPending ? 'Adding...' : 'Add Note'}
             </button>
             <button
               onClick={handleCancel}
               disabled={createFacultyUpdate.isPending}
-              className={`px-3 py-1.5 ${themeColors.badgeBg} ${themeColors.badgeText} text-sm rounded-md hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50 font-medium`}
+              className={`px-3 py-1.5 ${themeColors[7]} ${themeColors.text10} text-sm rounded-md hover:${themeColors[6]} transition-colors disabled:opacity-50 font-medium`}
             >
               Cancel
             </button>
@@ -164,7 +164,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
           facultyUpdates.map((update) => (
             <div 
               key={update.id} 
-              className={`p-4 ${themeColors.itemBg} rounded-lg border`}
+              className={`p-4 ${themeColors[4]} rounded-lg border`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEditNote(update)}
-                      className={`p-1 ${themeColors.iconText} hover:text-blue-600 transition-colors`}
+                      className={`p-1 ${themeColors.text10} hover:text-blue-600 transition-colors`}
                       title="Edit note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                     </button>
                     <button
                       onClick={() => handleDeleteNote(update.id)}
-                      className={`p-1 ${themeColors.iconText} hover:text-red-600 transition-colors`}
+                      className={`p-1 ${themeColors.text10} hover:text-red-600 transition-colors`}
                       title="Delete note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,20 +207,20 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
                   <textarea
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
-                    className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors.cardBg} text-black`}
+                    className={`w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${themeColors[3]} text-black`}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveEdit}
                       disabled={!editingContent.trim() || updateFacultyUpdate.isPending}
-                      className={`px-3 py-1 ${themeColors.buttonBg} ${themeColors.buttonText} text-sm rounded hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50`}
+                      className={`px-3 py-1 ${themeColors[8]} ${themeColors.text1} text-sm rounded hover:${themeColors[6]} transition-colors disabled:opacity-50`}
                     >
                       {updateFacultyUpdate.isPending ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       onClick={handleCancelEdit}
                       disabled={updateFacultyUpdate.isPending}
-                      className={`px-3 py-1 ${themeColors.badgeBg} ${themeColors.badgeText} text-sm rounded hover:${themeColors.mainBgDark} transition-colors disabled:opacity-50`}
+                      className={`px-3 py-1 ${themeColors[7]} ${themeColors.text10} text-sm rounded hover:${themeColors[6]} transition-colors disabled:opacity-50`}
             >
               Cancel
             </button>

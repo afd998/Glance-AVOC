@@ -45,13 +45,13 @@ export default function SessionSetup({
   const [isFacultyHovering, setIsFacultyHovering] = useState(false);
   
   return (
-    <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
+    <div className={`${themeColors[5]} rounded-lg shadow-lg p-3 sm:p-6 mb-8`}>
       
 
       {/* Faculty Information - Full Width at Top */}
       {instructorNames.length > 0 && (
         <div className="mb-4 sm:mb-6">
-          <div className={`border rounded-lg p-3 sm:p-4 ${themeColors.itemBg}`}>
+          <div className={`border rounded-lg p-3 sm:p-4 ${themeColors[4]}`}>
             <div className="flex items-center gap-2 sm:gap-3">
               {facultyMember?.kelloggdirectory_image_url ? (
                 <div
@@ -108,7 +108,7 @@ export default function SessionSetup({
         <div className="space-y-4 sm:space-y-6">
           {/* Setup Options Group */}
           {instructorNames.length > 0 && facultyMember && (
-            <div className={`p-3 sm:p-4 rounded-lg ${themeColors.itemBg}`}>
+            <div className={`p-3 sm:p-4 rounded-lg ${themeColors[4]}`}>
               <div className="space-y-4">
                 {/* Uses Microphone */}
                 <div className="flex items-center justify-between">
@@ -147,7 +147,7 @@ export default function SessionSetup({
                     />
                     <span className={
                       `w-6 h-6 flex items-center justify-center border-2 rounded transition-colors duration-150
-                      ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors.cardBg}`}
+                      ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors[3]}`}
                       ${updateFacultyAttributes.isPending ? 'opacity-60' : ''}`
                     }>
                       {updateFacultyAttributes.isPending ? (
@@ -168,7 +168,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
                           <button
                             onClick={() => openPanelModal('left')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBgDark}`}
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors[4]} hover:${themeColors[6]}`}
                             title="Click to change panel setup"
                           >
                             <img 
@@ -195,7 +195,7 @@ export default function SessionSetup({
                           <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
                           <button
                             onClick={() => openPanelModal('right')}
-                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors.itemBg} hover:${themeColors.mainBgDark}`}
+                            className={`w-full h-24 sm:h-32 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${themeColors[4]} hover:${themeColors[6]}`}
                             title="Click to change panel setup"
                           >
                             <img 

@@ -327,7 +327,7 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show loading state first
   if (isLoading) {
     return (
-      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+      <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
         <div 
           className="flex items-center justify-between mb-6 cursor-pointer select-none"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -347,7 +347,7 @@ export default function Panopto({ event }: PanoptoProps) {
             href="https://kellogg-northwestern.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#status=%5B2%2C5%5D"
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.text1} ${themeColors[8]} rounded-lg transition-colors`}
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
@@ -360,21 +360,21 @@ export default function Panopto({ event }: PanoptoProps) {
           {/* Skeleton Timeline */}
           <div className="relative">
             {/* Skeleton Timeline line */}
-            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
+            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors[3]}`}></div>
             
             {/* Skeleton Timeline items - Always show 4 skeleton checks */}
             <div className="flex items-start gap-4 justify-between">
               {Array.from({ length: 4 }, (_, i) => (
                 <div key={i} className="flex flex-col items-center relative flex-shrink-0">
                   {/* Skeleton Timeline dot */}
-                  <div className={`w-4 h-4 rounded-full border-2 ${themeColors.cardBg} ${themeColors.badgeBg} animate-pulse`}></div>
+                  <div className={`w-4 h-4 rounded-full border-2 ${themeColors[3]} ${themeColors[7]} animate-pulse`}></div>
                   
                   {/* Skeleton Check details card */}
-                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 ${themeColors.itemBg} animate-pulse`}>
-                    <div className={`h-4 ${themeColors.cardBg} rounded mb-2`}></div>
-                    <div className={`h-3 ${themeColors.cardBg} rounded mb-3`}></div>
-                    <div className={`h-6 ${themeColors.cardBg} rounded mb-2`}></div>
-                    <div className={`h-6 ${themeColors.cardBg} rounded`}></div>
+                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 ${themeColors[4]} animate-pulse`}>
+                    <div className={`h-4 ${themeColors[3]} rounded mb-2`}></div>
+                    <div className={`h-3 ${themeColors[3]} rounded mb-3`}></div>
+                    <div className={`h-6 ${themeColors[3]} rounded mb-2`}></div>
+                    <div className={`h-6 ${themeColors[3]} rounded`}></div>
                   </div>
                 </div>
               ))}
@@ -390,7 +390,7 @@ export default function Panopto({ event }: PanoptoProps) {
   // Show "no checks" message only after loading is complete and there are no checks
   if (panoptoTimeline.length === 0) {
     return (
-      <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+      <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
         <div 
           className="flex items-center justify-between mb-4 cursor-pointer select-none"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -410,7 +410,7 @@ export default function Panopto({ event }: PanoptoProps) {
             href="https://kellogg-northwestern.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#status=%5B2%2C5%5D"
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.text1} ${themeColors[8]} rounded-lg transition-colors`}
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
@@ -428,7 +428,7 @@ export default function Panopto({ event }: PanoptoProps) {
   }
   
   return (
-    <div className={`${themeColors.mainBg} rounded-lg shadow-lg p-6 mb-6`}>
+    <div className={`${themeColors[5]} rounded-lg shadow-lg p-6 mb-6`}>
       <div 
         className="flex items-center justify-between mb-6 cursor-pointer select-none"
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -452,7 +452,7 @@ export default function Panopto({ event }: PanoptoProps) {
           href="https://kellogg-northwestern.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#status=%5B2%2C5%5D"
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.buttonText} ${themeColors.buttonBg} rounded-lg transition-colors`}
+          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium ${themeColors.text1} ${themeColors[8]} rounded-lg transition-colors`}
           onClick={(e) => e.stopPropagation()}
         >
           <ExternalLink className="w-4 h-4" />
@@ -465,7 +465,7 @@ export default function Panopto({ event }: PanoptoProps) {
           {/* Horizontal Timeline */}
           <div className="relative overflow-x-auto">
             {/* Timeline line */}
-            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors.cardBg}`}></div>
+            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors[3]}`}></div>
             
             {/* Timeline items */}
             <div className={`flex items-start gap-4 ${panoptoTimeline.length > 4 ? 'min-w-max px-4' : 'justify-between'}`}>
@@ -481,7 +481,7 @@ export default function Panopto({ event }: PanoptoProps) {
                       ? 'bg-red-600 border-red-600'
                       : check.status === 'missed'
                       ? 'bg-gray-500 border-gray-500'
-                      : `${themeColors.badgeBg} ${themeColors.badgeBg}`
+                      : `${themeColors[7]} ${themeColors[7]}`
                   }`}>
                     {check.status === 'completed' && (
                       <CheckCircle className="w-4 h-4 text-white absolute -top-0.5 -left-0.5" />
