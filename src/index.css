@@ -67,6 +67,62 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Kenyan Coffee';
+  src: url('../public/fonts/Kenyan Coffee Rg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClementePDai';
+  src: url('../public/fonts/ClementePDai-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BebasNeue';
+  src: url('../public/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Olympus Mount';
+  src: url('../public/fonts/Olympus Mount.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abduction2002';
+  src: url('../public/fonts/abduction2002.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pixellari';
+  src: url('../public/fonts/Pixellari.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GoudyBookletter1911';
+  src: url('../public/fonts/GoudyBookletter1911.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @keyframes pulse {
   0% {
     opacity: 1;
