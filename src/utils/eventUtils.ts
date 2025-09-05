@@ -20,8 +20,6 @@ interface EventTypeInfo {
   isAdHocClassMeeting: boolean;
   isReducedHeightEvent: boolean;
   isMergedRoomEvent: boolean;
-  bgColor: string;
-  contentBgColor: string;
   truncatedEventName: string;
 }
 
@@ -162,32 +160,6 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   const isStudentEvent = eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
   
-  // Determine background color
-  let bgColor = "bg-gray-400"; // Default light gray color for non-lecture events
-  let contentBgColor = "bg-gray-500"; // Slightly darker version for content sections
-  
-  if (eventType === 'KEC') {
-    bgColor = "bg-gray-400"; // KEC events get medium gray background
-    contentBgColor = "bg-[#8a91a0]"; // Custom slightly darker version of #9da4b0
-  } else if (eventType === 'CMC') {
-    bgColor = "bg-red-300"; // CMC events get pastel red background
-    contentBgColor = "bg-red-400"; // Slightly darker red for content
-  } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
-    bgColor = "bg-[#33bbff]"; // KSM blue based on #1bacf5
-    contentBgColor = "bg-[#00aaff]"; // Slightly darker blue for content
-  } else if (isLecture) {
-    bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
-    contentBgColor = "bg-[#5a4a7a]"; // Slightly darker purple for content
-  } else if (isStudentEvent) {
-    bgColor = "bg-[#b8a68a]";
-    contentBgColor = "bg-[#ad9b80]"; // Slightly darker beige for content
-  } else if (isAdHocClassMeeting) {
-    bgColor = "bg-[#9b8ba5]"; // Custom purple based on #70538a
-    contentBgColor = "bg-[#8c7c94]"; // Slightly darker purple for content
-  } else if (isFacStaffEvent) {
-    bgColor = "bg-[#9b8ba5]";
-    contentBgColor = "bg-[#8f7f99]"; // Slightly darker purple for content
-  }
   
   return {
     isStudentEvent,
@@ -196,8 +168,6 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
     isAdHocClassMeeting,
     isReducedHeightEvent,
     isMergedRoomEvent,
-    bgColor,
-    contentBgColor,
     truncatedEventName: truncateEventName(event)
   };
 };
@@ -311,108 +281,108 @@ export const getEventThemeColors = (event: Event) => {
   if (eventType === 'KEC') {
     return {
       // Light backgrounds and surfaces
-      1: 'bg-white dark:bg-gray-900',
-      2: 'bg-gray-50 dark:bg-gray-800',
-      3: 'bg-gray-100 dark:bg-gray-700',
+      1: 'bg-[#f2f2f5]',
+      2: 'bg-[#e6e6eb]',
+      3: 'bg-[#d4d4da]',
+      4: 'bg-[#c0c0c8]',
       // Medium colors for cards and containers
-      4: 'bg-gray-200 dark:bg-gray-600',
-      5: 'bg-gray-300 dark:bg-gray-500',
+      5: 'bg-[#9a9aab]',  // medium gray with slight softness
       // Medium-dark for icons and badges
-      6: 'bg-gray-400 dark:bg-gray-400',
-      7: 'bg-gray-500 dark:bg-gray-300',
+      6: 'bg-[#777788]',  // medium-dark, muted depth
+      7: 'bg-[#666678]',
       // Dark colors for borders and accents
-      8: 'bg-gray-600 dark:bg-gray-200',
-      9: 'bg-gray-700 dark:bg-gray-100',
+      8: 'bg-[#525260]',
+      9: 'bg-[#3d3d46]',
       // Darkest for text
-      10: 'bg-gray-800 dark:bg-white',
+      10: 'bg-[#29292f]',
       // Text colors
-      text1: 'text-gray-100',
-      text2: 'text-gray-200',
-      text3: 'text-gray-300',
-      text4: 'text-gray-400',
-      text5: 'text-gray-500',
-      text6: 'text-gray-600',
-      text7: 'text-gray-700',
-      text8: 'text-gray-800',
-      text9: 'text-gray-900',
-      text10: 'text-black dark:text-white',
-      // Border colors
-      border1: 'border-gray-200',
-      border2: 'border-gray-300',
-      border3: 'border-gray-400',
-      border4: 'border-gray-500',
-      border5: 'border-gray-600'
-    };
-  } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
-    // KSM: Kellogg FacStaff (KGH) - custom theme based on #1bacf5
-    return {
-      // Light backgrounds and surfaces
-      1: 'bg-[#e6f7ff]',
-      2: 'bg-[#cceeff]',
-      3: 'bg-[#99ddff]',
-      // Medium colors for cards and containers
-      4: 'bg-[#66ccff]',
-      5: 'bg-[#33bbff]',
-      // Medium-dark for icons and badges
-      6: 'bg-[#00aaff]',
-      7: 'bg-[#0099e6]',
-      // Dark colors for borders and accents
-      8: 'bg-[#0088cc]',
-      9: 'bg-[#0077b3]',
-      // Darkest for text
-      10: 'bg-[#1bacf5]',
-      // Text colors
-      text1: 'text-[#1bacf5]',
-      text2: 'text-[#0077b3]',
-      text3: 'text-[#0088cc]',
-      text4: 'text-[#0099e6]',
-      text5: 'text-[#00aaff]',
-      text6: 'text-[#33bbff]',
-      text7: 'text-[#66ccff]',
-      text8: 'text-[#99ddff]',
-      text9: 'text-[#cceeff]',
+      text1: 'text-[#29292f]',
+      text2: 'text-[#3d3d46]',
+      text3: 'text-[#525260]',
+      text4: 'text-[#666678]',
+      text5: 'text-[#777788]',
+      text6: 'text-[#9a9aab]',
+      text7: 'text-[#c0c0c8]',
+      text8: 'text-[#d4d4da]',
+      text9: 'text-[#e6e6eb]',
       text10: 'text-white',
       // Border colors
-      border1: 'border-[#99ddff]',
-      border2: 'border-[#66ccff]',
-      border3: 'border-[#33bbff]',
-      border4: 'border-[#00aaff]',
-      border5: 'border-[#0099e6]'
+      border1: 'border-[#d4d4da]',
+      border2: 'border-[#c0c0c8]',
+      border3: 'border-[#9a9aab]',
+      border4: 'border-[#777788]',
+      border5: 'border-[#666678]'
+    };
+  } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
+    // KSM: Kellogg FacStaff (KGH) - custom muted blue theme
+    return {
+      // Light backgrounds and surfaces
+      1: 'bg-[#e8f0f8]',
+      2: 'bg-[#d1e0f0]',
+      3: 'bg-[#b8d0e8]',
+      4: 'bg-[#9bbcd4]',
+      // Medium colors for cards and containers
+      5: 'bg-[#6d8fbf]',  // medium blue, balanced
+      // Medium-dark for icons and badges
+      6: 'bg-[#59739b]',  // medium-dark, softened depth
+      7: 'bg-[#4f6683]',  // deep muted blue
+      // Dark colors for borders and accents
+      8: 'bg-[#455b6f]',
+      9: 'bg-[#3a4f5c]',
+      // Darkest for text
+      10: 'bg-[#2f4349]',
+      // Text colors
+      text1: 'text-[#2f4349]',
+      text2: 'text-[#3a4f5c]',
+      text3: 'text-[#455b6f]',
+      text4: 'text-[#4f6683]',
+      text5: 'text-[#59739b]',
+      text6: 'text-[#6d8fbf]',
+      text7: 'text-[#9bbcd4]',
+      text8: 'text-[#b8d0e8]',
+      text9: 'text-[#d1e0f0]',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-[#b8d0e8]',
+      border2: 'border-[#9bbcd4]',
+      border3: 'border-[#6d8fbf]',
+      border4: 'border-[#59739b]',
+      border5: 'border-[#4f6683]'
     };
   } else if (eventType === 'CMC') {
     return {
       // Light backgrounds and surfaces
-      1: 'bg-red-50',
-      2: 'bg-red-100',
-      3: 'bg-red-200',
+      1: 'bg-[#f8e8e8]',
+      2: 'bg-[#f0d4d4]',
+      3: 'bg-[#e8b8b8]',
+      4: 'bg-[#d49494]',
       // Medium colors for cards and containers
-      4: 'bg-red-300',
-      5: 'bg-red-400',
+      5: 'bg-[#c26868]',  // muted mid red
       // Medium-dark for icons and badges
-      6: 'bg-red-500',
-      7: 'bg-red-600',
+      6: 'bg-[#a54f4f]',  // medium-dark, balanced warmth
+      7: 'bg-[#7e3d3d]',
       // Dark colors for borders and accents
-      8: 'bg-red-700',
-      9: 'bg-red-800',
+      8: 'bg-[#5a2a2a]',
+      9: 'bg-[#3d1f1f]',
       // Darkest for text
-      10: 'bg-red-900',
+      10: 'bg-[#1a0d0d]',
       // Text colors
-      text1: 'text-red-100',
-      text2: 'text-red-200',
-      text3: 'text-red-300',
-      text4: 'text-red-400',
-      text5: 'text-red-500',
-      text6: 'text-red-600',
-      text7: 'text-red-700',
-      text8: 'text-red-800',
-      text9: 'text-red-900',
+      text1: 'text-[#1a0d0d]',
+      text2: 'text-[#3d1f1f]',
+      text3: 'text-[#5a2a2a]',
+      text4: 'text-[#7e3d3d]',
+      text5: 'text-[#a54f4f]',
+      text6: 'text-[#c26868]',
+      text7: 'text-[#d49494]',
+      text8: 'text-[#e8b8b8]',
+      text9: 'text-[#f0d4d4]',
       text10: 'text-white',
       // Border colors
-      border1: 'border-red-200',
-      border2: 'border-red-300',
-      border3: 'border-red-400',
-      border4: 'border-red-500',
-      border5: 'border-red-600'
+      border1: 'border-[#e8b8b8]',
+      border2: 'border-[#d49494]',
+      border3: 'border-[#c26868]',
+      border4: 'border-[#a54f4f]',
+      border5: 'border-[#7e3d3d]'
     };
   } else if (isLecture) {
     return {
@@ -422,7 +392,7 @@ export const getEventThemeColors = (event: Event) => {
       3: 'bg-[#b19cd9]',
       // Medium colors for cards and containers
       4: 'bg-[#8d7dad]',
-      5: 'bg-[#7c6ca1]',
+      5: 'bg-[#866dbf]',
       // Medium-dark for icons and badges
       6: 'bg-[#6b5b8f]',
       7: 'bg-[#605283]',
@@ -449,40 +419,76 @@ export const getEventThemeColors = (event: Event) => {
       border4: 'border-[#6b5b8f]',
       border5: 'border-[#605283]'
     };
+  } else if (isAdHocClassMeeting) {
+    // Ad Hoc Class Meeting - custom teal theme
+    return {
+      // Light backgrounds and surfaces
+      1: 'bg-[#e8f4f3]',
+      2: 'bg-[#d1e8e6]',
+      3: 'bg-[#b8ddd9]',
+      4: 'bg-[#9bc9c4]',
+      // Medium colors for cards and containers
+      5: 'bg-[#5fa8a4]',  // medium teal, balanced & soft
+      // Medium-dark for icons and badges
+      6: 'bg-[#4e8783]',  // medium-dark, muted depth
+      7: 'bg-[#456f6c]',  // deep, subdued teal for grounding
+      // Dark colors for borders and accents
+      8: 'bg-[#3d5f5c]',
+      9: 'bg-[#344f4c]',
+      // Darkest for text
+      10: 'bg-[#2a3f3d]',
+      // Text colors
+      text1: 'text-[#2a3f3d]',
+      text2: 'text-[#344f4c]',
+      text3: 'text-[#3d5f5c]',
+      text4: 'text-[#456f6c]',
+      text5: 'text-[#4e8783]',
+      text6: 'text-[#5fa8a4]',
+      text7: 'text-[#9bc9c4]',
+      text8: 'text-[#b8ddd9]',
+      text9: 'text-[#d1e8e6]',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-[#b8ddd9]',
+      border2: 'border-[#9bc9c4]',
+      border3: 'border-[#5fa8a4]',
+      border4: 'border-[#4e8783]',
+      border5: 'border-[#456f6c]'
+    };
   } else if (isStudentEvent) {
     return {
       // Light backgrounds and surfaces
-      1: 'bg-amber-50',
-      2: 'bg-amber-100',
-      3: 'bg-amber-200',
+      1: 'bg-[#f5f0e6]',
+      2: 'bg-[#ede2cd]',
+      3: 'bg-[#e4d4b4]',
+      4: 'bg-[#dcc690]',
       // Medium colors for cards and containers
-      4: 'bg-amber-300',
-      5: 'bg-amber-400',
+      5: 'bg-[#d6b86c]',  // medium golden yellow, warm but not harsh
       // Medium-dark for icons and badges
-      6: 'bg-amber-500',
-      7: 'bg-amber-600',
+      6: 'bg-[#b49457]',  // medium-dark ochre, softened depth
+      7: 'bg-[#8c7345]',  // deep muted amber, grounding
       // Dark colors for borders and accents
-      8: 'bg-amber-700',
-      9: 'bg-amber-800',
+      8: 'bg-[#6b5535]',
+      9: 'bg-[#4f3f28]',
       // Darkest for text
-      10: 'bg-amber-900',
+      10: 'bg-[#33291b]',
       // Text colors
-      text1: 'text-amber-100',
-      text2: 'text-amber-200',
-      text3: 'text-amber-300',
-      text4: 'text-amber-400',
-      text5: 'text-amber-500',
-      text6: 'text-amber-600',
-      text7: 'text-amber-700',
-      text8: 'text-amber-800',
-      text9: 'text-amber-900',
+      text1: 'text-[#33291b]',
+      text2: 'text-[#4f3f28]',
+      text3: 'text-[#6b5535]',
+      text4: 'text-[#8c7345]',
+      text5: 'text-[#b49457]',
+      text6: 'text-[#d6b86c]',
+      text7: 'text-[#dcc690]',
+      text8: 'text-[#e4d4b4]',
+      text9: 'text-[#ede2cd]',
       text10: 'text-white',
       // Border colors
-      border1: 'border-amber-200',
-      border2: 'border-amber-300',
-      border3: 'border-amber-400',
-      border4: 'border-amber-500',
-      border5: 'border-amber-600'
+      border1: 'border-[#e4d4b4]',
+      border2: 'border-[#dcc690]',
+      border3: 'border-[#d6b86c]',
+      border4: 'border-[#b49457]',
+      border5: 'border-[#8c7345]'
     };
   } else if (isFacStaffEvent) {
     return {
@@ -518,42 +524,6 @@ export const getEventThemeColors = (event: Event) => {
       border3: 'border-slate-400',
       border4: 'border-slate-500',
       border5: 'border-slate-600'
-    };
-  } else if (isAdHocClassMeeting) {
-    // Ad Hoc Class Meeting - custom theme based on #70538a
-    return {
-      // Light backgrounds and surfaces
-      1: 'bg-[#f0e8f5]',
-      2: 'bg-[#e8d8ed]',
-      3: 'bg-[#d4c2dc]',
-      // Medium colors for cards and containers
-      4: 'bg-[#b9abbd]',
-      5: 'bg-[#9b8ba5]',
-      // Medium-dark for icons and badges
-      6: 'bg-[#8c7c94]',
-      7: 'bg-[#7d6d83]',
-      // Dark colors for borders and accents
-      8: 'bg-[#6e5f72]',
-      9: 'bg-[#5f5061]',
-      // Darkest for text
-      10: 'bg-[#70538a]',
-      // Text colors
-      text1: 'text-[#70538a]',
-      text2: 'text-[#6e5f72]',
-      text3: 'text-[#7d6d83]',
-      text4: 'text-[#8c7c94]',
-      text5: 'text-[#9b8ba5]',
-      text6: 'text-[#aa9bb1]',
-      text7: 'text-[#b9abbd]',
-      text8: 'text-[#c8bad9]',
-      text9: 'text-[#d4c2dc]',
-      text10: 'text-white',
-      // Border colors
-      border1: 'border-[#d4c2dc]',
-      border2: 'border-[#b9abbd]',
-      border3: 'border-[#9b8ba5]',
-      border4: 'border-[#8c7c94]',
-      border5: 'border-[#7d6d83]'
     };
   } else {
     // Default gray theme

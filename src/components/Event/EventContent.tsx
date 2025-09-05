@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
-import { getEventTypeInfo } from '../../utils/eventUtils';
+import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
 
 // Helper function to extract last names from instructor names
@@ -27,7 +27,9 @@ interface EventContentProps {
 // Lecture Event Component
 function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   // Get theme colors and truncated event name for this event
-  const { contentBgColor, truncatedEventName: baseName } = getEventTypeInfo(event);
+  const { truncatedEventName: baseName } = getEventTypeInfo(event);
+  const themeColors = getEventThemeColors(event);
+  const contentBgColor = themeColors[7]; // Use theme color for content background
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
@@ -50,7 +52,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   );
 
   return (
-         <div className={`flex flex-row bg-[#6b5b95] ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''}`}>
+         <div className={`flex flex-row ${themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''}`}>
       {instructorNames.length > 0 && (
                  <div
            className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} z-10 transition-all duration-200 ease-in-out`}
@@ -144,7 +146,9 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
 // Default Event Component
 function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
   // Get theme colors, truncated event name, and height flags for this event
-  const { contentBgColor, truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
+  const { truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
+  const themeColors = getEventThemeColors(event);
+  const contentBgColor = themeColors[7]; // Use theme color for content background
 
   // Determine height based on event type
   const getEventHeight = () => {

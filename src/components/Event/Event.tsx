@@ -3,7 +3,7 @@ import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
 import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
-import { parseEventResources, getEventTypeInfo, calculateEventPosition } from "../../utils/eventUtils";
+import { parseEventResources, getEventTypeInfo, calculateEventPosition, getEventThemeColors } from "../../utils/eventUtils";
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -146,7 +146,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const isUpperRow = roomIndex < 4;
 
   // Get event type info using the utility function
-  const { bgColor, isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
+  const { isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
+  const themeColors = getEventThemeColors(event);
+  const bgColor = themeColors[5]; // Use theme color for background
 
   // Adjust height for specific event types and keep centered in the 96px room row
   const ROW_HEIGHT_PX = 96;
@@ -161,7 +163,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   if (isMergedRoomEvent) {
     eventHeightPx = MERGED_ROOM_HEIGHT_PX;
     // Position merged room events at the top of the row (they extend downward into next room space)
-    eventTopPx = '0px';
+    eventTopPx = '6px';
   } else {
     eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
     // Center normal events in the row

@@ -2,12 +2,46 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon, truncateEventName } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../FacultyAvatar';
+
+// Helper function to extract hex color from Tailwind bg class
+const extractHexFromBgClass = (bgClass: string): string => {
+  // Extract hex color from classes like 'bg-[#f0e8f5]' or 'bg-gray-50'
+  const hexMatch = bgClass.match(/bg-\[#([a-fA-F0-9]{6})\]/);
+  if (hexMatch) return `#${hexMatch[1]}`;
+
+  // Handle standard Tailwind colors
+  const colorMap: { [key: string]: string } = {
+    'bg-white': '#ffffff',
+    'bg-gray-50': '#f9fafb',
+    'bg-gray-100': '#f3f4f6',
+    'bg-gray-200': '#e5e7eb',
+    'bg-gray-300': '#d1d5db',
+    'bg-gray-400': '#9ca3af',
+    'bg-gray-500': '#6b7280',
+    'bg-gray-600': '#4b5563',
+    'bg-gray-700': '#374151',
+    'bg-gray-800': '#1f2937',
+    'bg-gray-900': '#111827',
+    'bg-red-50': '#fef2f2',
+    'bg-red-100': '#fee2e2',
+    'bg-red-200': '#fecaca',
+    'bg-red-300': '#fca5a5',
+    'bg-red-400': '#f87171',
+    'bg-red-500': '#ef4444',
+    'bg-red-600': '#dc2626',
+    'bg-red-700': '#b91c1c',
+    'bg-red-800': '#991b1b',
+    'bg-red-900': '#7f1d1d'
+  };
+
+  return colorMap[bgClass] || '#ffffff'; // Default to white if not found
+};
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -81,13 +115,16 @@ export default function EventDetailHeader({
   const handleOccurrencesClick = () => {
     navigate(`/${date}/${event.id}/occurrences`);
   };
+  // Extract hex color from theme colors for gradient
+  const bgHexColor = extractHexFromBgClass(themeColors[6]);
+
   return (
-    <div className=" rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-4 sm:p-6 mb-4 sm:mb-6" style={{ background: `linear-gradient(135deg, ${themeHexColors[4]}, ${themeHexColors[5]})` }}>
+    <div className=" rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-4 sm:p-6 mb-4 sm:mb-6" style={{ background: `linear-gradient(135deg, ${bgHexColor}, ${bgHexColor}dd)` }}>
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Event Info */}
         <div className="flex-1 lg:w-1/2 mb-4 lg:mb-0">
           {/* Background container for the first 3 elements with faculty photo */}
-          <div className="backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10 dark:border-white/5 shadow-lg" style={{ backgroundColor: `${themeHexColors[3]}` }}>
+          <div className="backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10 dark:border-white/5 shadow-lg" style={{ backgroundColor: `${bgHexColor}40` }}>
             <div className="flex items-center gap-4">
               {/* Left side - Faculty photos */}
               {instructorNames.length > 0 && (
@@ -215,7 +252,7 @@ export default function EventDetailHeader({
           {/* Room and Occurrences Row */}
           <div className="flex items-start gap-3 mb-3 sm:mb-4">
             {/* Room Section */}
-            <div className="backdrop-blur-sm rounded-lg p-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[2]}, ${themeHexColors[3]})` }}>
+            <div className="backdrop-blur-sm rounded-lg p-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}60, ${bgHexColor}80)` }}>
               <span className={`text-xs font-medium text-black mb-3 block`}>Room</span>
               <div className="backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30 dark:border-white/20 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[3]}, ${themeHexColors[4]})` }}>
                 <span className={`text-lg font-medium text-black`} style={{ fontFamily: "'Pixellari', sans-serif" }}>
@@ -225,7 +262,7 @@ export default function EventDetailHeader({
             </div>
 
             {/* Occurrences Section with Date, Time, and Button */}
-            <div className="backdrop-blur-sm rounded-lg p-2 z-20 relative border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
+            <div className="backdrop-blur-sm rounded-lg p-2 z-20 relative border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}30, ${bgHexColor}50)` }}>
               <span className={`text-xs font-medium text-black mb-1 block`}>Occurrences</span>
               <div className={`flex items-center gap-2 transition-all duration-200 hover:${themeColors[4]} cursor-pointer rounded-lg p-1 border-2 border-transparent hover:${themeColors[3]} hover:${themeColors[4]}`} onClick={handleOccurrencesClick}>
                 <div className="flex flex-col items-center justify-center p-1 rounded-lg">
@@ -256,7 +293,7 @@ export default function EventDetailHeader({
         {/* Right Side - Event Type/Room and Instructor Info */}
         <div className="flex-1 lg:w-1/2 lg:pl-8">
           {/* Event Details Card */}
-          <div className="backdrop-blur-sm rounded-lg p-2 mb-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[7]}, ${themeHexColors[8]})` }}>
+          <div className="backdrop-blur-sm rounded-lg p-2 mb-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}90, ${bgHexColor}aa)` }}>
             <h3 className={`text-xs font-semibold text-black mb-1 uppercase tracking-wide`}>
               Event Details
             </h3>
