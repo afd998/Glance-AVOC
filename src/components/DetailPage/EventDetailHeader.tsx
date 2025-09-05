@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon, truncateEventName } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -193,11 +193,7 @@ export default function EventDetailHeader({
                 {/* Course Code - Beginning part in bold */}
                 {event.event_name && (
                   <h1 className="text-2xl sm:text-4xl font-bold text-black mb-0.5 uppercase" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
-                    {(() => {
-                      const eventNameCopy = event.event_name ? String(event.event_name) : '';
-                      const dashIndex = eventNameCopy.indexOf('-');
-                      return dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
-                    })()}
+                    {truncateEventName(event)}
                   </h1>
                 )}
                 

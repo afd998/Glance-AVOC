@@ -26,14 +26,11 @@ interface EventContentProps {
 
 // Lecture Event Component
 function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
+  // Get theme colors and truncated event name for this event
+  const { contentBgColor, truncatedEventName: baseName } = getEventTypeInfo(event);
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
-  const dashIndex = eventNameCopy.indexOf('-');
-  const baseName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
-
-  // Get theme colors for this event
-  const { contentBgColor } = getEventTypeInfo(event);
 
   // Calculate avatar tilt based on first instructor name
   const getAvatarTilt = (name: string | undefined): number => {
@@ -143,83 +140,24 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   );
 }
 
-// Exam Event Component
-function ExamEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
-  const eventNameCopy = event.event_name ? String(event.event_name) : '';
-  const dashIndex = eventNameCopy.indexOf('-');
-  const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
-  
-  // Get theme colors for this event
-  const { contentBgColor } = getEventTypeInfo(event);
-  
-  // Dynamic padding - exams are usually single line
-  const paddingY = 'py-1';
-
-  return (
-    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
-      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
-        <span 
-          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
-          style={{ 
-            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
-            transformOrigin: 'left center'
-          }}
-          title={mainEventName}
-        >
-          {mainEventName}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// Lab Event Component
-function LabEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
-  const eventNameCopy = event.event_name ? String(event.event_name) : '';
-  const dashIndex = eventNameCopy.indexOf('-');
-  const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
-  
-  // Get theme colors for this event
-  const { contentBgColor } = getEventTypeInfo(event);
-  
-  // Dynamic padding - labs are usually single line
-  const paddingY = 'py-1';
-
-  return (
-    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
-      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
-        <span 
-          className="text-sm font-medium text-white transition-all duration-200 ease-in-out truncate w-full"
-          style={{ 
-            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
-            transformOrigin: 'left center'
-          }}
-          title={mainEventName}
-        >
-          {mainEventName}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-
 
 // Default Event Component
 function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
-  const eventName = event.event_name ? String(event.event_name) : '';
+  // Get theme colors, truncated event name, and height flags for this event
+  const { contentBgColor, truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
 
-  // Get theme colors for this event
-  const { contentBgColor } = getEventTypeInfo(event);
-
-  // Dynamic padding - use consistent padding since we don't truncate
-  const paddingY = 'py-1';
+  // Determine height based on event type
+  const getEventHeight = () => {
+    if (isMergedRoomEvent) return 'h-30'; // 80px for merged room events
+    if (isReducedHeightEvent) return 'h-10'; // 40px for reduced height events
+    return 'h-12'; // 48px for regular events
+  };
 
   return (
-    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
-      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
+    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()}`}>
+      <div className="flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 py-1 h-full">
         <span
-          className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight break-words whitespace-normal"
+          className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight truncate whitespace-nowrap"
           style={{
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
             transformOrigin: 'left center'
@@ -245,10 +183,6 @@ export default function EventContent({
     <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
       {event.event_type === 'Lecture' ? (
         <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
-      ) : event.event_type === 'Exam' ? (
-        <ExamEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
-      ) : event.event_type === 'Lab' ? (
-        <LabEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       ) : (
         <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
       )}

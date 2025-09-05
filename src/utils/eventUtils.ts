@@ -17,8 +17,12 @@ interface EventTypeInfo {
   isStudentEvent: boolean;
   isFacStaffEvent: boolean;
   isLecture: boolean;
+  isAdHocClassMeeting: boolean;
+  isReducedHeightEvent: boolean;
+  isMergedRoomEvent: boolean;
   bgColor: string;
   contentBgColor: string;
+  truncatedEventName: string;
 }
 
 interface EventPosition {
@@ -139,9 +143,21 @@ export const getResourceDisplayName = (itemName: string): string => {
 export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   const eventType = event.event_type || '';
   const eventName = event.event_name || '';
-  
+
   const isLecture = eventType === 'Lecture';
-  
+  const isAdHocClassMeeting = eventType === 'Ad Hoc Class Meeting';
+
+  // Determine if it's a reduced height event
+  const isReducedHeightEvent = (
+    eventType === 'KSM: Kellogg Special Events (KGH)' ||
+    eventType === 'KSM: Kellogg FacStaff (KGH)' ||
+    eventType === 'KEC' ||
+    eventType === 'Ad Hoc Class Meeting'
+  );
+
+  // Determine if it's a merged room event
+  const isMergedRoomEvent = event.room_name?.includes('&') || false;
+
   // Determine if it's a student or faculty/staff event
   const isStudentEvent = eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
@@ -157,14 +173,17 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
     bgColor = "bg-red-300"; // CMC events get pastel red background
     contentBgColor = "bg-red-400"; // Slightly darker red for content
   } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
-    bgColor = "bg-[#9b8ba5]"; // KSM purple
-    contentBgColor = "bg-[#8f7f99]"; // Slightly darker purple for content
+    bgColor = "bg-[#33bbff]"; // KSM blue based on #1bacf5
+    contentBgColor = "bg-[#00aaff]"; // Slightly darker blue for content
   } else if (isLecture) {
     bgColor = "noise-bg"; // Check lectures FIRST - Keep lecture events with the purple noise background
     contentBgColor = "bg-[#5a4a7a]"; // Slightly darker purple for content
   } else if (isStudentEvent) {
     bgColor = "bg-[#b8a68a]";
     contentBgColor = "bg-[#ad9b80]"; // Slightly darker beige for content
+  } else if (isAdHocClassMeeting) {
+    bgColor = "bg-[#9b8ba5]"; // Custom purple based on #70538a
+    contentBgColor = "bg-[#8c7c94]"; // Slightly darker purple for content
   } else if (isFacStaffEvent) {
     bgColor = "bg-[#9b8ba5]";
     contentBgColor = "bg-[#8f7f99]"; // Slightly darker purple for content
@@ -174,8 +193,12 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
     isStudentEvent,
     isFacStaffEvent,
     isLecture,
+    isAdHocClassMeeting,
+    isReducedHeightEvent,
+    isMergedRoomEvent,
     bgColor,
-    contentBgColor
+    contentBgColor,
+    truncatedEventName: truncateEventName(event)
   };
 };
 
@@ -280,6 +303,7 @@ export const getEventThemeColors = (event: Event) => {
   const eventName = event.event_name || '';
 
   const isLecture = eventType === 'Lecture';
+  const isAdHocClassMeeting = eventType === 'Ad Hoc Class Meeting';
   const isStudentEvent = eventName.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
 
@@ -320,39 +344,40 @@ export const getEventThemeColors = (event: Event) => {
       border5: 'border-gray-600'
     };
   } else if (eventType === 'KSM: Kellogg FacStaff (KGH)') {
+    // KSM: Kellogg FacStaff (KGH) - custom theme based on #1bacf5
     return {
       // Light backgrounds and surfaces
-      1: 'bg-[#f0e8f5]',
-      2: 'bg-[#e8d8ed]',
-      3: 'bg-[#d4c2dc]',
+      1: 'bg-[#e6f7ff]',
+      2: 'bg-[#cceeff]',
+      3: 'bg-[#99ddff]',
       // Medium colors for cards and containers
-      4: 'bg-[#b9abbd]',
-      5: 'bg-[#9b8ba5]',
+      4: 'bg-[#66ccff]',
+      5: 'bg-[#33bbff]',
       // Medium-dark for icons and badges
-      6: 'bg-[#8c7c94]',
-      7: 'bg-[#7d6d83]',
+      6: 'bg-[#00aaff]',
+      7: 'bg-[#0099e6]',
       // Dark colors for borders and accents
-      8: 'bg-[#6e5f72]',
-      9: 'bg-[#5f5061]',
+      8: 'bg-[#0088cc]',
+      9: 'bg-[#0077b3]',
       // Darkest for text
-      10: 'bg-[#504250]',
+      10: 'bg-[#1bacf5]',
       // Text colors
-      text1: 'text-[#504250]',
-      text2: 'text-[#5f5061]',
-      text3: 'text-[#6e5f72]',
-      text4: 'text-[#7d6d83]',
-      text5: 'text-[#8c7c94]',
-      text6: 'text-[#9b8ba5]',
-      text7: 'text-[#aa9bb1]',
-      text8: 'text-[#b9abbd]',
-      text9: 'text-[#c8bad9]',
+      text1: 'text-[#1bacf5]',
+      text2: 'text-[#0077b3]',
+      text3: 'text-[#0088cc]',
+      text4: 'text-[#0099e6]',
+      text5: 'text-[#00aaff]',
+      text6: 'text-[#33bbff]',
+      text7: 'text-[#66ccff]',
+      text8: 'text-[#99ddff]',
+      text9: 'text-[#cceeff]',
       text10: 'text-white',
       // Border colors
-      border1: 'border-[#d4c2dc]',
-      border2: 'border-[#b9abbd]',
-      border3: 'border-[#9b8ba5]',
-      border4: 'border-[#8c7c94]',
-      border5: 'border-[#7d6d83]'
+      border1: 'border-[#99ddff]',
+      border2: 'border-[#66ccff]',
+      border3: 'border-[#33bbff]',
+      border4: 'border-[#00aaff]',
+      border5: 'border-[#0099e6]'
     };
   } else if (eventType === 'CMC') {
     return {
@@ -494,6 +519,42 @@ export const getEventThemeColors = (event: Event) => {
       border4: 'border-slate-500',
       border5: 'border-slate-600'
     };
+  } else if (isAdHocClassMeeting) {
+    // Ad Hoc Class Meeting - custom theme based on #70538a
+    return {
+      // Light backgrounds and surfaces
+      1: 'bg-[#f0e8f5]',
+      2: 'bg-[#e8d8ed]',
+      3: 'bg-[#d4c2dc]',
+      // Medium colors for cards and containers
+      4: 'bg-[#b9abbd]',
+      5: 'bg-[#9b8ba5]',
+      // Medium-dark for icons and badges
+      6: 'bg-[#8c7c94]',
+      7: 'bg-[#7d6d83]',
+      // Dark colors for borders and accents
+      8: 'bg-[#6e5f72]',
+      9: 'bg-[#5f5061]',
+      // Darkest for text
+      10: 'bg-[#70538a]',
+      // Text colors
+      text1: 'text-[#70538a]',
+      text2: 'text-[#6e5f72]',
+      text3: 'text-[#7d6d83]',
+      text4: 'text-[#8c7c94]',
+      text5: 'text-[#9b8ba5]',
+      text6: 'text-[#aa9bb1]',
+      text7: 'text-[#b9abbd]',
+      text8: 'text-[#c8bad9]',
+      text9: 'text-[#d4c2dc]',
+      text10: 'text-white',
+      // Border colors
+      border1: 'border-[#d4c2dc]',
+      border2: 'border-[#b9abbd]',
+      border3: 'border-[#9b8ba5]',
+      border4: 'border-[#8c7c94]',
+      border5: 'border-[#7d6d83]'
+    };
   } else {
     // Default gray theme
     return {
@@ -605,6 +666,25 @@ export function sortShiftsByTime(shifts: Shift[]): Shift[] {
     return a.start_time.localeCompare(b.start_time);
   });
 } 
+
+/**
+ * Truncate event name based on event type
+ * Only truncates for Lecture, Exam, and Lab events
+ * Returns full name for other event types
+ */
+export function truncateEventName(event: Event): string {
+  const eventName = event.event_name ? String(event.event_name) : '';
+  const eventType = event.event_type || '';
+
+  // Only truncate for specific event types
+  if (eventType === 'Lecture' || eventType === 'Exam' || eventType === 'Lab') {
+    const dashIndex = eventName.indexOf('-');
+    return dashIndex !== -1 ? eventName.substring(0, dashIndex) : eventName;
+  }
+
+  // Return full name for all other event types (including Default)
+  return eventName;
+}
 
 // Check if a user is an owner of an event
 export function isUserEventOwner(
