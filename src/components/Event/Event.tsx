@@ -146,22 +146,13 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const isUpperRow = roomIndex < 4;
 
   // Get event type info using the utility function
-  const { bgColor } = getEventTypeInfo(event);
+  const { bgColor, isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
 
   // Adjust height for specific event types and keep centered in the 96px room row
   const ROW_HEIGHT_PX = 96;
   const DEFAULT_EVENT_HEIGHT_PX = 88;
   const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
   const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
-  
-  // Check if this is a merged room event (contains &)
-  const isMergedRoomEvent = event.room_name?.includes('&') || false;
-  
-  const isReducedHeightEvent = (
-    event.event_type === 'KSM: Kellogg Special Events (KGH)' ||
-    event.event_type === 'KSM: Kellogg FacStaff (KGH)' ||
-    event.event_type === 'KEC'
-  );
   
   // Determine event height: merged rooms get double height, otherwise follow existing rules
   let eventHeightPx: number;
