@@ -207,36 +207,26 @@ function LabEvent({ event, facultyMembers, instructorNames, isHovering, isMerged
 
 // Default Event Component
 function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
-  const eventNameCopy = event.event_name ? String(event.event_name) : '';
-  const dashIndex = eventNameCopy.indexOf('-');
-  const mainEventName = dashIndex !== -1 ? eventNameCopy.substring(0, dashIndex) : eventNameCopy;
-  
+  const eventName = event.event_name ? String(event.event_name) : '';
+
   // Get theme colors for this event
   const { contentBgColor } = getEventTypeInfo(event);
-  
-  // Estimate number of lines based on text length and typical character width
-  const estimatedLineCount = Math.ceil(mainEventName.length / 25); // Rough estimate: 25 chars per line
-  const actualLineCount = Math.min(estimatedLineCount, 3); // Max 3 lines as per WebkitLineClamp
-  
-  // Dynamic padding based on line count
-  const paddingY = actualLineCount === 1 ? 'py-1' : actualLineCount === 2 ? 'py-0.5' : 'py-0.5';
+
+  // Dynamic padding - use consistent padding since we don't truncate
+  const paddingY = 'py-1';
 
   return (
     <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden`}>
       <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${paddingY}`}>
-        <span 
+        <span
           className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight break-words whitespace-normal"
-          style={{ 
+          style={{
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
-            transformOrigin: 'left center',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
+            transformOrigin: 'left center'
           }}
-          title={mainEventName}
+          title={eventName}
         >
-          {mainEventName}
+          {eventName}
         </span>
       </div>
     </div>
