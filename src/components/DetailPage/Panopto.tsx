@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Database } from '../../types/supabase';
 import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
+import { usePanoptoChecksData } from '../../hooks/usePanoptoChecksData';
+import { useOverduePanoptoChecks } from '../../hooks/useOverduePanoptoChecks';
 import { supabase } from '../../lib/supabase';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Video, Clock, CheckCircle, Circle, AlertCircle, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
@@ -24,9 +26,8 @@ const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export default function Panopto({ event }: PanoptoProps) {
   const { activeChecks, completePanoptoCheck, completePanoptoCheckForEvent } = usePanoptoChecks();
-  const [completedChecks, setCompletedChecks] = useState<boolean[]>([]);
-  const [panoptoChecksData, setPanoptoChecksData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: panoptoChecksData = [], isLoading } = usePanoptoChecksData(event.id);
+  const { invalidatePanoptoChecks } = useOverduePanoptoChecks([event]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Get theme colors based on event type
@@ -35,7 +36,7 @@ export default function Panopto({ event }: PanoptoProps) {
   
   // Check if all checks are complete
   const allChecksComplete = useMemo(() => {
-    if (isLoading || completedChecks.length === 0) return false;
+    if (isLoading || panoptoChecksData.length === 0) return false;
     
     // Calculate expected number of checks
     let totalChecks = 0;
@@ -48,66 +49,15 @@ export default function Panopto({ event }: PanoptoProps) {
     
     if (totalChecks === 0) return true; // No checks needed
     
-    // Check if all checks are complete
-    return completedChecks.slice(0, totalChecks).every(check => check === true);
-  }, [completedChecks, event.start_time, event.end_time, event.date, isLoading]);
+    // Check if all checks are complete using React Query data
+    const completedCount = panoptoChecksData.filter(check => check.completed_time !== null).length;
+    return completedCount >= totalChecks;
+  }, [panoptoChecksData, event.start_time, event.end_time, event.date, isLoading]);
   
-  // Load panopto checks from the new table structure
-  useEffect(() => {
-    const loadPanoptoChecks = async () => {
-      try {
-        // Load checks from panopto_checks table with user details from profiles
-        const { data: checksData, error } = await supabase
-          .from('panopto_checks')
-          .select(`
-            check_time, 
-            completed_time, 
-            completed_by_user_id,
-            status,
-            profiles!panopto_checks_completed_by_user_id_fkey(id, name)
-          `)
-          .eq('event_id', event.id)
-          .order('check_time');
-
-        if (error) {
-          console.error('Error loading panopto checks:', error);
-          setIsLoading(false);
-          return;
-        }
-
-        // Store the full check data for display
-        setPanoptoChecksData(checksData || []);
-        
-        // Convert to boolean array format for backward compatibility with existing UI
-        const completedChecksArray = checksData?.map(check => check.completed_time !== null) || [];
-        setCompletedChecks(completedChecksArray);
-        setIsLoading(false);
-        
-        // Debug logging
-        console.log('Panopto checks loaded:', {
-          eventId: event.id,
-          checksData: checksData,
-          completedChecksArray: completedChecksArray,
-          isLoading: false
-        });
-        
-        // Debug the first check to see the structure
-        if (checksData && checksData.length > 0) {
-          console.log('First check data structure:', checksData[0]);
-          console.log('Profiles data available:', checksData[0].profiles);
-        }
-      } catch (error) {
-        console.error('Error in loadPanoptoChecks:', error);
-        setIsLoading(false);
-      }
-    };
-
-    loadPanoptoChecks();
-
-    // Refresh every 30 seconds to pick up changes
-    const interval = setInterval(loadPanoptoChecks, 30000);
-    return () => clearInterval(interval);
-  }, [event.id]);
+  // Convert panoptoChecksData to boolean array for backward compatibility
+  const completedChecks = useMemo(() => {
+    return panoptoChecksData.map(check => check.completed_time !== null);
+  }, [panoptoChecksData]);
   
   // Calculate expected number of checks for skeleton loading
   const expectedChecks = useMemo(() => {
@@ -301,27 +251,8 @@ export default function Panopto({ event }: PanoptoProps) {
     const success = await completePanoptoCheckForEvent(event.id, checkNumber, event.date);
     
     if (success) {
-              // Refresh the completion status from the new panopto_checks table
-        const { data: checksData, error } = await supabase
-          .from('panopto_checks')
-          .select(`
-            check_time, 
-            completed_time, 
-            completed_by_user_id,
-            status,
-            profiles!panopto_checks_completed_by_user_id_fkey(id, name)
-          `)
-          .eq('event_id', event.id)
-          .order('check_time');
-        
-      if (!error && checksData) {
-        // Store the full check data for display
-        setPanoptoChecksData(checksData);
-        
-        // Convert to boolean array format for backward compatibility with existing UI
-        const completedChecksArray = checksData.map(check => check.completed_time !== null);
-        setCompletedChecks(completedChecksArray);
-      }
+      // Invalidate React Query cache to trigger immediate refetch
+      invalidatePanoptoChecks(event.id);
     }
   };
   
