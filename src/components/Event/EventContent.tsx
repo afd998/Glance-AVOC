@@ -143,7 +143,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
       {/* Panopto Check Due Badge */}
       {hasOverduePanoptoChecks && (
         <div className="absolute top-1 right-1 z-20">
-          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-pulse">
+          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-[blink-red-custom_6s_ease-in-out_infinite]">
             Panopto Check Due
           </div>
         </div>
@@ -185,7 +185,7 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
       {/* Panopto Check Due Badge */}
       {hasOverduePanoptoChecks && (
         <div className="absolute top-1 right-1 z-20">
-          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-pulse">
+          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-[blink-red-custom_6s_ease-in-out_infinite]">
             Panopto Check Due
           </div>
         </div>

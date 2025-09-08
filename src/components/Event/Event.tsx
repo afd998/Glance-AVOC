@@ -154,6 +154,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Determine if we should show the overdue blinking effect
   const shouldBlink = hasOverduePanoptoChecks;
   
+  // Debug logging
+  console.log(`🎯 Event ${event.id} (${event.event_name}): shouldBlink = ${shouldBlink}`);
+  
   // Extract hex color from Tailwind class and create dynamic blinking animation
   const getOriginalColor = () => {
     // Extract hex color from Tailwind class like 'bg-[#6d8fbf]' or 'bg-slate-400'
@@ -245,7 +248,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       onClick={() => onEventClick && onEventClick(event)}
     >
       <div
-        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
+        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${shouldBlink ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' : bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
@@ -270,7 +273,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX}px`,
             top: '50%',
@@ -284,7 +287,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
             top: 0,

@@ -22,7 +22,7 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     );
   };
 
-  // Check if an event is currently happening
+  // Check if an event is currently happening or recently ended (within last 2 hours)
   const isEventCurrentlyActive = (event: Event) => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -33,9 +33,12 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     // Check if start_time and end_time exist
     if (!event.start_time || !event.end_time) return false;
     
-    // Check if current time is between start and end time
+    // Check if current time is between start and end time, or within 2 hours after end
     const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
-    return currentTime >= event.start_time && currentTime <= event.end_time;
+    const eventEnd = new Date(`${event.date}T${event.end_time}`);
+    const twoHoursAfterEnd = new Date(eventEnd.getTime() + (2 * 60 * 60 * 1000)); // 2 hours in milliseconds
+    
+    return currentTime >= event.start_time && now <= twoHoursAfterEnd;
   };
 
   // Get all panopto checks for all events using React Query
@@ -58,8 +61,8 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
       return data || [];
     },
     enabled: events.length > 0,
-    refetchInterval: 5000, // Refetch every 5 seconds
-    staleTime: 2000, // Consider data stale after 2 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 25000, // Consider data stale after 25 seconds
   });
 
   // Calculate overdue events using React Query data
@@ -102,38 +105,15 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
           return Math.abs(checkTime.getTime() - scheduledTime.getTime()) < 60000;
         });
 
-        // Debug logging only for specific event
-        if (event.event_name === 'DECS 430-5 36 MMP 10008 5000') {
-          console.log(`🔍 Checking overdue status for event "${event.event_name}" (ID: ${event.id}), check ${checkNumber}:`, {
-            eventId: event.id,
-            eventName: event.event_name,
-            checkNumber,
-            checkData,
-            hasCompletedTime: !!checkData?.completed_time,
-            completedTime: checkData?.completed_time,
-            status: checkData?.status,
-            now: now.toISOString(),
-            scheduledTime: scheduledTime.toISOString(),
-            dueTime: dueTime.toISOString(),
-            isPastDue: now >= dueTime,
-            isPastScheduled: now >= scheduledTime
-          });
-        }
 
         // Check if this check is overdue (but not missed - missed checks can't be completed)
         if (checkData?.status === 'missed') {
           // Database says it's missed - don't flash because user can't do anything about it
-          if (event.event_name === 'DECS 430-5 36 MMP 10008 5000') {
-            console.log(`ℹ️ Event "${event.event_name}" check ${checkNumber} is missed - not marking as overdue (user can't complete it)`);
-          }
           // Don't mark as overdue for missed checks
         } else if (now >= dueTime) {
           // Check is past due time - now check if it's completed
           if (!checkData?.completed_time && checkData?.status !== 'completed') {
             // No completion recorded and not marked as completed - overdue (and can still be completed)
-            if (event.event_name === 'DECS 430-5 36 MMP 10008 5000') {
-              console.log(`🚨 Event "${event.event_name}" marked overdue due to no completion and past due time for check ${checkNumber} (can still be completed)`);
-            }
             overdueEventIds.add(event.id);
             break;
           }
@@ -155,7 +135,11 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
   };
 
   return {
-    hasOverdueChecks: (eventId: number) => overdueEvents.has(eventId),
+    hasOverdueChecks: (eventId: number) => {
+      const hasOverdue = overdueEvents.has(eventId);
+      console.log(`🔍 hasOverdueChecks for event ${eventId}: ${hasOverdue}`);
+      return hasOverdue;
+    },
     overdueEvents,
     isLoading,
     invalidatePanoptoChecks
