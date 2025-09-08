@@ -16,17 +16,18 @@ interface RoomRowProps {
   onEventClick: (event: Event) => void;
   isEvenRow?: boolean; // Make optional with default
   isLastRow?: boolean; // Add prop for last row styling
+  hasOverdueChecks?: (eventId: number) => boolean; // Function to check if event has overdue checks
 }
 
-export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick, isEvenRow = false, isLastRow = false }: RoomRowProps) {
+export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, rooms, isFloorBreak, onEventClick, isEvenRow = false, isLastRow = false, hasOverdueChecks }: RoomRowProps) {
   const { currentTheme } = useTheme();
   const roomText = room.replace(/^GH\s+/, '');
   // const roomSpelling = useRoom(room); // Commented out since we're not using spelling anymore
   
   // Use Halloween font and larger size if Halloween theme is active
   const isHalloweenTheme = currentTheme.name === 'Halloween';
-  const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Smooth Circulars';
-  const fontSize = isHalloweenTheme ? 'text-4xl' : (roomText.length > 4 ? 'text-md' : 'text-lg');
+  const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Prokofiev';
+  const fontSize = isHalloweenTheme ? 'text-7xl' : (roomText.length > 4 ? 'text-xl' : 'text-3xl');
   
 
 
@@ -56,6 +57,7 @@ export default function RoomRow({ room, roomEvents, startHour, pixelsPerMinute, 
             pixelsPerMinute={pixelsPerMinute}
             rooms={rooms}
             onEventClick={onEventClick}
+            hasOverduePanoptoChecks={hasOverdueChecks ? hasOverdueChecks(event.id) : false}
           />
         ))}
       </div>

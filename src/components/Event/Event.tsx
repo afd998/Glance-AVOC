@@ -14,6 +14,7 @@ interface EventProps {
   pixelsPerMinute: number;
   rooms: string[];
   onEventClick: (event: Event) => void;
+  hasOverduePanoptoChecks?: boolean;
 }
 
 // Helper function to parse instructor names from JSON
@@ -31,7 +32,7 @@ const parseInstructorNames = (instructorNamesJson: any): string[] => {
   return [];
 };
 
-export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
+export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick, hasOverduePanoptoChecks = false }: EventProps) {
 
   // Disable hover card functionality
   const HOVER_CARD_ENABLED = false;
@@ -149,6 +150,60 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const { isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
   const bgColor = themeColors[5]; // Use theme color for background
+  
+  // Determine if we should show the overdue blinking effect
+  const shouldBlink = hasOverduePanoptoChecks;
+  
+  // Extract hex color from Tailwind class and create dynamic blinking animation
+  const getOriginalColor = () => {
+    // Extract hex color from Tailwind class like 'bg-[#6d8fbf]' or 'bg-slate-400'
+    let originalColor = 'rgb(59 130 246)'; // Default blue fallback
+    
+    if (bgColor.includes('bg-[') && bgColor.includes(']')) {
+      // Extract hex color from bg-[#hex] format
+      const hexMatch = bgColor.match(/bg-\[#([a-fA-F0-9]{6})\]/);
+      if (hexMatch) {
+        const hex = hexMatch[1];
+        // Convert hex to RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        originalColor = `rgb(${r} ${g} ${b})`;
+      }
+    } else if (bgColor.includes('bg-slate-')) {
+      // Handle slate colors
+      const slateMap: { [key: string]: string } = {
+        'bg-slate-50': 'rgb(248 250 252)',
+        'bg-slate-100': 'rgb(241 245 249)',
+        'bg-slate-200': 'rgb(226 232 240)',
+        'bg-slate-300': 'rgb(203 213 225)',
+        'bg-slate-400': 'rgb(148 163 184)',
+        'bg-slate-500': 'rgb(100 116 139)',
+        'bg-slate-600': 'rgb(71 85 105)',
+        'bg-slate-700': 'rgb(51 65 85)',
+        'bg-slate-800': 'rgb(30 41 59)',
+        'bg-slate-900': 'rgb(15 23 42)',
+      };
+      originalColor = slateMap[bgColor] || 'rgb(148 163 184)';
+    } else if (bgColor.includes('bg-gray-')) {
+      // Handle gray colors
+      const grayMap: { [key: string]: string } = {
+        'bg-gray-50': 'rgb(249 250 251)',
+        'bg-gray-100': 'rgb(243 244 246)',
+        'bg-gray-200': 'rgb(229 231 235)',
+        'bg-gray-300': 'rgb(209 213 219)',
+        'bg-gray-400': 'rgb(156 163 175)',
+        'bg-gray-500': 'rgb(107 114 128)',
+        'bg-gray-600': 'rgb(75 85 99)',
+        'bg-gray-700': 'rgb(55 65 81)',
+        'bg-gray-800': 'rgb(31 41 55)',
+        'bg-gray-900': 'rgb(17 24 39)',
+      };
+      originalColor = grayMap[bgColor] || 'rgb(156 163 175)';
+    }
+    
+    return originalColor;
+  };
 
   // Adjust height for specific event types and keep centered in the 96px room row
   const ROW_HEIGHT_PX = 96;
@@ -190,11 +245,12 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       onClick={() => onEventClick && onEventClick(event)}
     >
       <div
-        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
+        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
-          boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
+          boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
+          ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
         }}
       >
         <EventHeader 
@@ -213,25 +269,27 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX}px`,
             top: '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
-            height: '2px'
+            height: '2px',
+            ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
           }}
         />
       )}
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom_2s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
             top: 0,
             width: '2px',
-            height: '100%'
+            height: '100%',
+            ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
           }}
         />
       )}
