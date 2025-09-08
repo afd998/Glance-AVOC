@@ -85,6 +85,11 @@ module.exports = {
           '25%, 75%': { backgroundColor: 'rgb(13 148 136)' }
         },
         'blink-red-custom': {
+          '0%': { backgroundColor: 'var(--original-bg-color, rgb(59 130 246))' },
+          '50%': { backgroundColor: 'rgb(239 68 68)' },
+          '100%': { backgroundColor: 'var(--original-bg-color, rgb(59 130 246))' }
+        },
+        'blink-red-custom-slow': {
           '0%, 50%': { backgroundColor: 'rgb(239 68 68)' },
           '25%, 75%': { backgroundColor: 'var(--original-bg-color, rgb(59 130 246))' }
         }
