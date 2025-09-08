@@ -264,6 +264,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
           isMergedRoomEvent={isMergedRoomEvent}
+          hasOverduePanoptoChecks={shouldBlink}
                 />
       </div>
       {isClamped && continuationWidth > 0 && (

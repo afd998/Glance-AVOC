@@ -515,13 +515,17 @@ export const usePanoptoChecks = () => {
         return false;
       }
 
+      // Invalidate React Query cache to trigger immediate refetch
+      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
+
       console.log(`Successfully completed check ${checkNumber} for event ${eventId} at ${checkTime}`);
       return true;
     } catch (error) {
       console.error('Error completing check:', error);
       return false;
     }
-  }, [user]);
+  }, [user, queryClient]);
 
   // Hook to check if all checks are complete for a specific event
   const useEventChecksComplete = (eventId: number, startTime?: string, endTime?: string, date?: string) => {

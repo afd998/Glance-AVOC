@@ -22,10 +22,11 @@ interface EventContentProps {
   isFacultyLoading: boolean;
   isHovering: boolean;
   isMergedRoomEvent?: boolean;
+  hasOverduePanoptoChecks?: boolean;
 }
 
 // Lecture Event Component
-function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
+function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks }: EventContentProps) {
   // Get theme colors and truncated event name for this event
   const { truncatedEventName: baseName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -52,7 +53,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   );
 
   return (
-         <div className={`flex flex-row ${themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''}`}>
+         <div className={`flex flex-row ${themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
            className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} z-10 transition-all duration-200 ease-in-out`}
@@ -138,13 +139,22 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
           </span>
         )}
       </div>
+      
+      {/* Panopto Check Due Badge */}
+      {hasOverduePanoptoChecks && (
+        <div className="absolute top-1 right-1 z-20">
+          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-pulse">
+            Panopto Check Due
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 
 // Default Event Component
-function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent }: EventContentProps) {
+function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks }: EventContentProps) {
   // Get theme colors, truncated event name, and height flags for this event
   const { truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -158,7 +168,7 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   };
 
   return (
-    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()}`}>
+    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()} relative`}>
       <div className="flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 py-1 h-full">
         <span
           className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight truncate whitespace-nowrap"
@@ -171,6 +181,15 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
           {eventName}
         </span>
       </div>
+      
+      {/* Panopto Check Due Badge */}
+      {hasOverduePanoptoChecks && (
+        <div className="absolute top-1 right-1 z-20">
+          <div className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-700 animate-pulse">
+            Panopto Check Due
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -181,14 +200,15 @@ export default function EventContent({
   instructorNames,
   isFacultyLoading,
   isHovering,
-  isMergedRoomEvent
+  isMergedRoomEvent,
+  hasOverduePanoptoChecks
 }: EventContentProps) {
   return (
     <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
       {event.event_type === 'Lecture' ? (
-        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} />
       ) : (
-        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} />
+        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} />
       )}
     </div>
   );
