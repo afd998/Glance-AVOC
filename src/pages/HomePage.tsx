@@ -12,6 +12,7 @@ import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
 import { useFilters } from "../hooks/useFilters";
 import { useRooms } from "../hooks/useRooms";
+import { useOverduePanoptoChecks } from "../hooks/useOverduePanoptoChecks";
 import useRoomStore from "../stores/roomStore";
 import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
@@ -55,6 +56,7 @@ export default function HomePage() {
   const { events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
   const { filteredEvents, getFilteredEventsForRoom } = useEventFiltering(events);
+  const { hasOverdueChecks } = useOverduePanoptoChecks(events || []);
   useAutoHideLogic(filteredEvents, selectedDate);
   const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
   const { filters, loadFilter, getFilterByName } = useFilters();
@@ -286,6 +288,7 @@ export default function HomePage() {
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}
                 isLastRow={isLastRow}
+                hasOverdueChecks={hasOverdueChecks}
               />
             );
           })}

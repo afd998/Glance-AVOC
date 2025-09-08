@@ -93,6 +93,7 @@ export default function App() {
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
                 rooms={rooms}
+                hasOverduePanoptoChecks={false}
               />
             ))}
           </div>

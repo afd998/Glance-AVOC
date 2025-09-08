@@ -157,7 +157,7 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   const isMergedRoomEvent = event.room_name?.includes('&') || false;
 
   // Determine if it's a student or faculty/staff event
-  const isStudentEvent = eventName.toLowerCase().includes('student');
+  const isStudentEvent = eventType.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
   
   
@@ -274,7 +274,7 @@ export const getEventThemeColors = (event: Event) => {
 
   const isLecture = eventType === 'Lecture';
   const isAdHocClassMeeting = eventType === 'Ad Hoc Class Meeting';
-  const isStudentEvent = eventName.toLowerCase().includes('student');
+  const isStudentEvent = eventType.toLowerCase().includes('student');
   const isFacStaffEvent = !isStudentEvent;
 
   // Define theme colors using numerical scale (1 = lightest, 10 = darkest)

@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Custom Font Declarations */
 @font-face {
   font-family: 'Smooth Circulars';
@@ -118,6 +119,30 @@
 @font-face {
   font-family: 'GoudyBookletter1911';
   src: url('../public/fonts/GoudyBookletter1911.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'The Goodfather';
+  src: url('../public/fonts/The Goodfather DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DUMERO';
+  src: url('../public/fonts/DUMERO (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Prokofiev';
+  src: url('../public/fonts/prokofievc.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
