@@ -91,7 +91,6 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
       for (let i = 0; i < totalChecks; i++) {
         const checkNumber = i + 1;
         const scheduledTime = new Date(eventStart.getTime() + (i * PANOPTO_CHECK_INTERVAL));
-        const dueTime = new Date(scheduledTime.getTime() + (5 * 60 * 1000));
 
         // Only check checks that should have happened by now
         if (now < scheduledTime) {
@@ -105,21 +104,27 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
           return Math.abs(checkTime.getTime() - scheduledTime.getTime()) < 60000;
         });
 
-
-        // Check if this check is overdue (but not missed - missed checks can't be completed)
+        // Check if this check is due, overdue, or missed
         if (checkData?.status === 'missed') {
           // Database says it's missed - don't flash because user can't do anything about it
           // Don't mark as overdue for missed checks
-        } else if (now >= dueTime) {
-          // Check is past due time - now check if it's completed
+        } else if (now >= scheduledTime) {
+          // Check is due or past due - now check if it's completed
           if (!checkData?.completed_time && checkData?.status !== 'completed') {
-            // No completion recorded and not marked as completed - overdue (and can still be completed)
-            overdueEventIds.add(event.id);
-            break;
+            // Calculate time since scheduled to determine if it's still actionable
+            const timeSinceScheduled = now.getTime() - scheduledTime.getTime();
+            const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+            
+            // Only flash if it's within 30 minutes (not missed yet)
+            if (timeSinceScheduled < thirtyMinutes) {
+              // No completion recorded and not marked as completed - due/overdue (and can still be completed)
+              overdueEventIds.add(event.id);
+              break;
+            }
           }
           // If it has completed_time or status is 'completed', it's not overdue
         }
-        // If now < dueTime, check is not overdue yet
+        // If now < scheduledTime, check is not due yet
       }
     }
 
