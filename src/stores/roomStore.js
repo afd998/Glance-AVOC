@@ -36,8 +36,31 @@ const useRoomStore = create(
           }
         });
         
-        // Add the additional rooms and sort
-        filteredRooms = [...filteredRooms, ...additionalRooms].sort((a, b) => a.localeCompare(b));
+        // Add the additional rooms and preserve priority order
+        const allRoomsWithAdditional = [...filteredRooms, ...additionalRooms];
+        
+        // Priority rooms that should appear at the top (same as useRooms.ts)
+        const priorityRooms = ['GH L070', 'GH L110', 'GH L120', 'GH L130', 'GH 1130'];
+        
+        // Sort rooms with priority rooms first, then alphabetically
+        filteredRooms = allRoomsWithAdditional.sort((a, b) => {
+          const aIndex = priorityRooms.indexOf(a);
+          const bIndex = priorityRooms.indexOf(b);
+          
+          // If both are priority rooms, sort by priority order
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+          }
+          
+          // If only 'a' is priority, it comes first
+          if (aIndex !== -1) return -1;
+          
+          // If only 'b' is priority, it comes first
+          if (bIndex !== -1) return 1;
+          
+          // Neither is priority, sort alphabetically
+          return a.localeCompare(b);
+        });
         
         // If selectedRooms is empty (first time), initialize with filtered rooms
         const newSelectedRooms = selectedRooms.length === 0 ? filteredRooms : selectedRooms.filter(room => !room.includes('&'));
