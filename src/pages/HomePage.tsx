@@ -57,6 +57,9 @@ export default function HomePage() {
   const { events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
   const { filteredEvents, getFilteredEventsForRoom } = useEventFiltering(events);
+  
+  // Track if we've loaded events for the current date to prevent flash
+  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const { hasOverdueChecks } = useOverduePanoptoChecks(events || []);
   useAutoHideLogic(filteredEvents, selectedDate);
   const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
@@ -70,6 +73,18 @@ export default function HomePage() {
       scheduleNotificationsForEvents(events);
     }
   }, [events, scheduleNotificationsForEvents]);
+
+  // Track when events have been loaded for the current date
+  React.useEffect(() => {
+    if (!isLoading && !error) {
+      setHasLoadedEvents(true);
+    }
+  }, [isLoading, error]);
+
+  // Reset hasLoadedEvents when date changes
+  React.useEffect(() => {
+    setHasLoadedEvents(false);
+  }, [selectedDate]);
 
   // Check if there are any events that match the current filter
   const hasFilteredEvents = React.useMemo(() => {
@@ -220,27 +235,6 @@ export default function HomePage() {
     navigate(`/${dateStr}/${event.id}`);
   };
 
-  if (isLoading || roomsLoading) {
-    return (
-      <div className="flex-col items-center justify-center p-4 min-h-screen relative">
-        <AppHeader 
-          selectedDate={selectedDate}
-          setSelectedDate={handleDateChange}
-          isLoading={isLoading}
-          events={events}
-        />
-        <div className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)] overflow-x-auto py-5 rounded-md relative">
-          <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
-            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
@@ -302,7 +296,7 @@ export default function HomePage() {
         </div>
       </div>
       {/* Absolutely positioned no-events message */}
-      {!hasFilteredEvents && (
+      {!hasFilteredEvents && !isLoading && !roomsLoading && hasLoadedEvents && (
         <NoEventsMessage onClearFilter={handleClearFilter} />
       )}
       {/* Event Detail Modal Overlay */}
