@@ -124,7 +124,7 @@ export default function FacultyStatusBars({
           <div>
             <div className="mb-0.5">
               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">Punctuality</div>
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
                 <span>Early</span>
                 <span>Late</span>
               </div>
@@ -165,7 +165,7 @@ export default function FacultyStatusBars({
           <div>
             <div className="mb-0.5">
               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">Setup Difficulty</div>
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
                 <span>Easy</span>
                 <span>Complicated</span>
               </div>
@@ -206,7 +206,7 @@ export default function FacultyStatusBars({
           <div>
             <div className="mb-0.5">
               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">Temperment</div>
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
                 <span>Calm</span>
                 <span>Reactive</span>
               </div>
