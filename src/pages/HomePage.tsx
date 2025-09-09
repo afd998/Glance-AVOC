@@ -5,6 +5,7 @@ import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
 import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
+import CurrentFilterLink from "../components/Grid/CurrentFilterLink";
 import { useEvents } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
 import { useEventFiltering } from "../hooks/useEventFiltering";
@@ -253,7 +254,13 @@ export default function HomePage() {
          isLoading={isLoading}
          events={events}
        />
-                          <div ref={gridContainerRef} className="mt-4 h-[calc(100vh-12rem)] sm:h-[calc(100vh-9rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
+       {/* Sticky Current Filter Link */}
+       <div className="sticky top-0 z-[70] mt-4 mb-0">
+         <div className="absolute left-0 top-0 w-24 h-8 flex items-center z-[70] backdrop-blur-sm rounded-tl-md" style={{ backgroundColor: '#8b72c4cc' }}>
+           <CurrentFilterLink />
+         </div>
+       </div>
+                          <div ref={gridContainerRef} className="h-[calc(100vh-12rem)] sm:h-[calc(100vh-9rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           {hasFilteredEvents && (

@@ -75,14 +75,16 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
   // Only update selectedRooms when targetRooms actually changes
   useEffect(() => {
     // Don't sort - preserve the original order from useRooms
+    // Use the original allRooms order to maintain priority sorting
+    const sortedTargetRooms = allRooms.filter((room: string) => targetRooms.includes(room));
     const currentRoomsStr = [...selectedRooms].sort().join(',');
-    const targetRoomsStr = [...targetRooms].sort().join(',');
+    const targetRoomsStr = [...sortedTargetRooms].sort().join(',');
     
     if (currentRoomsStr !== targetRoomsStr) {
-      setSelectedRooms(targetRooms); // Keep original order
-      setNotificationRooms(targetRooms); // Keep original order
+      setSelectedRooms(sortedTargetRooms); // Keep original priority order
+      setNotificationRooms(sortedTargetRooms); // Keep original priority order
     }
-  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms]);
+  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms, allRooms]);
 
   return { autoHide };
 }; 
