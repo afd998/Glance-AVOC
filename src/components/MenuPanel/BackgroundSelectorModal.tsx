@@ -48,6 +48,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
       name: 'Halloween',
       preview: '/halloween.png',
       description: 'Halloween themed background'
+    },
+    {
+      id: 'Ryan Fieldhouse.jpg',
+      name: 'Ryan Fieldhouse',
+      preview: '/Ryan Fieldhouse.jpg',
+      description: 'Northwestern University Ryan Fieldhouse background'
     }
   ];
 
