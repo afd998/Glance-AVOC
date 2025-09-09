@@ -99,7 +99,6 @@ export default function Panopto({ event }: PanoptoProps) {
     for (let i = 0; i < totalChecks; i++) {
       const checkNumber = i + 1;
       const scheduledTime = new Date(eventStart.getTime() + (i * PANOPTO_CHECK_INTERVAL));
-      const dueTime = new Date(scheduledTime.getTime() + (5 * 60 * 1000)); // 5 minutes to complete
       
       let status: 'completed' | 'missed' | 'current' | 'upcoming' | 'overdue' = 'upcoming';
       let canComplete = false;
@@ -131,11 +130,18 @@ export default function Panopto({ event }: PanoptoProps) {
         canComplete = false;
       } else {
         // Calculate time-based status for checks that aren't completed or missed
-        if (now >= dueTime) {
+        const timeSinceScheduled = now.getTime() - scheduledTime.getTime();
+        const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+        const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+        
+        if (timeSinceScheduled >= thirtyMinutes) {
+          status = 'missed';
+          canComplete = false;
+        } else if (timeSinceScheduled >= tenMinutes) {
           status = 'overdue';
           canComplete = true;
-        } else if (now >= scheduledTime) {
-          status = 'current';
+        } else if (timeSinceScheduled >= 0) {
+          status = 'current'; // This will be displayed as "due"
           canComplete = true;
         } else {
           status = 'upcoming';
@@ -146,7 +152,7 @@ export default function Panopto({ event }: PanoptoProps) {
       checks.push({
         checkNumber,
         scheduledTime,
-        dueTime,
+        dueTime: scheduledTime, // Use scheduledTime as dueTime for consistency
         status,
         canComplete
       });
@@ -415,7 +421,7 @@ export default function Panopto({ event }: PanoptoProps) {
                     check.status === 'completed' 
                       ? 'bg-green-600 border-green-600' 
                       : check.status === 'current'
-                      ? 'bg-orange-600 border-orange-600'
+                      ? 'bg-red-600 border-red-600'
                       : check.status === 'overdue'
                       ? 'bg-red-600 border-red-600'
                       : check.status === 'missed'
@@ -442,8 +448,8 @@ export default function Panopto({ event }: PanoptoProps) {
                     </div>
                     
                     {check.status === 'current' && (
-                      <div className="text-xs bg-orange-600 text-white px-2 py-1 rounded-full mb-2">
-                        DUE NOW
+                      <div className="text-xs bg-red-600 text-white px-2 py-1 rounded-full mb-2">
+                        DUE
                       </div>
                     )}
                     {check.status === 'overdue' && (
@@ -462,7 +468,7 @@ export default function Panopto({ event }: PanoptoProps) {
                         <>In {formatTimeDistance(check.scheduledTime).replace(' ago', '').replace('in ', '')}</>
                       )}
                       {check.status === 'current' && (
-                        <>Due by {formatTime(check.dueTime)}</>
+                        <>Due now</>
                       )}
                       {check.status === 'overdue' && (
                         <>Late by {formatTimeDistance(check.dueTime).replace(' ago', '')}</>
@@ -527,7 +533,7 @@ export default function Panopto({ event }: PanoptoProps) {
                         onClick={() => handleCompleteCheck(check.checkNumber)}
                         className={`w-full px-2 py-1 text-xs font-medium rounded transition-colors ${
                           check.status === 'current'
-                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
                             : check.status === 'overdue'
                             ? 'bg-red-600 hover:bg-red-700 text-white'
                             : 'bg-blue-600 hover:bg-blue-700 text-white'
