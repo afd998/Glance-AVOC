@@ -249,12 +249,12 @@ export default function HomePage() {
          events={events}
        />
        {/* Sticky Current Filter Link */}
-       <div className="sticky top-0 z-[70] mt-4 mb-0">
+       <div className="sticky top-0 z-[70]  mb-0">
          <div className="absolute left-0 top-0 w-24 h-8 flex items-center z-[70] backdrop-blur-sm rounded-tl-md" style={{ backgroundColor: '#8b72c4cc' }}>
            <CurrentFilterLink />
          </div>
        </div>
-                          <div ref={gridContainerRef} className="h-[calc(100vh-12rem)] sm:h-[calc(100vh-9rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
+                          <div ref={gridContainerRef} className="h-[calc(100vh-12rem)] sm:h-[calc(100vh-6rem)] overflow-x-auto rounded-md relative wave-container shadow-2xl">
         <div className="min-w-max relative" style={{ width: `${(endHour - startHour) * 60 * pixelsPerMinute}px` }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           {hasFilteredEvents && (

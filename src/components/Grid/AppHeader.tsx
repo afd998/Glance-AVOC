@@ -27,7 +27,7 @@ export default function AppHeader({
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
         {/* CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
-        <div className="grid gap-2 mb-3" style={{ 
+        <div className="grid gap-2 mb-1" style={{ 
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>

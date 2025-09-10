@@ -222,8 +222,8 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
 
-  /* Force black background to prevent white bleed-through */
-  background-color: #000000 !important;
+  /* Force white background */
+  background-color: #ffffff !important;
 }
 
 /* Dark mode body background - removed to allow background image to show */

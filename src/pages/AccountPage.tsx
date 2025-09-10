@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -136,6 +136,35 @@ const AccountPage: React.FC = () => {
             </div>
           </div>
       </div>
+      
+      {/* Account Page Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 py-2 px-4">
+        <div className="max-w-7xl mx-auto flex justify-center items-center">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600 dark:text-gray-300 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-full px-3 py-1">Timezone: Chicago Standard Time</span>
+            <Link
+              to="/about"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center space-x-1 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-full px-3 py-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>About</span>
+            </Link>
+            <a
+              href="https://forms.office.com/Pages/ResponsePage.aspx?id=YdN2fXeCCEekd2ToNmzRvLxLY25yMfNIg7aQOhsW0dRUOEVQRFBaQkxCTE0zWEFGQzA5MVJHRUZPUC4u"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center space-x-1 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-full px-3 py-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Report a Bug</span>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
