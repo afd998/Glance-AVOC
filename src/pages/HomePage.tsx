@@ -60,7 +60,7 @@ export default function HomePage() {
   
   // Track if we've loaded events for the current date to prevent flash
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
-  const { hasOverdueChecks } = useOverduePanoptoChecks(events || []);
+  const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks(events || []);
   useAutoHideLogic(filteredEvents, selectedDate);
   const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
   const { filters, loadFilter, getFilterByName } = useFilters();
@@ -290,6 +290,7 @@ export default function HomePage() {
                 isEvenRow={index % 2 === 0}
                 isLastRow={isLastRow}
                 hasOverdueChecks={hasOverdueChecks}
+                isOverdueChecksLoading={isOverdueChecksLoading}
               />
             );
           })}

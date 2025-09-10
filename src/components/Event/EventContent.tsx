@@ -2,6 +2,7 @@ import React from 'react';
 import { Database } from '../../types/supabase';
 import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
+import { SpeechBubble } from '../SpeechBubble';
 
 // Helper function to extract last names from instructor names
 const extractLastNames = (instructorNames: string[]): string => {
@@ -10,6 +11,36 @@ const extractLastNames = (instructorNames: string[]): string => {
     const nameParts = name.trim().split(' ');
     return nameParts[nameParts.length - 1];
   }).join(', ');
+};
+
+// Helper function to get random Panopto messages
+const getRandomPanoptoMessage = (eventId: number): string => {
+  const messages = [
+    "My recording hasnt been checked in a while",
+    "Someone should check my recording!",
+    "Is my recording working?",
+    "Can someone verify my recording?",
+    "My recording might need attention",
+    "Please check if my recording is okay",
+    "I'm worried about my recording",
+    "Has anyone checked my recording lately?",
+    "My recording needs to be verified",
+    "Could someone look at my recording?",
+    "I think my recording needs checking",
+    "Is my recording still working properly?",
+    "Someone should verify my recording",
+    "My recording might be having issues",
+    "Can we check my recording status?",
+    "I'm concerned about my recording",
+    "Has my recording been checked today?",
+    "My recording needs attention",
+    "Please verify my recording is working",
+    "I need someone to check my recording"
+  ];
+  
+  // Use eventId to get a consistent message for each event
+  const randomIndex = eventId % messages.length;
+  return messages[randomIndex];
 };
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -23,10 +54,11 @@ interface EventContentProps {
   isHovering: boolean;
   isMergedRoomEvent?: boolean;
   hasOverduePanoptoChecks?: boolean;
+  isOverdueChecksLoading?: boolean;
 }
 
 // Lecture Event Component
-function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks }: EventContentProps) {
+function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
   // Get theme colors and truncated event name for this event
   const { truncatedEventName: baseName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -64,7 +96,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
          <div className={`flex flex-row ${themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
-           className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out`}
+           className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
                     {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
@@ -127,6 +159,15 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
         </div>
       )}
 
+      {/* Speech bubble for overdue Panopto checks - positioned outside tilted container */}
+      {hasOverduePanoptoChecks && !isOverdueChecksLoading && instructorNames.length > 0 && (
+        <SpeechBubble
+          message={getRandomPanoptoMessage(event.id)}
+          isVisible={true}
+          className="-top-10 left-8"
+        />
+      )}
+
       <div className={`flex flex-col min-w-0 pl-1 flex-1 gap-0.5 transition-all duration-200 ease-in-out overflow-hidden ${isMergedRoomEvent ? 'justify-center' : ''}`}>
         <span
           className="truncate font-medium text-white transition-all duration-200 ease-in-out max-w-full"
@@ -159,7 +200,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
 
 
 // Default Event Component
-function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks }: EventContentProps) {
+function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
   // Get theme colors, truncated event name, and height flags for this event
   const { truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -198,14 +239,15 @@ export default function EventContent({
   isFacultyLoading,
   isHovering,
   isMergedRoomEvent,
-  hasOverduePanoptoChecks
+  hasOverduePanoptoChecks,
+  isOverdueChecksLoading
 }: EventContentProps) {
   return (
     <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
       {event.event_type === 'Lecture' ? (
-        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} />
+        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       ) : (
-        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} />
+        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       )}
     </div>
   );

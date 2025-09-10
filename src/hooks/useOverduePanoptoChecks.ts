@@ -141,6 +141,11 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
 
   return {
     hasOverdueChecks: (eventId: number) => {
+      // Don't return true if we're still loading data
+      if (isLoading) {
+        console.log(`🔍 hasOverdueChecks for event ${eventId}: false (still loading)`);
+        return false;
+      }
       const hasOverdue = overdueEvents.has(eventId);
       console.log(`🔍 hasOverdueChecks for event ${eventId}: ${hasOverdue}`);
       return hasOverdue;
