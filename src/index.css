@@ -5,6 +5,27 @@
 
 /* Custom Font Declarations */
 @font-face {
+  font-family: 'Geometos';
+  src: url('./assets/fonts/Geometos.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Prokofievc';
+  src: url('./assets/fonts/prokofievc.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SpecialAgent';
+  src: url('./assets/fonts/specialagent.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'Smooth Circulars';
   src: url('./assets/fonts/SmoothCirculars.otf') format('opentype');
   font-weight: normal;
@@ -70,7 +91,7 @@
 
 @font-face {
   font-family: 'Kenyan Coffee';
-  src: url('../public/fonts/Kenyan Coffee Rg.otf') format('opentype');
+  src: url('./assets/fonts/Kenyan Coffee Rg.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -78,7 +99,7 @@
 
 @font-face {
   font-family: 'ClementePDai';
-  src: url('../public/fonts/ClementePDai-Regular.ttf') format('truetype');
+  src: url('./assets/fonts/ClementePDai-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -86,7 +107,7 @@
 
 @font-face {
   font-family: 'BebasNeue';
-  src: url('../public/fonts/BebasNeue-Regular.ttf') format('truetype');
+  src: url('./assets/fonts/BebasNeue-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -94,7 +115,7 @@
 
 @font-face {
   font-family: 'Olympus Mount';
-  src: url('../public/fonts/Olympus Mount.ttf') format('truetype');
+  src: url('./assets/fonts/Olympus Mount.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -102,7 +123,7 @@
 
 @font-face {
   font-family: 'Abduction2002';
-  src: url('../public/fonts/abduction2002.ttf') format('truetype');
+  src: url('./assets/fonts/abduction2002.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -110,7 +131,7 @@
 
 @font-face {
   font-family: 'Pixellari';
-  src: url('../public/fonts/Pixellari.ttf') format('truetype');
+  src: url('./assets/fonts/Pixellari.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -118,7 +139,7 @@
 
 @font-face {
   font-family: 'GoudyBookletter1911';
-  src: url('../public/fonts/GoudyBookletter1911.otf') format('opentype');
+  src: url('./assets/fonts/GoudyBookletter1911.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -126,7 +147,7 @@
 
 @font-face {
   font-family: 'The Goodfather';
-  src: url('../public/fonts/The Goodfather DEMO.otf') format('opentype');
+  src: url('./assets/fonts/The Goodfather DEMO.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -134,7 +155,7 @@
 
 @font-face {
   font-family: 'DUMERO';
-  src: url('../public/fonts/DUMERO (1).ttf') format('truetype');
+  src: url('./assets/fonts/DUMERO (1).ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -142,7 +163,7 @@
 
 @font-face {
   font-family: 'Prokofiev';
-  src: url('../public/fonts/prokofievc.ttf') format('truetype');
+  src: url('./assets/fonts/prokofievc.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -847,10 +868,47 @@ code {
 /* Maximum specificity override for day colors */
 .react-datepicker.react-datepicker-dark .react-datepicker__day {
   color: #ffffff !important;
+  font-family: 'Prokofievc', sans-serif !important;
 }
 
 .react-datepicker.react-datepicker-dark .react-datepicker__day * {
   color: #ffffff !important;
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply Prokofievc font to all day numbers */
+.react-datepicker__day {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+.react-datepicker__day * {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply Prokofievc font to weekday labels */
+.react-datepicker__day-name {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+.react-datepicker-dark .react-datepicker__day-name {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply BebasNeue font to month/year heading */
+.react-datepicker__current-month {
+  font-family: 'BebasNeue', sans-serif !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+  text-transform: uppercase !important;
+  font-weight: normal !important;
+}
+
+.react-datepicker-dark .react-datepicker__current-month {
+  font-family: 'BebasNeue', sans-serif !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+  text-transform: uppercase !important;
+  font-weight: normal !important;
 }
 
 /* Make DatePicker backdrop less dark */
