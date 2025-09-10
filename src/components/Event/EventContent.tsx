@@ -4,6 +4,9 @@ import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
 import { SpeechBubble } from '../SpeechBubble';
 
+// Configuration variable to enable/disable speech bubble effect
+const SPEECH_BUBBLE_ENABLED = false;
+
 // Helper function to extract last names from instructor names
 const extractLastNames = (instructorNames: string[]): string => {
   return instructorNames.map(name => {
@@ -160,7 +163,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
       )}
 
       {/* Speech bubble for overdue Panopto checks - positioned outside tilted container */}
-      {hasOverduePanoptoChecks && !isOverdueChecksLoading && instructorNames.length > 0 && (
+      {SPEECH_BUBBLE_ENABLED && hasOverduePanoptoChecks && !isOverdueChecksLoading && instructorNames.length > 0 && (
         <SpeechBubble
           message={getRandomPanoptoMessage(event.id)}
           isVisible={true}
