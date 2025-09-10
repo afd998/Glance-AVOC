@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Database } from '../../types/supabase';
 import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
 import { usePanoptoChecksData } from '../../hooks/usePanoptoChecksData';
@@ -29,6 +29,12 @@ export default function Panopto({ event }: PanoptoProps) {
   const { data: panoptoChecksData = [], isLoading } = usePanoptoChecksData(event.id);
   const { invalidatePanoptoChecks } = useOverduePanoptoChecks([event]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // Drag functionality
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
@@ -261,6 +267,37 @@ export default function Panopto({ event }: PanoptoProps) {
       invalidatePanoptoChecks(event.id);
     }
   };
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!timelineRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - timelineRef.current.offsetLeft);
+    setScrollLeft(timelineRef.current.scrollLeft);
+    timelineRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (timelineRef.current) {
+      timelineRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (timelineRef.current) {
+      timelineRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !timelineRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - timelineRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
+    timelineRef.current.scrollLeft = scrollLeft - walk;
+  };
   
   // Show loading state first
   if (isLoading) {
@@ -299,8 +336,15 @@ export default function Panopto({ event }: PanoptoProps) {
         <div className="space-y-6">
           {/* Skeleton Timeline */}
           <div className="relative">
-            {/* Skeleton Timeline line */}
-            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors[3]}`}></div>
+            {/* Skeleton Timeline line - extends full width of all skeleton items */}
+            <div 
+              className={`absolute top-2 h-0.5 ${themeColors[3]}`}
+              style={{
+                left: '32px', // 8 * 4px = 32px (left-8)
+                right: '32px', // 8 * 4px = 32px (right-8)
+                width: 'auto' // For skeleton, we always show 4 items so use auto
+              }}
+            ></div>
             
             {/* Skeleton Timeline items - Always show 4 skeleton checks */}
             <div className="flex items-start gap-4 justify-between">
@@ -310,7 +354,7 @@ export default function Panopto({ event }: PanoptoProps) {
                   <div className={`w-4 h-4 rounded-full border-2 ${themeColors[3]} ${themeColors[7]} animate-pulse`}></div>
                   
                   {/* Skeleton Check details card */}
-                  <div className="mt-4 p-3 rounded-lg border border-white/10 dark:border-white/5 text-center w-32 sm:w-36 animate-pulse" style={{ background: `${themeHexColors[1]}` }}>
+                  <div className="mt-4 p-3 rounded-lg border border-white/10 dark:border-white/5 text-center w-40 animate-pulse" style={{ background: `${themeHexColors[1]}` }}>
                     <div className={`h-4 ${themeColors[3]} rounded mb-2`}></div>
                     <div className={`h-3 ${themeColors[3]} rounded mb-3`}></div>
                     <div className={`h-6 ${themeColors[3]} rounded mb-2`}></div>
@@ -408,9 +452,24 @@ export default function Panopto({ event }: PanoptoProps) {
       
       <>
           {/* Horizontal Timeline */}
-          <div className="relative overflow-x-auto">
-            {/* Timeline line */}
-            <div className={`absolute top-2 left-8 right-8 h-0.5 ${themeColors[3]}`}></div>
+          <div 
+            ref={timelineRef}
+            className="relative overflow-x-auto cursor-grab select-none"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          >
+            {/* Timeline line - extends full width of all timeline items */}
+            <div 
+              className={`absolute top-2 h-0.5 ${themeColors[3]}`}
+              style={{
+                left: '32px', // 8 * 4px = 32px (left-8)
+                right: panoptoTimeline.length > 4 ? 'auto' : '32px', // 8 * 4px = 32px (right-8)
+                width: panoptoTimeline.length > 4 ? `${panoptoTimeline.length * 176}px` : 'auto' // Calculate based on fixed card width (160px) + gap (16px)
+              }}
+            ></div>
             
             {/* Timeline items */}
             <div className={`flex items-start gap-4 ${panoptoTimeline.length > 4 ? 'min-w-max px-4' : 'justify-between'}`}>
@@ -439,7 +498,7 @@ export default function Panopto({ event }: PanoptoProps) {
                   </div>
                   
                   {/* Check details card */}
-                  <div className={`mt-4 p-3 rounded-lg border text-center w-32 sm:w-36 transition-colors backdrop-blur-sm shadow-lg ${getStatusColor(check.status)}`}>
+                  <div className={`mt-4 p-3 rounded-lg border text-center w-40 transition-colors backdrop-blur-sm shadow-lg ${getStatusColor(check.status)}`}>
                     <div className="font-semibold text-xs sm:text-sm mb-1">
                       Check #{check.checkNumber}
                     </div>
@@ -530,7 +589,10 @@ export default function Panopto({ event }: PanoptoProps) {
                     
                     {check.canComplete && check.status !== 'completed' && check.status !== 'missed' && (
                       <button
-                        onClick={() => handleCompleteCheck(check.checkNumber)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompleteCheck(check.checkNumber);
+                        }}
                         className={`w-full px-2 py-1 text-xs font-medium rounded transition-colors ${
                           check.status === 'current'
                             ? 'bg-red-600 hover:bg-red-700 text-white'

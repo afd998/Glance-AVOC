@@ -70,7 +70,7 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`px-6 py-4 border-b backdrop-blur-sm ${
+        <div className={`px-6 py-4 border-b backdrop-blur-sm rounded-t-2xl ${
           isDarkMode 
             ? 'border-gray-700/50 bg-gray-800/30' 
             : 'border-gray-200/50 bg-gray-50/30'
@@ -92,18 +92,11 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
           </div>
         </div>
 
-        {/* Theme Info */}
-        <div className="px-6 py-4 border-b backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50">
-          <h3 className="text-md font-medium mb-3">Current Theme</h3>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Background selection automatically sets the theme mode (light/dark)
-          </div>
-        </div>
 
         {/* Content */}
         <div className="p-6">
-          <h3 className="text-md font-medium mb-3">Background</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-md font-medium mb-3">Theme</h3>
+          <div className="grid grid-cols-2 gap-4 max-h-80 overflow-y-auto">
             {backgroundOptions.map((option) => (
               <div key={option.id}>
                 <div
@@ -211,7 +204,7 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className={`px-6 py-4 border-t backdrop-blur-sm ${
+        <div className={`px-6 py-4 border-t backdrop-blur-sm rounded-b-2xl ${
           isDarkMode 
             ? 'border-gray-700/50 bg-gray-800/30' 
             : 'border-gray-200/50 bg-gray-50/30'

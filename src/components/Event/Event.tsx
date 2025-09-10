@@ -15,6 +15,7 @@ interface EventProps {
   rooms: string[];
   onEventClick: (event: Event) => void;
   hasOverduePanoptoChecks?: boolean;
+  isOverdueChecksLoading?: boolean;
 }
 
 // Helper function to parse instructor names from JSON
@@ -32,7 +33,7 @@ const parseInstructorNames = (instructorNamesJson: any): string[] => {
   return [];
 };
 
-export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick, hasOverduePanoptoChecks = false }: EventProps) {
+export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick, hasOverduePanoptoChecks = false, isOverdueChecksLoading = false }: EventProps) {
 
   // Disable hover card functionality
   const HOVER_CARD_ENABLED = false;
@@ -268,6 +269,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           isHovering={isHoveringEvent}
           isMergedRoomEvent={isMergedRoomEvent}
           hasOverduePanoptoChecks={shouldBlink}
+          isOverdueChecksLoading={isOverdueChecksLoading}
                 />
       </div>
       {isClamped && continuationWidth > 0 && (

@@ -114,7 +114,13 @@ export const useUpdateFacultyAttributes = () => {
   return useMutation({
     mutationFn: updateFacultyAttributes,
     onSuccess: (data, variables) => {
+      // Invalidate individual faculty member query
       queryClient.invalidateQueries({ queryKey: ['facultyMember', variables.twentyfiveliveName] });
+      
+      // Invalidate all facultyMembers queries (for multiple faculty members)
+      queryClient.invalidateQueries({ queryKey: ['facultyMembers'] });
+      
+      // Update individual faculty member cache
       queryClient.setQueryData(['facultyMember', variables.twentyfiveliveName], (oldData: FacultyMember | undefined) => {
         if (oldData) {
           return {
@@ -129,6 +135,29 @@ export const useUpdateFacultyAttributes = () => {
         }
         return oldData;
       });
+      
+      // Update multiple faculty members cache
+      queryClient.setQueriesData(
+        { queryKey: ['facultyMembers'] },
+        (oldData: FacultyMember[] | undefined) => {
+          if (!oldData) return oldData;
+          
+          return oldData.map(member => {
+            if (member.twentyfivelive_name === variables.twentyfiveliveName) {
+              return {
+                ...member,
+                timing: variables.attributes.timing,
+                complexity: variables.attributes.complexity,
+                temperment: variables.attributes.temperment,
+                uses_mic: variables.attributes.uses_mic,
+                left_source: variables.attributes.left_source,
+                right_source: variables.attributes.right_source
+              };
+            }
+            return member;
+          });
+        }
+      );
     },
     onError: (error) => {
       console.error('Mutation failed:', error);
