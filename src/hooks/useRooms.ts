@@ -16,7 +16,7 @@ export const useRooms = () => {
       const roomNames = data.map(room => room.name).filter(Boolean) as string[];
       
       // Priority rooms that should appear at the top
-      const priorityRooms = ['GH L070', 'GH L110', 'GH L120', 'GH L130', 'GH 1130'];
+      const priorityRooms = ['GH L070', 'GH L110', 'GH L120', 'GH L130', 'GH 1110', 'GH 1120', 'GH 1130'];
       
       // Sort rooms with priority rooms first, then alphabetically
       const sortedRooms = roomNames.sort((a: string, b: string) => {
