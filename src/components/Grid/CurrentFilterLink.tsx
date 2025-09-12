@@ -22,7 +22,7 @@ const CurrentFilterLink: React.FC = () => {
   return (
     <button
       onClick={openFilterRoomsModal}
-      className="px-2 py-1 transition-all duration-200 hover:scale-105 text-white hover:text-gray-200"
+      className="h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transform hover:scale-105 border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80"
       title="Current Filter"
     >
       <div className="flex items-center gap-1">
