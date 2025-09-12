@@ -41,14 +41,18 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transform hover:scale-105 ${
+              className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer relative overflow-hidden ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
-                  : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
+                  ? 'opacity-50 cursor-not-allowed bg-white/10 border-white/20 text-black' 
+                  : 'bg-white/10 border-white/20 text-black hover:bg-white/15 dark:bg-white/30 dark:border-white/40 dark:text-black dark:hover:bg-white/40'
               }`}
               aria-label="Go to today"
             >
-              Today
+              {/* Glassmorphic shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+              <div className="relative z-10 font-medium opacity-75">
+                Today
+              </div>
             </button>
           </div>
           
@@ -151,14 +155,18 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transform hover:scale-105 ${
+              className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer relative overflow-hidden ${
                 isLoading 
-                  ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
-                  : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
+                  ? 'opacity-50 cursor-not-allowed bg-white/10 border-white/20 text-black' 
+                  : 'bg-white/10 border-white/20 text-black hover:bg-white/15 dark:bg-white/30 dark:border-white/40 dark:text-black dark:hover:bg-white/40'
               }`}
               aria-label="Go to today"
             >
-              Today
+              {/* Glassmorphic shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+              <div className="relative z-10 font-medium opacity-75">
+                Today
+              </div>
             </button>
           </div>
           
