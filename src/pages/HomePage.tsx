@@ -563,33 +563,33 @@ export default function HomePage() {
           width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
           minHeight: '100%' // Ensure content fills the full height
         }}>
-          {/* Edge highlighting overlays - positioned relative to content */}
+          {/* Edge highlighting overlays - clean glow effect */}
           {edgeHighlight.top && (
-            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
-                 style={{ 
-                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
-                   filter: 'blur(2px)'
+            <div className="absolute -top-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
+                 style={{
+                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
+                   background: 'rgba(255, 255, 255, 0.1)'
                  }} />
           )}
           {edgeHighlight.bottom && (
-            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
-                 style={{ 
-                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
-                   filter: 'blur(2px)'
+            <div className="absolute -bottom-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
+                 style={{
+                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
+                   background: 'rgba(255, 255, 255, 0.1)'
                  }} />
           )}
           {edgeHighlight.left && (
-            <div className="absolute top-0 left-0 bottom-0 w-8 bg-gradient-to-r from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
-                 style={{ 
-                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
-                   filter: 'blur(2px)'
+            <div className="absolute -top-4 -left-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
+                 style={{
+                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
+                   background: 'rgba(255, 255, 255, 0.1)'
                  }} />
           )}
           {edgeHighlight.right && (
-            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
-                 style={{ 
-                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
-                   filter: 'blur(2px)'
+            <div className="absolute -top-4 -right-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
+                 style={{
+                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
+                   background: 'rgba(255, 255, 255, 0.1)'
                  }} />
           )}
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />

@@ -28,20 +28,28 @@ export default function AppHeader({
   const showDatePicker = !isDragging;
   const showOtherButtons = !isDragging && isHovered;
 
+  const handleCalendarOpen = () => {
+    setIsHovered(false);
+  };
+
+  const handleCalendarClose = () => {
+    // Optional: could reset hover state here if needed
+  };
+
   return (
-    <div 
-      className="fixed top-4 left-4 right-4 z-[9999]"
+    <div
+      className="fixed top-0 left-4 right-4 z-[9999]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
-        {/* CSS Grid Layout - 1 row, 9 columns for spacing */}
+        {/* CSS Grid Layout - 1 row, 10 columns for spacing */}
         <div className="grid gap-2 p-4" style={{
-          gridTemplateColumns: 'auto auto auto auto auto auto 1fr auto auto',
+          gridTemplateColumns: 'auto auto auto auto auto auto auto 1fr auto auto',
           gridTemplateRows: 'auto'
         }}>
-          {/* Row 1: Today | Prev | DatePicker | Next | Academic | Quarter | big space | Bell | Menu */}
+          {/* Row 1: Today | Prev | DatePicker | Next | Academic | Quarter | CurrentFilterLink | big space | Bell | Menu */}
           <div className="flex items-center justify-center">
             <button
               onClick={() => {
@@ -96,6 +104,8 @@ export default function AppHeader({
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 isLoading={isLoading}
+                onCalendarOpen={handleCalendarOpen}
+                onCalendarClose={handleCalendarClose}
               />
             </div>
           </div>
@@ -132,6 +142,12 @@ export default function AppHeader({
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <QuarterCount />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+              <CurrentFilterLink />
             </div>
           </div>
 
@@ -212,10 +228,12 @@ export default function AppHeader({
           {/* DatePicker - always visible except when dragging */}
           <div className="flex items-center justify-center">
             <div style={{ opacity: showDatePicker ? 1 : 0, pointerEvents: showDatePicker ? 'auto' : 'none' }}>
-              <DatePickerComponent 
+              <DatePickerComponent
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 isLoading={isLoading}
+                onCalendarOpen={handleCalendarOpen}
+                onCalendarClose={handleCalendarClose}
               />
             </div>
           </div>
