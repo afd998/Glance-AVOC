@@ -1,9 +1,11 @@
 import React, { ReactNode } from 'react';
 import { useBackground } from '../hooks/useBackground';
 import { useRain } from '../contexts/RainContext';
+import { useSnow } from '../contexts/SnowContext';
 import { useLocation } from 'react-router-dom';
 import RainOverlay from './RainOverlay';
 import LeavesOverlay from './LeavesOverlay';
+import SnowOverlay from './SnowOverlay';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +14,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
   const { isRainEnabled } = useRain();
+  const { isSnowEnabled } = useSnow();
   
   // Toggle for AVOC HOME text overlay
   const showAvocHomeText = false; // Set to true to enable the giant AVOC HOME text
@@ -23,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         className="fixed inset-0 -z-10"
         style={{
           backgroundImage: currentBackground ? `url('/${currentBackground}')` : 'none',
-          backgroundSize: "120% 120%",
+          backgroundSize: currentBackground === 'jaobscenter.jpeg' ? "cover" : "120% 120%",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
@@ -31,6 +34,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           filter: currentBackground
             ? currentBackground === 'halloween.png'
               ? "blur(4px)"
+              : currentBackground === 'jaobscenter.jpeg'
+              ? "none"
               : "blur(8px)"
             : "none",
           transform: "translateZ(0)"
@@ -43,6 +48,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Leaves Overlay */}
       <LeavesOverlay />
+      
+      {/* Snow Overlay */}
+      <SnowOverlay isEnabled={isSnowEnabled} />
       
       {/* AVOC HOME Text Overlay */}
       {showAvocHomeText && (
