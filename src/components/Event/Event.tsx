@@ -273,7 +273,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     >
       <div
         className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
-          shouldBlink 
+          shouldBlink && event.event_type !== 'Lecture'
             ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
             : event.event_type === 'Ad Hoc Class Meeting' 
               ? 'ad-hoc-gradient' 
@@ -302,6 +302,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           hasOverduePanoptoChecks={shouldBlink}
           isOverdueChecksLoading={isOverdueChecksLoading}
                 />
+        {/* Red blinking vignette border for lecture events with overdue Panopto checks */}
+        {shouldBlink && event.event_type === 'Lecture' && (
+          <div 
+            className="absolute inset-0 rounded pointer-events-none"
+            style={{
+              animation: 'blink-red-vignette 6s ease-in-out infinite'
+            }}
+          />
+        )}
       </div>
       {isClamped && continuationWidth > 0 && (
         <div

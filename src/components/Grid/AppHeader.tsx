@@ -2,6 +2,7 @@ import React from 'react';
 import DatePickerComponent from './DatePickerComponent';
 import MenuPanel from '../MenuPanel/MenuPanel';
 import AcademicCalendarInfo from './AcademicCalendarInfo';
+import CurrentFilterLink from './CurrentFilterLink';
 
 import QuarterCount from './QuarterCount';
 import { Database } from '../../types/supabase';
@@ -26,9 +27,9 @@ export default function AppHeader({
     <div className="fixed top-4 left-4 right-4 z-[9999] opacity-0 hover:opacity-100 transition-opacity duration-300">
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
-        {/* CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
+        {/* CSS Grid Layout - 2 rows, 8 columns with content-based sizing */}
         <div className="grid gap-2 p-4" style={{ 
-          gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
+          gridTemplateColumns: 'auto auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
           {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, MenuPanel */}
@@ -111,12 +112,17 @@ export default function AppHeader({
             <QuarterCount />
           </div>
           
+          <div className="flex items-center justify-center">
+            <CurrentFilterLink />
+          </div>
+          
           <div className="flex items-center justify-end gap-2">
             <NotificationBell />
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
-          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
+          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
+          <div></div>
           <div></div>
           <div></div>
           <div></div>
@@ -131,9 +137,9 @@ export default function AppHeader({
 
       {/* Mobile Layout - below md */}
       <div className="md:hidden">
-        {/* Mobile CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
+        {/* Mobile CSS Grid Layout - 2 rows, 8 columns with content-based sizing */}
         <div className="grid gap-2 p-3" style={{ 
-          gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
+          gridTemplateColumns: 'auto auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
           {/* Row 1: Today button, Previous arrow, DatePicker, Next arrow, AcademicCalendarInfo, CurrentFilterLink, MenuPanel */}
@@ -216,11 +222,16 @@ export default function AppHeader({
             <QuarterCount />
           </div>
           
+          <div className="flex items-center justify-center">
+            <CurrentFilterLink />
+          </div>
+          
           <div className="flex items-center justify-end gap-2">
             <MenuPanel selectedDate={selectedDate} events={events} />
           </div>
           
-          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
+          {/* Row 2: Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty */}
+          <div></div>
           <div></div>
           <div></div>
           <div></div>

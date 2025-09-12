@@ -5,7 +5,6 @@ import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
 import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
-import CurrentFilterLink from "../components/Grid/CurrentFilterLink";
 import { useEvents } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
 import { useEventFiltering } from "../hooks/useEventFiltering";
@@ -35,12 +34,14 @@ export default function HomePage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [edgeHighlight, setEdgeHighlight] = useState({ top: false, bottom: false, left: false, right: false });
+  const edgeHighlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Momentum scrolling
   const [isMomentumScrolling, setIsMomentumScrolling] = useState(false);
   const [momentumVelocity, setMomentumVelocity] = useState({ x: 0, y: 0 });
   const [lastMoveTime, setLastMoveTime] = useState(0);
   const [lastMovePosition, setLastMovePosition] = useState({ x: 0, y: 0 });
+  const [velocityDecayTimeout, setVelocityDecayTimeout] = useState<NodeJS.Timeout | null>(null);
   const momentumRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -258,17 +259,115 @@ export default function HomePage() {
     navigate(`/${dateStr}/${event.id}`);
   };
 
+  // Helper function to start velocity decay when user stops moving
+  const startVelocityDecay = () => {
+    // Clear any existing decay timeout
+    if (velocityDecayTimeout) {
+      clearTimeout(velocityDecayTimeout);
+    }
+    
+    // Set a timeout to decay velocity to zero after 300ms of no movement
+    const timeout = setTimeout(() => {
+      setMomentumVelocity({ x: 0, y: 0 });
+      setVelocityDecayTimeout(null);
+    }, 300);
+    
+    setVelocityDecayTimeout(timeout);
+  };
+
+  // Helper function to calculate the actual number of rows that will be rendered
+  const calculateActualRowCount = () => {
+    if (!filteredEvents) return 0;
+    
+    // Get all unique room names that will have rows
+    const roomsWithRows = new Set<string>();
+    
+    // Add all individual room events
+    filteredEvents.forEach(event => {
+      if (event.room_name && !event.room_name.includes('&')) {
+        roomsWithRows.add(event.room_name);
+      }
+    });
+    
+    // Handle merged room events - they create rows for constituent rooms
+    filteredEvents.forEach(event => {
+      if (event.room_name && event.room_name.includes('&')) {
+        const parts = event.room_name.split('&');
+        if (parts.length === 2) {
+          const baseRoom = parts[0].trim(); // e.g., "GH 1420"
+          const suffix = parts[1].trim(); // e.g., "30", "B"
+          
+          // Add the base room
+          roomsWithRows.add(baseRoom);
+          
+          // Handle different merge patterns
+          if (suffix === '30') {
+            // 1420&30 case: show both 1420 and 1430
+            const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
+            if (roomNumber) {
+              const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
+              roomsWithRows.add(secondRoom);
+            }
+          } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
+            // A&B case: show both A and B variants
+            const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
+            roomsWithRows.add(`${baseRoomWithoutSuffix}A`);
+            roomsWithRows.add(`${baseRoomWithoutSuffix}B`);
+          }
+        }
+      }
+    });
+    
+    // Filter to only include rooms that are in selectedRooms (after autohide/filtering)
+    const visibleRoomsWithRows = Array.from(roomsWithRows).filter(room => 
+      selectedRooms.includes(room)
+    );
+    
+    return visibleRoomsWithRows.length;
+  };
+
+  // Helper function to clamp scroll values within boundaries
+  const clampScrollPosition = (scrollLeft: number, scrollTop: number) => {
+    if (!gridContainerRef.current) return { scrollLeft, scrollTop };
+    
+    const container = gridContainerRef.current;
+    const { clientWidth, clientHeight } = container;
+    
+    // Calculate the actual content dimensions
+    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
+    // Each room row is h-24 (96px), plus TimeGrid is h-8 (32px)
+    const actualRowCount = calculateActualRowCount();
+    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
+    
+    // Calculate maximum scroll positions
+    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
+    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
+    
+    // Clamp the values
+    return {
+      scrollLeft: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
+      scrollTop: Math.max(0, Math.min(scrollTop, maxScrollTop))
+    };
+  };
+
   // Function to check and update edge highlighting
   const updateEdgeHighlight = () => {
     if (!gridContainerRef.current || (!isDragging && !isMomentumScrolling)) return;
     
     const container = gridContainerRef.current;
-    const { scrollLeft, scrollTop, scrollWidth, scrollHeight, clientWidth, clientHeight } = container;
+    const { scrollLeft, scrollTop, clientWidth, clientHeight } = container;
+    
+    // Calculate the actual content width based on the grid dimensions
+    // This matches the width calculation used in the content div
+    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
+    // Each room row is h-24 (96px), plus TimeGrid is h-8 (32px)
+    const actualRowCount = calculateActualRowCount();
+    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
     
     // Add tolerance for edge detection and ensure we're actually at the boundaries
     const tolerance = 20;
-    const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
-    const maxScrollTop = Math.max(0, scrollHeight - clientHeight);
+    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
+    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
     
     // More aggressive edge detection - try to catch edges even if content doesn't fill full area
     const newEdgeHighlight = {
@@ -278,24 +377,44 @@ export default function HomePage() {
       right: scrollLeft >= maxScrollLeft - tolerance
     };
     
+    // Check if we hit any edge
+    const hitAnyEdge = newEdgeHighlight.top || newEdgeHighlight.bottom || newEdgeHighlight.left || newEdgeHighlight.right;
+    
+    // Check if we're already showing edge highlights (have an active timer)
+    const hasActiveTimer = edgeHighlightTimeoutRef.current !== null;
+    
+    if (hitAnyEdge && !hasActiveTimer) {
+      // Only start timer if we don't already have one running
+      setEdgeHighlight(newEdgeHighlight);
+      
+      // Set a 2-second timeout to hide them
+      edgeHighlightTimeoutRef.current = setTimeout(() => {
+        setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
+        edgeHighlightTimeoutRef.current = null;
+      }, 2000);
+    } else if (hitAnyEdge && hasActiveTimer) {
+      // If we already have a timer running, just update the edge state
+      // but don't reset the timer
+      setEdgeHighlight(newEdgeHighlight);
+    }
+    
     // Debug logging
     if (isDragging || isMomentumScrolling) {
       console.log('Edge detection debug:', {
         scrollLeft: scrollLeft.toFixed(2),
         scrollTop: scrollTop.toFixed(2),
-        scrollWidth,
-        scrollHeight,
+        actualContentWidth,
+        actualContentHeight,
         clientWidth,
         clientHeight,
         maxScrollLeft: maxScrollLeft.toFixed(2),
         maxScrollTop: maxScrollTop.toFixed(2),
         isAtRight: scrollLeft >= maxScrollLeft - tolerance,
         isAtBottom: scrollTop >= maxScrollTop - tolerance,
-        newEdgeHighlight
+        newEdgeHighlight,
+        hitAnyEdge
       });
     }
-    
-    setEdgeHighlight(newEdgeHighlight);
   };
 
   // Momentum scrolling functions
@@ -317,9 +436,12 @@ export default function HomePage() {
       const newVelocityX = momentumVelocity.x * friction;
       const newVelocityY = momentumVelocity.y * friction;
       
-      // Update scroll position
-      container.scrollLeft = currentScrollLeft - newVelocityX;
-      container.scrollTop = currentScrollTop - newVelocityY;
+      // Update scroll position with clamping
+      const newScrollLeft = currentScrollLeft - newVelocityX;
+      const newScrollTop = currentScrollTop - newVelocityY;
+      const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
+      container.scrollLeft = clampedPosition.scrollLeft;
+      container.scrollTop = clampedPosition.scrollTop;
       
       // Update edge highlighting during momentum
       updateEdgeHighlight();
@@ -332,7 +454,7 @@ export default function HomePage() {
         // Stop momentum scrolling
         setIsMomentumScrolling(false);
         setMomentumVelocity({ x: 0, y: 0 });
-        setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
+        // Don't clear edge highlights here - let the timeout handle it
       }
     };
     
@@ -346,23 +468,24 @@ export default function HomePage() {
     }
     setIsMomentumScrolling(false);
     setMomentumVelocity({ x: 0, y: 0 });
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
+    // Don't clear edge highlights here - let the timeout handle it
   };
 
   // Drag-to-scroll handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!gridContainerRef.current) return;
     
-    // Stop momentum scrolling if clicking
-    if (isMomentumScrolling) {
-      stopMomentumScrolling();
-      return;
-    }
-    
     // Only start dragging if clicking on the background (not on events)
     const target = e.target as HTMLElement;
     if (target.closest('[data-event]') || target.closest('[data-room-label]')) {
       return; // Don't drag if clicking on events or room labels
+    }
+    
+    // If momentum is scrolling, stop it but capture the current velocity
+    let currentMomentumVelocity = { x: 0, y: 0 };
+    if (isMomentumScrolling) {
+      currentMomentumVelocity = { ...momentumVelocity };
+      stopMomentumScrolling();
     }
     
     setIsDragging(true);
@@ -378,6 +501,10 @@ export default function HomePage() {
       x: e.pageX - gridContainerRef.current.offsetLeft,
       y: e.pageY - gridContainerRef.current.offsetTop
     });
+    
+    // Store the current momentum velocity to add to drag velocity
+    setMomentumVelocity(currentMomentumVelocity);
+    
     gridContainerRef.current.style.cursor = 'grabbing';
     e.preventDefault();
   };
@@ -390,18 +517,31 @@ export default function HomePage() {
     const x = e.pageX - gridContainerRef.current.offsetLeft;
     const y = e.pageY - gridContainerRef.current.offsetTop;
     
-    // Calculate velocity for momentum
+    // Calculate velocity for momentum, adding to existing momentum if any
     const timeDelta = currentTime - lastMoveTime;
     if (timeDelta > 0) {
-      const velocityX = (x - lastMovePosition.x) / timeDelta * 16; // 16ms for 60fps
-      const velocityY = (y - lastMovePosition.y) / timeDelta * 16;
-      setMomentumVelocity({ x: velocityX, y: velocityY });
+      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 24; // Increased from 16 to 24 for more sensitivity
+      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 24;
+      
+      // Add existing momentum velocity to the new drag velocity
+      const combinedVelocityX = momentumVelocity.x + dragVelocityX;
+      const combinedVelocityY = momentumVelocity.y + dragVelocityY;
+      
+      setMomentumVelocity({ x: combinedVelocityX, y: combinedVelocityY });
+      
+      // Reset velocity decay timer since user is moving
+      startVelocityDecay();
     }
     
     const walkX = (x - dragStart.x) * 2; // Multiply by 2 for faster scrolling
     const walkY = (y - dragStart.y) * 2; // Multiply by 2 for faster scrolling
-    gridContainerRef.current.scrollLeft = dragStart.scrollLeft - walkX;
-    gridContainerRef.current.scrollTop = dragStart.scrollTop - walkY;
+    const newScrollLeft = dragStart.scrollLeft - walkX;
+    const newScrollTop = dragStart.scrollTop - walkY;
+    
+    // Clamp scroll position to prevent overscrolling
+    const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
+    gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
+    gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
     
     // Update tracking for velocity calculation
     setLastMoveTime(currentTime);
@@ -418,11 +558,10 @@ export default function HomePage() {
     }
     
     // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.5 || Math.abs(momentumVelocity.y) > 0.5) {
+    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
       startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
-    } else {
-      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
+    // Don't clear edge highlights here - let the timeout handle it
   };
 
   const handleMouseLeave = () => {
@@ -432,35 +571,41 @@ export default function HomePage() {
     }
     
     // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.5 || Math.abs(momentumVelocity.y) > 0.5) {
+    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
       startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
-    } else {
-      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
+    // Don't clear edge highlights here - let the timeout handle it
   };
 
-  // Cleanup momentum scrolling on unmount
+  // Cleanup momentum scrolling, edge highlight timeout, and velocity decay timeout on unmount
   useEffect(() => {
     return () => {
       if (momentumRef.current) {
         cancelAnimationFrame(momentumRef.current);
       }
+      if (edgeHighlightTimeoutRef.current) {
+        clearTimeout(edgeHighlightTimeoutRef.current);
+      }
+      if (velocityDecayTimeout) {
+        clearTimeout(velocityDecayTimeout);
+      }
     };
-  }, []);
+  }, [velocityDecayTimeout]);
 
   // Touch support for mobile devices
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!gridContainerRef.current) return;
     
-    // Stop momentum scrolling if touching
-    if (isMomentumScrolling) {
-      stopMomentumScrolling();
-      return;
-    }
-    
     const target = e.target as HTMLElement;
     if (target.closest('[data-event]') || target.closest('[data-room-label]')) {
       return;
+    }
+    
+    // If momentum is scrolling, stop it but capture the current velocity
+    let currentMomentumVelocity = { x: 0, y: 0 };
+    if (isMomentumScrolling) {
+      currentMomentumVelocity = { ...momentumVelocity };
+      stopMomentumScrolling();
     }
     
     setIsDragging(true);
@@ -477,6 +622,10 @@ export default function HomePage() {
       x: touch.pageX - gridContainerRef.current.offsetLeft,
       y: touch.pageY - gridContainerRef.current.offsetTop
     });
+    
+    // Store the current momentum velocity to add to drag velocity
+    setMomentumVelocity(currentMomentumVelocity);
+    
     e.preventDefault();
   };
 
@@ -489,18 +638,31 @@ export default function HomePage() {
     const x = touch.pageX - gridContainerRef.current.offsetLeft;
     const y = touch.pageY - gridContainerRef.current.offsetTop;
     
-    // Calculate velocity for momentum
+    // Calculate velocity for momentum, adding to existing momentum if any
     const timeDelta = currentTime - lastMoveTime;
     if (timeDelta > 0) {
-      const velocityX = (x - lastMovePosition.x) / timeDelta * 16; // 16ms for 60fps
-      const velocityY = (y - lastMovePosition.y) / timeDelta * 16;
-      setMomentumVelocity({ x: velocityX, y: velocityY });
+      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 24; // Increased from 16 to 24 for more sensitivity
+      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 24;
+      
+      // Add existing momentum velocity to the new drag velocity
+      const combinedVelocityX = momentumVelocity.x + dragVelocityX;
+      const combinedVelocityY = momentumVelocity.y + dragVelocityY;
+      
+      setMomentumVelocity({ x: combinedVelocityX, y: combinedVelocityY });
+      
+      // Reset velocity decay timer since user is moving
+      startVelocityDecay();
     }
     
     const walkX = (x - dragStart.x) * 2;
     const walkY = (y - dragStart.y) * 2;
-    gridContainerRef.current.scrollLeft = dragStart.scrollLeft - walkX;
-    gridContainerRef.current.scrollTop = dragStart.scrollTop - walkY;
+    const newScrollLeft = dragStart.scrollLeft - walkX;
+    const newScrollTop = dragStart.scrollTop - walkY;
+    
+    // Clamp scroll position to prevent overscrolling
+    const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
+    gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
+    gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
     
     // Update tracking for velocity calculation
     setLastMoveTime(currentTime);
@@ -514,11 +676,10 @@ export default function HomePage() {
     setIsDragging(false);
     
     // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.5 || Math.abs(momentumVelocity.y) > 0.5) {
+    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
       startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
-    } else {
-      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
+    // Don't clear edge highlights here - let the timeout handle it
   };
 
 
@@ -536,15 +697,9 @@ export default function HomePage() {
          isLoading={isLoading}
          events={events}
        />
-       {/* Sticky Current Filter Link - positioned below floating header */}
-       <div className="sticky top-0 md:top-4 z-[70] mb-0">
-         <div className="absolute left-0 top-0 w-24 h-8 flex items-center z-[70] backdrop-blur-sm rounded-tl-md" style={{ backgroundColor: '#8b72c4cc' }}>
-           <CurrentFilterLink />
-         </div>
-       </div>
                           <div 
                             ref={gridContainerRef} 
-                            className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative wave-container shadow-2xl"
+                            className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative  shadow-2xl"
                             style={{ cursor: isDragEnabled ? 'grab' : 'default' }}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
@@ -554,39 +709,39 @@ export default function HomePage() {
                             onTouchMove={handleTouchMove}
                             onTouchEnd={handleTouchEnd}
                           >
-                            {/* Edge highlighting overlays */}
-                            {edgeHighlight.top && (
-                              <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
-                                   style={{ 
-                                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                                     filter: 'blur(0.5px)'
-                                   }} />
-                            )}
-                            {edgeHighlight.bottom && (
-                              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
-                                   style={{ 
-                                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                                     filter: 'blur(0.5px)'
-                                   }} />
-                            )}
-                            {edgeHighlight.left && (
-                              <div className="absolute top-0 left-0 bottom-0 w-6 bg-gradient-to-r from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
-                                   style={{ 
-                                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                                     filter: 'blur(0.5px)'
-                                   }} />
-                            )}
-                            {edgeHighlight.right && (
-                              <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
-                                   style={{ 
-                                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                                     filter: 'blur(0.5px)'
-                                   }} />
-                            )}
         <div className="min-w-max relative" style={{ 
           width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
           minHeight: '100%' // Ensure content fills the full height
         }}>
+          {/* Edge highlighting overlays - positioned relative to content */}
+          {edgeHighlight.top && (
+            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+                 style={{ 
+                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
+                   filter: 'blur(0.5px)'
+                 }} />
+          )}
+          {edgeHighlight.bottom && (
+            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+                 style={{ 
+                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
+                   filter: 'blur(0.5px)'
+                 }} />
+          )}
+          {edgeHighlight.left && (
+            <div className="absolute top-0 left-0 bottom-0 w-6 bg-gradient-to-r from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+                 style={{ 
+                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
+                   filter: 'blur(0.5px)'
+                 }} />
+          )}
+          {edgeHighlight.right && (
+            <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+                 style={{ 
+                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
+                   filter: 'blur(0.5px)'
+                 }} />
+          )}
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           {hasFilteredEvents && (
             <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
