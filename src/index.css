@@ -302,6 +302,24 @@ code {
   opacity: 0.95 !important;
 }
 
+/* Edge highlighting animations for drag-to-scroll */
+@keyframes edge-pulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 255, 255, 0.6), 0 0 80px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.edge-highlight {
+  animation: edge-pulse 0.8s ease-in-out infinite;
+}
+
 /* Enhanced DatePicker Glassmorphism Styles */
 .react-datepicker-glassmorphism {
   backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
