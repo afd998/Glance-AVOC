@@ -269,6 +269,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => onEventClick && onEventClick(event)}
+      data-event="true"
     >
       <div
         className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${

@@ -17,13 +17,13 @@ export default function CurrentTimeIndicator({ currentTime, startHour, endHour, 
         <div 
           className="sticky top-0 animate-pulse"
           style={{
-            left: `${currentPosition - 8}px`, // Offset by half the triangle width (16px / 2 = 8px)
+            left: `${currentPosition - 6}px`, // Offset by half the triangle width (12px / 2 = 6px)
             width: 0,
             height: 0,
-            borderLeft: '8px solid transparent',
-            borderRight: '8px solid transparent',
-            borderTop: '10px solid #d1d5db', // gray-300 - light gray triangle
-            filter: 'drop-shadow(0 2px 4px rgba(209, 213, 219, 0.3))',
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '8px solid #ef4444', // red-500 - red triangle
+            filter: 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)) drop-shadow(0 0 16px rgba(239, 68, 68, 0.4))',
             zIndex: 1001,
             position: 'absolute',
             pointerEvents: 'none'
@@ -32,13 +32,13 @@ export default function CurrentTimeIndicator({ currentTime, startHour, endHour, 
         
         {/* Vertical line */}
         <div
-          className="w-0.5 bg-gray-300 animate-pulse"
+          className="w-px bg-red-500 animate-pulse"
           style={{ 
             position: 'absolute',
             left: `${currentPosition}px`,
             top: '10px', // Start below the playhead
             height: 'calc(100% - 10px)', // Extend to bottom of container minus top offset
-            boxShadow: '0 0 4px rgba(209, 213, 219, 0.5)',
+            boxShadow: '0 0 8px rgba(239, 68, 68, 0.8), 0 0 16px rgba(239, 68, 68, 0.4), 0 0 24px rgba(239, 68, 68, 0.2)',
             zIndex: 1000,
             pointerEvents: 'none'
           }}

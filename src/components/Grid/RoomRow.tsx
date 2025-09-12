@@ -46,7 +46,11 @@ export default function RoomRow({
 
   return (
     <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
-      <div className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer ${isLastRow ? 'rounded-bl-md' : ''}`} style={{ zIndex: 50 }}>
+      <div 
+        className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        style={{ zIndex: 50 }}
+        data-room-label="true"
+      >
         <span 
           className={`font-light ${fontSize}`} 
           style={{ 
