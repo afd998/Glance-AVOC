@@ -34,7 +34,6 @@ export default function HomePage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [edgeHighlight, setEdgeHighlight] = useState({ top: false, bottom: false, left: false, right: false });
-  const edgeHighlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   
   // Throttling for performance
@@ -372,22 +371,12 @@ export default function HomePage() {
     // Check if we hit any edge
     const hitAnyEdge = newEdgeHighlight.top || newEdgeHighlight.bottom || newEdgeHighlight.left || newEdgeHighlight.right;
     
-    // Check if we're already showing edge highlights (have an active timer)
-    const hasActiveTimer = edgeHighlightTimeoutRef.current !== null;
     
-    if (hitAnyEdge && !hasActiveTimer) {
-      // Only start timer if we don't already have one running
+    if (hitAnyEdge) {
       setEdgeHighlight(newEdgeHighlight);
-      
-      // Set a 2-second timeout to hide them
-      edgeHighlightTimeoutRef.current = setTimeout(() => {
-        setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-        edgeHighlightTimeoutRef.current = null;
-      }, 2000);
-    } else if (hitAnyEdge && hasActiveTimer) {
-      // If we already have a timer running, just update the edge state
-      // but don't reset the timer
-      setEdgeHighlight(newEdgeHighlight);
+    } else {
+      // Clear highlights immediately when not hitting any edge
+      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
     
     // Debug logging
@@ -467,7 +456,8 @@ export default function HomePage() {
     if (gridContainerRef.current) {
       gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
     }
-    // Don't clear edge highlights here - let the timeout handle it
+    // Clear edge highlights immediately when dragging stops
+    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   };
 
   const handleMouseLeave = () => {
@@ -475,17 +465,10 @@ export default function HomePage() {
     if (gridContainerRef.current) {
       gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
     }
-    // Don't clear edge highlights here - let the timeout handle it
+    // Clear edge highlights immediately when dragging stops
+    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   };
 
-  // Cleanup edge highlight timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (edgeHighlightTimeoutRef.current) {
-        clearTimeout(edgeHighlightTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Touch support for mobile devices
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -541,7 +524,8 @@ export default function HomePage() {
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    // Don't clear edge highlights here - let the timeout handle it
+    // Clear edge highlights immediately when dragging stops
+    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   };
 
 
