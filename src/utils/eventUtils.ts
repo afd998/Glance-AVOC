@@ -420,40 +420,40 @@ export const getEventThemeColors = (event: Event) => {
       border5: 'border-[#605283]'
     };
   } else if (isAdHocClassMeeting) {
-    // Ad Hoc Class Meeting - custom teal theme
+    // Ad Hoc Class Meeting - using KEC gray theme
     return {
       // Light backgrounds and surfaces
-      1: 'bg-[#e8f4f3]',
-      2: 'bg-[#d1e8e6]',
-      3: 'bg-[#b8ddd9]',
-      4: 'bg-[#9bc9c4]',
+      1: 'bg-[#f2f2f5]',
+      2: 'bg-[#e6e6eb]',
+      3: 'bg-[#d4d4da]',
+      4: 'bg-[#c0c0c8]',
       // Medium colors for cards and containers
-      5: 'bg-[#5fa8a4]',  // medium teal, balanced & soft
+      5: 'bg-[#9a9aab]',  // medium gray with slight softness
       // Medium-dark for icons and badges
-      6: 'bg-[#4e8783]',  // medium-dark, muted depth
-      7: 'bg-[#456f6c]',  // deep, subdued teal for grounding
+      6: 'bg-[#777788]',  // medium-dark, muted depth
+      7: 'bg-[#666678]',
       // Dark colors for borders and accents
-      8: 'bg-[#3d5f5c]',
-      9: 'bg-[#344f4c]',
+      8: 'bg-[#525260]',
+      9: 'bg-[#3d3d46]',
       // Darkest for text
-      10: 'bg-[#2a3f3d]',
+      10: 'bg-[#29292f]',
       // Text colors
-      text1: 'text-[#2a3f3d]',
-      text2: 'text-[#344f4c]',
-      text3: 'text-[#3d5f5c]',
-      text4: 'text-[#456f6c]',
-      text5: 'text-[#4e8783]',
-      text6: 'text-[#5fa8a4]',
-      text7: 'text-[#9bc9c4]',
-      text8: 'text-[#b8ddd9]',
-      text9: 'text-[#d1e8e6]',
+      text1: 'text-[#29292f]',
+      text2: 'text-[#3d3d46]',
+      text3: 'text-[#525260]',
+      text4: 'text-[#666678]',
+      text5: 'text-[#777788]',
+      text6: 'text-[#9a9aab]',
+      text7: 'text-[#c0c0c8]',
+      text8: 'text-[#d4d4da]',
+      text9: 'text-[#e6e6eb]',
       text10: 'text-white',
       // Border colors
-      border1: 'border-[#b8ddd9]',
-      border2: 'border-[#9bc9c4]',
-      border3: 'border-[#5fa8a4]',
-      border4: 'border-[#4e8783]',
-      border5: 'border-[#456f6c]'
+      border1: 'border-[#d4d4da]',
+      border2: 'border-[#c0c0c8]',
+      border3: 'border-[#9a9aab]',
+      border4: 'border-[#777788]',
+      border5: 'border-[#666678]'
     };
   } else if (isStudentEvent) {
     return {

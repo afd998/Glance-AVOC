@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
-import { parseEventResources } from '../../utils/eventUtils';
+import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
@@ -43,6 +43,9 @@ export default function EventHeader({
   
   // Parse event resources using the utility function
   const { resources } = parseEventResources(currentEvent);
+  
+  // Get theme colors for this event type
+  const themeColors = getEventThemeColors(currentEvent);
   
   // Check for specific resources by display name
   const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
@@ -122,6 +125,24 @@ export default function EventHeader({
 
   const timeDisplay = `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
 
+  // Calculate event duration in hours
+  const getEventDurationHours = () => {
+    if (!currentEvent.start_time || !currentEvent.end_time) return 0;
+    try {
+      const [startHours, startMinutes] = currentEvent.start_time.split(':').map(Number);
+      const [endHours, endMinutes] = currentEvent.end_time.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      const durationMinutes = endTotalMinutes - startTotalMinutes;
+      return durationMinutes / 60; // Convert to hours
+    } catch (error) {
+      return 0;
+    }
+  };
+
+  const eventDurationHours = getEventDurationHours();
+  const isShortLecture = currentEvent.event_type === 'Lecture' && eventDurationHours < 2;
+
   // Calculate fisheye scale based on proximity to hovered icon
   const getFisheyeScale = useCallback((iconKey: string) => {
     if (!hoveredIcon) return 1;
@@ -159,10 +180,14 @@ export default function EventHeader({
   
 
   return (
-    <div className="flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-2 right-2 z-50">
+    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute ${isShortLecture ? 'top-0 left-1 right-0' : 'top-0 left-2 right-2'} z-50`}>
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
-          className="text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out text-white"
+          className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
+            event.event_type === 'Ad Hoc Class Meeting' 
+              ? (isHovering ? 'text-white' : 'text-gray-600')
+              : 'text-white'
+          }`}
           title={timeDisplay}
           style={{
             transform: isHovering ? 'scale(1.1)' : 'scale(1)',
@@ -172,7 +197,7 @@ export default function EventHeader({
           {timeDisplay}
         </span>
       </div>
-            <div className="flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible">
+            <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible ${themeColors[8]} rounded-md px-2 py-1 ${isShortLecture ? 'mt-0 absolute top-0 right-0 transform -translate-y-1/2 translate-x-1/2' : 'mt-4'}`}>
         {isFirstSession && (
           <span
             className="text-yellow-500 dark:text-yellow-400 text-sm font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"

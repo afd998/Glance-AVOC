@@ -65,10 +65,34 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   // Get theme colors and truncated event name for this event
   const { truncatedEventName: baseName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
-  const contentBgColor = themeColors[7]; // Use theme color for content background
+  // Special case: Ad Hoc Class Meeting uses same background as main event (themeColors[5])
+  // All other event types use themeColors[7] for content background
+  const contentBgColor = event.event_type === 'Ad Hoc Class Meeting' 
+    ? themeColors[5] 
+    : event.event_type === 'Lecture' 
+      ? themeColors[4] 
+      : themeColors[7];
   const eventNameCopy = event.event_name ? String(event.event_name) : '';
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
+
+  // Calculate event duration in hours
+  const getEventDurationHours = () => {
+    if (!event.start_time || !event.end_time) return 0;
+    try {
+      const [startHours, startMinutes] = event.start_time.split(':').map(Number);
+      const [endHours, endMinutes] = event.end_time.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      const durationMinutes = endTotalMinutes - startTotalMinutes;
+      return durationMinutes / 60; // Convert to hours
+    } catch (error) {
+      return 0;
+    }
+  };
+
+  const eventDurationHours = getEventDurationHours();
+  const isShortLecture = event.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate avatar tilt based on first instructor name
   const getAvatarTilt = (name: string | undefined): number => {
@@ -96,10 +120,10 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   );
 
   return (
-         <div className={`flex flex-row ${themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
+         <div className={`flex flex-row ${event.event_type === 'Lecture' ? '' : themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
-           className={`flex flex-col items-center justify-center gap-0.5 ${contentBgColor} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative`}
+           className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : contentBgColor} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative ${event.event_type === 'Lecture' ? 'shadow-2xl' : ''}`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
                     {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
@@ -171,25 +195,26 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
         />
       )}
 
-      <div className={`flex flex-col min-w-0 pl-1 flex-1 gap-0.5 transition-all duration-200 ease-in-out overflow-hidden ${isMergedRoomEvent ? 'justify-center' : ''}`}>
+      <div className={`flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden ${isMergedRoomEvent ? 'justify-center' : ''}`}>
         <span
-          className="truncate font-medium text-white transition-all duration-200 ease-in-out max-w-full"
+          className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-3xl leading-none"
           style={{
             transform: isHovering ? 'scale(1.05)' : 'scale(1)',
-            transformOrigin: 'left center'
+            transformOrigin: 'left center',
+            fontFamily: "'Kenyan Coffee', sans-serif"
           }}
           title={baseName}
         >
           {baseName}
         </span>
         {thirdPart && (
-          <span className="text-xs text-white opacity-90 transition-all duration-200 ease-in-out">
+          <span className="text-xs text-white opacity-90 transition-all duration-200 ease-in-out whitespace-nowrap leading-none">
             Sec: {thirdPart}
           </span>
         )}
         {event.lecture_title && (
           <span
-            className="text-[10px] text-white opacity-80 truncate leading-tight transition-all duration-200 ease-in-out max-w-full"
+            className="text-[10px] text-white opacity-80 transition-all duration-200 ease-in-out whitespace-nowrap leading-none"
             title={event.lecture_title}
           >
             {event.lecture_title}
@@ -207,20 +232,38 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   // Get theme colors, truncated event name, and height flags for this event
   const { truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
-  const contentBgColor = themeColors[7]; // Use theme color for content background
+  // Special case: Ad Hoc Class Meeting uses same background as main event (themeColors[5])
+  // All other event types use themeColors[7] for content background
+  const contentBgColor = event.event_type === 'Ad Hoc Class Meeting' 
+    ? themeColors[5] 
+    : event.event_type === 'Lecture' 
+      ? themeColors[4] 
+      : themeColors[7];
 
   // Determine height based on event type
   const getEventHeight = () => {
     if (isMergedRoomEvent) return 'h-30'; // 80px for merged room events
-    if (isReducedHeightEvent) return 'h-10'; // 40px for reduced height events
+    if (isReducedHeightEvent) {
+      // Ad Hoc Class Meeting gets even more reduced height
+      if (event.event_type === 'Ad Hoc Class Meeting') return 'h-8'; // 32px for Ad Hoc Class Meeting
+      return 'h-10'; // 40px for other reduced height events
+    }
     return 'h-12'; // 48px for regular events
   };
 
   return (
-    <div className={`${contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()} relative`}>
-      <div className="flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 py-1 h-full">
+    <div className={`${event.event_type === 'Ad Hoc Class Meeting' ? '' : event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()} relative ${
+      event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : ''
+    }`}>
+      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${
+        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0 h-full' : 'py-1 h-full'
+      }`}>
         <span
-          className="text-sm font-medium text-white transition-all duration-200 ease-in-out w-full leading-tight truncate whitespace-nowrap"
+          className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-tight truncate whitespace-nowrap ${
+            event.event_type === 'Ad Hoc Class Meeting' 
+              ? (isHovering ? 'text-white' : 'text-gray-600')
+              : 'text-white'
+          }`}
           style={{
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
             transformOrigin: 'left center'

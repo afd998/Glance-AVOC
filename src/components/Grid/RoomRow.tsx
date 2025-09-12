@@ -45,8 +45,8 @@ export default function RoomRow({
 
 
   return (
-    <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-50/40 dark:bg-gray-800/40 ${isLastRow ? 'rounded-b-md' : ''}`}>
-      <div className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer ${isLastRow ? 'rounded-bl-md' : ''}`} style={{ zIndex: 50 }}>
+    <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
+      <div className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer ${isLastRow ? 'rounded-bl-md' : ''}`} style={{ zIndex: 50 }}>
         <span 
           className={`font-light ${fontSize}`} 
           style={{ 
@@ -62,7 +62,7 @@ export default function RoomRow({
         {/* Room spelling code commented out - now just showing simple room name vertically */}
       </div>
       <div 
-        className={`flex-1 h-24 relative transition-all duration-300 ease-in-out hover:shadow-lg hover:bg-gray-100/60 dark:hover:bg-gray-700/60 ${isLastRow ? 'rounded-br-md' : ''}`}
+        className={`flex-1 h-24 relative transition-all duration-300 ease-in-out ${isLastRow ? 'rounded-br-md' : ''}`}
         style={{ zIndex: 45 }}
       >
         {roomEvents?.map((event) => (

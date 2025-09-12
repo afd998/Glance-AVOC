@@ -19,6 +19,41 @@
 }
 
 @font-face {
+  font-family: 'Olympus Mount';
+  src: url('./assets/fonts/Olympus Mount.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'The Goodfather';
+  src: url('./assets/fonts/The Goodfather DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'LEMONMILK';
+  src: url('./assets/fonts/LEMONMILK-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GoudyBookletter1911';
+  src: url('./assets/fonts/GoudyBookletter1911.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Kenyan Coffee';
+  src: url('./assets/fonts/Kenyan Coffee Rg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'SpecialAgent';
   src: url('./assets/fonts/specialagent.ttf') format('truetype');
   font-weight: normal;
@@ -1116,4 +1151,16 @@ code {
             rotate(0deg);
         opacity: 0;
     }
+}
+
+/* Ad Hoc Class Meeting elliptical gradient background */
+.ad-hoc-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #d4d4da 0%, #d4d4da 10%, #9a9aab 40%, #666678 70%, #666678 100%) !important;
+}
+
+/* Lecture elliptical gradient background */
+.lecture-gradient {
+  background: 
+    radial-gradient(ellipse 150% 100% at center, #9a8bb8 0%, #9a8bb8 5%, #8a7ba9 20%, #7a6b9a 40%, #6a5a8a 60%, #5a4a7a 100%),
+    radial-gradient(ellipse 200% 200% at center, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%) !important;
 }
