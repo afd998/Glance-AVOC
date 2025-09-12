@@ -431,8 +431,8 @@ export default function HomePage() {
       const currentScrollLeft = container.scrollLeft;
       const currentScrollTop = container.scrollTop;
       
-      // Apply momentum with friction
-      const friction = 0.95;
+      // Apply momentum with friction (reduced friction for longer momentum)
+      const friction = 0.98;
       const newVelocityX = momentumVelocity.x * friction;
       const newVelocityY = momentumVelocity.y * friction;
       
@@ -446,8 +446,8 @@ export default function HomePage() {
       // Update edge highlighting during momentum
       updateEdgeHighlight();
       
-      // Check if momentum should continue
-      if (Math.abs(newVelocityX) > 0.1 || Math.abs(newVelocityY) > 0.1) {
+      // Check if momentum should continue (lower threshold for longer momentum)
+      if (Math.abs(newVelocityX) > 0.05 || Math.abs(newVelocityY) > 0.05) {
         setMomentumVelocity({ x: newVelocityX, y: newVelocityY });
         momentumRef.current = requestAnimationFrame(animate);
       } else {
@@ -520,8 +520,8 @@ export default function HomePage() {
     // Calculate velocity for momentum, adding to existing momentum if any
     const timeDelta = currentTime - lastMoveTime;
     if (timeDelta > 0) {
-      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 24; // Increased from 16 to 24 for more sensitivity
-      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 24;
+      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 32; // Increased from 24 to 32 for more sensitivity
+      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 32;
       
       // Add existing momentum velocity to the new drag velocity
       const combinedVelocityX = momentumVelocity.x + dragVelocityX;
@@ -641,8 +641,8 @@ export default function HomePage() {
     // Calculate velocity for momentum, adding to existing momentum if any
     const timeDelta = currentTime - lastMoveTime;
     if (timeDelta > 0) {
-      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 24; // Increased from 16 to 24 for more sensitivity
-      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 24;
+      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 32; // Increased from 24 to 32 for more sensitivity
+      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 32;
       
       // Add existing momentum velocity to the new drag velocity
       const combinedVelocityX = momentumVelocity.x + dragVelocityX;
@@ -715,31 +715,31 @@ export default function HomePage() {
         }}>
           {/* Edge highlighting overlays - positioned relative to content */}
           {edgeHighlight.top && (
-            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
                  style={{ 
-                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                   filter: 'blur(0.5px)'
+                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
+                   filter: 'blur(2px)'
                  }} />
           )}
           {edgeHighlight.bottom && (
-            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
                  style={{ 
-                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                   filter: 'blur(0.5px)'
+                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
+                   filter: 'blur(2px)'
                  }} />
           )}
           {edgeHighlight.left && (
-            <div className="absolute top-0 left-0 bottom-0 w-6 bg-gradient-to-r from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+            <div className="absolute top-0 left-0 bottom-0 w-8 bg-gradient-to-r from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
                  style={{ 
-                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                   filter: 'blur(0.5px)'
+                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
+                   filter: 'blur(2px)'
                  }} />
           )}
           {edgeHighlight.right && (
-            <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/95 to-transparent z-[100] pointer-events-none edge-highlight" 
+            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white/80 to-transparent z-[100] pointer-events-none edge-highlight" 
                  style={{ 
-                   boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4)',
-                   filter: 'blur(0.5px)'
+                   boxShadow: '0 0 25px rgba(255, 255, 255, 0.7)',
+                   filter: 'blur(2px)'
                  }} />
           )}
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
