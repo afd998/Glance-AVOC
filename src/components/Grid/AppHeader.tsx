@@ -23,11 +23,11 @@ export default function AppHeader({
   events 
 }: AppHeaderProps) {
   return (
-    <div className="">
+    <div className="fixed top-4 left-4 right-4 z-[9999] opacity-0 hover:opacity-100 transition-opacity duration-300">
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
         {/* CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
-        <div className="grid gap-2 mb-1" style={{ 
+        <div className="grid gap-2 p-4" style={{ 
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
@@ -40,7 +40,7 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transform hover:scale-105 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
                   : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
@@ -60,7 +60,7 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
@@ -90,7 +90,7 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
+              className={`h-10 w-10 p-2 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
@@ -132,7 +132,7 @@ export default function AppHeader({
       {/* Mobile Layout - below md */}
       <div className="md:hidden">
         {/* Mobile CSS Grid Layout - 2 rows, 7 columns with content-based sizing */}
-        <div className="grid gap-2 mb-3" style={{ 
+        <div className="grid gap-2 p-3" style={{ 
           gridTemplateColumns: 'auto auto auto auto auto auto 1fr',
           gridTemplateRows: 'auto min-content'
         }}>
@@ -145,7 +145,7 @@ export default function AppHeader({
                 setSelectedDate(today);
               }}
               disabled={isLoading}
-              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              className={`h-8 px-2 py-1 text-xs font-medium rounded-xl backdrop-blur-sm border transition-all duration-200 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transform hover:scale-105 ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-300' 
                   : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
@@ -165,7 +165,7 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'
@@ -195,7 +195,7 @@ export default function AppHeader({
                 setSelectedDate(newDate);
               }}
               disabled={isLoading}
-              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl ${
+              className={`h-7 w-7 p-1 rounded-lg transition-all duration-200 flex items-center justify-center bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] ${
                 isLoading 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:scale-105'

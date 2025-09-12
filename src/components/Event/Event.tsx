@@ -117,7 +117,23 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return null;
   }
 
+  // Calculate event duration in hours
+  const getEventDurationHours = () => {
+    if (!event.start_time || !event.end_time) return 0;
+    try {
+      const [startHours, startMinutes] = event.start_time.split(':').map(Number);
+      const [endHours, endMinutes] = event.end_time.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      const durationMinutes = endTotalMinutes - startTotalMinutes;
+      return durationMinutes / 60; // Convert to hours
+    } catch (error) {
+      return 0;
+    }
+  };
 
+  const eventDurationHours = getEventDurationHours();
+  const isShortLecture = event.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate event positioning using utility function
   const timelineStartMinutes = startHour * 60;
@@ -213,6 +229,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const ROW_HEIGHT_PX = 96;
   const DEFAULT_EVENT_HEIGHT_PX = 88;
   const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
+  const AD_HOC_EVENT_HEIGHT_PX = 48; // Even more reduced height for Ad Hoc Class Meeting events
   const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
   
   // Determine event height: merged rooms get double height, otherwise follow existing rules
@@ -224,7 +241,12 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     // Position merged room events at the top of the row (they extend downward into next room space)
     eventTopPx = '6px';
   } else {
-    eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
+    // Special case for Ad Hoc Class Meeting - use even more reduced height
+    if (event.event_type === 'Ad Hoc Class Meeting') {
+      eventHeightPx = AD_HOC_EVENT_HEIGHT_PX;
+    } else {
+      eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
+    }
     // Center normal events in the row
     eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
   }
@@ -249,7 +271,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       onClick={() => onEventClick && onEventClick(event)}
     >
       <div
-        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${shouldBlink ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' : bgColor} text-white text-sm rounded px-2 pt-5 pb-1`}
+        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
+          shouldBlink 
+            ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
+            : event.event_type === 'Ad Hoc Class Meeting' 
+              ? 'ad-hoc-gradient' 
+              : event.event_type === 'Lecture'
+                ? 'lecture-gradient'
+                : bgColor
+        } text-white text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
