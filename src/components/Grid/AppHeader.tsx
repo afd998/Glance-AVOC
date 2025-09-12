@@ -15,16 +15,20 @@ interface AppHeaderProps {
   setSelectedDate: (date: Date) => void;
   isLoading: boolean;
   events: Event[] | undefined;
+  isDragging?: boolean;
 }
 
 export default function AppHeader({ 
   selectedDate, 
   setSelectedDate, 
   isLoading, 
-  events 
+  events,
+  isDragging = false
 }: AppHeaderProps) {
   return (
-    <div className="fixed top-4 left-4 right-4 z-[9999] opacity-0 hover:opacity-100 transition-opacity duration-300">
+    <div className={`fixed top-4 left-4 right-4 z-[9999] transition-opacity duration-300 ${
+      isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 hover:opacity-100'
+    }`}>
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
         {/* CSS Grid Layout - 2 rows, 8 columns with content-based sizing */}

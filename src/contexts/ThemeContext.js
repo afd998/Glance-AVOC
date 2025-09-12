@@ -10,7 +10,8 @@ const THEMES = {
   'dusk.jpg': { isDark: false, name: 'Dusk' },
   'Vista.avif': { isDark: false, name: 'Vista' },
   'halloween.png': { isDark: true, name: 'Halloween' },
-  'Ryan Fieldhouse.jpg': { isDark: false, name: 'Ryan Fieldhouse' }
+  'Ryan Fieldhouse.jpg': { isDark: false, name: 'Ryan Fieldhouse' },
+  'jaobscenter.jpeg': { isDark: false, name: 'Jacobs Center' }
 };
 
 export function ThemeProvider({ children }) {

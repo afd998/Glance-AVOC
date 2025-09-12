@@ -8,6 +8,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RainProvider } from './contexts/RainContext';
 import { LeavesProvider } from './contexts/LeavesContext';
+import { SnowProvider } from './contexts/SnowContext';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
@@ -34,7 +35,8 @@ export default function App() {
         <ThemeProvider>
           <RainProvider>
             <LeavesProvider>
-              <Router>
+              <SnowProvider>
+                <Router>
                 <Layout>
                   <Routes>
                     <Route path="/auth" element={<LandingPage />} />
@@ -48,7 +50,8 @@ export default function App() {
                     <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
                   </Routes>
                 </Layout>
-              </Router>
+                </Router>
+              </SnowProvider>
             </LeavesProvider>
           </RainProvider>
         </ThemeProvider>

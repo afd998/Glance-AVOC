@@ -36,13 +36,12 @@ export default function HomePage() {
   const [edgeHighlight, setEdgeHighlight] = useState({ top: false, bottom: false, left: false, right: false });
   const edgeHighlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Momentum scrolling
-  const [isMomentumScrolling, setIsMomentumScrolling] = useState(false);
-  const [momentumVelocity, setMomentumVelocity] = useState({ x: 0, y: 0 });
-  const [lastMoveTime, setLastMoveTime] = useState(0);
-  const [lastMovePosition, setLastMovePosition] = useState({ x: 0, y: 0 });
-  const [velocityDecayTimeout, setVelocityDecayTimeout] = useState<NodeJS.Timeout | null>(null);
-  const momentumRef = useRef<number | null>(null);
+  
+  // Throttling for performance
+  const lastThrottledMove = useRef(0);
+  const lastEdgeHighlightUpdate = useRef(0);
+  const THROTTLE_INTERVAL = 16; // ~60fps
+  const EDGE_HIGHLIGHT_THROTTLE = 50; // Update edge highlights less frequently
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
@@ -259,21 +258,6 @@ export default function HomePage() {
     navigate(`/${dateStr}/${event.id}`);
   };
 
-  // Helper function to start velocity decay when user stops moving
-  const startVelocityDecay = () => {
-    // Clear any existing decay timeout
-    if (velocityDecayTimeout) {
-      clearTimeout(velocityDecayTimeout);
-    }
-    
-    // Set a timeout to decay velocity to zero after 300ms of no movement
-    const timeout = setTimeout(() => {
-      setMomentumVelocity({ x: 0, y: 0 });
-      setVelocityDecayTimeout(null);
-    }, 300);
-    
-    setVelocityDecayTimeout(timeout);
-  };
 
   // Helper function to calculate the actual number of rows that will be rendered
   const calculateActualRowCount = () => {
@@ -352,7 +336,15 @@ export default function HomePage() {
 
   // Function to check and update edge highlighting
   const updateEdgeHighlight = () => {
-    if (!gridContainerRef.current || (!isDragging && !isMomentumScrolling)) return;
+    if (!gridContainerRef.current || !isDragging) return;
+    
+    const currentTime = Date.now();
+    
+    // Throttle edge highlight updates for better performance
+    if (currentTime - lastEdgeHighlightUpdate.current < EDGE_HIGHLIGHT_THROTTLE) {
+      return;
+    }
+    lastEdgeHighlightUpdate.current = currentTime;
     
     const container = gridContainerRef.current;
     const { scrollLeft, scrollTop, clientWidth, clientHeight } = container;
@@ -399,7 +391,7 @@ export default function HomePage() {
     }
     
     // Debug logging
-    if (isDragging || isMomentumScrolling) {
+    if (isDragging) {
       console.log('Edge detection debug:', {
         scrollLeft: scrollLeft.toFixed(2),
         scrollTop: scrollTop.toFixed(2),
@@ -417,59 +409,6 @@ export default function HomePage() {
     }
   };
 
-  // Momentum scrolling functions
-  const startMomentumScrolling = (velocityX: number, velocityY: number) => {
-    if (!gridContainerRef.current) return;
-    
-    setIsMomentumScrolling(true);
-    setMomentumVelocity({ x: velocityX, y: velocityY });
-    
-    const animate = () => {
-      if (!gridContainerRef.current) return;
-      
-      const container = gridContainerRef.current;
-      const currentScrollLeft = container.scrollLeft;
-      const currentScrollTop = container.scrollTop;
-      
-      // Apply momentum with friction (reduced friction for longer momentum)
-      const friction = 0.98;
-      const newVelocityX = momentumVelocity.x * friction;
-      const newVelocityY = momentumVelocity.y * friction;
-      
-      // Update scroll position with clamping
-      const newScrollLeft = currentScrollLeft - newVelocityX;
-      const newScrollTop = currentScrollTop - newVelocityY;
-      const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
-      container.scrollLeft = clampedPosition.scrollLeft;
-      container.scrollTop = clampedPosition.scrollTop;
-      
-      // Update edge highlighting during momentum
-      updateEdgeHighlight();
-      
-      // Check if momentum should continue (lower threshold for longer momentum)
-      if (Math.abs(newVelocityX) > 0.05 || Math.abs(newVelocityY) > 0.05) {
-        setMomentumVelocity({ x: newVelocityX, y: newVelocityY });
-        momentumRef.current = requestAnimationFrame(animate);
-      } else {
-        // Stop momentum scrolling
-        setIsMomentumScrolling(false);
-        setMomentumVelocity({ x: 0, y: 0 });
-        // Don't clear edge highlights here - let the timeout handle it
-      }
-    };
-    
-    momentumRef.current = requestAnimationFrame(animate);
-  };
-
-  const stopMomentumScrolling = () => {
-    if (momentumRef.current) {
-      cancelAnimationFrame(momentumRef.current);
-      momentumRef.current = null;
-    }
-    setIsMomentumScrolling(false);
-    setMomentumVelocity({ x: 0, y: 0 });
-    // Don't clear edge highlights here - let the timeout handle it
-  };
 
   // Drag-to-scroll handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -481,13 +420,6 @@ export default function HomePage() {
       return; // Don't drag if clicking on events or room labels
     }
     
-    // If momentum is scrolling, stop it but capture the current velocity
-    let currentMomentumVelocity = { x: 0, y: 0 };
-    if (isMomentumScrolling) {
-      currentMomentumVelocity = { ...momentumVelocity };
-      stopMomentumScrolling();
-    }
-    
     setIsDragging(true);
     setIsDragEnabled(true);
     setDragStart({
@@ -496,14 +428,6 @@ export default function HomePage() {
       scrollLeft: gridContainerRef.current.scrollLeft,
       scrollTop: gridContainerRef.current.scrollTop
     });
-    setLastMoveTime(Date.now());
-    setLastMovePosition({
-      x: e.pageX - gridContainerRef.current.offsetLeft,
-      y: e.pageY - gridContainerRef.current.offsetTop
-    });
-    
-    // Store the current momentum velocity to add to drag velocity
-    setMomentumVelocity(currentMomentumVelocity);
     
     gridContainerRef.current.style.cursor = 'grabbing';
     e.preventDefault();
@@ -514,24 +438,15 @@ export default function HomePage() {
     e.preventDefault();
     
     const currentTime = Date.now();
+    
+    // Throttle updates for better performance
+    if (currentTime - lastThrottledMove.current < THROTTLE_INTERVAL) {
+      return;
+    }
+    lastThrottledMove.current = currentTime;
+    
     const x = e.pageX - gridContainerRef.current.offsetLeft;
     const y = e.pageY - gridContainerRef.current.offsetTop;
-    
-    // Calculate velocity for momentum, adding to existing momentum if any
-    const timeDelta = currentTime - lastMoveTime;
-    if (timeDelta > 0) {
-      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 32; // Increased from 24 to 32 for more sensitivity
-      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 32;
-      
-      // Add existing momentum velocity to the new drag velocity
-      const combinedVelocityX = momentumVelocity.x + dragVelocityX;
-      const combinedVelocityY = momentumVelocity.y + dragVelocityY;
-      
-      setMomentumVelocity({ x: combinedVelocityX, y: combinedVelocityY });
-      
-      // Reset velocity decay timer since user is moving
-      startVelocityDecay();
-    }
     
     const walkX = (x - dragStart.x) * 2; // Multiply by 2 for faster scrolling
     const walkY = (y - dragStart.y) * 2; // Multiply by 2 for faster scrolling
@@ -543,11 +458,7 @@ export default function HomePage() {
     gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
     gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
     
-    // Update tracking for velocity calculation
-    setLastMoveTime(currentTime);
-    setLastMovePosition({ x, y });
-    
-    // Update edge highlighting after scroll
+    // Update edge highlighting after scroll (throttled)
     updateEdgeHighlight();
   };
 
@@ -555,11 +466,6 @@ export default function HomePage() {
     setIsDragging(false);
     if (gridContainerRef.current) {
       gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
-    }
-    
-    // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
-      startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
     }
     // Don't clear edge highlights here - let the timeout handle it
   };
@@ -569,28 +475,17 @@ export default function HomePage() {
     if (gridContainerRef.current) {
       gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
     }
-    
-    // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
-      startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
-    }
     // Don't clear edge highlights here - let the timeout handle it
   };
 
-  // Cleanup momentum scrolling, edge highlight timeout, and velocity decay timeout on unmount
+  // Cleanup edge highlight timeout on unmount
   useEffect(() => {
     return () => {
-      if (momentumRef.current) {
-        cancelAnimationFrame(momentumRef.current);
-      }
       if (edgeHighlightTimeoutRef.current) {
         clearTimeout(edgeHighlightTimeoutRef.current);
       }
-      if (velocityDecayTimeout) {
-        clearTimeout(velocityDecayTimeout);
-      }
     };
-  }, [velocityDecayTimeout]);
+  }, []);
 
   // Touch support for mobile devices
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -599,13 +494,6 @@ export default function HomePage() {
     const target = e.target as HTMLElement;
     if (target.closest('[data-event]') || target.closest('[data-room-label]')) {
       return;
-    }
-    
-    // If momentum is scrolling, stop it but capture the current velocity
-    let currentMomentumVelocity = { x: 0, y: 0 };
-    if (isMomentumScrolling) {
-      currentMomentumVelocity = { ...momentumVelocity };
-      stopMomentumScrolling();
     }
     
     setIsDragging(true);
@@ -617,14 +505,6 @@ export default function HomePage() {
       scrollLeft: gridContainerRef.current.scrollLeft,
       scrollTop: gridContainerRef.current.scrollTop
     });
-    setLastMoveTime(Date.now());
-    setLastMovePosition({
-      x: touch.pageX - gridContainerRef.current.offsetLeft,
-      y: touch.pageY - gridContainerRef.current.offsetTop
-    });
-    
-    // Store the current momentum velocity to add to drag velocity
-    setMomentumVelocity(currentMomentumVelocity);
     
     e.preventDefault();
   };
@@ -634,25 +514,16 @@ export default function HomePage() {
     e.preventDefault();
     
     const currentTime = Date.now();
+    
+    // Throttle updates for better performance
+    if (currentTime - lastThrottledMove.current < THROTTLE_INTERVAL) {
+      return;
+    }
+    lastThrottledMove.current = currentTime;
+    
     const touch = e.touches[0];
     const x = touch.pageX - gridContainerRef.current.offsetLeft;
     const y = touch.pageY - gridContainerRef.current.offsetTop;
-    
-    // Calculate velocity for momentum, adding to existing momentum if any
-    const timeDelta = currentTime - lastMoveTime;
-    if (timeDelta > 0) {
-      const dragVelocityX = (x - lastMovePosition.x) / timeDelta * 32; // Increased from 24 to 32 for more sensitivity
-      const dragVelocityY = (y - lastMovePosition.y) / timeDelta * 32;
-      
-      // Add existing momentum velocity to the new drag velocity
-      const combinedVelocityX = momentumVelocity.x + dragVelocityX;
-      const combinedVelocityY = momentumVelocity.y + dragVelocityY;
-      
-      setMomentumVelocity({ x: combinedVelocityX, y: combinedVelocityY });
-      
-      // Reset velocity decay timer since user is moving
-      startVelocityDecay();
-    }
     
     const walkX = (x - dragStart.x) * 2;
     const walkY = (y - dragStart.y) * 2;
@@ -664,21 +535,12 @@ export default function HomePage() {
     gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
     gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
     
-    // Update tracking for velocity calculation
-    setLastMoveTime(currentTime);
-    setLastMovePosition({ x, y });
-    
-    // Update edge highlighting after scroll
+    // Update edge highlighting after scroll (throttled)
     updateEdgeHighlight();
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    
-    // Start momentum scrolling if there's sufficient velocity
-    if (Math.abs(momentumVelocity.x) > 0.2 || Math.abs(momentumVelocity.y) > 0.2) {
-      startMomentumScrolling(momentumVelocity.x, momentumVelocity.y);
-    }
     // Don't clear edge highlights here - let the timeout handle it
   };
 
@@ -696,11 +558,15 @@ export default function HomePage() {
          setSelectedDate={handleDateChange}
          isLoading={isLoading}
          events={events}
+         isDragging={isDragging}
        />
                           <div 
                             ref={gridContainerRef} 
-                            className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative  shadow-2xl"
-                            style={{ cursor: isDragEnabled ? 'grab' : 'default' }}
+                            className={`grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative shadow-2xl ${
+                              isDragging ? 'dragging' : ''}`}
+                            style={{ 
+                              cursor: isDragEnabled ? 'grab' : 'default'
+                            }}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}

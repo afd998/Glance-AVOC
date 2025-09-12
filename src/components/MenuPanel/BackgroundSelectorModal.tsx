@@ -3,6 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useBackground } from '../../hooks/useBackground';
 import { useRain } from '../../contexts/RainContext';
 import { useLeaves } from '../../contexts/LeavesContext';
+import { useSnow } from '../../contexts/SnowContext';
 
 interface BackgroundSelectorModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
   const { currentBackground, setCurrentBackground, isUpdating } = useBackground();
   const { isRainEnabled, toggleRain } = useRain();
   const { isLeavesEnabled, toggleLeaves } = useLeaves();
+  const { isSnowEnabled, toggleSnow } = useSnow();
 
   const backgroundOptions = [
     {
@@ -54,6 +56,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
       name: 'Ryan Fieldhouse',
       preview: '/Ryan Fieldhouse.jpg',
       description: 'Northwestern University Ryan Fieldhouse background'
+    },
+    {
+      id: 'jaobscenter.jpeg',
+      name: 'Jacobs Center',
+      preview: '/jaobscenter.jpeg',
+      description: 'Jacobs Center background'
     }
   ];
 
@@ -194,6 +202,30 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
                       </div>
                       <span className={`font-medium ${isLeavesEnabled ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}`}>
                         {isLeavesEnabled ? 'On' : 'Off'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Snow Effect Toggle for Jacobs Center Background */}
+                {option.id === 'jaobscenter.jpeg' && currentBackground === 'jaobscenter.jpeg' && (
+                  <div className="mt-2 p-2 rounded-lg border border-gray-200/50 dark:border-gray-600/50 bg-gray-50/30 dark:bg-gray-800/30">
+                    <button
+                      onClick={toggleSnow}
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all duration-200 backdrop-blur-sm hover:scale-[1.01] text-xs ${
+                        isDarkMode 
+                          ? 'border-gray-600/50 bg-gray-700/30 hover:bg-gray-600/40 text-white' 
+                          : 'border-gray-200/50 bg-white/50 hover:bg-gray-50/60 text-gray-900'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <span>Snow</span>
+                      </div>
+                      <span className={`font-medium ${isSnowEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                        {isSnowEnabled ? 'On' : 'Off'}
                       </span>
                     </button>
                   </div>
