@@ -108,10 +108,11 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   
   // Dynamic width based on number of faculty
   const getAvatarContainerWidth = () => {
-    if (instructorNames.length === 1) return 'w-20'; // 80px for single faculty
-    if (instructorNames.length === 2) return 'w-28'; // 112px for two faculty
-    if (instructorNames.length >= 3) return 'w-32'; // 128px for three or more faculty
-    return 'w-20'; // default
+    // Use appropriate width based on faculty count
+    if (instructorNames.length <= 1) return 'w-16'; // 64px for single faculty
+    if (instructorNames.length === 2) return 'w-24'; // 96px for two faculty
+    if (instructorNames.length >= 3) return 'w-28'; // 112px for three or more faculty
+    return 'w-16'; // default
   };
 
   // Find faculty member for first instructor (for single avatar case)
@@ -120,10 +121,10 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   );
 
   return (
-         <div className={`flex flex-row ${event.event_type === 'Lecture' ? '' : themeColors[6]} ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
+         <div className={`flex flex-row ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
-           className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : contentBgColor} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative ${event.event_type === 'Lecture' ? 'shadow-2xl' : ''}`}
+           className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative flex-shrink-0 -mt-1`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
                     {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
@@ -133,6 +134,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
               instructorName={instructorNames[0]}
               isHovering={isHovering}
               size="md"
+              pixelated={event.event_type !== 'Lecture'}
             />
           ) : instructorNames.length > 1 ? (
             <div className="flex -space-x-2">
@@ -147,6 +149,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
                     isHovering={isHovering}
                     size="md"
                     className="h-10 w-10"
+                    pixelated={event.event_type !== 'Lecture'}
                   />
                 );
               })}
@@ -164,7 +167,28 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
               👤
             </span>
           )}
-                     <span className="text-[10px] leading-tight font-medium opacity-90 text-center whitespace-nowrap w-full -mt-0.5 transition-all duration-200 ease-in-out">
+                     <span className={`leading-tight font-medium opacity-90 text-center whitespace-nowrap w-full -mt-0.5 transition-all duration-200 ease-in-out ${
+            (() => {
+              const nameToDisplay = instructorNames.length > 0 ? (() => {
+                if (instructorNames.length === 1) {
+                  const firstName = instructorNames[0];
+                  const parts = firstName.split(',');
+                  if (parts.length >= 2) {
+                    return parts[0].trim();
+                  }
+                  return firstName;
+                } else {
+                  // Show first names for the instructors whose avatars are displayed (up to 3)
+                  const displayedInstructors = instructorNames.slice(0, 3);
+                  return displayedInstructors.map(name => {
+                    const parts = name.split(',');
+                    return parts.length >= 2 ? parts[0].trim() : name;
+                  }).join(', ');
+                }
+              })() : '';
+              return nameToDisplay.length > 12 ? 'text-[8px]' : 'text-[10px]';
+            })()
+          }`}>
             {instructorNames.length > 0 ? (() => {
               if (instructorNames.length === 1) {
                 const firstName = instructorNames[0];
@@ -195,9 +219,9 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
         />
       )}
 
-      <div className={`flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden ${isMergedRoomEvent ? 'justify-center' : ''}`}>
+      <div className={`flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden mt-1 ${isMergedRoomEvent ? 'justify-center' : ''}`}>
         <span
-          className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-3xl leading-none"
+          className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-2xl leading-none"
           style={{
             transform: isHovering ? 'scale(1.05)' : 'scale(1)',
             transformOrigin: 'left center',
@@ -208,13 +232,14 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
           {baseName}
         </span>
         {thirdPart && (
-          <span className="text-xs text-white opacity-90 transition-all duration-200 ease-in-out whitespace-nowrap leading-none">
+          <span className="text-[10px] text-gray-400 opacity-90 transition-all duration-200 ease-in-out whitespace-nowrap leading-none">
             Sec: {thirdPart}
           </span>
         )}
         {event.lecture_title && (
           <span
-            className="text-[10px] text-white opacity-80 transition-all duration-200 ease-in-out whitespace-nowrap leading-none"
+            className="text-xs text-white opacity-80 transition-all duration-200 ease-in-out whitespace-nowrap leading-none"
+            style={{ fontFamily: "'GoudyBookletter1911', serif" }}
             title={event.lecture_title}
           >
             {event.lecture_title}
@@ -252,21 +277,31 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   };
 
   return (
-    <div className={`${event.event_type === 'Ad Hoc Class Meeting' ? '' : event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : contentBgColor} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden ${getEventHeight()} relative ${
+    <div className={`${event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${
       event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : ''
     }`}>
-      <div className={`flex items-center justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${
-        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0 h-full' : 'py-1 h-full'
+      <div className={`flex items-start justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${
+        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0' : 'py-1'
       }`}>
         <span
-          className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-tight truncate whitespace-nowrap ${
+          className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-relaxed ${
             event.event_type === 'Ad Hoc Class Meeting' 
-              ? (isHovering ? 'text-white' : 'text-gray-600')
-              : 'text-white'
+              ? (isHovering ? 'text-gray-900' : 'text-gray-700')
+              : event.event_type === 'Lecture'
+                ? 'text-white'
+                : 'text-gray-900'
           }`}
           style={{
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
-            transformOrigin: 'left center'
+            transformOrigin: 'left top',
+            fontFamily: "'GoudyBookletter1911', serif",
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            lineHeight: '1.4',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
           }}
           title={eventName}
         >

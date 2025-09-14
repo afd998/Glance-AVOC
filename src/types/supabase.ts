@@ -51,7 +51,6 @@ export type Database = {
           item_id2: number | null
           lecture_title: string | null
           man_owner: string | null
-          panopto_checks: Json | null
           raw: Json | null
           resources: Json | null
           room_name: string | null
@@ -70,7 +69,6 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
-          panopto_checks?: Json | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -89,7 +87,6 @@ export type Database = {
           item_id2?: number | null
           lecture_title?: string | null
           man_owner?: string | null
-          panopto_checks?: Json | null
           raw?: Json | null
           resources?: Json | null
           room_name?: string | null
@@ -295,7 +292,7 @@ export type Database = {
           current_filter: string | null
           id: string
           name: string | null
-          role: string | null
+          roles: Json
         }
         Insert: {
           auto_hide?: boolean
@@ -303,7 +300,7 @@ export type Database = {
           current_filter?: string | null
           id: string
           name?: string | null
-          role?: string | null
+          roles?: Json
         }
         Update: {
           auto_hide?: boolean
@@ -311,7 +308,7 @@ export type Database = {
           current_filter?: string | null
           id?: string
           name?: string | null
-          role?: string | null
+          roles?: Json
         }
         Relationships: []
       }

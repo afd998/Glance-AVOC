@@ -112,11 +112,20 @@ export default function EventHeader({
       const [hours, minutes] = timeString.split(':').map(Number);
       const date = new Date();
       date.setHours(hours, minutes, 0, 0);
-      return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      });
+      
+      // If minutes are 00, show just the hour
+      if (minutes === 0) {
+        return date.toLocaleTimeString('en-US', { 
+          hour: 'numeric',
+          hour12: true 
+        });
+      } else {
+        return date.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      }
     } catch (error) {
       console.error('Error formatting time:', timeString, error);
       return '';
@@ -186,7 +195,9 @@ export default function EventHeader({
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
             event.event_type === 'Ad Hoc Class Meeting' 
               ? (isHovering ? 'text-white' : 'text-gray-600')
-              : 'text-white'
+              : event.event_type === 'Lecture'
+                ? 'text-black'
+                : 'text-white'
           }`}
           title={timeDisplay}
           style={{
@@ -197,14 +208,14 @@ export default function EventHeader({
           {timeDisplay}
         </span>
       </div>
-            <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible ${themeColors[8]} rounded-md px-2 py-1 ${isShortLecture ? 'mt-0 absolute top-0 right-0 transform -translate-y-1/2 translate-x-1/2' : 'mt-4'}`}>
+            <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black bg-opacity-20 backdrop-blur-sm rounded-md px-2 py-1 mt-2`}>
         {isFirstSession && (
           <span
-            className="text-yellow-500 dark:text-yellow-400 text-sm font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+            className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="First Session"
             style={{
-              transform: `scale(${getFisheyeScale('firstSession')})`,
-              fontSize: `${getFisheyeScale('firstSession')}em`
+              transform: `scale(${getFisheyeScale('firstSession') * 0.8})`,
+              fontSize: `${getFisheyeScale('firstSession') * 0.8}em`
             }}
             onMouseEnter={() => handleIconHover('firstSession')}
             onMouseLeave={handleIconLeave}
@@ -222,8 +233,8 @@ export default function EventHeader({
             className="relative rounded-full bg-red-500 transition-all duration-[250ms] ease-in-out cursor-pointer"
             title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
-              width: `${12 * getFisheyeScale('videoRecording')}px`,
-              height: `${12 * getFisheyeScale('videoRecording')}px`,
+              width: `${10 * getFisheyeScale('videoRecording')}px`,
+              height: `${10 * getFisheyeScale('videoRecording')}px`,
               animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
             }}
             onMouseEnter={() => handleIconHover('videoRecording')}
@@ -236,8 +247,8 @@ export default function EventHeader({
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   style={{
-                    width: `${8 * getFisheyeScale('videoRecording')}px`,
-                    height: `${8 * getFisheyeScale('videoRecording')}px`
+                    width: `${7 * getFisheyeScale('videoRecording')}px`,
+                    height: `${7 * getFisheyeScale('videoRecording')}px`
                   }}
                 >
                   <path
@@ -260,8 +271,8 @@ export default function EventHeader({
             className="flex items-center justify-center rounded-full bg-green-500 bg-opacity-90 transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Staff Assistance"
             style={{
-              width: `${16 * getFisheyeScale('staffAssistance')}px`,
-              height: `${16 * getFisheyeScale('staffAssistance')}px`
+              width: `${13 * getFisheyeScale('staffAssistance')}px`,
+              height: `${13 * getFisheyeScale('staffAssistance')}px`
             }}
             onMouseEnter={() => handleIconHover('staffAssistance')}
             onMouseLeave={handleIconLeave}
@@ -269,7 +280,7 @@ export default function EventHeader({
             <span
               className="text-white transition-all duration-[250ms] ease-in-out"
               style={{
-                fontSize: `${12 * getFisheyeScale('staffAssistance')}px`
+                fontSize: `${10 * getFisheyeScale('staffAssistance')}px`
               }}
             >
               🚶
@@ -286,7 +297,7 @@ export default function EventHeader({
             className="transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Handheld Microphone"
             style={{
-              fontSize: `${getFisheyeScale('handheldMic')}em`
+              fontSize: `${getFisheyeScale('handheldMic') * 0.8}em`
             }}
             onMouseEnter={() => handleIconHover('handheldMic')}
             onMouseLeave={handleIconLeave}
@@ -307,8 +318,8 @@ export default function EventHeader({
               className="object-contain dark:invert transition-all duration-[250ms] ease-in-out cursor-pointer"
               title="Web Conference"
               style={{
-                width: `${12 * getFisheyeScale('webConference')}px`,
-                height: `${12 * getFisheyeScale('webConference')}px`
+                width: `${10 * getFisheyeScale('webConference')}px`,
+                height: `${10 * getFisheyeScale('webConference')}px`
               }}
               onMouseEnter={() => handleIconHover('webConference')}
               onMouseLeave={handleIconLeave}
@@ -325,8 +336,8 @@ export default function EventHeader({
             <div
               className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer relative"
               style={{
-                width: `${20 * getFisheyeScale('clickers')}px`,
-                height: `${20 * getFisheyeScale('clickers')}px`
+                width: `${16 * getFisheyeScale('clickers')}px`,
+                height: `${16 * getFisheyeScale('clickers')}px`
               }}
               onMouseEnter={() => handleIconHover('clickers')}
               onMouseLeave={handleIconLeave}
@@ -336,8 +347,8 @@ export default function EventHeader({
                 alt="Clickers"
                 className="object-contain dark:invert transition-all duration-[250ms] ease-in-out"
                 style={{
-                  width: `${18 * getFisheyeScale('clickers')}px`,
-                  height: `${18 * getFisheyeScale('clickers')}px`
+                  width: `${14 * getFisheyeScale('clickers')}px`,
+                  height: `${14 * getFisheyeScale('clickers')}px`
                 }}
                 title="Clickers (Polling)"
               />
@@ -354,7 +365,7 @@ export default function EventHeader({
             className="text-xs transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="AV Setup Notes"
             style={{
-              fontSize: `${getFisheyeScale('avNotes')}em`
+              fontSize: `${getFisheyeScale('avNotes') * 0.8}em`
             }}
             onMouseEnter={() => handleIconHover('avNotes')}
             onMouseLeave={handleIconLeave}
