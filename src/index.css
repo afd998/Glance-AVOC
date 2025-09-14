@@ -1196,6 +1196,84 @@ code {
     radial-gradient(ellipse 200% 200% at center, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%) !important;
 }
 
+/* KEC glassmorphism gradient background */
+.kec-gradient {
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+    linear-gradient(45deg, rgba(156, 163, 175, 0.3) 0%, rgba(107, 114, 128, 0.2) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* KSM FacStaff glassmorphism gradient background */
+.ksm-facstaff-gradient {
+  background: 
+    linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.1) 100%),
+    linear-gradient(45deg, rgba(147, 197, 253, 0.3) 0%, rgba(96, 165, 250, 0.2) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(59, 130, 246, 0.15),
+    0 2px 8px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* CMC glassmorphism gradient background */
+.cmc-gradient {
+  background: 
+    linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.1) 100%),
+    linear-gradient(45deg, rgba(252, 165, 165, 0.3) 0%, rgba(248, 113, 113, 0.2) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(239, 68, 68, 0.15),
+    0 2px 8px rgba(239, 68, 68, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Student Event glassmorphism gradient background */
+.student-event-gradient {
+  background: 
+    linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.1) 100%),
+    linear-gradient(45deg, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.2) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(245, 158, 11, 0.15),
+    0 2px 8px rgba(245, 158, 11, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Faculty/Staff Event glassmorphism gradient background */
+.facstaff-event-gradient {
+  background: 
+    linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0.1) 100%),
+    linear-gradient(45deg, rgba(196, 181, 253, 0.3) 0%, rgba(167, 139, 250, 0.2) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(139, 92, 246, 0.15),
+    0 2px 8px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Default Event glassmorphism gradient background */
+.default-event-gradient {
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%),
+    linear-gradient(45deg, rgba(156, 163, 175, 0.2) 0%, rgba(107, 114, 128, 0.1) 100%) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
 /* Red blinking vignette animation */
 @keyframes blink-red-vignette {
   0% {

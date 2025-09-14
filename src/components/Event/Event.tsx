@@ -168,6 +168,33 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const themeColors = getEventThemeColors(event);
   const bgColor = themeColors[5]; // Use theme color for background
   
+  // Determine gradient class based on event type
+  const getGradientClass = (eventType: string) => {
+    switch (eventType) {
+      case 'Lecture':
+        return 'lecture-gradient';
+      case 'Ad Hoc Class Meeting':
+        return 'ad-hoc-gradient';
+      case 'KEC':
+        return 'kec-gradient';
+      case 'KSM: Kellogg FacStaff (KGH)':
+        return 'ksm-facstaff-gradient';
+      case 'CMC':
+        return 'cmc-gradient';
+      default:
+        // Check if it's a student event
+        if (eventType.toLowerCase().includes('student')) {
+          return 'student-event-gradient';
+        }
+        // Check if it's a faculty/staff event (but not KSM FacStaff which is handled above)
+        if (!eventType.toLowerCase().includes('student') && eventType !== 'KSM: Kellogg FacStaff (KGH)') {
+          return 'facstaff-event-gradient';
+        }
+        // Default fallback
+        return 'default-event-gradient';
+    }
+  };
+  
   // Determine if we should show the overdue blinking effect
   const shouldBlink = hasOverduePanoptoChecks;
   
@@ -258,10 +285,11 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         top: eventTopPx,
         left: left,
         width: displayWidth,
-        height: `${eventHeightPx}px`,
+        height: event.event_type === 'Lecture' ? `${eventHeightPx}px` : 'auto',
+        minHeight: `${eventHeightPx}px`,
         overflow: 'visible',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
+        whiteSpace: event.event_type === 'Lecture' ? 'nowrap' : 'normal',
         zIndex: isHoveringEvent ? 60 : (showHoverCard ? 50 : 49),
         // No transform/boxShadow here so continuation lines don't scale
       }}
@@ -275,12 +303,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
           shouldBlink && event.event_type !== 'Lecture'
             ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
-            : event.event_type === 'Ad Hoc Class Meeting' 
-              ? 'ad-hoc-gradient' 
-              : event.event_type === 'Lecture'
-                ? 'lecture-gradient'
-                : bgColor
-        } text-white text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} pt-5 pb-1`}
+            : getGradientClass(event.event_type || '')
+        } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
@@ -315,7 +339,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : getGradientClass(event.event_type || '')}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX}px`,
             top: '50%',
@@ -329,7 +353,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (bgColor.includes('bg-transparent') ? 'bg-gray-400 dark:bg-gray-500' : bgColor)}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : getGradientClass(event.event_type || '')}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
             top: 0,

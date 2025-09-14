@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SimpleFacultyAvatar } from './SimpleFacultyAvatar';
 import { useTheme } from '../contexts/ThemeContext';
+import { PixelatedCanvas } from './ui/pixelated-canvas';
 
 interface FacultyAvatarProps {
   imageUrl: string;
@@ -10,6 +11,7 @@ interface FacultyAvatarProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   maskRadius?: number; // Configurable radius for the circular mask (default: 50)
+  pixelated?: boolean; // Enable pixelated rendering
 }
 
 interface MultipleFacultyAvatarsProps {
@@ -33,7 +35,8 @@ export function FacultyAvatar({
   isHovering, 
   className = '',
   size = 'md',
-  maskRadius = 63 // Default radius of 50, can be adjusted (smaller = tighter mask, larger = looser mask)
+  maskRadius = 63, // Default radius of 50, can be adjusted (smaller = tighter mask, larger = looser mask)
+  pixelated = false // Enable pixelated rendering
 }: FacultyAvatarProps) {
   const { currentTheme } = useTheme();
   const [imageError, setImageError] = useState(false);
@@ -48,6 +51,67 @@ export function FacultyAvatar({
     setImageError(true);
   };
 
+  if (imageError) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-purple-200 flex items-center justify-center ${className}`} title={instructorName}>
+        <span className="text-sm transition-all duration-200 ease-in-out">👤</span>
+      </div>
+    );
+  }
+
+  // Pixelated rendering for faculty photos - takes priority when enabled
+  if (pixelated && imageUrl) {
+    const pixelSize = size === 'sm' ? 4 : size === 'md' ? 6 : 8;
+    const canvasSize = size === 'sm' ? 32 : size === 'md' ? 48 : 64;
+    
+    return (
+      <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-in-out ${className}`} title={instructorName}>
+        {/* Purple gradient background */}
+        <div 
+          className="absolute inset-0 rounded-full z-0" 
+          style={{ 
+            background: 'linear-gradient(135deg, #6b5b95 0%, #886ec4 50%, #9b8ce8 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        ></div>
+        
+        {/* Pixelated canvas */}
+        <div className="absolute inset-0 z-10 rounded-full overflow-hidden">
+          <PixelatedCanvas
+            src={imageUrl}
+            width={canvasSize}
+            height={canvasSize}
+            cellSize={pixelSize}
+            dotScale={1.0}
+            shape="square"
+            backgroundColor="transparent"
+            interactive={isHovering}
+            distortionStrength={isHovering ? 2 : 0}
+            distortionRadius={canvasSize * 0.6}
+            distortionMode="swirl"
+            followSpeed={0.3}
+            tintColor="#886ec4"
+            tintStrength={0.2}
+            className="w-full h-full rounded-full"
+          />
+        </div>
+        
+        {/* Halloween green glow effect */}
+        {isHalloweenTheme && isHovering && (
+          <div 
+            className="absolute inset-0 rounded-full z-20 animate-pulse" 
+            style={{ 
+              background: 'radial-gradient(circle, rgba(0, 255, 0, 0.3) 0%, rgba(0, 255, 0, 0.1) 50%, transparent 100%)',
+              boxShadow: '0 0 20px rgba(0, 255, 0, 0.6), 0 0 40px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2)',
+              filter: 'blur(1px)'
+            }}
+          ></div>
+        )}
+      </div>
+    );
+  }
+
   // If no cutout available, use simple CSS avatar
   if (!hasCutout) {
     return (
@@ -58,14 +122,6 @@ export function FacultyAvatar({
         className={className}
         size={size}
       />
-    );
-  }
-
-  if (imageError) {
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-purple-200 flex items-center justify-center ${className}`} title={instructorName}>
-        <span className="text-sm transition-all duration-200 ease-in-out">👤</span>
-      </div>
     );
   }
 
