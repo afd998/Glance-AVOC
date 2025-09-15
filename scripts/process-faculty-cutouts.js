@@ -30,8 +30,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env.development') });
 
 // Supabase configuration
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Need service key for admin operations
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY; // Need service key for admin operations
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('❌ Missing Supabase configuration in .env.development');

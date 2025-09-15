@@ -86,7 +86,7 @@ export const subscribeToPushNotifications = async (): Promise<PushSubscription |
     // Subscribe to push notifications
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY || '')
+      applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY || '')
     });
 
     console.log('Subscribed to push notifications:', subscription);

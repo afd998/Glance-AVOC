@@ -9,7 +9,6 @@
     "@tanstack/react-query": "^5.79.0",
     "@tanstack/react-query-persist-client": "^5.79.0",
     "@testing-library/dom": "^9.3.3",
-    "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.9.0",
@@ -27,17 +26,17 @@
     "react-datepicker": "^8.4.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.6.2",
-    "react-scripts": "5.0.1",
-    "tailwind": "^4.0.0",
+    "tailwind": "^2.3.1",
     "tailwind-merge": "^3.3.1",
-    "web-vitals": "^2.1.4",
+    "web-vitals": "^5.1.0",
     "zustand": "^5.0.5"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "analyze": "source-map-explorer 'dist/assets/*.js'",
+    "test": "vitest",
     "generate-types": "npx supabase gen types typescript --project-id hjjaxtzutvrngbndhqfr > src/types/supabase.ts"
   },
   "eslintConfig": {
@@ -62,11 +61,14 @@
     "@types/node": "^24.0.12",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",
+    "source-map-explorer": "^2.5.3",
     "supabase": "^2.39.2",
     "tailwindcss": "^3.3.5",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite": "^7.1.5"
   }
 }
