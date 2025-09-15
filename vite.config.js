@@ -1,9 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(),
+    visualizer({
+      filename: 'stats.html',   // output file
+      open: true,               // auto-open in browser
+      gzipSize: true,           // show gzip sizes
+      brotliSize: true          // show brotli sizes
+    }),
+  ],
   server: {
     port: 3000, // match CRA's default if you want
+  },
+  build: {
+    sourcemap: true,   // ⬅️ add this
   },
 })

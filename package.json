@@ -35,7 +35,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "analyze": "source-map-explorer 'dist/assets/*.js'",
+    "analyze": "source-map-explorer \"dist/assets/*.js\"",
     "test": "vitest",
     "generate-types": "npx supabase gen types typescript --project-id hjjaxtzutvrngbndhqfr > src/types/supabase.ts"
   },
@@ -65,6 +65,7 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",
+    "rollup-plugin-visualizer": "^6.0.3",
     "source-map-explorer": "^2.5.3",
     "supabase": "^2.39.2",
     "tailwindcss": "^3.3.5",

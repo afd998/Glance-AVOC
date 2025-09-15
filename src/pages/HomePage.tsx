@@ -75,10 +75,27 @@ export default function HomePage() {
   const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks(events || []);
   useAutoHideLogic(filteredEvents, selectedDate);
   const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
-  const { filters, loadFilter, getFilterByName } = useFilters();
+  const { filters, loadFilter, getFilterByName, saveFilter } = useFilters();
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
+
+  // Ensure "All Rooms" default filter exists
+  React.useEffect(() => {
+    const initializeAllRoomsFilter = async () => {
+      if (rooms.length > 0 && filters.length > 0 && !getFilterByName('All Rooms')) {
+        try {
+          console.log('Creating default All Rooms filter');
+          const roomNames = rooms.filter((room: string) => !room.includes('&'));
+          await saveFilter('All Rooms', roomNames);
+        } catch (error) {
+          console.error('Failed to create default All Rooms filter:', error);
+        }
+      }
+    };
+
+    initializeAllRoomsFilter();
+  }, [rooms, filters, saveFilter, getFilterByName]);
 
   React.useEffect(() => {
     if (events && events.length > 0) {
@@ -109,7 +126,7 @@ export default function HomePage() {
     });
   }, [filteredEvents, selectedRooms, getFilteredEventsForRoom]);
 
-  // Handler to clear the current filter
+  // Handler to clear the current filter (load "All Rooms" filter)
   const handleClearFilter = async () => {
     try {
       // Check if there's already an "All Rooms" filter
@@ -120,30 +137,30 @@ export default function HomePage() {
         const { allRooms } = useRoomStore.getState();
         const roomNames = allRooms.filter((room: string) => !room.includes('&')); // Exclude merged rooms
 
-        // Create the "All Rooms" filter
-        const newFilter = {
-          name: 'All Rooms',
-          display: roomNames,
-          owner: null, // Make it a default filter
-          isDefault: true,
-          id: 0, // This will be set by the database
-          createdAt: new Date().toISOString()
-        };
-
-        allRoomsFilter = newFilter;
+        console.log('Creating All Rooms filter with rooms:', roomNames);
+        
+        // Save the "All Rooms" filter to the database
+        // The saveFilter function will automatically set it as the current filter
+        await saveFilter('All Rooms', roomNames);
+        
+        // The saveFilter function sets the current filter, so we're done
+        return;
       }
 
-      // Load the "All Rooms" filter
-      if (allRoomsFilter) {
-        await loadFilter(allRoomsFilter);
-      }
+      // Load the existing "All Rooms" filter
+      console.log('Loading existing All Rooms filter:', allRoomsFilter);
+      await loadFilter(allRoomsFilter);
     } catch (error) {
-      console.error('Error clearing filter:', error);
-      // Fallback: just reset to null if loading fails
-      updateCurrentFilter(null);
-      updateAutoHide(false);
-      const { selectAllRooms } = useRoomStore.getState();
-      selectAllRooms();
+      console.error('Error handling clear filter:', error);
+      // Fallback: just clear filter and select all rooms
+      try {
+        await updateCurrentFilter(null);
+        await updateAutoHide(false);
+        const { selectAllRooms } = useRoomStore.getState();
+        selectAllRooms();
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
     }
   };
 

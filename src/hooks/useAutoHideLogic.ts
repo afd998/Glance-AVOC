@@ -73,7 +73,14 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
   }, [filteredEvents, selectedDate, autoHide, currentFilter, filters, allRooms]);
 
   // Only update selectedRooms when targetRooms actually changes
+  // But don't override when a filter is actively loaded (currentFilter is set)
   useEffect(() => {
+    // If a filter is active, don't override the room store - let the filter control the rooms
+    // Exception: "All Rooms" filter and "My Events" should be handled by auto-hide logic
+    if (currentFilter && currentFilter !== 'My Events' && currentFilter !== 'All Rooms') {
+      return;
+    }
+    
     // Don't sort - preserve the original order from useRooms
     // Use the original allRooms order to maintain priority sorting
     const sortedTargetRooms = allRooms.filter((room: string) => targetRooms.includes(room));
@@ -84,7 +91,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
       setSelectedRooms(sortedTargetRooms); // Keep original priority order
       setNotificationRooms(sortedTargetRooms); // Keep original priority order
     }
-  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms, allRooms]);
+  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms, allRooms, currentFilter]);
 
   return { autoHide };
 }; 
