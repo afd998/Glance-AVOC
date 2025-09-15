@@ -90,14 +90,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const [weekTab, setWeekTab] = useState<'this' | 'next'>('next');
   const [selectedDay, setSelectedDay] = useState(0);
   
-  // Technician selection state for each week
-  const [selectedTechnicians, setSelectedTechnicians] = useState<{
-    this: string[];
-    next: string[];
-  }>({
-    this: [],
-    next: []
-  });
 
   // Calculate this week's Monday
   function getThisMonday(today: Date): Date {
@@ -213,30 +205,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     profile.roles && Array.isArray(profile.roles) && profile.roles.includes('TECHNICIAN')
   ) || [];
 
-  // Get currently selected technicians for the active week
-  const currentWeekTechnicians = selectedTechnicians[weekTab];
-
-  // Add technician to current week
-  const addTechnician = (technicianId: string) => {
-    setSelectedTechnicians(prev => ({
-      ...prev,
-      [weekTab]: [...prev[weekTab], technicianId]
-    }));
-  };
-
-  // Remove technician from current week
-  const removeTechnician = (technicianId: string) => {
-    setSelectedTechnicians(prev => ({
-      ...prev,
-      [weekTab]: prev[weekTab].filter(id => id !== technicianId)
-    }));
-  };
-
-  // Get technicians that are not yet selected for the current week
-  const availableToAdd = availableTechnicians.filter(tech => 
-    !currentWeekTechnicians.includes(tech.id)
-  );
-  // No cleanup UI/state; duplication should not occur
 
   // Lightweight toast for copy shift blocks feedback
   const [copyToast, setCopyToast] = useState<null | { type: 'success' | 'error' | 'info'; text: string }>(null);
@@ -599,7 +567,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                 <table className="min-w-full border border-gray-400/30 dark:border-gray-600/30 rounded-xl overflow-hidden table-fixed backdrop-blur-sm bg-white/5 dark:bg-gray-800/5">
                   <thead>
                     <tr>
-                      <th className="px-2 py-2 bg-gray-200/20 dark:bg-gray-700/20 backdrop-blur-sm text-center border border-gray-400/30 dark:border-gray-600/30 w-12">Actions</th>
                       <th className="px-4 py-2 bg-gray-200/20 dark:bg-gray-700/20 backdrop-blur-sm text-left border border-gray-400/30 dark:border-gray-600/30 w-40">Name</th>
                       {weekDates.map((date, idx) => (
                         <th
@@ -622,22 +589,10 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                       .filter(profile => 
                         profile.roles && 
                         Array.isArray(profile.roles) && 
-                        profile.roles.includes('TECHNICIAN') &&
-                        currentWeekTechnicians.includes(profile.id)
+                        profile.roles.includes('TECHNICIAN')
                       )
                       .map(profile => (
                       <tr key={profile.id} className="border-t border-gray-400 dark:border-gray-600">
-                        <td className="px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">
-                          <button
-                            onClick={() => removeTechnician(profile.id)}
-                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
-                            title="Remove technician from this week"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </td>
                         <td className="px-4 py-2 font-medium text-gray-900 dark:text-white whitespace-nowrap border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">{profile.name || profile.id}</td>
                         {weekDates.map((date, dayIdx) => {
                           const shift = getShift(profile.id, dayIdx);
@@ -660,63 +615,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                         })}
                       </tr>
                     ))}
-                    
-                    {/* Add Technician Row */}
-                    {availableToAdd.length > 0 && (
-                      <tr className="border-t border-gray-400 dark:border-gray-600">
-                        <td className="px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">
-                          <button
-                            onClick={(e) => {
-                              // Show dropdown to select technician
-                              const select = document.createElement('select');
-                              select.className = 'p-1 text-sm border border-gray-300/50 dark:border-gray-600/50 rounded bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white';
-                              
-                              const defaultOption = document.createElement('option');
-                              defaultOption.value = '';
-                              defaultOption.textContent = 'Select technician...';
-                              select.appendChild(defaultOption);
-                              
-                              availableToAdd.forEach(technician => {
-                                const option = document.createElement('option');
-                                option.value = technician.id;
-                                option.textContent = technician.name || technician.id;
-                                select.appendChild(option);
-                              });
-                              
-                              select.addEventListener('change', (changeEvent) => {
-                                const target = changeEvent.target as HTMLSelectElement;
-                                if (target.value) {
-                                  addTechnician(target.value);
-                                  target.remove();
-                                }
-                              });
-                              
-                              // Replace button with select temporarily
-                              const button = e.target as HTMLButtonElement;
-                              button.parentNode?.replaceChild(select, button);
-                              select.focus();
-                            }}
-                            className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-colors"
-                            title="Add technician to this week"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                          </button>
-                        </td>
-                        <td className="px-4 py-2 text-gray-500 dark:text-gray-400 italic text-sm border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">
-                          Add technician...
-                        </td>
-                        {weekDates.map((date, dayIdx) => (
-                          <td
-                            key={dayIdx}
-                            className="px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm"
-                          >
-                            <span className="text-gray-400 text-xs">—</span>
-                          </td>
-                        ))}
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>

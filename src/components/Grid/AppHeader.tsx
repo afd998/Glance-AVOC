@@ -25,16 +25,9 @@ export default function AppHeader({
   isDragging = false
 }: AppHeaderProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const showDatePicker = !isDragging;
-  const showOtherButtons = !isDragging && isHovered;
-
-  const handleCalendarOpen = () => {
-    setIsHovered(false);
-  };
-
-  const handleCalendarClose = () => {
-    // Optional: could reset hover state here if needed
-  };
+  const showOtherButtons = !isDragging && (!isModalOpen ? isHovered : true);
 
   return (
     <div
@@ -104,8 +97,8 @@ export default function AppHeader({
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 isLoading={isLoading}
-                onCalendarOpen={handleCalendarOpen}
-                onCalendarClose={handleCalendarClose}
+                onCalendarOpen={() => setIsModalOpen(true)}
+                onCalendarClose={() => setIsModalOpen(false)}
               />
             </div>
           </div>
@@ -147,7 +140,7 @@ export default function AppHeader({
 
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <CurrentFilterLink />
+              <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
 
@@ -164,7 +157,7 @@ export default function AppHeader({
 
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <MenuPanel selectedDate={selectedDate} events={events} />
+              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} />
             </div>
           </div>
         </div>
@@ -232,8 +225,8 @@ export default function AppHeader({
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 isLoading={isLoading}
-                onCalendarOpen={handleCalendarOpen}
-                onCalendarClose={handleCalendarClose}
+                onCalendarOpen={() => setIsModalOpen(true)}
+                onCalendarClose={() => setIsModalOpen(false)}
               />
             </div>
           </div>
@@ -264,7 +257,7 @@ export default function AppHeader({
           {/* Row 2: MenuPanel, NotificationBell, QuarterCount */}
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}>
-              <MenuPanel selectedDate={selectedDate} events={events} />
+              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} />
             </div>
           </div>
           
