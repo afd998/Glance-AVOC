@@ -14,9 +14,10 @@ import { useBackground } from '../../hooks/useBackground';
 interface MenuPanelProps {
   selectedDate: Date;
   events: Database['public']['Tables']['events']['Row'][] | undefined;
+  onModalClose?: () => void;
 }
 
-const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [] }) => {
+const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [], onModalClose }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const { isDarkMode } = useTheme();
@@ -151,7 +152,10 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
       {/* Filter Rooms Modal */}
       <FilterRoomsModal
         isOpen={isFilterRoomsModalOpen}
-        onClose={closeFilterRoomsModal}
+        onClose={() => {
+          closeFilterRoomsModal();
+          onModalClose?.();
+        }}
       />
 
       {/* Session Assignments Modal */}

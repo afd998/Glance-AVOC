@@ -3,7 +3,11 @@ import { useProfile } from '../../hooks/useProfile';
 import useModalStore from '../../stores/modalStore';
 import { useTheme } from '../../contexts/ThemeContext';
 
-const CurrentFilterLink: React.FC = () => {
+interface CurrentFilterLinkProps {
+  onModalOpen?: () => void;
+}
+
+const CurrentFilterLink: React.FC<CurrentFilterLinkProps> = ({ onModalOpen }) => {
   const { profile } = useProfile();
   const { openFilterRoomsModal } = useModalStore();
   const { isDarkMode } = useTheme();
@@ -22,7 +26,10 @@ const CurrentFilterLink: React.FC = () => {
   return (
     <div className="group relative inline-block">
       <button
-        onClick={openFilterRoomsModal}
+        onClick={() => {
+          onModalOpen?.();
+          openFilterRoomsModal();
+        }}
         className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer relative overflow-hidden ${
           isDarkMode
             ? 'bg-white/10 border-white/20 text-gray-200 hover:bg-white/15'
