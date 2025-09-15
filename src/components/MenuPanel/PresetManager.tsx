@@ -25,11 +25,26 @@ const PresetManager: React.FC = () => {
   
   const { selectedRooms, notificationRooms } = useRoomStore();
   const { isDarkMode } = useTheme();
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  
+  // Track which filter is being loaded
+  const [loadingFilterName, setLoadingFilterName] = useState<string | null>(null);
 
   const handleLoadFilter = async (filter: Filter) => {
-    setIsCreatingNew(false);
-    await loadFilter(filter);
+    console.log('Starting to load filter:', filter.name);
+    setLoadingFilterName(filter.name);
+    try {
+      // Add a minimum loading time to make spinner visible
+      const [result] = await Promise.all([
+        loadFilter(filter),
+        new Promise(resolve => setTimeout(resolve, 500)) // Minimum 500ms loading time
+      ]);
+      console.log('Filter loaded successfully:', filter.name);
+    } catch (error) {
+      console.error('Failed to load filter:', error);
+    } finally {
+      setLoadingFilterName(null);
+      console.log('Loading state cleared for:', filter.name);
+    }
   };
 
   const handleDeleteFilter = async (filterId: number, e: React.MouseEvent) => {
@@ -46,67 +61,63 @@ const PresetManager: React.FC = () => {
 
 
   const handleLoadMyEvents = async () => {
-    setIsCreatingNew(false);
+    console.log('Starting to load My Events filter');
+    setLoadingFilterName('My Events');
     try {
-      await updateCurrentFilter('My Events');
+      // Add a minimum loading time to make spinner visible
+      const [result] = await Promise.all([
+        updateCurrentFilter('My Events'),
+        new Promise(resolve => setTimeout(resolve, 500)) // Minimum 500ms loading time
+      ]);
+      console.log('My Events filter loaded successfully');
     } catch (error) {
       console.error('Failed to set My Events filter:', error);
+    } finally {
+      setLoadingFilterName(null);
+      console.log('Loading state cleared for My Events');
     }
   };
 
-  const handleCreateNewFilter = async () => {
-    console.log('Creating new filter - clearing current filter');
-    setIsCreatingNew(true);
-    // Clear current filter to enable room selection
-    try {
-      await updateCurrentFilter(null);
-      console.log('Current filter cleared successfully');
-    } catch (error) {
-      console.error('Failed to clear current filter:', error);
-      alert('Failed to clear current filter: ' + (error as Error).message);
-    }
-  };
+  // Debug logging
+  console.log('PresetManager render - loadingFilterName:', loadingFilterName, 'currentFilter:', currentFilter);
 
   return (
-    <div className={`rounded-xl p-4 shadow-lg border backdrop-blur-sm ${
-      isDarkMode 
-        ? 'bg-gray-800/30 border-white/10' 
-        : 'bg-white/30 border-white/30'
-    }`}>
-      <h3 className={`text-lg font-medium mb-3 ${
-        isDarkMode ? 'text-white' : 'text-gray-900'
-      }`}>My Filters</h3>
-      
-      <div className="space-y-3">
+    <div className="space-y-3 overflow-hidden">
         {/* Filters List */}
-        <div className="space-y-2 max-h-80 overflow-y-auto">
+        <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden px-1">
           {/* My Events - Special built-in filter */}
           <div
-            onClick={() => handleLoadMyEvents()}
+            onClick={() => !loadingFilterName && handleLoadMyEvents()}
             className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
-              currentFilter === 'My Events'
+              (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
                 ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
                 : isDarkMode
                 ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
                 : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
-            }`}
+            } ${loadingFilterName ? 'opacity-75' : ''}`}
           >
             <div className="flex items-center flex-1">
-              {currentFilter === 'My Events' && (
-                <svg className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              {(loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events') && (
+                <div className="mr-2">
+                  {loadingFilterName === 'My Events' ? (
+                    <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
               )}
               <div>
                 <h4 className={`text-sm font-medium ${
-                  currentFilter === 'My Events'
+                  (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
                     ? 'text-green-800 dark:text-green-200' 
                     : 'text-gray-900 dark:text-white'
                 }`}>
                   My Events
                 </h4>
                 <p className={`text-xs ${
-                  currentFilter === 'My Events'
+                  (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
                     ? 'text-green-600 dark:text-green-300' 
                     : 'text-gray-500 dark:text-gray-400'
                 }`}>
@@ -128,27 +139,36 @@ const PresetManager: React.FC = () => {
             ) : (
             filters.map((filter) => {
               const isCurrentFilter = currentFilter === filter.name;
+              const isLoadingThisFilter = loadingFilterName === filter.name;
+              const isSelected = isLoadingThisFilter || (!loadingFilterName && isCurrentFilter);
+              
               return (
                 <div
                   key={filter.id}
-                  onClick={() => handleLoadFilter(filter)}
+                  onClick={() => !loadingFilterName && handleLoadFilter(filter)}
                   className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
-                    isCurrentFilter
+                    isSelected
                       ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
                       : isDarkMode
                       ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
                       : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
-                  }`}
+                  } ${loadingFilterName ? 'opacity-75' : ''}`}
                 >
                   <div className="flex items-center flex-1">
-                    {isCurrentFilter && (
-                      <svg className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                    {isSelected && (
+                      <div className="mr-2">
+                        {isLoadingThisFilter ? (
+                          <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
                     )}
                     <div>
                       <h4 className={`text-sm font-medium ${
-                        isCurrentFilter 
+                        isSelected
                           ? 'text-green-800 dark:text-green-200' 
                           : 'text-gray-900 dark:text-white'
                       }`}>
@@ -158,7 +178,7 @@ const PresetManager: React.FC = () => {
                         )}
                     </h4>
                       <p className={`text-xs ${
-                        isCurrentFilter 
+                        isSelected
                           ? 'text-green-600 dark:text-green-300' 
                           : 'text-gray-500 dark:text-gray-400'
                       }`}>
@@ -168,7 +188,7 @@ const PresetManager: React.FC = () => {
                   </div>
                   {!filter.isDefault && (
                   <button
-                      onClick={(e) => handleDeleteFilter(filter.id, e)}
+                      onClick={(e) => !loadingFilterName && handleDeleteFilter(filter.id, e)}
                       className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
                   >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,40 +200,6 @@ const PresetManager: React.FC = () => {
               );
             })
             )}
-            
-            {/* Add New Filter Button */}
-            <div
-              onClick={handleCreateNewFilter}
-              className={`flex items-center justify-between p-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
-                isCreatingNew
-                  ? 'border-blue-400/50 bg-blue-500/20 hover:bg-blue-500/30 shadow-lg shadow-blue-500/20'
-                  : isDarkMode
-                  ? 'border-white/20 hover:border-blue-400/50 hover:bg-blue-500/10 bg-gray-700/20'
-                  : 'border-gray-300/50 hover:border-blue-400/50 hover:bg-blue-500/10 bg-white/20'
-              }`}
-            >
-              <div className="flex items-center flex-1">
-                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <div>
-                  <h4 className={`text-sm font-medium ${
-                    isCreatingNew 
-                      ? 'text-blue-800 dark:text-blue-200' 
-                      : 'text-blue-700 dark:text-blue-300'
-                  }`}>
-                    Add New Filter
-                  </h4>
-                  <p className={`text-xs ${
-                    isCreatingNew 
-                      ? 'text-blue-600 dark:text-blue-300' 
-                      : 'text-blue-500 dark:text-blue-400'
-                  }`}>
-                    Create custom room filter
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
         {/* Auto-hide Setting */}
@@ -230,7 +216,6 @@ const PresetManager: React.FC = () => {
             </span>
           </label>
         </div>
-      </div>
     </div>
   );
 };

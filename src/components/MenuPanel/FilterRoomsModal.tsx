@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
-import RoomFilterTable from './RoomFilterTable';
 import PresetManager from './PresetManager';
 import { useProfile } from '../../hooks/useProfile';
 
@@ -10,7 +9,6 @@ interface FilterRoomsModalProps {
 }
 
 const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) => {
-  const { autoHide, updateAutoHide, currentFilter } = useProfile();
   const { isDarkMode } = useTheme();
 
   // Close modal on escape key
@@ -41,7 +39,7 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
       onClick={onClose}
     >
       <div 
-        className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border transition-all duration-300 ${
+        className={`max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl border transition-all duration-300 ${
           isDarkMode 
             ? 'bg-gray-900/40 backdrop-blur-xl border-white/10 text-white' 
             : 'bg-white/40 backdrop-blur-xl border-white/20 text-gray-900'
@@ -49,7 +47,7 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`flex justify-between items-center p-6 border-b backdrop-blur-sm ${
+        <div className={`flex justify-between items-center p-4 border-b backdrop-blur-sm ${
           isDarkMode 
             ? 'border-white/10 bg-gray-800/20' 
             : 'border-gray-200/30 bg-white/20'
@@ -72,50 +70,13 @@ const FilterRoomsModal: React.FC<FilterRoomsModalProps> = ({ isOpen, onClose }) 
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Responsive Layout: Stacked on mobile, side-by-side on desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Preset Manager */}
-            <PresetManager />
-
-            {/* Room Filter Table or Message */}
-            {currentFilter === 'My Events' ? (
-              <div className={`rounded-xl p-4 shadow-lg border backdrop-blur-sm ${
-                isDarkMode 
-                  ? 'bg-gray-800/30 border-white/10' 
-                  : 'bg-white/30 border-white/30'
-              }`}>
-                <h3 className={`text-lg font-medium mb-3 ${
-                  isDarkMode ? 'text-white' : 'text-gray-900'
-                }`}>Filter Events by Room</h3>
-                <div className={`flex items-center justify-center h-80 rounded-xl border backdrop-blur-sm ${
-                  isDarkMode 
-                    ? 'bg-gray-900/20 border-white/5' 
-                    : 'bg-white/20 border-gray-200/30'
-                }`}>
-                  <div className="text-center">
-                    <svg className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <p className={`text-sm ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      This filter will only show<br />
-                      events assigned to you
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <RoomFilterTable autoHideEnabled={autoHide} />
-            )}
-          </div>
+        <div className="p-4">
+          {/* Preset Manager */}
+          <PresetManager />
         </div>
 
         {/* Footer */}
-        <div className={`p-6 border-t backdrop-blur-sm ${
+        <div className={`p-4 border-t backdrop-blur-sm ${
           isDarkMode 
             ? 'border-white/10 bg-gray-800/20' 
             : 'border-gray-200/30 bg-white/20'
