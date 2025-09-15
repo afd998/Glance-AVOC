@@ -65,32 +65,16 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
   
-  if (event.action) {
-    // Handle specific actions
-    handleNotificationAction(event.action, event.notification.data);
-  } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
+  // Always just open the app when notification is clicked
+  event.waitUntil(
+    clients.openWindow('/')
+  );
 });
 
-// Handle notification actions
+// Handle notification actions (simplified - no auto-complete)
 function handleNotificationAction(action, data) {
-  switch (action) {
-    case 'complete_panopto_check':
-      // Mark Panopto check as completed
-      completePanoptoCheck(data.checkId);
-      break;
-    case 'view_panopto_checks':
-      // Open Panopto checks page
-      clients.openWindow('/panopto');
-      break;
-    default:
-      // Default action
-      clients.openWindow('/');
-  }
+  // Default action - just open the app
+  clients.openWindow('/');
 }
 
 // Initialize the database with all required object stores
@@ -113,28 +97,10 @@ function getDBUpgradeConfig() {
   };
 }
 
-// Complete Panopto check
+// Note: Panopto check completion is now handled by the main app only
+// This function is kept for backward compatibility but does nothing
 async function completePanoptoCheck(checkId) {
-  try {
-    // Store completion in IndexedDB for offline sync
-    const db = await openDB('glance-avoc', 2, getDBUpgradeConfig());
-    
-    const tx = db.transaction('panopto-checks', 'readwrite');
-    tx.objectStore('panopto-checks').put({
-      id: checkId,
-      completed: true,
-      completedAt: new Date().toISOString()
-    });
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
-    
-    console.log('Panopto check completed:', checkId);
-  } catch (error) {
-    console.error('Error completing Panopto check:', error);
-  }
+  console.log('Panopto check completion should be handled by the main app:', checkId);
 }
 
 // Background sync for Panopto checks
@@ -427,18 +393,6 @@ async function sendPanoptoCheckNotification(event, checkNumber, forceTest = fals
       eventName: event.eventName,
       checkNumber
     },
-    actions: [
-      {
-        action: 'complete_panopto_check',
-        title: 'Complete Check',
-        icon: '/logo192.png'
-      },
-      {
-        action: 'view_panopto_checks',
-        title: 'View All Checks',
-        icon: '/logo192.png'
-      }
-    ],
     requireInteraction: true,
     silent: false
   };
