@@ -151,7 +151,7 @@ export default function AppHeader({
 
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <NotificationBell />
+              {/* Removed duplicate NotificationBell to avoid double mounts */}
             </div>
           </div>
 

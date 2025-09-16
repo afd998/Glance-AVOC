@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,7 @@ import {
 } from '../utils/notificationUtils';
 
 export const useInAppNotifications = () => {
+  console.log('🔄 useInAppNotifications render');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -25,11 +26,17 @@ export const useInAppNotifications = () => {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  // Calculate unread count
-  useEffect(() => {
-    const unread = notifications.filter(n => !n.read_at).length;
-    setUnreadCount(unread);
+  // Memoize unread count to prevent infinite loops
+  const currentUnreadCount = useMemo(() => {
+    console.log('🔄 useInAppNotifications memoizing unread count', { notificationsLength: notifications.length });
+    return notifications.filter(n => !n.read_at).length;
   }, [notifications]);
+
+  // Only update state when memoized count changes
+  useEffect(() => {
+    console.log('🔄 useInAppNotifications setting unread count', { currentUnreadCount });
+    setUnreadCount(currentUnreadCount);
+  }, [currentUnreadCount]);
 
   // Real-time subscription for new notifications
   useEffect(() => {
@@ -50,7 +57,17 @@ export const useInAppNotifications = () => {
         (payload) => {
           console.log('[notifications] INSERT', payload.new);
           queryClient.setQueryData<Notification[]>(key, (prev = []) => {
-            const next = [payload.new as Notification, ...prev];
+            const newNotification = payload.new as Notification;
+            const newId = String(newNotification.id);
+            
+            // Check if notification already exists to prevent duplicates
+            const exists = prev.some(n => String(n.id) === newId);
+            if (exists) {
+              console.log('[notifications] INSERT - notification already exists, skipping');
+              return prev; // Return same reference to prevent unnecessary re-renders
+            }
+            
+            const next = [newNotification, ...prev];
             const seen = new Set<string>();
             return next.filter(n => {
               const id = String(n.id);
@@ -66,9 +83,26 @@ export const useInAppNotifications = () => {
         { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
           console.log('[notifications] UPDATE', payload.new);
-          queryClient.setQueryData<Notification[]>(key, (prev = []) =>
-            prev.map(n => (String(n.id) === String(payload.new.id) ? (payload.new as Notification) : n))
-          );
+          queryClient.setQueryData<Notification[]>(key, (prev = []) => {
+            const updatedNotification = payload.new as Notification;
+            const updatedId = String(updatedNotification.id);
+            
+            // Check if the notification actually changed
+            const existingIndex = prev.findIndex(n => String(n.id) === updatedId);
+            if (existingIndex === -1) {
+              console.log('[notifications] UPDATE - notification not found');
+              return prev; // Return same reference
+            }
+            
+            const existing = prev[existingIndex];
+            // Simple check for changes - you could make this more sophisticated
+            if (JSON.stringify(existing) === JSON.stringify(updatedNotification)) {
+              console.log('[notifications] UPDATE - no changes detected');
+              return prev; // Return same reference to prevent unnecessary re-renders
+            }
+            
+            return prev.map(n => (String(n.id) === updatedId ? updatedNotification : n));
+          });
         }
       )
       .on(
@@ -76,9 +110,18 @@ export const useInAppNotifications = () => {
         { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
           console.log('[notifications] DELETE', payload.old);
-          queryClient.setQueryData<Notification[]>(key, (prev = []) =>
-            prev.filter(n => String(n.id) !== String(payload.old.id))
-          );
+          queryClient.setQueryData<Notification[]>(key, (prev = []) => {
+            const deleteId = String(payload.old.id);
+            const filteredNotifications = prev.filter(n => String(n.id) !== deleteId);
+            
+            // If no notifications were actually removed, return the same reference
+            if (filteredNotifications.length === prev.length) {
+              console.log('[notifications] DELETE - notification not found');
+              return prev;
+            }
+            
+            return filteredNotifications;
+          });
         }
       )
       .subscribe((status) => {
@@ -89,7 +132,7 @@ export const useInAppNotifications = () => {
       console.log('[notifications] removing channel for user:', user.id);
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
   // React Query mutations for notification actions
   const invalidate = () => {

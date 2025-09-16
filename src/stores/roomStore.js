@@ -64,6 +64,18 @@ const useRoomStore = create(
         
         // If selectedRooms is empty (first time), initialize with filtered rooms
         const newSelectedRooms = selectedRooms.length === 0 ? filteredRooms : selectedRooms.filter(room => !room.includes('&'));
+
+        // Early exit: avoid redundant state updates if nothing actually changed
+        const current = get();
+        const arrEq = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        if (
+          arrEq(current.allRooms || [], filteredRooms) &&
+          arrEq(current.notificationRooms || [], filteredRooms) &&
+          arrEq(current.selectedRooms || [], newSelectedRooms)
+        ) {
+          return; // No changes; prevent rerender loops
+        }
+
         set({ 
           allRooms: filteredRooms,
           selectedRooms: newSelectedRooms,

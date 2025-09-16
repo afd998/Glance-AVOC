@@ -5,6 +5,7 @@ import EventContent from "./EventContent";
 import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
 import { getEventTypeInfo, calculateEventPosition, getEventThemeColors, getEventGradientClass, getOriginalColorFromTailwindClass } from "../../utils/eventUtils";
 import { useEventDurationHours } from "../../hooks/useEvents";
+import { useOverduePanoptoChecks } from "../../hooks/useOverduePanoptoChecks";
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -15,8 +16,6 @@ interface EventProps {
   pixelsPerMinute: number;
   rooms: string[];
   onEventClick: (event: Event) => void;
-  hasOverduePanoptoChecks?: boolean;
-  isOverdueChecksLoading?: boolean;
 }
 
 // Helper function to parse instructor names from JSON
@@ -34,7 +33,7 @@ const parseInstructorNames = (instructorNamesJson: any): string[] => {
   return [];
 };
 
-export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick, hasOverduePanoptoChecks = false, isOverdueChecksLoading = false }: EventProps) {
+export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
 
   // Disable hover card functionality
   const HOVER_CARD_ENABLED = false;
@@ -48,6 +47,11 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const instructorNames = parseInstructorNames(event.instructor_names);
 
   const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
+  
+  // Check for overdue Panopto checks for this specific event
+  const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks([event]);
+  const hasOverduePanoptoChecks = hasOverdueChecks(event.id);
+  
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringRef = useRef(false);
 

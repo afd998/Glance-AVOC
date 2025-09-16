@@ -8,7 +8,14 @@ type Event = Database['public']['Tables']['events']['Row'];
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export const useOverduePanoptoChecks = (events: Event[]) => {
+  console.log('🔄 useOverduePanoptoChecks render', { eventsLength: events.length, eventIds: events.map(e => e.id) });
   const queryClient = useQueryClient();
+
+  // Memoize the event IDs to prevent infinite re-renders
+  const eventIds = useMemo(() => {
+    console.log('🔄 useOverduePanoptoChecks eventIds memoization', { eventsLength: events.length });
+    return events.map(e => e.id);
+  }, [events]);
 
   // Check if an event has recording resources
   const hasRecordingResource = (event: Event) => {
@@ -60,7 +67,7 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
 
   // Get all panopto checks for all events using React Query
   const { data: allPanoptoChecks, isLoading } = useQuery({
-    queryKey: ['allPanoptoChecks', events.map(e => e.id)],
+    queryKey: ['allPanoptoChecks', eventIds],
     queryFn: async () => {
       const eventIds = events
         .filter(event => hasRecordingResource(event) && isEventCurrentlyActive(event))

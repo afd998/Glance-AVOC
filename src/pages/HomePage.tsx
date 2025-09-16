@@ -12,7 +12,6 @@ import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
 import { useFilters } from "../hooks/useFilters";
 import { useRooms } from "../hooks/useRooms";
-import { useOverduePanoptoChecks } from "../hooks/useOverduePanoptoChecks";
 import useRoomStore from "../stores/roomStore";
 import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
@@ -35,6 +34,12 @@ export default function HomePage() {
   const { date, eventId } = useParams();
   const { selectedRooms, setAllRooms } = useRoomStore();
   const { rooms, isLoading: roomsLoading } = useRooms();
+  
+  // Temporary mock data
+  // const selectedRooms: string[] = [];
+  // const setAllRooms = () => {};
+  // const rooms: string[] = [];
+  // const roomsLoading = false;
 
   React.useEffect(() => {
     if (rooms.length > 0) {
@@ -55,16 +60,37 @@ export default function HomePage() {
   const pixelsPerMinute = 2;
   const startHour = 6;
   const endHour = 23;
+  console.log('🔄 HomePage render', { selectedDate: selectedDate.toISOString().split('T')[0] });
+  
   const { events, isLoading, error } = useEvents(selectedDate);
-  const { scheduleNotificationsForEvents } = useNotifications();
+  console.log('🔄 HomePage after useEvents', { eventsLength: events?.length || 0, eventIds: events?.map(e => e.id) || [] });
+  
+  // const { scheduleNotificationsForEvents } = useNotifications();
   const { data: filteredEvents, getFilteredEventsForRoom } = useCachedEventFiltering(events, selectedDate);
+  console.log('🔄 HomePage after useCachedEventFiltering', { filteredEventsLength: filteredEvents?.length || 0, filteredEventIds: filteredEvents?.map(e => e.id) || [] });
   
   // Track if we've loaded events for the current date to prevent flash
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
-  const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks(events || []);
-  useAutoHideLogic(filteredEvents || [], selectedDate);
-  const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
+  
+  // useAutoHideLogic(filteredEvents || [], selectedDate);
+  // console.log('🔄 HomePage after useAutoHideLogic');
+  
+  // Temporary mock data to isolate the issue
+  // const events: any[] = [];
+  // const isLoading = false;
+  // const error: any = null;
+  // const filteredEvents: any[] = [];
+  // const getFilteredEventsForRoom = (room: string) => [];
+  const { updateCurrentFilter, updateAutoHide } = useProfile();
   const { filters, loadFilter, getFilterByName, saveFilter } = useFilters();
+  
+  // Temporary mock data
+  // const updateCurrentFilter = (filter: any) => {};
+  // const updateAutoHide = (hide: boolean) => {};
+  // const filters: any[] = [];
+  // const loadFilter = (filter: any) => {};
+  // const getFilterByName = (name: string) => null;
+  // const saveFilter = (name: string, rooms: string[]) => {};
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
@@ -86,11 +112,11 @@ export default function HomePage() {
     initializeAllRoomsFilter();
   }, [rooms, filters, saveFilter, getFilterByName]);
 
-  React.useEffect(() => {
-    if (events && events.length > 0) {
-      scheduleNotificationsForEvents(events);
-    }
-  }, [events, scheduleNotificationsForEvents]);
+  // React.useEffect(() => {
+  //   if (events && events.length > 0) {
+  //     scheduleNotificationsForEvents(events);
+  //   }
+  // }, [events, scheduleNotificationsForEvents]);
 
   // Track when events have been loaded for the current date
   React.useEffect(() => {
@@ -325,8 +351,6 @@ export default function HomePage() {
                                     onEventClick={handleEventClick}
                                     isEvenRow={index % 2 === 0}
                                     isLastRow={isLastRow}
-                                    hasOverdueChecks={hasOverdueChecks}
-                                    isOverdueChecksLoading={isOverdueChecksLoading}
                                   />
                                 );
                               })}

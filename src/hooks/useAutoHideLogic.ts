@@ -7,6 +7,12 @@ import { Database } from '../types/supabase';
 type Event = Database['public']['Tables']['events']['Row'];
 
 export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) => {
+  console.log('🔄 useAutoHideLogic render', { 
+    filteredEventsLength: filteredEvents?.length || 0, 
+    selectedDate: selectedDate.toISOString().split('T')[0],
+    filteredEventIds: filteredEvents?.map(e => e.id) || []
+  });
+  
   const { autoHide, currentFilter } = useProfile();
   const { selectedRooms, setSelectedRooms, notificationRooms, setNotificationRooms, allRooms } = useRoomStore();
   const { filters } = useFilters();
@@ -70,7 +76,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
       // When auto-hide is disabled, show all base rooms
       return baseRooms;
     }
-  }, [filteredEvents, selectedDate, autoHide, currentFilter, filters, allRooms]);
+  }, [filteredEvents, autoHide, currentFilter, filters, allRooms]);
 
   // Only update selectedRooms when targetRooms actually changes
   // But don't override when a filter is actively loaded (currentFilter is set)
@@ -91,7 +97,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
       setSelectedRooms(sortedTargetRooms); // Keep original priority order
       setNotificationRooms(sortedTargetRooms); // Keep original priority order
     }
-  }, [targetRooms, selectedRooms, setSelectedRooms, setNotificationRooms, allRooms, currentFilter]);
+  }, [targetRooms, setSelectedRooms, setNotificationRooms, allRooms, currentFilter]);
 
   return { autoHide };
 }; 

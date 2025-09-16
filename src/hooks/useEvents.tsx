@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
-import { parseEventResources } from '../utils/eventUtils';
+import { parseEventResources, isUserEventOwner } from '../utils/eventUtils';
 import { useProfile } from './useProfile';
 import { useFilters } from './useFilters';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,6 +79,10 @@ export const updateEventInCache = (
 
 export function useEvents(date: Date) {
   const queryClient = useQueryClient();
+  const { currentFilter } = useProfile();
+  const { filters } = useFilters();
+  const { user } = useAuth();
+  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
@@ -103,6 +107,17 @@ export function useEvents(date: Date) {
     enabled: !isOutsideWindow, // Skip query if outside window
   });
 
+  // Set filtered events cache when events are successfully fetched
+  useEffect(() => {
+    if (eventsData && !isFetching) {
+      const safeCurrentFilter = currentFilter ?? null;
+      const userId: string | null = user && user.id ? user.id : null;
+      
+      const filteredEvents = filterEvents(eventsData, safeCurrentFilter, filters, userId, allShiftBlocks);
+      queryClient.setQueryData(['filteredEvents', dateString, safeCurrentFilter, userId], filteredEvents);
+    }
+  }, [eventsData, isFetching, currentFilter, filters, user, allShiftBlocks, dateString, queryClient]);
+
   const [events, setEvents] = useState<Event[]>([]);
 
   // Clear events immediately when date changes
@@ -120,7 +135,7 @@ export function useEvents(date: Date) {
     // Only set events if we're not currently fetching and we have data
     if (!isFetching && eventsData) {
       // Cache each event individually by ID
-      eventsData.forEach(event => {
+      eventsData.forEach((event: Event) => {
         queryClient.setQueryData(['event', event.id], event);
       });
       
@@ -272,9 +287,6 @@ export const filterEvents = (
 
   // Special case: MY_EVENTS filter - filter events where user is owner
   if (currentFilter === 'My Events' && userId) {
-    // Import the function dynamically to avoid circular dependency
-    const { isUserEventOwner } = require('../utils/eventUtils');
-    
     // Filter events to only show those where the current user is an owner
     return events.filter((event: Event) => {
       return isUserEventOwner(event, userId, allShiftBlocks);
@@ -305,18 +317,12 @@ export const useCachedEventFiltering = (events: Event[] | undefined, date: Date)
   const { filters } = useFilters();
   const { user } = useAuth();
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
-  const queryClient = useQueryClient();
+
   
   const dateString = date.toISOString().split('T')[0];
   const userId: string | null = user && user.id ? user.id : null;
   
-  // Populate the cache when events change
-  useEffect(() => {
-    if (events) {
-      const filteredEvents = filterEvents(events, safeCurrentFilter, filters, userId, allShiftBlocks);
-      queryClient.setQueryData(['filteredEvents', dateString, safeCurrentFilter, userId], filteredEvents);
-    }
-  }, [events, safeCurrentFilter, filters, userId, allShiftBlocks, dateString, queryClient]);
+  // Cache is populated by useEvents onSuccess callback
   
   const query = useQuery({
     queryKey: ['filteredEvents', dateString, safeCurrentFilter, userId],

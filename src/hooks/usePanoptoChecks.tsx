@@ -21,6 +21,7 @@ interface PanoptoCheck {
 }
 
 export const usePanoptoChecks = () => {
+  console.log('🔄 usePanoptoChecks render');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
@@ -47,6 +48,32 @@ export const usePanoptoChecks = () => {
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
   const memoizedAllShiftBlocks = useMemo(() => allShiftBlocks, [allShiftBlocks]);
+  
+  // Create stable keys so effects don't restart on equal data with new references
+  const eventIdsKey = useMemo(() => {
+    if (!events || events.length === 0) return '';
+    try {
+      return events.map((e: any) => e.id).join(',');
+    } catch {
+      return String(events.length);
+    }
+  }, [events]);
+  
+  const shiftBlocksKey = useMemo(() => {
+    if (!memoizedAllShiftBlocks || memoizedAllShiftBlocks.length === 0) return '';
+    try {
+      return memoizedAllShiftBlocks
+        .map((b: any) => `${b.id ?? 'x'}-${b.updated_at ?? ''}`)
+        .join(',');
+    } catch {
+      return String(memoizedAllShiftBlocks.length);
+    }
+  }, [memoizedAllShiftBlocks]);
+  
+  // Memoize the isUserEventOwner function to prevent infinite loops
+  const memoizedIsUserEventOwner = useCallback((event: any, userId: string, shiftBlocks: any[]) => {
+    return isUserEventOwner(event, userId, shiftBlocks);
+  }, []);
   const [activeChecks, setActiveChecks] = useState<PanoptoCheck[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -297,7 +324,7 @@ export const usePanoptoChecks = () => {
         }
 
         // Skip if user is not assigned
-        const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
+        const isAssigned = memoizedIsUserEventOwner(event, user.id, memoizedAllShiftBlocks);
         if (!isAssigned) {
           console.log(`⏭️ Skipping ${event.event_name} - user not assigned:`, {
             userId: user.id,
@@ -359,7 +386,7 @@ export const usePanoptoChecks = () => {
     const interval = setInterval(checkForDuePanoptoChecks, 60000);
 
     return () => clearInterval(interval);
-  }, [user, events, memoizedAllShiftBlocks, hasRecordingResource, isEventCurrentlyActive, isUserEventOwner, isCheckSent, sendPanoptoCheck]);
+  }, [user?.id, eventIdsKey, shiftBlocksKey]);
 
   // Complete a Panopto check
   const completePanoptoCheck = useCallback(async (checkId: string) => {
@@ -410,7 +437,7 @@ export const usePanoptoChecks = () => {
     // Find the first event with recording resources that the user is assigned to
     const testEvent = events.find(event => {
       const hasRecording = hasRecordingResource(event);
-      const isAssigned = isUserEventOwner(event, user.id, memoizedAllShiftBlocks);
+      const isAssigned = memoizedIsUserEventOwner(event, user.id, memoizedAllShiftBlocks);
       return hasRecording && isAssigned;
     });
     
@@ -421,7 +448,7 @@ export const usePanoptoChecks = () => {
     
     console.log('🧪 Sending test Panopto check for real event:', testEvent.event_name);
     await sendPanoptoCheck(testEvent, 1);
-  }, [user, events, hasRecordingResource, isUserEventOwner, memoizedAllShiftBlocks, sendPanoptoCheck]);
+  }, [user, events, hasRecordingResource, memoizedIsUserEventOwner, memoizedAllShiftBlocks, sendPanoptoCheck]);
 
   // Clear all checks (for UI)
   const clearPanoptoChecks = useCallback(() => {

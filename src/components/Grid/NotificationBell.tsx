@@ -1,18 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInAppNotifications } from '../../hooks/useInAppNotifications';
-import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { createTestNotification } from '../../utils/notificationUtils';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, Plus, Clock, FileText, X, Check, Video } from 'lucide-react';
+import { Bell, Plus, Clock, FileText, X, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useInAppNotifications();
-  const { activeChecks, testPanoptoCheck, clearPanoptoChecks } = usePanoptoChecks();
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -36,7 +34,7 @@ export const NotificationBell: React.FC = () => {
     }
     
     // Navigate to event page if notification has an event_id
-    if (notification.event_id && (notification.type === 'event_assignment' || notification.type === 'panopto_check')) {
+    if (notification.event_id && notification.type === 'event_assignment') {
       try {
         // Fetch the event data to get the date
         const { data: event, error } = await supabase
@@ -98,9 +96,6 @@ export const NotificationBell: React.FC = () => {
         return <FileText className="w-4 h-4" />;
       case 'setup_reminder':
         return <Clock className="w-4 h-4" />;
-      case 'panopto_check':
-      case 'panopto_monitoring':
-        return <Video className="w-4 h-4" />;
       default:
         return <Bell className="w-4 h-4" />;
     }
@@ -119,9 +114,9 @@ export const NotificationBell: React.FC = () => {
       >
         <Bell className="w-6 h-6" />
         
-        {(unreadCount > 0 || activeChecks.length > 0) && (
+        {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-            {Math.min(unreadCount + activeChecks.length, 99) > 99 ? '99+' : unreadCount + activeChecks.length}
+            {Math.min(unreadCount, 99) > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
@@ -146,28 +141,6 @@ export const NotificationBell: React.FC = () => {
                 >
                   <Plus className="w-3 h-3" />
                   Test
-                </button>
-                <button
-                  onClick={testPanoptoCheck}
-                  className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
-                    isDarkMode 
-                      ? 'text-orange-400 hover:text-orange-300' 
-                      : 'text-orange-600 hover:text-orange-700'
-                  }`}
-                >
-                  <Video className="w-3 h-3" />
-                  Test Panopto
-                </button>
-                <button
-                  onClick={clearPanoptoChecks}
-                  className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
-                    isDarkMode 
-                      ? 'text-yellow-400 hover:text-yellow-300' 
-                      : 'text-yellow-600 hover:text-yellow-700'
-                  }`}
-                >
-                  <X className="w-3 h-3" />
-                  Clear Checks
                 </button>
                 {notifications.length > 0 && (
                   <button
@@ -199,69 +172,8 @@ export const NotificationBell: React.FC = () => {
             </div>
 
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {/* Panopto Checks Section */}
-              {activeChecks.length > 0 && (
-                <div className="mb-4">
-                  <h4 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
-                    Panopto Checks ({activeChecks.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {activeChecks.map((check) => (
-                      <div
-                        key={check.id}
-                        onClick={async () => {
-                          try {
-                            // Fetch the event data to get the date
-                            const { data: event, error } = await supabase
-                              .from('events')
-                              .select('date')
-                              .eq('id', check.eventId)
-                              .single();
-                            
-                            if (error) {
-                              console.error('Error fetching event data:', error);
-                              return;
-                            }
-                            
-                            if (event?.date) {
-                              // Navigate to the event page: /date/eventId
-                              navigate(`/${event.date}/${check.eventId}`);
-                              setIsOpen(false);
-                            }
-                          } catch (error) {
-                            console.error('Error navigating to event:', error);
-                          }
-                        }}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors hover:opacity-80 backdrop-blur-sm ${
-                          isDarkMode 
-                            ? 'bg-orange-900/20 border-orange-500/30 text-orange-200 hover:bg-orange-900/30' 
-                            : 'bg-orange-50/80 border-orange-200/50 text-orange-800 hover:bg-orange-100/90'
-                        }`}
-                      >
-                        <div className="flex items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Video className="w-4 h-4" />
-                              <p className="font-medium text-sm">
-                                {check.eventName} - Check #{check.checkNumber}
-                              </p>
-                            </div>
-                            <p className="text-xs opacity-75">
-                              {check.roomName} • {check.createdAt ? formatTime(check.createdAt) : 'Unknown time'}
-                            </p>
-                            <p className="text-xs mt-1 opacity-75">
-                              Click to view event and complete check
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Regular Notifications Section */}
-              {notifications.length === 0 && activeChecks.length === 0 ? (
+              {notifications.length === 0 ? (
                 <div className="text-center py-8">
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     No notifications

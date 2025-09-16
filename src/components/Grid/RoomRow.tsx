@@ -16,8 +16,6 @@ interface RoomRowProps {
   onEventClick: (event: Event) => void;
   isEvenRow?: boolean; // Make optional with default
   isLastRow?: boolean; // Add prop for last row styling
-  hasOverdueChecks?: (eventId: number) => boolean; // Function to check if event has overdue checks
-  isOverdueChecksLoading?: boolean; // Loading state for overdue checks
 }
 
 export default function RoomRow({ 
@@ -29,9 +27,7 @@ export default function RoomRow({
   isFloorBreak, 
   onEventClick, 
   isEvenRow = false, 
-  isLastRow = false, 
-  hasOverdueChecks, 
-  isOverdueChecksLoading = false 
+  isLastRow = false 
 }: RoomRowProps) {
   const { currentTheme } = useTheme();
   const roomText = room.replace(/^GH\s+/, '');
@@ -77,8 +73,6 @@ export default function RoomRow({
             pixelsPerMinute={pixelsPerMinute}
             rooms={rooms}
             onEventClick={onEventClick}
-            hasOverduePanoptoChecks={hasOverdueChecks ? hasOverdueChecks(event.id) : false}
-            isOverdueChecksLoading={isOverdueChecksLoading}
           />
         ))}
       </div>
