@@ -106,7 +106,7 @@ export function useEvents(date: Date) {
       allShiftBlocks.map(sb => sb.id).join(',') // Include shift blocks in key
     ],
     queryFn: () => fetchEvents({ queryKey: ['events', date, date] }),
-    staleTime: 0, // Always consider data stale to force fresh fetch
+    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
     gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
     refetchOnMount: false, // Don't refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch when window gains focus

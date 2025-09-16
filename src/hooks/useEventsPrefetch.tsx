@@ -57,7 +57,10 @@ const fetchEventsForDate = async (date: Date): Promise<Event[]> => {
  * This runs in the background and doesn't block the main useEvents hook
  * 
  * Uses React Query's prefetchQuery to properly cache data with the same
- * query key structure as useEvents, ensuring seamless integration
+ * query key structure as useEvents, ensuring seamless integration.
+ * 
+ * Cache behavior: Data is cached with staleTime: Infinity, meaning it
+ * will only be invalidated on page refresh, not on navigation.
  */
 export function useEventsPrefetch(currentDate: Date) {
   const queryClient = useQueryClient();
@@ -136,7 +139,7 @@ export function useEventsPrefetch(currentDate: Date) {
                 const userId: string | null = user && user.id ? user.id : null;
                 return filterEvents(rawEvents, safeCurrentFilter, filters, userId, allShiftBlocks);
               },
-              staleTime: 0, // Same as useEvents
+              staleTime: Infinity, // Same as useEvents - data never becomes stale
               gcTime: 1000 * 60 * 60 * 24, // Same as useEvents - 24 hours
             });
             

@@ -346,7 +346,13 @@ export default function EventHeader({
             )}
           </span>
         )}
-                {/* Owner Avatars */}
+        
+        {/* Separator bar between resource icons and owner icons */}
+        {(isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes) && timeline.length > 0 && (
+          <div className="w-0.5 h-4 bg-white dark:bg-gray-800 mx-0.5 opacity-20"></div>
+        )}
+        
+        {/* Owner Avatars */}
         {timeline.length > 0 && (
           <div className="flex items-center gap-0.5">
             {timeline.map((entry, index) => (
