@@ -12,7 +12,6 @@ import {
 } from '../utils/notificationUtils';
 
 export const useInAppNotifications = () => {
-  console.log('🔄 useInAppNotifications render');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -28,13 +27,11 @@ export const useInAppNotifications = () => {
 
   // Memoize unread count to prevent infinite loops
   const currentUnreadCount = useMemo(() => {
-    console.log('🔄 useInAppNotifications memoizing unread count', { notificationsLength: notifications.length });
     return notifications.filter(n => !n.read_at).length;
-  }, [notifications]);
+  }, [notifications.map(n => `${n.id}-${n.read_at}`).join('|')]);
 
   // Only update state when memoized count changes
   useEffect(() => {
-    console.log('🔄 useInAppNotifications setting unread count', { currentUnreadCount });
     setUnreadCount(currentUnreadCount);
   }, [currentUnreadCount]);
 

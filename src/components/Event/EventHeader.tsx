@@ -69,15 +69,6 @@ export default function EventHeader({
 
   // Update state when completion status changes
   React.useEffect(() => {
-    console.log('EventHeader: Completion status update:', {
-      eventId: currentEvent.id,
-      hasVideoRecording,
-      isLoading,
-      error,
-      isComplete,
-      allChecksComplete
-    });
-    
     if (hasVideoRecording && !isLoading) {
       if (error) {
         console.error('Error checking completion status:', error);
@@ -88,7 +79,7 @@ export default function EventHeader({
     } else if (!hasVideoRecording) {
       setAllChecksComplete(false);
     }
-  }, [isComplete, isLoading, error, hasVideoRecording, currentEvent.id, allChecksComplete]);
+  }, [isComplete, isLoading, error, hasVideoRecording, currentEvent.id]);
   
   
   // State for fisheye effect

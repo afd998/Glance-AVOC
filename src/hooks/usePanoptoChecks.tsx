@@ -309,11 +309,6 @@ export const usePanoptoChecks = () => {
 
     const checkForDuePanoptoChecks = async () => {
       const now = new Date();
-      console.log('🔍 Checking for due Panopto checks...', { 
-        user: user.id, 
-        eventsCount: events.length,
-        currentTime: now.toISOString()
-      });
 
       for (const event of events) {
         // Skip if not a recording event
