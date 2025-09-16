@@ -21,7 +21,6 @@ interface PanoptoCheck {
 }
 
 export const usePanoptoChecks = () => {
-  console.log('🔄 usePanoptoChecks render');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   

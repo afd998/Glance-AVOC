@@ -8,14 +8,12 @@ type Event = Database['public']['Tables']['events']['Row'];
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export const useOverduePanoptoChecks = (events: Event[]) => {
-  console.log('🔄 useOverduePanoptoChecks render', { eventsLength: events.length, eventIds: events.map(e => e.id) });
   const queryClient = useQueryClient();
 
   // Memoize the event IDs to prevent infinite re-renders
   const eventIds = useMemo(() => {
-    console.log('🔄 useOverduePanoptoChecks eventIds memoization', { eventsLength: events.length });
     return events.map(e => e.id);
-  }, [events]);
+  }, [events.map(e => e.id).join(',')]);
 
   // Check if an event has recording resources
   const hasRecordingResource = (event: Event) => {
@@ -38,6 +36,7 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     
     // Check if event is today OR if we're within 2 hours of the event end time
     // This handles cases where the event might be on a different date but still relevant
+    if (!event.date) return false;
     const eventDate = new Date(event.date);
     // Create event start and end times in local timezone
     const eventStart = new Date(`${event.date}T${event.start_time}`);
@@ -153,7 +152,10 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     }
 
     return overdueEventIds;
-  }, [events, allPanoptoChecks]);
+  }, [
+    events.map(e => `${e.id}-${e.start_time}-${e.end_time}-${e.date}`).join('|'),
+    allPanoptoChecks ? JSON.stringify(allPanoptoChecks) : 'null'
+  ]);
 
   // Function to invalidate panopto checks queries
   const invalidatePanoptoChecks = (eventId?: number) => {
