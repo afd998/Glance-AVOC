@@ -186,7 +186,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
         {event.lecture_title && (
           <span
             className="text-xs text-white opacity-80 transition-all duration-200 ease-in-out whitespace-nowrap leading-none"
-            style={{ fontFamily: "'GoudyBookletter1911', serif" }}
+            style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif" }}
             title={event.lecture_title}
           >
             {event.lecture_title}

@@ -88,6 +88,7 @@ export default function SessionSetup({
                     instructorName={primaryInstructorName}
                     isHovering={isFacultyHovering}
                     size="lg"
+                    priority={true} // Mark as priority since it's above the fold
                   />
                 </div>
               ) : (

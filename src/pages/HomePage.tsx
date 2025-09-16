@@ -7,6 +7,7 @@ import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
 import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
 import { useEvents } from "../hooks/useEvents";
+import { useEventsPrefetch } from "../hooks/useEventsPrefetch";
 import { useNotifications } from "../hooks/useNotifications";
 import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
@@ -62,6 +63,10 @@ export default function HomePage() {
   const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
   const { data: filteredEvents, isLoading, error } = useEvents(selectedDate);
+  
+  // Prefetch events for previous and next day in the background
+  // This ensures instant navigation when using next/previous day buttons
+  useEventsPrefetch(selectedDate);
 
   // Helper function for room filtering (using the already filtered data)
   const getFilteredEventsForRoomCallback = (roomName: string) => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { OptimizedImage } from './OptimizedImage';
 import { AVATAR_CONFIG } from '../config/avatarConfig';
 
 interface SimpleFacultyAvatarProps {
@@ -7,6 +8,7 @@ interface SimpleFacultyAvatarProps {
   isHovering: boolean;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  priority?: boolean; // For above-the-fold images
 }
 
 const sizeClasses = {
@@ -20,14 +22,15 @@ export function SimpleFacultyAvatar({
   instructorName, 
   isHovering, 
   className = '',
-  size = 'md'
+  size = 'md',
+  priority = false
 }: SimpleFacultyAvatarProps) {
   return (
     <div className={`relative ${sizeClasses[size]} transition-all duration-300 ease-out ${className}`} title={instructorName}>
       {/* Background layer - original image contained within circle */}
       <div className="absolute inset-0 rounded-full overflow-hidden z-10">
-        <img 
-          src={imageUrl} 
+        <OptimizedImage
+          src={imageUrl}
           alt={instructorName}
           className={`${sizeClasses[size]} rounded-full object-cover transition-all duration-300 ease-out ${
             isHovering 
@@ -40,6 +43,7 @@ export function SimpleFacultyAvatar({
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
           }}
+          priority={priority}
         />
         {/* Purple overlay on background */}
         <div className="absolute inset-0 rounded-full bg-[#886ec4] mix-blend-overlay opacity-30"></div>
@@ -54,8 +58,8 @@ export function SimpleFacultyAvatar({
           overflow: 'visible'
         }}
       >
-        <img 
-          src={imageUrl} 
+        <OptimizedImage
+          src={imageUrl}
           alt={instructorName}
           className={`${sizeClasses[size]} object-cover transition-all duration-300 ease-out ${
             isHovering 
@@ -81,6 +85,7 @@ export function SimpleFacultyAvatar({
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
           }}
+          priority={priority}
         />
       </div>
     </div>

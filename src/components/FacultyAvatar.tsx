@@ -12,6 +12,7 @@ interface FacultyAvatarProps {
   size?: 'sm' | 'md' | 'lg';
   maskRadius?: number; // Configurable radius for the circular mask (default: 50)
   pixelated?: boolean; // Enable pixelated rendering
+  priority?: boolean; // For above-the-fold images
 }
 
 interface MultipleFacultyAvatarsProps {
@@ -36,7 +37,8 @@ export function FacultyAvatar({
   className = '',
   size = 'md',
   maskRadius = 63, // Default radius of 50, can be adjusted (smaller = tighter mask, larger = looser mask)
-  pixelated = false // Enable pixelated rendering
+  pixelated = false, // Enable pixelated rendering
+  priority = false // For above-the-fold images
 }: FacultyAvatarProps) {
   const { currentTheme } = useTheme();
   const [imageError, setImageError] = useState(false);
@@ -121,6 +123,7 @@ export function FacultyAvatar({
         isHovering={isHovering}
         className={className}
         size={size}
+        priority={priority}
       />
     );
   }
