@@ -3,7 +3,8 @@ import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router
 import { useMultipleFacultyMembers, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 import { useEvents } from '../../hooks/useEvents';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
-import { parseEventResources, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
+import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
+import { useEventResources } from '../../hooks/useEvents';
 import EventDetailHeader from './EventDetailHeader';
 import SessionSetup from '../Faculty/SessionSetup';
 import Panopto from './Panopto';
@@ -89,8 +90,9 @@ export default function EventDetail() {
   // Use the first hand-off time if there are multiple
   const handOffTime = ownershipData?.handOffTimes && ownershipData.handOffTimes.length > 0 ? ownershipData.handOffTimes[0] : null;
   
-  // Parse event resources using the utility function (only if event exists)
-  const { resources } = event ? parseEventResources(event) : { resources: [] };
+  // Get parsed event resources from cache (only if event exists)
+  const { data: resourcesData } = useEventResources(event?.id || 0);
+  const resources = event && resourcesData ? resourcesData.resources : [];
   
   // Check if this event has recording resources
   const hasRecordingResource = resources.some(resource => 

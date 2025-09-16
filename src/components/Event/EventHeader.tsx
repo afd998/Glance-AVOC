@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
-import { parseEventResources, getEventThemeColors } from '../../utils/eventUtils';
+import { getEventThemeColors } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
 import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
 import { useEvent } from '../../hooks/useEvent';
+import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
 import Avatar from '../Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -26,8 +27,10 @@ export default function EventHeader({
   // Use fresh event data if available, otherwise fall back to prop
   const currentEvent = freshEvent || event;
   
-  // Get all occurrences of this event
-  const { data: occurrences } = useOccurrences(currentEvent.event_name);
+  // Get all occurrences of this event and isFirstSession flag
+  const { data: occurrencesData } = useOccurrences(currentEvent);
+  const occurrences = occurrencesData?.occurrences || [];
+  const isFirstSession = occurrencesData?.isFirstSession || false;
   
   // Get ownership data including timeline
   const { data: ownershipData } = useEventOwnership(currentEvent);
@@ -41,14 +44,20 @@ export default function EventHeader({
   // State to track if all Panopto checks are complete
   const [allChecksComplete, setAllChecksComplete] = React.useState(false);
   
-  // Parse event resources using the utility function
-  const { resources } = parseEventResources(currentEvent);
+  // Get parsed event resources and computed flags from cache
+  const { data: resourcesData } = useEventResources(currentEvent.id);
+  const resources = resourcesData?.resources || [];
+  
+  // Get pre-computed boolean flags from cache
+  const hasVideoRecording = resourcesData?.hasVideoRecording || false;
+  const hasStaffAssistance = resourcesData?.hasStaffAssistance || false;
+  const hasHandheldMic = resourcesData?.hasHandheldMic || false;
+  const hasWebConference = resourcesData?.hasWebConference || false;
+  const hasClickers = resourcesData?.hasClickers || false;
+  const hasAVNotes = resourcesData?.hasAVNotes || false;
   
   // Get theme colors for this event type
   const themeColors = getEventThemeColors(currentEvent);
-  
-  // Check for specific resources by display name
-  const hasVideoRecording = resources.some(item => item.displayName?.includes('Recording'));
   
   // Check if all Panopto checks are complete for this event (using React Query properly)
   const { isComplete, isLoading, error } = useEventChecksComplete(
@@ -81,24 +90,6 @@ export default function EventHeader({
     }
   }, [isComplete, isLoading, error, hasVideoRecording, currentEvent.id, allChecksComplete]);
   
-  // Check if this is the first session (earliest occurrence) - only for lectures
-  const isFirstSession = React.useMemo(() => {
-    if (!occurrences || occurrences.length === 0 || currentEvent.event_type !== 'Lecture') return false;
-    
-    // Sort occurrences by start time and check if this event is the first one
-    const sortedOccurrences = [...occurrences].sort((a, b) => {
-      const timeA = a.start_time ? new Date(a.start_time).getTime() : 0;
-      const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
-      return timeA - timeB;
-    });
-    
-    return sortedOccurrences[0]?.id === currentEvent.id;
-  }, [occurrences, currentEvent.id, currentEvent.event_type]);
-  const hasStaffAssistance = resources.some(item => item.displayName === 'Staff Assistance');
-  const hasHandheldMic = resources.some(item => item.displayName === 'Handheld Microphone');
-  const hasWebConference = resources.some(item => item.displayName === 'Web Conference');
-  const hasClickers = resources.some(item => item.displayName === 'Clickers (Polling)');
-  const hasAVNotes = resources.some(item => item.displayName === 'AV Setup Notes');
   
   // State for fisheye effect
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
@@ -134,22 +125,8 @@ export default function EventHeader({
 
   const timeDisplay = `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
 
-  // Calculate event duration in hours
-  const getEventDurationHours = () => {
-    if (!currentEvent.start_time || !currentEvent.end_time) return 0;
-    try {
-      const [startHours, startMinutes] = currentEvent.start_time.split(':').map(Number);
-      const [endHours, endMinutes] = currentEvent.end_time.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      const durationMinutes = endTotalMinutes - startTotalMinutes;
-      return durationMinutes / 60; // Convert to hours
-    } catch (error) {
-      return 0;
-    }
-  };
-
-  const eventDurationHours = getEventDurationHours();
+  // Get cached event duration in hours
+  const { data: eventDurationHours = 0 } = useEventDurationHours(currentEvent.id);
   const isShortLecture = currentEvent.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate fisheye scale based on proximity to hovered icon

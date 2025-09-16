@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useProfile } from './useProfile';
 import { useFilters } from './useFilters';
 import { useMyEventsFilter } from './useMyEventsFilter';
@@ -6,6 +7,42 @@ import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
+// Cached my events filter hook
+export const useCachedMyEventsFilter = (
+  events: Event[] | undefined, 
+  date: Date, 
+  currentFilter: string | null, 
+  userId: string | null, 
+  allShiftBlocks: any[]
+) => {
+  const dateString = date.toISOString().split('T')[0];
+  
+  return useQuery({
+    queryKey: ['myEvents', dateString, currentFilter, userId],
+    queryFn: () => {
+      if (!events || events.length === 0 || currentFilter !== 'My Events' || !userId) {
+        return events || [];
+      }
+
+      // Import the function dynamically to avoid circular dependency
+      const { isUserEventOwner } = require('../utils/eventUtils');
+      
+      // Filter events to only show those where the current user is an owner
+      return events.filter(event => {
+        return isUserEventOwner(event, userId, allShiftBlocks);
+      });
+    },
+    enabled: !!events && !!userId && currentFilter === 'My Events',
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+
+// Legacy hook for backward compatibility
 export const useEventFiltering = (events: Event[] | undefined) => {
   const { currentFilter } = useProfile();
   const { filters } = useFilters();

@@ -3,7 +3,8 @@ import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
 import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
-import { parseEventResources, getEventTypeInfo, calculateEventPosition, getEventThemeColors } from "../../utils/eventUtils";
+import { getEventTypeInfo, calculateEventPosition, getEventThemeColors, getEventGradientClass, getOriginalColorFromTailwindClass } from "../../utils/eventUtils";
+import { useEventDurationHours } from "../../hooks/useEvents";
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -117,22 +118,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return null;
   }
 
-  // Calculate event duration in hours
-  const getEventDurationHours = () => {
-    if (!event.start_time || !event.end_time) return 0;
-    try {
-      const [startHours, startMinutes] = event.start_time.split(':').map(Number);
-      const [endHours, endMinutes] = event.end_time.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      const durationMinutes = endTotalMinutes - startTotalMinutes;
-      return durationMinutes / 60; // Convert to hours
-    } catch (error) {
-      return 0;
-    }
-  };
-
-  const eventDurationHours = getEventDurationHours();
+  // Get cached event duration in hours
+  const { data: eventDurationHours = 0 } = useEventDurationHours(event.id);
   const isShortLecture = event.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate event positioning using utility function
@@ -168,87 +155,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const themeColors = getEventThemeColors(event);
   const bgColor = themeColors[5]; // Use theme color for background
   
-  // Determine gradient class based on event type
-  const getGradientClass = (eventType: string) => {
-    switch (eventType) {
-      case 'Lecture':
-        return 'lecture-gradient';
-      case 'Ad Hoc Class Meeting':
-        return 'ad-hoc-gradient';
-      case 'KEC':
-        return 'kec-gradient';
-      case 'KSM: Kellogg FacStaff (KGH)':
-        return 'ksm-facstaff-gradient';
-      case 'CMC':
-        return 'cmc-gradient';
-      default:
-        // Check if it's a student event
-        if (eventType.toLowerCase().includes('student')) {
-          return 'student-event-gradient';
-        }
-        // Check if it's a faculty/staff event (but not KSM FacStaff which is handled above)
-        if (!eventType.toLowerCase().includes('student') && eventType !== 'KSM: Kellogg FacStaff (KGH)') {
-          return 'facstaff-event-gradient';
-        }
-        // Default fallback
-        return 'default-event-gradient';
-    }
-  };
+  // Get gradient class from utility function
+  const gradientClass = getEventGradientClass(event.event_type || '');
   
   // Determine if we should show the overdue blinking effect
   const shouldBlink = hasOverduePanoptoChecks;
   
   
-  // Extract hex color from Tailwind class and create dynamic blinking animation
-  const getOriginalColor = () => {
-    // Extract hex color from Tailwind class like 'bg-[#6d8fbf]' or 'bg-slate-400'
-    let originalColor = 'rgb(59 130 246)'; // Default blue fallback
-    
-    if (bgColor.includes('bg-[') && bgColor.includes(']')) {
-      // Extract hex color from bg-[#hex] format
-      const hexMatch = bgColor.match(/bg-\[#([a-fA-F0-9]{6})\]/);
-      if (hexMatch) {
-        const hex = hexMatch[1];
-        // Convert hex to RGB
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        originalColor = `rgb(${r} ${g} ${b})`;
-      }
-    } else if (bgColor.includes('bg-slate-')) {
-      // Handle slate colors
-      const slateMap: { [key: string]: string } = {
-        'bg-slate-50': 'rgb(248 250 252)',
-        'bg-slate-100': 'rgb(241 245 249)',
-        'bg-slate-200': 'rgb(226 232 240)',
-        'bg-slate-300': 'rgb(203 213 225)',
-        'bg-slate-400': 'rgb(148 163 184)',
-        'bg-slate-500': 'rgb(100 116 139)',
-        'bg-slate-600': 'rgb(71 85 105)',
-        'bg-slate-700': 'rgb(51 65 85)',
-        'bg-slate-800': 'rgb(30 41 59)',
-        'bg-slate-900': 'rgb(15 23 42)',
-      };
-      originalColor = slateMap[bgColor] || 'rgb(148 163 184)';
-    } else if (bgColor.includes('bg-gray-')) {
-      // Handle gray colors
-      const grayMap: { [key: string]: string } = {
-        'bg-gray-50': 'rgb(249 250 251)',
-        'bg-gray-100': 'rgb(243 244 246)',
-        'bg-gray-200': 'rgb(229 231 235)',
-        'bg-gray-300': 'rgb(209 213 219)',
-        'bg-gray-400': 'rgb(156 163 175)',
-        'bg-gray-500': 'rgb(107 114 128)',
-        'bg-gray-600': 'rgb(75 85 99)',
-        'bg-gray-700': 'rgb(55 65 81)',
-        'bg-gray-800': 'rgb(31 41 55)',
-        'bg-gray-900': 'rgb(17 24 39)',
-      };
-      originalColor = grayMap[bgColor] || 'rgb(156 163 175)';
-    }
-    
-    return originalColor;
-  };
+  // Get original color from utility function
+  const originalColor = getOriginalColorFromTailwindClass(bgColor);
 
   // Adjust height for specific event types and keep centered in the 96px room row
   const ROW_HEIGHT_PX = 96;
@@ -301,13 +216,13 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
           shouldBlink && event.event_type !== 'Lecture'
             ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
-            : getGradientClass(event.event_type || '')
+            : gradientClass
         } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} pt-5 pb-1`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
           boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
-          ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
+          ...(shouldBlink && { '--original-bg-color': originalColor })
         }}
       >
         <EventHeader 
@@ -337,27 +252,27 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : getGradientClass(event.event_type || '')}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX}px`,
             top: '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
             height: '2px',
-            ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
+            ...(shouldBlink && { '--original-bg-color': originalColor })
           }}
         />
       )}
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : getGradientClass(event.event_type || '')}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
           style={{
             left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
             top: 0,
             width: '2px',
             height: '100%',
-            ...(shouldBlink && { '--original-bg-color': getOriginalColor() })
+            ...(shouldBlink && { '--original-bg-color': originalColor })
           }}
         />
       )}

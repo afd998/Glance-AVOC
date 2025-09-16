@@ -1,5 +1,6 @@
 import React from 'react';
-import { parseEventResources, getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName } from '../../utils/eventUtils';
+import { useEventResources } from '../../hooks/useEvents';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { Database } from '../../types/supabase';
 
@@ -15,8 +16,9 @@ interface EventHoverCardProps {
 }
 
 export default function EventHoverCard({ event, facultyMembers, instructorNames, isFacultyLoading, style }: EventHoverCardProps) {
-  // Parse event resources using the utility function
-  const { resources } = parseEventResources(event);
+  // Get parsed event resources from cache
+  const { data: resourcesData } = useEventResources(event.id);
+  const resources = resourcesData?.resources || [];
 
   return (
     <div 

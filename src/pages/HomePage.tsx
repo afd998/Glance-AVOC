@@ -5,9 +5,9 @@ import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
 import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
-import { useEvents } from "../hooks/useEvents";
+import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
+import { useEvents, useCachedEventFiltering } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
-import { useEventFiltering } from "../hooks/useEventFiltering";
 import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
 import { useFilters } from "../hooks/useFilters";
@@ -26,21 +26,10 @@ import { Database } from "../types/supabase";
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const currentTimeRef = useRef(new Date());
-  const gridContainerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState({ left: 0, top: 0 });
   
-  // Drag-to-scroll functionality
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [edgeHighlight, setEdgeHighlight] = useState({ top: false, bottom: false, left: false, right: false });
-  
-  
-  // Throttling for performance
-  const lastThrottledMove = useRef(0);
-  const lastEdgeHighlightUpdate = useRef(0);
-  const THROTTLE_INTERVAL = 16; // ~60fps
-  const EDGE_HIGHLIGHT_THROTTLE = 50; // Update edge highlights less frequently
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
@@ -68,12 +57,12 @@ export default function HomePage() {
   const endHour = 23;
   const { events, isLoading, error } = useEvents(selectedDate);
   const { scheduleNotificationsForEvents } = useNotifications();
-  const { filteredEvents, getFilteredEventsForRoom } = useEventFiltering(events);
+  const { data: filteredEvents, getFilteredEventsForRoom } = useCachedEventFiltering(events, selectedDate);
   
   // Track if we've loaded events for the current date to prevent flash
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks(events || []);
-  useAutoHideLogic(filteredEvents, selectedDate);
+  useAutoHideLogic(filteredEvents || [], selectedDate);
   const { currentFilter, updateCurrentFilter, updateAutoHide } = useProfile();
   const { filters, loadFilter, getFilterByName, saveFilter } = useFilters();
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
@@ -179,56 +168,11 @@ export default function HomePage() {
     return () => { clearInterval(timer); };
   }, []);
 
-  // 3D Parallax effect for background image - TOGGLED OFF
-  // React.useEffect(() => {
-  //   const background = document.getElementById('parallax-background');
-  //   if (!background) return;
 
-  //   const handleOrientation = (event: DeviceOrientationEvent) => {
-  //     const { alpha, beta, gamma } = event;
-      
-  //     // Convert device orientation to CSS transform - reduced effect to prevent overflow
-  //     const x = gamma ? (gamma / 90) * 40 : 0; // Left/right tilt - reduced from 80 to 40
-  //     const y = beta ? ((beta - 45) / 45) * 40 : 0; // Forward/backward tilt - reduced from 80 to 40
-      
-  //     background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-  //   };
-
-  //   const handleMouseMove = (event: MouseEvent) => {
-  //     const { clientX, clientY } = event;
-  //     const { innerWidth, innerHeight } = window;
-      
-  //     // Calculate mouse position relative to center - reduced effect to prevent overflow
-  //     const x = ((clientX - innerWidth / 2) / innerWidth) * 60; // reduced from 120 to 60
-  //     const y = ((clientY - innerHeight / 2) / innerHeight) * 60; // reduced from 120 to 60
-      
-  //     background.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-  //   };
-
-  //   // Add event listeners
-  //   if (window.DeviceOrientationEvent) {
-  //     window.addEventListener('deviceorientation', handleOrientation);
-  //   }
-    
-  //   window.addEventListener('mousemove', handleMouseMove);
-
-  //   // Cleanup
-  //   return () => {
-  //     if (window.DeviceOrientationEvent) {
-  //       window.removeEventListener('deviceorientation', handleOrientation);
-  //     }
-  //     window.removeEventListener('mousemove', handleMouseMove);
-  //   };
-  // }, []);
 
   const handleDateChange = (newDate: Date) => {
     // Save current scroll position before navigating
-    if (gridContainerRef.current) {
-      setScrollPosition({
-        left: gridContainerRef.current.scrollLeft,
-        top: gridContainerRef.current.scrollTop
-      });
-    }
+    // Note: Scroll position is now managed by DraggableGridContainer
     
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
@@ -247,22 +191,15 @@ export default function HomePage() {
 
   // Restore scroll position after date change and content is loaded
   useEffect(() => {
-    if (gridContainerRef.current && !isLoading && !roomsLoading && selectedRooms.length > 0) {
-      // Use a small delay to ensure content is fully rendered
-      const timer = setTimeout(() => {
-        if (gridContainerRef.current) {
-          gridContainerRef.current.scrollLeft = scrollPosition.left;
-          gridContainerRef.current.scrollTop = scrollPosition.top;
-        }
-      }, 100);
-      
-      return () => clearTimeout(timer);
+    if (!isLoading && !roomsLoading && selectedRooms.length > 0) {
+      // Note: Scroll position restoration is now handled by DraggableGridContainer
+      // The scroll position will be maintained through the onScrollPositionChange callback
     }
   }, [selectedDate, isLoading, roomsLoading, selectedRooms.length, scrollPosition]);
 
   // Enable drag functionality when there are events to scroll
   useEffect(() => {
-    if (hasFilteredEvents && gridContainerRef.current) {
+    if (hasFilteredEvents) {
       setIsDragEnabled(true);
     } else {
       setIsDragEnabled(false);
@@ -283,14 +220,14 @@ export default function HomePage() {
     const roomsWithRows = new Set<string>();
     
     // Add all individual room events
-    filteredEvents.forEach(event => {
+    filteredEvents.forEach((event: any) => {
       if (event.room_name && !event.room_name.includes('&')) {
         roomsWithRows.add(event.room_name);
       }
     });
     
     // Handle merged room events - they create rows for constituent rooms
-    filteredEvents.forEach(event => {
+    filteredEvents.forEach((event: any) => {
       if (event.room_name && event.room_name.includes('&')) {
         const parts = event.room_name.split('&');
         if (parts.length === 2) {
@@ -326,224 +263,6 @@ export default function HomePage() {
     return visibleRoomsWithRows.length;
   };
 
-  // Helper function to clamp scroll values within boundaries
-  const clampScrollPosition = (scrollLeft: number, scrollTop: number) => {
-    if (!gridContainerRef.current) return { scrollLeft, scrollTop };
-    
-    const container = gridContainerRef.current;
-    const { clientWidth, clientHeight } = container;
-    
-    // Calculate the actual content dimensions
-    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    // Each room row is h-24 (96px), plus TimeGrid is h-8 (32px)
-    const actualRowCount = calculateActualRowCount();
-    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
-    
-    // Calculate maximum scroll positions
-    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
-    
-    // Clamp the values
-    return {
-      scrollLeft: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
-      scrollTop: Math.max(0, Math.min(scrollTop, maxScrollTop))
-    };
-  };
-
-  // Function to check and update edge highlighting
-  const updateEdgeHighlight = () => {
-    if (!gridContainerRef.current || !isDragging) return;
-    
-    const currentTime = Date.now();
-    
-    // Throttle edge highlight updates for better performance
-    if (currentTime - lastEdgeHighlightUpdate.current < EDGE_HIGHLIGHT_THROTTLE) {
-      return;
-    }
-    lastEdgeHighlightUpdate.current = currentTime;
-    
-    const container = gridContainerRef.current;
-    const { scrollLeft, scrollTop, clientWidth, clientHeight } = container;
-    
-    // Calculate the actual content width based on the grid dimensions
-    // This matches the width calculation used in the content div
-    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    // Each room row is h-24 (96px), plus TimeGrid is h-8 (32px)
-    const actualRowCount = calculateActualRowCount();
-    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
-    
-    // Add tolerance for edge detection and ensure we're actually at the boundaries
-    const tolerance = 20;
-    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
-    
-    // More aggressive edge detection - try to catch edges even if content doesn't fill full area
-    const newEdgeHighlight = {
-      top: scrollTop <= tolerance,
-      bottom: scrollTop >= maxScrollTop - tolerance,
-      left: scrollLeft <= tolerance,
-      right: scrollLeft >= maxScrollLeft - tolerance
-    };
-    
-    // Check if we hit any edge
-    const hitAnyEdge = newEdgeHighlight.top || newEdgeHighlight.bottom || newEdgeHighlight.left || newEdgeHighlight.right;
-    
-    
-    if (hitAnyEdge) {
-      setEdgeHighlight(newEdgeHighlight);
-    } else {
-      // Clear highlights immediately when not hitting any edge
-      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-    }
-    
-    // Debug logging
-    if (isDragging) {
-      console.log('Edge detection debug:', {
-        scrollLeft: scrollLeft.toFixed(2),
-        scrollTop: scrollTop.toFixed(2),
-        actualContentWidth,
-        actualContentHeight,
-        clientWidth,
-        clientHeight,
-        maxScrollLeft: maxScrollLeft.toFixed(2),
-        maxScrollTop: maxScrollTop.toFixed(2),
-        isAtRight: scrollLeft >= maxScrollLeft - tolerance,
-        isAtBottom: scrollTop >= maxScrollTop - tolerance,
-        newEdgeHighlight,
-        hitAnyEdge
-      });
-    }
-  };
-
-
-  // Drag-to-scroll handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!gridContainerRef.current) return;
-    
-    // Only start dragging if clicking on the background (not on events)
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-event]') || target.closest('[data-room-label]')) {
-      return; // Don't drag if clicking on events or room labels
-    }
-    
-    setIsDragging(true);
-    setIsDragEnabled(true);
-    setDragStart({
-      x: e.pageX - gridContainerRef.current.offsetLeft,
-      y: e.pageY - gridContainerRef.current.offsetTop,
-      scrollLeft: gridContainerRef.current.scrollLeft,
-      scrollTop: gridContainerRef.current.scrollTop
-    });
-    
-    gridContainerRef.current.style.cursor = 'grabbing';
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !gridContainerRef.current) return;
-    e.preventDefault();
-    
-    const currentTime = Date.now();
-    
-    // Throttle updates for better performance
-    if (currentTime - lastThrottledMove.current < THROTTLE_INTERVAL) {
-      return;
-    }
-    lastThrottledMove.current = currentTime;
-    
-    const x = e.pageX - gridContainerRef.current.offsetLeft;
-    const y = e.pageY - gridContainerRef.current.offsetTop;
-    
-    const walkX = (x - dragStart.x) * 2; // Multiply by 2 for faster scrolling
-    const walkY = (y - dragStart.y) * 2; // Multiply by 2 for faster scrolling
-    const newScrollLeft = dragStart.scrollLeft - walkX;
-    const newScrollTop = dragStart.scrollTop - walkY;
-    
-    // Clamp scroll position to prevent overscrolling
-    const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
-    gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
-    gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
-    
-    // Update edge highlighting after scroll (throttled)
-    updateEdgeHighlight();
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    if (gridContainerRef.current) {
-      gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
-    }
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-    if (gridContainerRef.current) {
-      gridContainerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
-    }
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-  };
-
-
-  // Touch support for mobile devices
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!gridContainerRef.current) return;
-    
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-event]') || target.closest('[data-room-label]')) {
-      return;
-    }
-    
-    setIsDragging(true);
-    setIsDragEnabled(true);
-    const touch = e.touches[0];
-    setDragStart({
-      x: touch.pageX - gridContainerRef.current.offsetLeft,
-      y: touch.pageY - gridContainerRef.current.offsetTop,
-      scrollLeft: gridContainerRef.current.scrollLeft,
-      scrollTop: gridContainerRef.current.scrollTop
-    });
-    
-    e.preventDefault();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !gridContainerRef.current) return;
-    e.preventDefault();
-    
-    const currentTime = Date.now();
-    
-    // Throttle updates for better performance
-    if (currentTime - lastThrottledMove.current < THROTTLE_INTERVAL) {
-      return;
-    }
-    lastThrottledMove.current = currentTime;
-    
-    const touch = e.touches[0];
-    const x = touch.pageX - gridContainerRef.current.offsetLeft;
-    const y = touch.pageY - gridContainerRef.current.offsetTop;
-    
-    const walkX = (x - dragStart.x) * 2;
-    const walkY = (y - dragStart.y) * 2;
-    const newScrollLeft = dragStart.scrollLeft - walkX;
-    const newScrollTop = dragStart.scrollTop - walkY;
-    
-    // Clamp scroll position to prevent overscrolling
-    const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
-    gridContainerRef.current.scrollLeft = clampedPosition.scrollLeft;
-    gridContainerRef.current.scrollTop = clampedPosition.scrollTop;
-    
-    // Update edge highlighting after scroll (throttled)
-    updateEdgeHighlight();
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-  };
 
 
   if (error) {
@@ -559,96 +278,60 @@ export default function HomePage() {
          setSelectedDate={handleDateChange}
          isLoading={isLoading}
          events={events}
-         isDragging={isDragging}
        />
-                          <div 
-                            ref={gridContainerRef} 
-                            className={`grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative shadow-2xl ${
-                              isDragging ? 'dragging' : ''}`}
-                            style={{ 
-                              cursor: isDragEnabled ? 'grab' : 'default'
-                            }}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                            onMouseLeave={handleMouseLeave}
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
-                            onTouchEnd={handleTouchEnd}
+                          <DraggableGridContainer
+                            className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative shadow-2xl"
+                            startHour={startHour}
+                            endHour={endHour}
+                            pixelsPerMinute={pixelsPerMinute}
+                            actualRowCount={calculateActualRowCount()}
+                            isDragEnabled={isDragEnabled}
+                            onScrollPositionChange={(position) => setScrollPosition(position)}
                           >
-        <div className="min-w-max relative" style={{ 
-          width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
-          minHeight: '100%' // Ensure content fills the full height
-        }}>
-          {/* Edge highlighting overlays - clean glow effect */}
-          {edgeHighlight.top && (
-            <div className="absolute -top-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
-                 style={{
-                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-                   background: 'rgba(255, 255, 255, 0.1)'
-                 }} />
-          )}
-          {edgeHighlight.bottom && (
-            <div className="absolute -bottom-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
-                 style={{
-                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-                   background: 'rgba(255, 255, 255, 0.1)'
-                 }} />
-          )}
-          {edgeHighlight.left && (
-            <div className="absolute -top-4 -left-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
-                 style={{
-                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-                   background: 'rgba(255, 255, 255, 0.1)'
-                 }} />
-          )}
-          {edgeHighlight.right && (
-            <div className="absolute -top-4 -right-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
-                 style={{
-                   boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-                   background: 'rgba(255, 255, 255, 0.1)'
-                 }} />
-          )}
-          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          {hasFilteredEvents && (
-            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          )}
-          {hasFilteredEvents && (
-            <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
-              <CurrentTimeIndicator
-                currentTime={currentTimeRef.current}
-                startHour={startHour}
-                endHour={endHour}
-                pixelsPerMinute={pixelsPerMinute}
-              />
-            </div>
-          )}
-          {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
-            const roomEvents = getFilteredEventsForRoom(room);
-            const currentFloor = room.match(/GH (\d)/)?.[1];
-            const nextRoom = selectedRooms[index + 1];
-            const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
-            const isFloorBreak = currentFloor !== nextFloor;
-            const isLastRow = index === selectedRooms.length - 1;
-            return (
-              <RoomRow
-                key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
-                room={room}
-                roomEvents={roomEvents}
-                startHour={startHour}
-                pixelsPerMinute={pixelsPerMinute}
-                rooms={selectedRooms}
-                isFloorBreak={isFloorBreak}
-                onEventClick={handleEventClick}
-                isEvenRow={index % 2 === 0}
-                isLastRow={isLastRow}
-                hasOverdueChecks={hasOverdueChecks}
-                isOverdueChecksLoading={isOverdueChecksLoading}
-              />
-            );
-          })}
-        </div>
-      </div>
+                            <div className="min-w-max relative" style={{ 
+                              width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
+                              minHeight: '100%' // Ensure content fills the full height
+                            }}>
+                              <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+                              {hasFilteredEvents && (
+                                <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+                              )}
+                              {hasFilteredEvents && (
+                                <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+                                  <CurrentTimeIndicator
+                                    currentTime={currentTimeRef.current}
+                                    startHour={startHour}
+                                    endHour={endHour}
+                                    pixelsPerMinute={pixelsPerMinute}
+                                  />
+                                </div>
+                              )}
+                              {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
+                                const roomEvents = getFilteredEventsForRoom(room);
+                                const currentFloor = room.match(/GH (\d)/)?.[1];
+                                const nextRoom = selectedRooms[index + 1];
+                                const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
+                                const isFloorBreak = currentFloor !== nextFloor;
+                                const isLastRow = index === selectedRooms.length - 1;
+                                return (
+                                  <RoomRow
+                                    key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
+                                    room={room}
+                                    roomEvents={roomEvents}
+                                    startHour={startHour}
+                                    pixelsPerMinute={pixelsPerMinute}
+                                    rooms={selectedRooms}
+                                    isFloorBreak={isFloorBreak}
+                                    onEventClick={handleEventClick}
+                                    isEvenRow={index % 2 === 0}
+                                    isLastRow={isLastRow}
+                                    hasOverdueChecks={hasOverdueChecks}
+                                    isOverdueChecksLoading={isOverdueChecksLoading}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </DraggableGridContainer>
       {/* Absolutely positioned no-events message */}
       {!hasFilteredEvents && !isLoading && !roomsLoading && hasLoadedEvents && (
         <NoEventsMessage onClearFilter={handleClearFilter} />

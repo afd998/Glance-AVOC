@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { parseEventResources } from '../utils/eventUtils';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -13,10 +12,10 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
 
   // Check if an event has recording resources
   const hasRecordingResource = (event: Event) => {
-    if (!event.resources) return false;
+    if (!event.resources || !Array.isArray(event.resources)) return false;
     
-    const resourceFlags = parseEventResources(event);
-    return resourceFlags.resources.some((resource: any) => 
+    // Direct check for recording resources without full parsing
+    return event.resources.some((resource: any) => 
       resource.itemName?.toLowerCase().includes('panopto') ||
       resource.itemName?.toLowerCase().includes('recording')
     );

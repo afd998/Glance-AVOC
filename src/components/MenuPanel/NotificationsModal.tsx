@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
-import { parseEventResources, isUserEventOwner } from '../../utils/eventUtils';
+import { isUserEventOwner } from '../../utils/eventUtils';
+import { useEventResources } from '../../hooks/useEvents';
 import useRoomStore from '../../stores/roomStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAllShiftBlocks } from '../../hooks/useShiftBlocks';
@@ -33,8 +34,13 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
 
   // Check if event has staff assistance
   const hasStaffAssistance = (event: Event): boolean => {
-    const { resources } = parseEventResources(event);
-    return resources.some(item => 
+    // This is a utility function that might be called multiple times
+    // For now, we'll keep the direct parsing here since it's used in a loop
+    // In the future, we could optimize this by pre-computing all resources
+    if (!event.resources || !Array.isArray(event.resources)) {
+      return false;
+    }
+    return event.resources.some((item: any) => 
       item.itemName === "KSM-KGH-AV-Staff Assistance"
     );
   };

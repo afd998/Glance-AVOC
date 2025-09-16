@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { formatTime, formatDate } from '../utils/timeUtils';
-import { parseEventResources, getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../utils/eventUtils';
+import { getResourceIcon, getResourceDisplayName, getEventThemeColors } from '../utils/eventUtils';
+import { useEventResources } from '../hooks/useEvents';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -34,8 +35,9 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
   totalCards 
 }) => {
   const navigate = useNavigate();
-  // Parse event resources
-  const { resources } = parseEventResources(event);
+  // Get parsed event resources from cache
+  const { data: resourcesData } = useEventResources(event.id);
+  const resources = resourcesData?.resources || [];
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
 

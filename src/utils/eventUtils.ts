@@ -565,6 +565,88 @@ export const getEventThemeColors = (event: Event) => {
 };
 
 /**
+ * Get gradient class based on event type
+ */
+export const getEventGradientClass = (eventType: string): string => {
+  switch (eventType) {
+    case 'Lecture':
+      return 'lecture-gradient';
+    case 'Ad Hoc Class Meeting':
+      return 'ad-hoc-gradient';
+    case 'KEC':
+      return 'kec-gradient';
+    case 'KSM: Kellogg FacStaff (KGH)':
+      return 'ksm-facstaff-gradient';
+    case 'CMC':
+      return 'cmc-gradient';
+    default:
+      // Check if it's a student event
+      if (eventType.toLowerCase().includes('student')) {
+        return 'student-event-gradient';
+      }
+      // Check if it's a faculty/staff event (but not KSM FacStaff which is handled above)
+      if (!eventType.toLowerCase().includes('student') && eventType !== 'KSM: Kellogg FacStaff (KGH)') {
+        return 'facstaff-event-gradient';
+      }
+      // Default fallback
+      return 'default-event-gradient';
+  }
+};
+
+/**
+ * Extract hex color from Tailwind class and create dynamic blinking animation
+ */
+export const getOriginalColorFromTailwindClass = (bgColor: string): string => {
+  // Extract hex color from Tailwind class like 'bg-[#6d8fbf]' or 'bg-slate-400'
+  let originalColor = 'rgb(59 130 246)'; // Default blue fallback
+  
+  if (bgColor.includes('bg-[') && bgColor.includes(']')) {
+    // Extract hex color from bg-[#hex] format
+    const hexMatch = bgColor.match(/bg-\[#([a-fA-F0-9]{6})\]/);
+    if (hexMatch) {
+      const hex = hexMatch[1];
+      // Convert hex to RGB
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      originalColor = `rgb(${r} ${g} ${b})`;
+    }
+  } else if (bgColor.includes('bg-slate-')) {
+    // Handle slate colors
+    const slateMap: { [key: string]: string } = {
+      'bg-slate-50': 'rgb(248 250 252)',
+      'bg-slate-100': 'rgb(241 245 249)',
+      'bg-slate-200': 'rgb(226 232 240)',
+      'bg-slate-300': 'rgb(203 213 225)',
+      'bg-slate-400': 'rgb(148 163 184)',
+      'bg-slate-500': 'rgb(100 116 139)',
+      'bg-slate-600': 'rgb(71 85 105)',
+      'bg-slate-700': 'rgb(51 65 85)',
+      'bg-slate-800': 'rgb(30 41 59)',
+      'bg-slate-900': 'rgb(15 23 42)',
+    };
+    originalColor = slateMap[bgColor] || 'rgb(148 163 184)';
+  } else if (bgColor.includes('bg-gray-')) {
+    // Handle gray colors
+    const grayMap: { [key: string]: string } = {
+      'bg-gray-50': 'rgb(249 250 251)',
+      'bg-gray-100': 'rgb(243 244 246)',
+      'bg-gray-200': 'rgb(229 231 235)',
+      'bg-gray-300': 'rgb(209 213 219)',
+      'bg-gray-400': 'rgb(156 163 175)',
+      'bg-gray-500': 'rgb(107 114 128)',
+      'bg-gray-600': 'rgb(75 85 99)',
+      'bg-gray-700': 'rgb(55 65 81)',
+      'bg-gray-800': 'rgb(31 41 55)',
+      'bg-gray-900': 'rgb(17 24 39)',
+    };
+    originalColor = grayMap[bgColor] || 'rgb(156 163 175)';
+  }
+  
+  return originalColor;
+};
+
+/**
  * Calculate event position on the timeline
  */
 export const calculateEventPosition = (

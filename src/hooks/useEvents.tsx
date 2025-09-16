@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
+import { parseEventResources } from '../utils/eventUtils';
+import { useProfile } from './useProfile';
+import { useFilters } from './useFilters';
+import { useAuth } from '../contexts/AuthContext';
+import { useAllShiftBlocks, ShiftBlock } from './useShiftBlocks';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -134,4 +139,238 @@ export function useEvents(date: Date) {
   const finalLoadingState = isOutsideWindow ? false : (isLoading || isFetching);
 
   return { events, isLoading: finalLoadingState, error };
-} 
+}
+
+// Hook to get cached parsed event resources with computed flags
+export function useEventResources(eventId: number) {
+  const queryClient = useQueryClient();
+  
+  return useQuery({
+    queryKey: ['eventResources', eventId],
+    queryFn: async () => {
+      // First try to get the event from the individual event cache
+      const cachedEvent = queryClient.getQueryData(['event', eventId]) as Event | undefined;
+      
+      if (cachedEvent) {
+        // Parse resources from cached event
+        const resourceData = parseEventResources(cachedEvent);
+        return computeResourceFlags(resourceData);
+      }
+      
+      // If not in cache, fetch the event from the database
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (!event) {
+        throw new Error(`Event with id ${eventId} not found`);
+      }
+      
+      // Cache the event for future use
+      queryClient.setQueryData(['event', eventId], event);
+      
+      // Parse resources and compute flags
+      const resourceData = parseEventResources(event);
+      return computeResourceFlags(resourceData);
+    },
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+// Helper function to compute all resource flags
+function computeResourceFlags(resourceData: { resources: any[] }) {
+  const { resources } = resourceData;
+  
+  return {
+    resources,
+    // Computed boolean flags
+    hasVideoRecording: resources.some(item => item.displayName?.includes('Recording')),
+    hasStaffAssistance: resources.some(item => item.displayName === 'Staff Assistance'),
+    hasHandheldMic: resources.some(item => item.displayName === 'Handheld Microphone'),
+    hasWebConference: resources.some(item => item.displayName === 'Web Conference'),
+    hasClickers: resources.some(item => item.displayName === 'Clickers (Polling)'),
+    hasAVNotes: resources.some(item => item.displayName === 'AV Setup Notes'),
+  };
+}
+
+// Hook to get cached event duration in hours
+export function useEventDurationHours(eventId: number) {
+  const queryClient = useQueryClient();
+  
+  return useQuery({
+    queryKey: ['eventDurationHours', eventId],
+    queryFn: async (): Promise<number> => {
+      // First try to get the event from the individual event cache
+      const cachedEvent = queryClient.getQueryData(['event', eventId]) as Event | undefined;
+      
+      if (cachedEvent) {
+        return computeEventDurationHours(cachedEvent);
+      }
+      
+      // If not in cache, fetch the event from the database
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('start_time, end_time')
+        .eq('id', eventId)
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (!event) {
+        throw new Error(`Event with id ${eventId} not found`);
+      }
+      
+      return computeEventDurationHours(event);
+    },
+    staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes (duration rarely changes)
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+// Helper function to compute event duration in hours
+function computeEventDurationHours(event: { start_time: string | null; end_time: string | null }): number {
+  if (!event.start_time || !event.end_time) return 0;
+  
+  try {
+    const [startHours, startMinutes] = event.start_time.split(':').map(Number);
+    const [endHours, endMinutes] = event.end_time.split(':').map(Number);
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    const durationMinutes = endTotalMinutes - startTotalMinutes;
+    return durationMinutes / 60; // Convert to hours
+  } catch (error) {
+    return 0;
+  }
+}
+
+// Helper function to filter events based on current filter and user
+export const filterEvents = (
+  events: Event[] | undefined,
+  currentFilter: string | null,
+  filters: any[],
+  userId: string | null,
+  allShiftBlocks: ShiftBlock[]
+): Event[] => {
+  if (!events || events.length === 0) {
+    return events || [];
+  }
+
+  // Special case: MY_EVENTS filter - filter events where user is owner
+  if (currentFilter === 'My Events' && userId) {
+    // Import the function dynamically to avoid circular dependency
+    const { isUserEventOwner } = require('../utils/eventUtils');
+    
+    // Filter events to only show those where the current user is an owner
+    return events.filter((event: Event) => {
+      return isUserEventOwner(event, userId, allShiftBlocks);
+    });
+  }
+
+  // If there's a current filter, filter events based on filter's display rooms
+  if (currentFilter && filters.length > 0) {
+    const currentFilterData = filters.find(filter => filter.name === currentFilter);
+    if (currentFilterData && currentFilterData.display.length > 0) {
+      // Only show events from rooms that are in the filter's display list
+      return events.filter((event: Event) => {
+        const eventRoomName = event.room_name;
+        if (!eventRoomName) return false;
+        return currentFilterData.display.includes(eventRoomName);
+      });
+    }
+  }
+
+  // No filter applied - show all events
+  return events;
+};
+
+// Cached event filtering hook
+export const useCachedEventFiltering = (events: Event[] | undefined, date: Date) => {
+  const { currentFilter } = useProfile();
+  const safeCurrentFilter = currentFilter ?? null;
+  const { filters } = useFilters();
+  const { user } = useAuth();
+  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
+  const queryClient = useQueryClient();
+  
+  const dateString = date.toISOString().split('T')[0];
+  const userId: string | null = user && user.id ? user.id : null;
+  
+  // Populate the cache when events change
+  useEffect(() => {
+    if (events) {
+      const filteredEvents = filterEvents(events, safeCurrentFilter, filters, userId, allShiftBlocks);
+      queryClient.setQueryData(['filteredEvents', dateString, safeCurrentFilter, userId], filteredEvents);
+    }
+  }, [events, safeCurrentFilter, filters, userId, allShiftBlocks, dateString, queryClient]);
+  
+  const query = useQuery({
+    queryKey: ['filteredEvents', dateString, safeCurrentFilter, userId],
+    queryFn: () => {
+      return filterEvents(events, safeCurrentFilter, filters, userId, allShiftBlocks);
+    },
+    enabled: !!events,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  // Helper function to get filtered events for a specific room
+  const getFilteredEventsForRoom = (roomName: string) => {
+    if (!query.data) return [];
+    
+    return query.data.filter((event: Event) => {
+      if (!event.room_name) return false;
+      
+      // Handle merged rooms (e.g., "GH 1420&30")
+      if (event.room_name.includes('&')) {
+        const parts = event.room_name.split('&');
+        if (parts.length === 2) {
+          const baseRoom = parts[0].trim();
+          const suffix = parts[1].trim();
+          
+          // Check if the requested room matches the base room
+          if (baseRoom === roomName) return true;
+          
+          // Handle different merge patterns
+          if (suffix === '30') {
+            // 1420&30 case: check if room matches 1420 or 1430
+            const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
+            if (roomNumber) {
+              const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
+              return roomName === baseRoom || roomName === secondRoom;
+            }
+          } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
+            // A&B case: check if room matches A or B variants
+            const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
+            return roomName === `${baseRoomWithoutSuffix}A` || roomName === `${baseRoomWithoutSuffix}B`;
+          }
+        }
+      }
+      
+      // Direct room match
+      return event.room_name === roomName;
+    });
+  };
+
+  return {
+    ...query,
+    getFilteredEventsForRoom
+  };
+};

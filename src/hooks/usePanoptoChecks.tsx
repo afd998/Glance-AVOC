@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEvents } from './useEvents';
 import { useAllShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
-import { parseEventResources } from '../utils/eventUtils';
 import { createPanoptoCheckNotification } from '../utils/notificationUtils';
 import { supabase } from '../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
@@ -60,8 +59,8 @@ export const usePanoptoChecks = () => {
       return false;
     }
     
-    const resourceFlags = parseEventResources(event);
-    const hasRecording = resourceFlags.resources.some((resource: any) => 
+    // Direct check for recording resources without full parsing
+    const hasRecording = event.resources.some((resource: any) => 
       resource.itemName?.toLowerCase().includes('panopto') ||
       resource.itemName?.toLowerCase().includes('recording')
     );

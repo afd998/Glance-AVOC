@@ -1,11 +1,9 @@
 import React from 'react';
 import { Database } from '../../types/supabase';
 import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
+import { useEventDurationHours } from '../../hooks/useEvents';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
-import { SpeechBubble } from '../SpeechBubble';
 
-// Configuration variable to enable/disable speech bubble effect
-const SPEECH_BUBBLE_ENABLED = false;
 
 // Helper function to extract last names from instructor names
 const extractLastNames = (instructorNames: string[]): string => {
@@ -16,35 +14,6 @@ const extractLastNames = (instructorNames: string[]): string => {
   }).join(', ');
 };
 
-// Helper function to get random Panopto messages
-const getRandomPanoptoMessage = (eventId: number): string => {
-  const messages = [
-    "My recording hasnt been checked in a while",
-    "Someone should check my recording!",
-    "Is my recording working?",
-    "Can someone verify my recording?",
-    "My recording might need attention",
-    "Please check if my recording is okay",
-    "I'm worried about my recording",
-    "Has anyone checked my recording lately?",
-    "My recording needs to be verified",
-    "Could someone look at my recording?",
-    "I think my recording needs checking",
-    "Is my recording still working properly?",
-    "Someone should verify my recording",
-    "My recording might be having issues",
-    "Can we check my recording status?",
-    "I'm concerned about my recording",
-    "Has my recording been checked today?",
-    "My recording needs attention",
-    "Please verify my recording is working",
-    "I need someone to check my recording"
-  ];
-  
-  // Use eventId to get a consistent message for each event
-  const randomIndex = eventId % messages.length;
-  return messages[randomIndex];
-};
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -76,22 +45,8 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   const parts = eventNameCopy.split(' ');
   const thirdPart = parts && parts.length >= 3 ? parts[2] : '';
 
-  // Calculate event duration in hours
-  const getEventDurationHours = () => {
-    if (!event.start_time || !event.end_time) return 0;
-    try {
-      const [startHours, startMinutes] = event.start_time.split(':').map(Number);
-      const [endHours, endMinutes] = event.end_time.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      const durationMinutes = endTotalMinutes - startTotalMinutes;
-      return durationMinutes / 60; // Convert to hours
-    } catch (error) {
-      return 0;
-    }
-  };
-
-  const eventDurationHours = getEventDurationHours();
+  // Get cached event duration in hours
+  const { data: eventDurationHours = 0 } = useEventDurationHours(event.id);
   const isShortLecture = event.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate avatar tilt based on first instructor name
@@ -210,14 +165,6 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
         </div>
       )}
 
-      {/* Speech bubble for overdue Panopto checks - positioned outside tilted container */}
-      {SPEECH_BUBBLE_ENABLED && hasOverduePanoptoChecks && !isOverdueChecksLoading && instructorNames.length > 0 && (
-        <SpeechBubble
-          message={getRandomPanoptoMessage(event.id)}
-          isVisible={true}
-          className="-top-10 left-8"
-        />
-      )}
 
       <div className={`flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden mt-1 ${isMergedRoomEvent ? 'justify-center' : ''}`}>
         <span
