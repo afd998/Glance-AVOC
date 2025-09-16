@@ -173,8 +173,8 @@ export function useEventResources(eventId: number) {
       return computeResourceFlags(resourceData);
     },
     enabled: !!eventId && eventId > 0, // Only run query for valid event IDs
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
+    gcTime: Infinity, // Keep in cache indefinitely
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

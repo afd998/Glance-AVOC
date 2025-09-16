@@ -159,6 +159,29 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const themeColors = getEventThemeColors(event);
   const bgColor = themeColors[5]; // Use theme color for background
   
+  // Additional debugging for CMC events
+  if (event.event_type === 'CMC') {
+    console.log('CMC Event - getEventTypeInfo result:', {
+      isMergedRoomEvent,
+      isReducedHeightEvent,
+      roomName: event.room_name
+    });
+  }
+  
+  // Debug logging for CMC events
+  if (event.event_type === 'CMC') {
+    console.log('CMC Event Debug:', {
+      eventType: event.event_type,
+      roomName: event.room_name,
+      roomNameLength: event.room_name?.length,
+      roomNameIncludesAmpersand: event.room_name?.includes('&'),
+      roomNameCharCodes: event.room_name?.split('').map(c => c.charCodeAt(0)),
+      isMergedRoomEvent,
+      isReducedHeightEvent,
+      eventName: event.event_name
+    });
+  }
+  
   // Get gradient class from utility function
   const gradientClass = getEventGradientClass(event.event_type || '');
   
@@ -180,10 +203,31 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   let eventHeightPx: number;
   let eventTopPx: string;
   
+  // Debug logging before height calculation
+  if (event.event_type === 'CMC') {
+    console.log('CMC Event - Before height calculation:', {
+      isMergedRoomEvent,
+      isReducedHeightEvent,
+      roomName: event.room_name,
+      MERGED_ROOM_HEIGHT_PX,
+      REDUCED_EVENT_HEIGHT_PX,
+      DEFAULT_EVENT_HEIGHT_PX
+    });
+  }
+  
   if (isMergedRoomEvent) {
     eventHeightPx = MERGED_ROOM_HEIGHT_PX;
     // Position merged room events at the top of the row (they extend downward into next room space)
     eventTopPx = '6px';
+    
+    // Debug logging for merged room events
+    if (event.event_type === 'CMC') {
+      console.log('CMC Merged Room Event - Using merged room height:', {
+        eventHeightPx,
+        eventTopPx,
+        roomName: event.room_name
+      });
+    }
   } else {
     // Special case for Ad Hoc Class Meeting - use even more reduced height
     if (event.event_type === 'Ad Hoc Class Meeting') {
@@ -193,6 +237,16 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     }
     // Center normal events in the row
     eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
+    
+    // Debug logging for non-merged CMC events
+    if (event.event_type === 'CMC') {
+      console.log('CMC Non-Merged Event - Using reduced height:', {
+        eventHeightPx,
+        eventTopPx,
+        isReducedHeightEvent,
+        roomName: event.room_name
+      });
+    }
   }
 
   return (
@@ -202,7 +256,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         top: eventTopPx,
         left: left,
         width: displayWidth,
-        height: event.event_type === 'Lecture' ? `${eventHeightPx}px` : 'auto',
+        height: `${eventHeightPx}px`,
         minHeight: `${eventHeightPx}px`,
         overflow: 'visible',
         textOverflow: 'ellipsis',

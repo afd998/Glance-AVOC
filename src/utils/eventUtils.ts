@@ -150,11 +150,28 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
     eventType === 'KSM: Kellogg Special Events (KGH)' ||
     eventType === 'KSM: Kellogg FacStaff (KGH)' ||
     eventType === 'KEC' ||
+    eventType === 'CMC' ||
     eventType === 'Ad Hoc Class Meeting'
   );
 
   // Determine if it's a merged room event
   const isMergedRoomEvent = event.room_name?.includes('&') || false;
+  
+  // TEMPORARY FIX: Force CMC events in 2410A or 2410B to be treated as merged room events
+  const isCMCIn2410 = event.event_type === 'CMC' && 
+    (event.room_name === 'GH 2410A' || event.room_name === 'GH 2410B' || 
+     event.room_name?.includes('2410A') || event.room_name?.includes('2410B'));
+  const finalIsMergedRoomEvent = isMergedRoomEvent || isCMCIn2410;
+  
+  // Debug logging for the temporary fix
+  if (isCMCIn2410) {
+    console.log('TEMPORARY FIX APPLIED: CMC event in 2410A/B forced to merged room event', {
+      eventType: event.event_type,
+      roomName: event.room_name,
+      originalIsMergedRoomEvent: isMergedRoomEvent,
+      finalIsMergedRoomEvent
+    });
+  }
 
   // Determine if it's a student or faculty/staff event
   const isStudentEvent = eventType.toLowerCase().includes('student');
@@ -167,7 +184,7 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
     isLecture,
     isAdHocClassMeeting,
     isReducedHeightEvent,
-    isMergedRoomEvent,
+    isMergedRoomEvent: finalIsMergedRoomEvent,
     truncatedEventName: truncateEventName(event)
   };
 };
