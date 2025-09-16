@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Database } from '../../types/supabase';
 import { formatTime } from '../../utils/timeUtils';
 import { getEventThemeColors } from '../../utils/eventUtils';
@@ -86,8 +86,8 @@ export default function EventHeader({
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const iconOrder = ['firstSession', 'videoRecording', 'staffAssistance', 'handheldMic', 'webConference', 'clickers', 'avNotes'];
   
-  // Format start and end times from HH:MM:SS format
-  const formatTimeFromISO = (timeString: string | null) => {
+  // Format start and end times from HH:MM:SS format (memoized)
+  const formatTimeFromISO = useCallback((timeString: string | null) => {
     if (!timeString) return '';
     try {
       // Parse HH:MM:SS format
@@ -112,9 +112,12 @@ export default function EventHeader({
       console.error('Error formatting time:', timeString, error);
       return '';
     }
-  };
+  }, []);
 
-  const timeDisplay = `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
+  // Memoize the time display calculation
+  const timeDisplay = useMemo(() => {
+    return `${formatTimeFromISO(currentEvent.start_time)} - ${formatTimeFromISO(currentEvent.end_time)}`;
+  }, [formatTimeFromISO, currentEvent.start_time, currentEvent.end_time]);
 
   // Get cached event duration in hours
   const { data: eventDurationHours = 0 } = useEventDurationHours(currentEvent.id);

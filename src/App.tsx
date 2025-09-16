@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -55,6 +56,7 @@ export default function App() {
             </LeavesProvider>
           </RainProvider>
         </ThemeProvider>
+        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </AuthProvider>
   );

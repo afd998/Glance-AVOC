@@ -85,7 +85,7 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     },
     enabled: events.length > 0,
     refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 25000, // Consider data stale after 25 seconds
+    staleTime: Infinity, // Never go stale - overdue checks need immediate attention
   });
 
   // Calculate overdue events using React Query data

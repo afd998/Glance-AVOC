@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
@@ -108,15 +108,16 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Use the new room_name field instead of parsing subject_itemName
   const roomName = event.room_name;
   
-  // For merged room events (containing &), find the base room index
-  let roomIndex: number;
-  if (roomName?.includes('&')) {
-    // Extract the base room name (everything before &)
-    const baseRoomName = roomName.split('&')[0];
-    roomIndex = rooms.indexOf(baseRoomName);
-  } else {
-    roomIndex = rooms.indexOf(roomName || '');
-  }
+  // Memoize room index calculation for merged room events
+  const roomIndex = useMemo(() => {
+    if (roomName?.includes('&')) {
+      // Extract the base room name (everything before &)
+      const baseRoomName = roomName.split('&')[0];
+      return rooms.indexOf(baseRoomName);
+    } else {
+      return rooms.indexOf(roomName || '');
+    }
+  }, [roomName, rooms]);
   
   if (roomIndex === -1) {
     return null;
@@ -124,18 +125,25 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
 
   // Get cached event duration in hours
   const { data: eventDurationHours = 0 } = useEventDurationHours(event.id);
-  const isShortLecture = event.event_type === 'Lecture' && eventDurationHours < 2;
-
-  // Calculate event positioning using utility function
-  const timelineStartMinutes = startHour * 60;
-  const roomLabelWidth = 96; // Adjust this if needed
   
-  const position = calculateEventPosition(
-    event,
-    timelineStartMinutes,
-    pixelsPerMinute,
-    roomLabelWidth
+  // Memoize short lecture determination
+  const isShortLecture = useMemo(() => 
+    event.event_type === 'Lecture' && eventDurationHours < 2,
+    [event.event_type, eventDurationHours]
   );
+
+  // Memoize event positioning calculations
+  const position = useMemo(() => {
+    const timelineStartMinutes = startHour * 60;
+    const roomLabelWidth = 96; // Adjust this if needed
+    
+    return calculateEventPosition(
+      event,
+      timelineStartMinutes,
+      pixelsPerMinute,
+      roomLabelWidth
+    );
+  }, [event, startHour, pixelsPerMinute]);
   
   if (!position) {
     return null;
@@ -143,16 +151,23 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   
   const { left, width, durationMinutes } = position;
 
-  // Clamp overly long events to a max visible width and draw a continuation line to the real end
-  const MAX_VISIBLE_WIDTH_PX = 500;
-  const realWidthPx = parseFloat(width);
-  const isClamped = realWidthPx > MAX_VISIBLE_WIDTH_PX;
-  const displayWidth = isClamped ? `${MAX_VISIBLE_WIDTH_PX}px` : width;
-  const continuationWidth = isClamped ? Math.max(0, realWidthPx - MAX_VISIBLE_WIDTH_PX) : 0;
-  
- 
-  // Determine if this is in the upper rows (first 4 rows)
-  const isUpperRow = roomIndex < 4;
+  // Memoize width clamping calculations
+  const { isClamped, displayWidth, continuationWidth } = useMemo(() => {
+    const MAX_VISIBLE_WIDTH_PX = 500;
+    const realWidthPx = parseFloat(width);
+    const clamped = realWidthPx > MAX_VISIBLE_WIDTH_PX;
+    const display = clamped ? `${MAX_VISIBLE_WIDTH_PX}px` : width;
+    const continuation = clamped ? Math.max(0, realWidthPx - MAX_VISIBLE_WIDTH_PX) : 0;
+    
+    return {
+      isClamped: clamped,
+      displayWidth: display,
+      continuationWidth: continuation
+    };
+  }, [width]);
+
+  // Memoize upper row determination
+  const isUpperRow = useMemo(() => roomIndex < 4, [roomIndex]);
 
   // Get event type info using the utility function
   const { isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
@@ -192,62 +207,69 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Get original color from utility function
   const originalColor = getOriginalColorFromTailwindClass(bgColor);
 
-  // Adjust height for specific event types and keep centered in the 96px room row
-  const ROW_HEIGHT_PX = 96;
-  const DEFAULT_EVENT_HEIGHT_PX = 88;
-  const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
-  const AD_HOC_EVENT_HEIGHT_PX = 48; // Even more reduced height for Ad Hoc Class Meeting events
-  const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
-  
-  // Determine event height: merged rooms get double height, otherwise follow existing rules
-  let eventHeightPx: number;
-  let eventTopPx: string;
-  
-  // Debug logging before height calculation
-  if (event.event_type === 'CMC') {
-    console.log('CMC Event - Before height calculation:', {
-      isMergedRoomEvent,
-      isReducedHeightEvent,
-      roomName: event.room_name,
-      MERGED_ROOM_HEIGHT_PX,
-      REDUCED_EVENT_HEIGHT_PX,
-      DEFAULT_EVENT_HEIGHT_PX
-    });
-  }
-  
-  if (isMergedRoomEvent) {
-    eventHeightPx = MERGED_ROOM_HEIGHT_PX;
-    // Position merged room events at the top of the row (they extend downward into next room space)
-    eventTopPx = '6px';
+  // Memoize event height and positioning calculations
+  const { eventHeightPx, eventTopPx } = useMemo(() => {
+    // Adjust height for specific event types and keep centered in the 96px room row
+    const ROW_HEIGHT_PX = 96;
+    const DEFAULT_EVENT_HEIGHT_PX = 88;
+    const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
+    const AD_HOC_EVENT_HEIGHT_PX = 48; // Even more reduced height for Ad Hoc Class Meeting events
+    const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
     
-    // Debug logging for merged room events
+    // Debug logging before height calculation
     if (event.event_type === 'CMC') {
-      console.log('CMC Merged Room Event - Using merged room height:', {
-        eventHeightPx,
-        eventTopPx,
-        roomName: event.room_name
-      });
-    }
-  } else {
-    // Special case for Ad Hoc Class Meeting - use even more reduced height
-    if (event.event_type === 'Ad Hoc Class Meeting') {
-      eventHeightPx = AD_HOC_EVENT_HEIGHT_PX;
-    } else {
-      eventHeightPx = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
-    }
-    // Center normal events in the row
-    eventTopPx = `${(ROW_HEIGHT_PX - eventHeightPx) / 2}px`;
-    
-    // Debug logging for non-merged CMC events
-    if (event.event_type === 'CMC') {
-      console.log('CMC Non-Merged Event - Using reduced height:', {
-        eventHeightPx,
-        eventTopPx,
+      console.log('CMC Event - Before height calculation:', {
+        isMergedRoomEvent,
         isReducedHeightEvent,
-        roomName: event.room_name
+        roomName: event.room_name,
+        MERGED_ROOM_HEIGHT_PX,
+        REDUCED_EVENT_HEIGHT_PX,
+        DEFAULT_EVENT_HEIGHT_PX
       });
     }
-  }
+    
+    let height: number;
+    let top: string;
+    
+    if (isMergedRoomEvent) {
+      height = MERGED_ROOM_HEIGHT_PX;
+      // Position merged room events at the top of the row (they extend downward into next room space)
+      top = '6px';
+      
+      // Debug logging for merged room events
+      if (event.event_type === 'CMC') {
+        console.log('CMC Merged Room Event - Using merged room height:', {
+          eventHeightPx: height,
+          eventTopPx: top,
+          roomName: event.room_name
+        });
+      }
+    } else {
+      // Special case for Ad Hoc Class Meeting - use even more reduced height
+      if (event.event_type === 'Ad Hoc Class Meeting') {
+        height = AD_HOC_EVENT_HEIGHT_PX;
+      } else {
+        height = isReducedHeightEvent ? REDUCED_EVENT_HEIGHT_PX : DEFAULT_EVENT_HEIGHT_PX;
+      }
+      // Center normal events in the row
+      top = `${(ROW_HEIGHT_PX - height) / 2}px`;
+      
+      // Debug logging for non-merged CMC events
+      if (event.event_type === 'CMC') {
+        console.log('CMC Non-Merged Event - Using reduced height:', {
+          eventHeightPx: height,
+          eventTopPx: top,
+          isReducedHeightEvent,
+          roomName: event.room_name
+        });
+      }
+    }
+    
+    return {
+      eventHeightPx: height,
+      eventTopPx: top
+    };
+  }, [isMergedRoomEvent, isReducedHeightEvent, event.event_type, event.room_name]);
 
   return (
     <div
