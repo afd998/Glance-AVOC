@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
 import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
-import FacultyStatusBars from './FacultyStatusBars';
+// import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 import { FacultyAvatar } from '../FacultyAvatar';
 
@@ -249,7 +249,7 @@ export default function SessionSetup({
             )}
 
           {/* Attributes */}
-          {instructorNames.length > 0 && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
+          {/* {instructorNames.length > 0 && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
             <div>
               <FacultyStatusBars 
                 facultyMember={facultyMember} 
@@ -272,7 +272,7 @@ export default function SessionSetup({
                 }}
               />
             </div>
-          )}
+          )} */}
           </div>
 
         {/* Right Column - Setup Notes */}
