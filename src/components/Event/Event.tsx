@@ -152,7 +152,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const { left, width, durationMinutes } = position;
 
   // Memoize width clamping calculations
-  const { isClamped, displayWidth, continuationWidth } = useMemo(() => {
+  const { isClamped, displayWidth, continuationWidth, maxVisibleWidthPx } = useMemo(() => {
     const MAX_VISIBLE_WIDTH_PX = 500;
     const realWidthPx = parseFloat(width);
     const clamped = realWidthPx > MAX_VISIBLE_WIDTH_PX;
@@ -162,7 +162,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     return {
       isClamped: clamped,
       displayWidth: display,
-      continuationWidth: continuation
+      continuationWidth: continuation,
+      maxVisibleWidthPx: MAX_VISIBLE_WIDTH_PX
     };
   }, [width]);
 
@@ -334,7 +335,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           aria-hidden
           className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
           style={{
-            left: `${MAX_VISIBLE_WIDTH_PX}px`,
+            left: `${maxVisibleWidthPx}px`,
             top: '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
@@ -348,7 +349,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           aria-hidden
           className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
           style={{
-            left: `${MAX_VISIBLE_WIDTH_PX + continuationWidth}px`,
+            left: `${maxVisibleWidthPx + continuationWidth}px`,
             top: 0,
             width: '2px',
             height: '100%',
