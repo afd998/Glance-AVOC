@@ -13,8 +13,13 @@ export default defineConfig({
   ],
   server: {
     port: 3000, // match CRA's default if you want
+    historyApiFallback: true, // Enable client-side routing in development
   },
   build: {
     sourcemap: true,   // ⬅️ add this
+  },
+  preview: {
+    port: 3000,
+    historyApiFallback: true, // Enable client-side routing in preview mode
   },
 })

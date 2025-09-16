@@ -25,20 +25,38 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
   // Check if an event is currently happening or recently ended (within last 2 hours)
   const isEventCurrentlyActive = (event: Event) => {
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    // Use local date instead of UTC to avoid timezone issues
+    const today = now.getFullYear() + '-' + 
+                  String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                  String(now.getDate()).padStart(2, '0');
     
-    // Check if event is today
-    if (event.date !== today) return false;
+    // Check if event is today OR if we're within 2 hours of the event end time
+    // This handles cases where the event might be on a different date but still relevant
+    const eventDate = new Date(event.date);
+    // Create event start and end times in local timezone
+    const eventStart = new Date(`${event.date}T${event.start_time}`);
+    const eventEnd = new Date(`${event.date}T${event.end_time}`);
+    const twoHoursAfterEnd = new Date(eventEnd.getTime() + (2 * 60 * 60 * 1000));
+    
+    // Event is active if:
+    // 1. It's today, OR
+    // 2. We're within 2 hours after the event ended (regardless of date)
+    const isToday = event.date === today;
+    const isWithinTwoHoursAfterEnd = now <= twoHoursAfterEnd;
+    
+    if (!isToday && !isWithinTwoHoursAfterEnd) {
+      return false;
+    }
     
     // Check if start_time and end_time exist
-    if (!event.start_time || !event.end_time) return false;
+    if (!event.start_time || !event.end_time) {
+      return false;
+    }
     
     // Check if current time is between start and end time, or within 2 hours after end
-    const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
-    const eventEnd = new Date(`${event.date}T${event.end_time}`);
-    const twoHoursAfterEnd = new Date(eventEnd.getTime() + (2 * 60 * 60 * 1000)); // 2 hours in milliseconds
+    const isActive = now >= eventStart && now <= twoHoursAfterEnd;
     
-    return currentTime >= event.start_time && now <= twoHoursAfterEnd;
+    return isActive;
   };
 
   // Get all panopto checks for all events using React Query
@@ -143,12 +161,9 @@ export const useOverduePanoptoChecks = (events: Event[]) => {
     hasOverdueChecks: (eventId: number) => {
       // Don't return true if we're still loading data
       if (isLoading) {
-        console.log(`🔍 hasOverdueChecks for event ${eventId}: false (still loading)`);
         return false;
       }
-      const hasOverdue = overdueEvents.has(eventId);
-      console.log(`🔍 hasOverdueChecks for event ${eventId}: ${hasOverdue}`);
-      return hasOverdue;
+      return overdueEvents.has(eventId);
     },
     overdueEvents,
     isLoading,

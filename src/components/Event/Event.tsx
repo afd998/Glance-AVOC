@@ -198,8 +198,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Determine if we should show the overdue blinking effect
   const shouldBlink = hasOverduePanoptoChecks;
   
-  // Debug logging
-  console.log(`🎯 Event ${event.id} (${event.event_name}): shouldBlink = ${shouldBlink}`);
   
   // Extract hex color from Tailwind class and create dynamic blinking animation
   const getOriginalColor = () => {
