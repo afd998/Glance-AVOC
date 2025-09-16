@@ -349,24 +349,10 @@ export const useCachedEventFiltering = (events: Event[] | undefined, date: Date)
         const parts = event.room_name.split('&');
         if (parts.length === 2) {
           const baseRoom = parts[0].trim();
-          const suffix = parts[1].trim();
           
-          // Check if the requested room matches the base room
-          if (baseRoom === roomName) return true;
-          
-          // Handle different merge patterns
-          if (suffix === '30') {
-            // 1420&30 case: check if room matches 1420 or 1430
-            const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
-            if (roomNumber) {
-              const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
-              return roomName === baseRoom || roomName === secondRoom;
-            }
-          } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
-            // A&B case: check if room matches A or B variants
-            const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
-            return roomName === `${baseRoomWithoutSuffix}A` || roomName === `${baseRoomWithoutSuffix}B`;
-          }
+          // Merged room events should ONLY appear in the base room row
+          // This prevents duplicate rendering in multiple room rows
+          return baseRoom === roomName;
         }
       }
       

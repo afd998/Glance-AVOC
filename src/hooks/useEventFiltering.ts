@@ -79,18 +79,23 @@ export const useEventFiltering = (events: Event[] | undefined) => {
     return (roomName: string) => {
       if (!filteredEvents) return [];
       
-      // Return events that match the exact room name, 
-      // PLUS events from merged rooms that start with this room name + "&"
       return filteredEvents.filter(event => {
-        if (event.room_name === roomName) {
-          return true;
+        if (!event.room_name) return false;
+        
+        // Handle merged rooms (e.g., "GH 1420&30")
+        if (event.room_name.includes('&')) {
+          const parts = event.room_name.split('&');
+          if (parts.length === 2) {
+            const baseRoom = parts[0].trim();
+            
+            // Merged room events should ONLY appear in the base room row
+            // This prevents duplicate rendering in multiple room rows
+            return baseRoom === roomName;
+          }
         }
-        // Check if this is a merged room event that should appear in this base room
-        // e.g., "GH 1420&30" events should appear in "GH 1420" row
-        if (event.room_name?.startsWith(roomName + '&')) {
-          return true;
-        }
-        return false;
+        
+        // Direct room match
+        return event.room_name === roomName;
       });
     };
   }, [filteredEvents]);
