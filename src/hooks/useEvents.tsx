@@ -83,10 +83,10 @@ export function useEvents(date: Date) {
   const { filters } = useFilters();
   const { user } = useAuth();
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
-  
+
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
-  
+
   // Calculate days from today to determine if we should fetch
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -94,9 +94,17 @@ export function useEvents(date: Date) {
   targetDate.setHours(0, 0, 0, 0);
   const daysDifference = getDaysDifference(today, targetDate);
   const isOutsideWindow = daysDifference > 80;
-  
-  const { data: eventsData, isLoading, error, isFetching } = useQuery({
-    queryKey: ['events', dateString],
+
+  // ✅ Clean React Query pattern: Use select for transformations
+  const { data: filteredEvents, isLoading, error, isFetching } = useQuery({
+    queryKey: [
+      'events',
+      dateString,
+      currentFilter ?? 'null', // Include current filter in key
+      user?.id ?? 'null',      // Include user ID in key
+      filters.map(f => `${f.name}-${f.display.join(',')}`).join('|'), // Include filters in key
+      allShiftBlocks.map(sb => sb.id).join(',') // Include shift blocks in key
+    ],
     queryFn: () => fetchEvents({ queryKey: ['events', date, date] }),
     staleTime: 0, // Always consider data stale to force fresh fetch
     gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
@@ -105,64 +113,34 @@ export function useEvents(date: Date) {
     refetchOnReconnect: false, // Don't refetch when reconnecting
     placeholderData: undefined, // Don't show any placeholder data
     enabled: !isOutsideWindow, // Skip query if outside window
-  });
-
-  // Set filtered events cache when events are successfully fetched
-  useEffect(() => {
-    if (eventsData && !isFetching) {
+    select: (data) => {
+      // Filter events using React Query's select option
       const safeCurrentFilter = currentFilter ?? null;
       const userId: string | null = user && user.id ? user.id : null;
-      
-      const filteredEvents = filterEvents(eventsData, safeCurrentFilter, filters, userId, allShiftBlocks);
-      queryClient.setQueryData(['filteredEvents', dateString, safeCurrentFilter, userId], filteredEvents);
+      return filterEvents(data, safeCurrentFilter, filters, userId, allShiftBlocks);
     }
-  }, [eventsData, isFetching, currentFilter, filters, user, allShiftBlocks, dateString, queryClient]);
+  });
 
-  const [events, setEvents] = useState<Event[]>([]);
+  // We no longer need local state since React Query handles everything
 
-  // Clear events immediately when date changes
-  useEffect(() => {
-    setEvents([]);
-  }, [dateString]);
 
-  useEffect(() => {
-    if (isOutsideWindow) {
-      // If outside window, immediately set empty events and no loading
-      setEvents([]);
-      return;
-    }
-    
-    // Only set events if we're not currently fetching and we have data
-    if (!isFetching && eventsData) {
-      // Cache each event individually by ID
-      eventsData.forEach((event: Event) => {
-        queryClient.setQueryData(['event', event.id], event);
-      });
-      
-      // Set the events for the current view
-      setEvents(eventsData);
-    } else if (isFetching) {
-      // Clear events while fetching to prevent showing old data
-      setEvents([]);
-    } else {
-      // Clear events when no data (date changed)
-      setEvents([]);
-    }
-  }, [eventsData, isLoading, isFetching, queryClient, isOutsideWindow]);
+  // ✅ Clean React Query pattern - no useEffect needed!
 
-  // Return appropriate loading state - no loading if outside window
-  const finalLoadingState = isOutsideWindow ? false : (isLoading || isFetching);
-
-  return { events, isLoading: finalLoadingState, error };
+  // Return the filtered events directly from React Query
+  return { data: filteredEvents, isLoading, error, isFetching };
 }
 
 // Hook to get cached parsed event resources with computed flags
 export function useEventResources(eventId: number) {
   const queryClient = useQueryClient();
-  
+
   return useQuery({
     queryKey: ['eventResources', eventId],
     queryFn: async () => {
+      // Don't make queries for invalid event IDs
+      if (!eventId || eventId <= 0) {
+        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false };
+      }
       // First try to get the event from the individual event cache
       const cachedEvent = queryClient.getQueryData(['event', eventId]) as Event | undefined;
       
@@ -194,6 +172,7 @@ export function useEventResources(eventId: number) {
       const resourceData = parseEventResources(event);
       return computeResourceFlags(resourceData);
     },
+    enabled: !!eventId && eventId > 0, // Only run query for valid event IDs
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
     refetchOnMount: false,
@@ -308,61 +287,4 @@ export const filterEvents = (
 
   // No filter applied - show all events
   return events;
-};
-
-// Cached event filtering hook
-export const useCachedEventFiltering = (events: Event[] | undefined, date: Date) => {
-  const { currentFilter } = useProfile();
-  const safeCurrentFilter = currentFilter ?? null;
-  const { filters } = useFilters();
-  const { user } = useAuth();
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
-
-  
-  const dateString = date.toISOString().split('T')[0];
-  const userId: string | null = user && user.id ? user.id : null;
-  
-  // Cache is populated by useEvents onSuccess callback
-  
-  const query = useQuery({
-    queryKey: ['filteredEvents', dateString, safeCurrentFilter, userId],
-    queryFn: () => {
-      return filterEvents(events, safeCurrentFilter, filters, userId, allShiftBlocks);
-    },
-    enabled: !!events,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  // Helper function to get filtered events for a specific room
-  const getFilteredEventsForRoom = (roomName: string) => {
-    if (!query.data) return [];
-    
-    return query.data.filter((event: Event) => {
-      if (!event.room_name) return false;
-      
-      // Handle merged rooms (e.g., "GH 1420&30")
-      if (event.room_name.includes('&')) {
-        const parts = event.room_name.split('&');
-        if (parts.length === 2) {
-          const baseRoom = parts[0].trim();
-          
-          // Merged room events should ONLY appear in the base room row
-          // This prevents duplicate rendering in multiple room rows
-          return baseRoom === roomName;
-        }
-      }
-      
-      // Direct room match
-      return event.room_name === roomName;
-    });
-  };
-
-  return {
-    ...query,
-    getFilteredEventsForRoom
-  };
 };

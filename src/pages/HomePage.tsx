@@ -6,7 +6,7 @@ import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
 import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
-import { useEvents, useCachedEventFiltering } from "../hooks/useEvents";
+import { useEvents } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
 import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
@@ -60,14 +60,31 @@ export default function HomePage() {
   const pixelsPerMinute = 2;
   const startHour = 6;
   const endHour = 23;
-  console.log('🔄 HomePage render', { selectedDate: selectedDate.toISOString().split('T')[0] });
-  
-  const { events, isLoading, error } = useEvents(selectedDate);
-  console.log('🔄 HomePage after useEvents', { eventsLength: events?.length || 0, eventIds: events?.map(e => e.id) || [] });
-  
-  // const { scheduleNotificationsForEvents } = useNotifications();
-  const { data: filteredEvents, getFilteredEventsForRoom } = useCachedEventFiltering(events, selectedDate);
-  console.log('🔄 HomePage after useCachedEventFiltering', { filteredEventsLength: filteredEvents?.length || 0, filteredEventIds: filteredEvents?.map(e => e.id) || [] });
+  // ✅ Clean: Get filtered events directly from React Query with select
+  const { data: filteredEvents, isLoading, error } = useEvents(selectedDate);
+
+  // Helper function for room filtering (using the already filtered data)
+  const getFilteredEventsForRoomCallback = (roomName: string) => {
+    if (!filteredEvents) return [];
+
+    return filteredEvents.filter((event: any) => {
+      if (!event.room_name) return false;
+
+      // Handle merged rooms (e.g., "GH 1420&30")
+      if (event.room_name.includes('&')) {
+        const parts = event.room_name.split('&');
+        if (parts.length === 2) {
+          const baseRoom = parts[0].trim();
+
+          // Merged room events should ONLY appear in the base room row
+          return baseRoom === roomName;
+        }
+      }
+
+      // Direct room match
+      return event.room_name === roomName;
+    });
+  };
   
   // Track if we've loaded events for the current date to prevent flash
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
@@ -136,10 +153,10 @@ export default function HomePage() {
     if (!filteredEvents || filteredEvents.length === 0) return false;
     // Check if any room has events after filtering
     return selectedRooms.some((room: string) => {
-      const roomEvents = getFilteredEventsForRoom(room);
+      const roomEvents = getFilteredEventsForRoomCallback(room);
       return roomEvents && roomEvents.length > 0;
     });
-  }, [filteredEvents, selectedRooms, getFilteredEventsForRoom]);
+  }, [filteredEvents, selectedRooms, getFilteredEventsForRoomCallback]);
 
   // Handler to clear the current filter (load "All Rooms" filter)
   const handleClearFilter = async () => {
@@ -299,11 +316,11 @@ export default function HomePage() {
     <div className="flex-col items-center justify-center p-4 min-h-screen relative">
       {/* Bottom fade overlay for scrollable content */}
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-20" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)' }}></div>
-             <AppHeader 
+             <AppHeader
          selectedDate={selectedDate}
          setSelectedDate={handleDateChange}
          isLoading={isLoading}
-         events={events}
+         events={filteredEvents || []}
        />
                           <DraggableGridContainer
                             className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative shadow-2xl"
@@ -333,7 +350,7 @@ export default function HomePage() {
                                 </div>
                               )}
                               {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
-                                const roomEvents = getFilteredEventsForRoom(room);
+                                const roomEvents = getFilteredEventsForRoomCallback(room);
                                 const currentFloor = room.match(/GH (\d)/)?.[1];
                                 const nextRoom = selectedRooms[index + 1];
                                 const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];

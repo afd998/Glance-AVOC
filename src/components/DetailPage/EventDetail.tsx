@@ -66,14 +66,14 @@ export default function EventDetail() {
     return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   }, [date]);
   
-  // Get all events for the specific date
-  const { events, isLoading, error } = useEvents(selectedDate);
-  
+  // Get all events for the specific date (now returns data instead of events)
+  const { data: filteredEvents, isLoading, error } = useEvents(selectedDate);
+
   // Find the specific event by ID
   const event = React.useMemo(() => {
-    if (!events || !eventId) return null;
-    return events.find(e => e.id === parseInt(eventId, 10)) || null;
-  }, [events, eventId]);
+    if (!filteredEvents || !eventId) return null;
+    return filteredEvents.find((e: any) => e.id === parseInt(eventId, 10)) || null;
+  }, [filteredEvents, eventId]);
 
   // Parse instructor names from JSON field
   const instructorNames = React.useMemo(() => {
@@ -90,8 +90,8 @@ export default function EventDetail() {
   // Use the first hand-off time if there are multiple
   const handOffTime = ownershipData?.handOffTimes && ownershipData.handOffTimes.length > 0 ? ownershipData.handOffTimes[0] : null;
   
-  // Get parsed event resources from cache (only if event exists)
-  const { data: resourcesData } = useEventResources(event?.id || 0);
+  // Get parsed event resources from cache (only if event exists and has valid ID)
+  const { data: resourcesData } = useEventResources(event?.id && event.id > 0 ? event.id : -1);
   const resources = event && resourcesData ? resourcesData.resources : [];
   
   // Check if this event has recording resources

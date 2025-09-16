@@ -43,7 +43,7 @@ export const usePanoptoChecks = () => {
     return () => clearInterval(interval);
   }, []);
   
-  const { events } = useEvents(localDate);
+  const { data: events } = useEvents(localDate);
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
   const memoizedAllShiftBlocks = useMemo(() => allShiftBlocks, [allShiftBlocks]);
