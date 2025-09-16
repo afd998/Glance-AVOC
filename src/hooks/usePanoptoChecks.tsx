@@ -214,7 +214,7 @@ export const usePanoptoChecks = () => {
   }, []);
 
   const markCheckAsSent = useCallback(async (eventId: number, checkNumber: number) => {
-    await updateEventChecks(eventId, checkNumber, true);
+    await updateEventChecks(eventId, checkNumber, false); // FIXED: false instead of true - don't auto-complete checks!
     // Also update local tracking for immediate UI feedback
     const checkId = `${eventId}-check-${checkNumber}`;
     setSentChecks(prev => new Set(Array.from(prev).concat([checkId])));
@@ -230,21 +230,7 @@ export const usePanoptoChecks = () => {
     console.log(`🎯 Starting to send Panopto check:`, { checkId, eventName: event.event_name });
     
     try {
-      // Create in-app notification
-      console.log(`📝 Creating in-app notification for ${event.event_name}`);
-      await createPanoptoCheckNotification(
-        user.id,
-        event.id,
-        event.event_name,
-        checkNumber,
-        event.room_name,
-        Array.isArray(event.instructor_names) && event.instructor_names.length > 0
-          ? event.instructor_names[0]
-          : 'Unknown Instructor'
-      );
-      console.log(`✅ In-app notification created for ${event.event_name}`);
-
-      // Create system notification
+      // Create system notification only (no in-app notifications for Panopto checks)
       if ('Notification' in window && Notification.permission === 'granted') {
         console.log(`🔔 Creating system notification for ${event.event_name}`);
         const notification = new Notification(`Panopto Check #${checkNumber}`, {
@@ -396,15 +382,7 @@ export const usePanoptoChecks = () => {
         return;
       }
 
-      // Create completion notification
-      await createPanoptoCheckNotification(
-        user.id,
-        check.eventId,
-        `${check.eventName} - Check Completed`,
-        check.checkNumber,
-        check.roomName,
-        check.instructorName
-      );
+      // No completion notification needed for Panopto checks
 
       // Update local state
       setActiveChecks(prev => 
