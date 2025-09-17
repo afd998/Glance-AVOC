@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, ReactNode, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useCallback, useEffect, ReactNode, forwardRef, useImperativeHandle } from 'react';
 
 interface DraggableGridContainerProps {
   children: ReactNode;
@@ -148,7 +148,14 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     
     if (containerRef.current) {
       containerRef.current.style.cursor = 'grabbing';
+      // Prevent text selection during drag
+      containerRef.current.style.userSelect = 'none';
+      // Also prevent text selection on the document body
+      document.body.style.userSelect = 'none';
     }
+    
+    // Prevent default text selection behavior
+    e.preventDefault();
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -192,7 +199,11 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     setIsDragging(false);
     if (containerRef.current) {
       containerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
+      // Restore text selection
+      containerRef.current.style.userSelect = '';
     }
+    // Restore text selection on document body
+    document.body.style.userSelect = '';
     // Clear edge highlights immediately when dragging stops
     setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, [isDragEnabled]);
@@ -201,7 +212,11 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     setIsDragging(false);
     if (containerRef.current) {
       containerRef.current.style.cursor = isDragEnabled ? 'grab' : 'default';
+      // Restore text selection
+      containerRef.current.style.userSelect = '';
     }
+    // Restore text selection on document body
+    document.body.style.userSelect = '';
     // Clear edge highlights immediately when dragging stops
     setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, [isDragEnabled]);
@@ -269,6 +284,14 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     setIsDragging(false);
     // Clear edge highlights immediately when dragging stops
     setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
+  }, []);
+
+  // Cleanup effect to restore text selection if component unmounts while dragging
+  useEffect(() => {
+    return () => {
+      // Restore text selection on cleanup
+      document.body.style.userSelect = '';
+    };
   }, []);
 
   return (
