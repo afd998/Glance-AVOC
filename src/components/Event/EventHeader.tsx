@@ -363,7 +363,7 @@ export default function EventHeader({
                 {/* Arrow (if not the last owner) */}
                 {index < timeline.length - 1 && (
                   <svg 
-                    className="w-3 h-3 text-gray-600 dark:text-gray-400 transition-all duration-200 ease-in-out" 
+                    className="w-3 h-3 text-white transition-all duration-200 ease-in-out" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
