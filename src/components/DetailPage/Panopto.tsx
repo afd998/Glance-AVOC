@@ -1,9 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Database } from '../../types/supabase';
-import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
-import { usePanoptoChecksData } from '../../hooks/usePanoptoChecksData';
-import { useOverduePanoptoChecks } from '../../hooks/useOverduePanoptoChecks';
-import { supabase } from '../../lib/supabase';
+import { usePanoptoChecksData, useCompletePanoptoCheckForEvent } from '../../hooks/usePanoptoChecks';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Video, Clock, CheckCircle, Circle, AlertCircle, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
 import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
@@ -25,9 +22,8 @@ interface PanoptoCheckTimeline {
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export default function Panopto({ event }: PanoptoProps) {
-  const { activeChecks, completePanoptoCheck, completePanoptoCheckForEvent } = usePanoptoChecks();
   const { data: panoptoChecksData = [], isLoading } = usePanoptoChecksData(event.id);
-  const { invalidatePanoptoChecks } = useOverduePanoptoChecks([event]);
+  const { completeCheck } = useCompletePanoptoCheckForEvent(event.id);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Drag functionality
@@ -165,7 +161,7 @@ export default function Panopto({ event }: PanoptoProps) {
     }
     
     return checks;
-  }, [event, activeChecks, completedChecks, isLoading, panoptoChecksData]);
+  }, [event, isLoading, panoptoChecksData]);
   
   const formatTime = (date: Date) => {
     return format(date, 'h:mm a');
@@ -260,12 +256,8 @@ export default function Panopto({ event }: PanoptoProps) {
       return;
     }
 
-    const success = await completePanoptoCheckForEvent(event.id, checkNumber, event.date);
-    
-    if (success) {
-      // Invalidate React Query cache to trigger immediate refetch
-      invalidatePanoptoChecks(event.id);
-    }
+    completeCheck(checkNumber);
+    // Data will be automatically invalidated by the mutation hook
   };
 
   // Drag handlers

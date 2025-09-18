@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
@@ -84,6 +84,12 @@ export function useEvents(date: Date) {
   const { user } = useAuth();
   const { data: allShiftBlocks = [] } = useAllShiftBlocks();
 
+  // Memoize shift blocks IDs to prevent unnecessary re-renders
+  const shiftBlocksKey = useMemo(() => 
+    allShiftBlocks.map(sb => sb.id).join(','), 
+    [allShiftBlocks]
+  );
+
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
 
@@ -103,7 +109,7 @@ export function useEvents(date: Date) {
       currentFilter ?? 'null', // Include current filter in key
       user?.id ?? 'null',      // Include user ID in key
       filters.map(f => `${f.name}-${f.display.join(',')}`).join('|'), // Include filters in key
-      allShiftBlocks.map(sb => sb.id).join(',') // Include shift blocks in key
+      shiftBlocksKey // Use memoized shift blocks key
     ],
     queryFn: () => fetchEvents({ queryKey: ['events', date, date] }),
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh

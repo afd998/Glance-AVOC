@@ -38,6 +38,11 @@ export function useAllShiftBlocks() {
       if (error) throw error;
       return data || [];
     },
+    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
+    gcTime: Infinity, // Keep in cache indefinitely
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

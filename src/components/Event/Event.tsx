@@ -5,7 +5,7 @@ import EventContent from "./EventContent";
 import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
 import { getEventTypeInfo, calculateEventPosition, getEventThemeColors, getEventGradientClass, getOriginalColorFromTailwindClass } from "../../utils/eventUtils";
 import { useEventDurationHours } from "../../hooks/useEvents";
-import { useOverduePanoptoChecks } from "../../hooks/useOverduePanoptoChecks";
+import { useEventOverduePanoptoChecks } from "../../hooks/usePanoptoChecks";
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -48,9 +48,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
 
   const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   
-  // Check for overdue Panopto checks for this specific event
-  const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useOverduePanoptoChecks([event]);
-  const hasOverduePanoptoChecks = hasOverdueChecks(event.id);
+  // Check for overdue Panopto checks for this specific event - much more efficient!
+  const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useEventOverduePanoptoChecks(event);
+  const hasOverduePanoptoChecks = hasOverdueChecks;
   
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringRef = useRef(false);

@@ -5,7 +5,7 @@ import { getEventThemeColors } from '../../utils/eventUtils';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useEventOwnership } from '../../hooks/useCalculateOwners';
-import { usePanoptoChecks } from '../../hooks/usePanoptoChecks';
+import { useEventChecksComplete } from '../../hooks/usePanoptoChecks';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
 import Avatar from '../Avatar';
@@ -39,10 +39,12 @@ export default function EventHeader({
   const timeline = ownershipData?.timeline || [];
   
   // Get Panopto checks functionality
-  const { areAllChecksComplete, useEventChecksComplete } = usePanoptoChecks();
-  
-  // State to track if all Panopto checks are complete
-  const [allChecksComplete, setAllChecksComplete] = React.useState(false);
+  const { isComplete: allChecksComplete, isLoading: checksLoading } = useEventChecksComplete(
+    event.id,
+    event.start_time || undefined,
+    event.end_time || undefined,
+    event.date || undefined
+  );
   
   // Get parsed event resources and computed flags from cache
   const { data: resourcesData } = useEventResources(currentEvent.id);
@@ -67,19 +69,6 @@ export default function EventHeader({
     currentEvent.date || undefined
   );
 
-  // Update state when completion status changes
-  React.useEffect(() => {
-    if (hasVideoRecording && !isLoading) {
-      if (error) {
-        console.error('Error checking completion status:', error);
-        setAllChecksComplete(false);
-      } else {
-        setAllChecksComplete(isComplete);
-      }
-    } else if (!hasVideoRecording) {
-      setAllChecksComplete(false);
-    }
-  }, [isComplete, isLoading, error, hasVideoRecording, currentEvent.id]);
   
   
   // State for fisheye effect
@@ -204,8 +193,8 @@ export default function EventHeader({
             className="relative rounded-full bg-red-500 transition-all duration-[250ms] ease-in-out cursor-pointer"
             title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
-              width: `${10 * getFisheyeScale('videoRecording')}px`,
-              height: `${10 * getFisheyeScale('videoRecording')}px`,
+              width: `${12 * getFisheyeScale('videoRecording')}px`,
+              height: `${12 * getFisheyeScale('videoRecording')}px`,
               animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
             }}
             onMouseEnter={() => handleIconHover('videoRecording')}
@@ -215,18 +204,18 @@ export default function EventHeader({
               <div className="absolute inset-0 flex items-center justify-center">
                 <svg
                   className="text-green-400"
-                  fill="currentColor"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   viewBox="0 0 20 20"
                   style={{
-                    width: `${7 * getFisheyeScale('videoRecording')}px`,
-                    height: `${7 * getFisheyeScale('videoRecording')}px`
+                    width: `${8 * getFisheyeScale('videoRecording')}px`,
+                    height: `${8 * getFisheyeScale('videoRecording')}px`
                   }}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
+                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
                 </svg>
               </div>
             )}
@@ -289,8 +278,8 @@ export default function EventHeader({
               className="object-contain dark:invert transition-all duration-[250ms] ease-in-out cursor-pointer"
               title="Web Conference"
               style={{
-                width: `${10 * getFisheyeScale('webConference')}px`,
-                height: `${10 * getFisheyeScale('webConference')}px`
+                width: `${12 * getFisheyeScale('webConference')}px`,
+                height: `${12 * getFisheyeScale('webConference')}px`
               }}
               onMouseEnter={() => handleIconHover('webConference')}
               onMouseLeave={handleIconLeave}

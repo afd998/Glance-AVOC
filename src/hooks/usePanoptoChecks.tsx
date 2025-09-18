@@ -1,28 +1,46 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvents } from './useEvents';
+import { useEvent } from './useEvent';
 import { useAllShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
-import { createPanoptoCheckNotification } from '../utils/notificationUtils';
+import { Database } from '../types/supabase';
+
 import { supabase } from '../lib/supabase';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-interface PanoptoCheck {
-  id: string;
-  eventId: number;
-  eventName: string;
-  checkNumber: number;
-  createdAt: string;
-  completed: boolean;
-  roomName: string;
-  instructorName?: string;
-}
+// Hook to get panopto checks data for a specific event
+export const usePanoptoChecksData = (eventId: number) => {
+  return useQuery({
+    queryKey: ['panoptoChecks', eventId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('panopto_checks')
+        .select(`
+          check_time, 
+          completed_time, 
+          completed_by_user_id,
+          status,
+          profiles!panopto_checks_completed_by_user_id_fkey(id, name)
+        `)
+        .eq('event_id', eventId)
+        .order('check_time');
 
-export const usePanoptoChecks = () => {
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!eventId,
+    refetchInterval: 300000, // Refetch every 5 minutes
+    staleTime: 120000, // Consider data stale after 2 minutes
+  });
+};
+
+// Hook to handle Panopto check notifications and timer
+export const usePanoptoNotifications = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
   // Use local date for current day events
   const [localDate, setLocalDate] = useState(() => {
@@ -44,7 +62,6 @@ export const usePanoptoChecks = () => {
   }, []);
   
   const { data: events } = useEvents(localDate);
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
   
   const memoizedAllShiftBlocks = useMemo(() => allShiftBlocks, [allShiftBlocks]);
   
@@ -73,10 +90,6 @@ export const usePanoptoChecks = () => {
   const memoizedIsUserEventOwner = useCallback((event: any, userId: string, shiftBlocks: any[]) => {
     return isUserEventOwner(event, userId, shiftBlocks);
   }, []);
-  const [activeChecks, setActiveChecks] = useState<PanoptoCheck[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sentChecks, setSentChecks] = useState<Set<string>>(new Set()); // Temporary tracking
 
   // Check if an event has recording resources
   const hasRecordingResource = useCallback((event: any) => {
@@ -90,8 +103,6 @@ export const usePanoptoChecks = () => {
       resource.itemName?.toLowerCase().includes('panopto') ||
       resource.itemName?.toLowerCase().includes('recording')
     );
-    
- 
     
     return hasRecording;
   }, []);
@@ -121,70 +132,13 @@ export const usePanoptoChecks = () => {
     return isActive;
   }, []);
 
-  // Update panopto check in the panopto_checks table
-  const updateEventChecks = useCallback(async (eventId: number, checkNumber: number, completed: boolean) => {
-    try {
-      // Get event details to calculate the check time
-      const { data: event, error } = await supabase
-        .from('events')
-        .select('start_time, end_time, date')
-        .eq('id', eventId)
-        .single();
-
-      if (error || !event) {
-        console.error('Error fetching event for check update:', error);
-        return false;
-      }
-
-      // Calculate the check time based on check number
-      let checkTime: string | null = null;
-      if (event.start_time) {
-        const eventStart = new Date(`${event.date}T${event.start_time}`);
-        const checkTimeDate = new Date(eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL);
-        checkTime = checkTimeDate.toTimeString().split(' ')[0]; // HH:MM:SS format
-      }
-
-      if (!checkTime) {
-        console.error('Could not calculate check time');
-        return false;
-      }
-
-      // Update the panopto_checks table
-      const { error: updateError } = await supabase
-        .from('panopto_checks')
-        .update({
-          completed_time: completed ? new Date().toTimeString().split(' ')[0] : null,
-          completed_by_user_id: completed ? user?.id || null : null,
-          status: completed ? 'completed' : 'pending',
-          updated_at: new Date().toISOString()
-        })
-        .eq('event_id', eventId)
-        .eq('check_time', checkTime);
-
-      if (updateError) {
-        console.error('Error updating check in panopto_checks table:', updateError);
-        return false;
-      }
-
-      console.log(`Updated check ${checkNumber} to ${completed} for event ${eventId} at ${checkTime}`);
-      return true;
-    } catch (error) {
-      console.error('Error in updateEventChecks:', error);
-      return false;
-    }
-  }, [user]);
-
   // Check if a check was sent/completed in database
   const isCheckSent = useCallback(async (eventId: number, checkNumber: number): Promise<boolean> => {
     try {
-      // Get event details to calculate the check time
-      const { data: event, error } = await supabase
-        .from('events')
-        .select('start_time, end_time, date')
-        .eq('id', eventId)
-        .single();
+      // Get event details from the existing events data
+      const event = events?.find(e => e.id === eventId);
 
-      if (error || !event) return false;
+      if (!event) return false;
 
       // Calculate the check time based on check number
       let checkTime: string | null = null;
@@ -211,16 +165,37 @@ export const usePanoptoChecks = () => {
       console.error('Error checking if check was sent:', error);
       return false;
     }
-  }, []);
+  }, [events]);
 
   const markCheckAsSent = useCallback(async (eventId: number, checkNumber: number) => {
-    await updateEventChecks(eventId, checkNumber, false); // FIXED: false instead of true - don't auto-complete checks!
-    // Also update local tracking for immediate UI feedback
-    const checkId = `${eventId}-check-${checkNumber}`;
-    setSentChecks(prev => new Set(Array.from(prev).concat([checkId])));
-  }, [updateEventChecks]);
+    // Update the panopto_checks table to mark as sent
+    try {
+      const event = events?.find(e => e.id === eventId);
+      if (!event) return;
 
+      let checkTime: string | null = null;
+      if (event.start_time) {
+        const eventStart = new Date(`${event.date}T${event.start_time}`);
+        const checkTimeDate = new Date(eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL);
+        checkTime = checkTimeDate.toTimeString().split(' ')[0];
+      }
 
+      if (!checkTime) return;
+
+      await supabase
+        .from('panopto_checks')
+        .update({
+          completed_time: null,
+          completed_by_user_id: null,
+          status: 'pending',
+          updated_at: new Date().toISOString()
+        })
+        .eq('event_id', eventId)
+        .eq('check_time', checkTime);
+    } catch (error) {
+      console.error('Error marking check as sent:', error);
+    }
+  }, [events]);
 
   // Send both in-app and system notifications for a check
   const sendPanoptoCheck = useCallback(async (event: any, checkNumber: number) => {
@@ -262,27 +237,6 @@ export const usePanoptoChecks = () => {
       await markCheckAsSent(event.id, checkNumber);
       console.log(`✅ Check marked as sent in database for ${event.event_name}`);
 
-      // Add to active checks for UI display
-      const newCheck: PanoptoCheck = {
-        id: checkId,
-        eventId: event.id,
-        eventName: event.event_name,
-        checkNumber,
-        createdAt: new Date().toISOString(),
-        completed: false,
-        roomName: event.room_name,
-        instructorName: Array.isArray(event.instructor_names) && event.instructor_names.length > 0
-          ? event.instructor_names[0]
-          : 'Unknown Instructor'
-      };
-
-      setActiveChecks(prev => {
-        const existing = prev.find(check => check.id === checkId);
-        if (existing) return prev;
-        return [...prev, newCheck];
-      });
-      console.log(`✅ Added to active checks UI for ${event.event_name}`);
-
       console.log('🎉 Successfully sent Panopto check:', { eventName: event.event_name, checkNumber });
     } catch (error) {
       console.error('❌ Error sending Panopto check:', error);
@@ -299,7 +253,6 @@ export const usePanoptoChecks = () => {
       for (const event of events) {
         // Skip if not a recording event
         if (!hasRecordingResource(event)) {
-          
           continue;
         }
 
@@ -365,127 +318,22 @@ export const usePanoptoChecks = () => {
     checkForDuePanoptoChecks();
     const interval = setInterval(checkForDuePanoptoChecks, 60000);
 
-    return () => clearInterval(interval);
-  }, [user?.id, eventIdsKey, shiftBlocksKey]);
+     return () => clearInterval(interval);
+   }, [user?.id, eventIdsKey, shiftBlocksKey, hasRecordingResource, memoizedIsUserEventOwner, isEventCurrentlyActive, isCheckSent, sendPanoptoCheck, memoizedAllShiftBlocks]);
+};
 
-  // Complete a Panopto check
-  const completePanoptoCheck = useCallback(async (checkId: string) => {
-    const check = activeChecks.find(c => c.id === checkId);
-    if (!check || !user) return;
+// Hook to complete a specific Panopto check for an event
+export const useCompletePanoptoCheckForEvent = (eventId: number | null) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  // Use the useEvent hook to get event data
+  const { data: eventData, isLoading: eventLoading, error: eventError } = useEvent(eventId);
 
-    try {
-      // Update database - mark check as completed
-      const success = await updateEventChecks(check.eventId, check.checkNumber, true);
-      
-      if (!success) {
-        console.error('Failed to update check in database');
-        return;
-      }
-
-      // No completion notification needed for Panopto checks
-
-      // Update local state
-      setActiveChecks(prev => 
-        prev.map(c => 
-          c.id === checkId 
-            ? { ...c, completed: true }
-            : c
-        ).filter(c => !c.completed) // Remove completed checks from active list
-      );
-
-      console.log('Completed Panopto check:', checkId);
-    } catch (error) {
-      console.error('Error completing Panopto check:', error);
-    }
-  }, [user, activeChecks, updateEventChecks]);
-
-  // Test function
-  const testPanoptoCheck = useCallback(async () => {
-    if (!user || !events || events.length === 0) {
-      console.log('❌ No events available for testing');
-      return;
-    }
-    
-    // Find the first event with recording resources that the user is assigned to
-    const testEvent = events.find(event => {
-      const hasRecording = hasRecordingResource(event);
-      const isAssigned = memoizedIsUserEventOwner(event, user.id, memoizedAllShiftBlocks);
-      return hasRecording && isAssigned;
-    });
-    
-    if (!testEvent) {
-      console.log('❌ No suitable events found for testing (need recording resources + user assignment)');
-      return;
-    }
-    
-    console.log('🧪 Sending test Panopto check for real event:', testEvent.event_name);
-    await sendPanoptoCheck(testEvent, 1);
-  }, [user, events, hasRecordingResource, memoizedIsUserEventOwner, memoizedAllShiftBlocks, sendPanoptoCheck]);
-
-  // Clear all checks (for UI)
-  const clearPanoptoChecks = useCallback(() => {
-    setActiveChecks([]);
-    setSentChecks(new Set()); // Clear tracking
-  }, []);
-
-  // Check if all Panopto checks are complete for an event
-  const areAllChecksComplete = useCallback(async (eventId: number): Promise<boolean> => {
-    try {
-      const { data: event, error } = await supabase
-        .from('events')
-        .select('start_time, end_time, date')
-        .eq('id', eventId)
-        .single();
-
-      if (error || !event) {
-        console.error('Error fetching event for completion check:', error);
-        return false;
-      }
-
-      // Calculate total number of checks this event should have
-      let totalChecks = 0;
-      if (event.start_time && event.end_time) {
-        const eventStart = new Date(`${event.date}T${event.start_time}`);
-        const eventEnd = new Date(`${event.date}T${event.end_time}`);
-        const eventDuration = eventEnd.getTime() - eventStart.getTime();
-        totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
-      }
-
-      if (totalChecks === 0) return true; // No checks needed
-
-      // Get completed checks from the panopto_checks table
-      const { data: checksData, error: checksError } = await supabase
-        .from('panopto_checks')
-        .select('completed_time')
-        .eq('event_id', eventId);
-
-      if (checksError) {
-        console.error('Error fetching panopto checks:', checksError);
-        return false;
-      }
-
-      // Count completed checks
-      const completedCount = checksData?.filter(check => check.completed_time !== null).length || 0;
-      return completedCount >= totalChecks;
-    } catch (error) {
-      console.error('Error checking if all checks are complete:', error);
-      return false;
-    }
-  }, []);
-
-  // Complete a specific Panopto check for an event (with new table structure)
-  const completePanoptoCheckForEvent = useCallback(async (eventId: number, checkNumber: number, eventDate: string) => {
-    try {
-      // Get event details to calculate the check time
-      const { data: eventData, error: fetchError } = await supabase
-        .from('events')
-        .select('start_time, end_time, date')
-        .eq('id', eventId)
-        .single();
-
-      if (fetchError || !eventData) {
-        console.error('Error fetching event for completion:', fetchError);
-        return false;
+  const mutation = useMutation({
+    mutationFn: async ({ checkNumber }: { checkNumber: number }) => {
+      if (!eventData) {
+        throw new Error('Event data not available');
       }
 
       // Calculate the check time based on check number
@@ -497,8 +345,7 @@ export const usePanoptoChecks = () => {
       }
 
       if (!checkTime) {
-        console.error('Could not calculate check time');
-        return false;
+        throw new Error('Could not calculate check time');
       }
 
       // Update the panopto_checks table
@@ -510,102 +357,272 @@ export const usePanoptoChecks = () => {
           status: 'completed', // Mark as completed
           updated_at: new Date().toISOString()
         })
-        .eq('event_id', eventId)
+        .eq('event_id', eventId!)
         .eq('check_time', checkTime)
         .is('completed_time', null); // Only update if not already completed
 
       if (updateError) {
-        console.error('Error updating check completion:', updateError);
-        return false;
+        throw new Error(`Error updating check completion: ${updateError.message}`);
       }
 
+      return { eventId: eventId!, checkNumber, checkTime };
+    },
+    onSuccess: (data) => {
       // Invalidate React Query cache to trigger immediate refetch
-      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', data.eventId] });
       queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
-
-      console.log(`Successfully completed check ${checkNumber} for event ${eventId} at ${checkTime}`);
-      return true;
-    } catch (error) {
-      console.error('Error completing check:', error);
-      return false;
+      
+    },
+    onError: (error) => {
     }
-  }, [user, queryClient]);
-
-  // Hook to check if all checks are complete for a specific event
-  const useEventChecksComplete = (eventId: number, startTime?: string, endTime?: string, date?: string) => {
-    const [isComplete, setIsComplete] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-
-    useEffect(() => {
-      const checkCompletionStatus = async () => {
-        if (!eventId || !startTime || !endTime || !date) {
-          setIsComplete(false);
-          setIsLoading(false);
-          return;
-        }
-
-        try {
-          setIsLoading(true);
-          
-          // Calculate expected number of checks
-          const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
-          const eventStart = new Date(`${date}T${startTime}`);
-          const eventEnd = new Date(`${date}T${endTime}`);
-          const eventDuration = eventEnd.getTime() - eventStart.getTime();
-          const totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
-
-          if (totalChecks === 0) {
-            setIsComplete(true);
-            setIsLoading(false);
-            return;
-          }
-
-          // Fetch data from the panopto_checks table
-          const { data: checksData, error: fetchError } = await supabase
-            .from('panopto_checks')
-            .select('completed_time')
-            .eq('event_id', eventId);
-
-          if (fetchError) {
-            console.error('Error fetching panopto checks:', fetchError);
-            setError(fetchError as Error);
-            setIsLoading(false);
-            return;
-          }
-
-          // Count completed checks
-          const completedCount = checksData?.filter(check => check.completed_time !== null).length || 0;
-          const allComplete = completedCount >= totalChecks;
-
-          setIsComplete(allComplete);
-          setIsLoading(false);
-          setError(null);
-
-        } catch (err) {
-          console.error('Error checking completion status:', err);
-          setError(err as Error);
-          setIsLoading(false);
-        }
-      };
-
-      checkCompletionStatus();
-    }, [eventId, startTime, endTime, date]);
-
-    return { isComplete, isLoading, error };
-  };
+  });
 
   return {
-    panoptoChecks: activeChecks, // For backward compatibility
-    activeChecks,
-    completedChecks: [], // Not tracking completed checks in memory
+    ...mutation,
+    eventData,
+    eventLoading,
+    eventError,
+    // Helper function to complete a check
+    completeCheck: (checkNumber: number) => {
+      if (!eventId) {
+        console.error('No event ID provided');
+        return;
+      }
+      mutation.mutate({ checkNumber });
+    }
+  };
+};
+
+// Hook to update panopto check status in the panopto_checks table
+export const useUpdateEventChecks = (eventId: number | null) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  // Use the useEvent hook to get event data
+  const { data: eventData, isLoading: eventLoading, error: eventError } = useEvent(eventId);
+
+  const mutation = useMutation({
+    mutationFn: async ({ checkNumber, completed }: { checkNumber: number; completed: boolean }) => {
+      if (!eventData) {
+        throw new Error('Event data not available');
+      }
+
+      // Calculate the check time based on check number
+      let checkTime: string | null = null;
+      if (eventData.start_time) {
+        const eventStart = new Date(`${eventData.date}T${eventData.start_time}`);
+        const checkTimeDate = new Date(eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL);
+        checkTime = checkTimeDate.toTimeString().split(' ')[0]; // HH:MM:SS format
+      }
+
+      if (!checkTime) {
+        throw new Error('Could not calculate check time');
+      }
+
+      // Update the panopto_checks table
+      const { error: updateError } = await supabase
+        .from('panopto_checks')
+        .update({
+          completed_time: completed ? new Date().toTimeString().split(' ')[0] : null,
+          completed_by_user_id: completed ? user?.id || null : null,
+          status: completed ? 'completed' : 'pending',
+          updated_at: new Date().toISOString()
+        })
+        .eq('event_id', eventId!)
+        .eq('check_time', checkTime);
+
+      if (updateError) {
+        throw new Error(`Error updating check in panopto_checks table: ${updateError.message}`);
+      }
+
+      return { eventId: eventId!, checkNumber, checkTime, completed };
+    },
+    onSuccess: (data) => {
+      // Invalidate React Query cache to trigger immediate refetch
+      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', data.eventId] });
+      queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
+      
+      console.log(`Updated check ${data.checkNumber} to ${data.completed} for event ${data.eventId} at ${data.checkTime}`);
+    },
+    onError: (error) => {
+      console.error('Error updating event checks:', error);
+    }
+  });
+
+  return {
+    ...mutation,
+    eventData,
+    eventLoading,
+    eventError,
+    // Helper function to mark check as sent (completed = false)
+    markAsSent: (checkNumber: number) => {
+      if (!eventId) {
+        console.error('No event ID provided');
+        return;
+      }
+      mutation.mutate({ checkNumber, completed: false });
+    },
+    // Helper function to mark check as completed (completed = true)
+    markAsCompleted: (checkNumber: number) => {
+      if (!eventId) {
+        console.error('No event ID provided');
+        return;
+      }
+      mutation.mutate({ checkNumber, completed: true });
+    }
+  };
+};
+
+// Hook to check if all checks are complete for a specific event
+export const useEventChecksComplete = (eventId: number, startTime?: string, endTime?: string, date?: string) => {
+  // Use the existing usePanoptoChecksData hook instead of direct Supabase calls
+  const { data: checksData, isLoading, error } = usePanoptoChecksData(eventId);
+
+  const isComplete = useMemo(() => {
+    if (!eventId || !startTime || !endTime || !date || !checksData) {
+      return false;
+    }
+
+    try {
+      // Calculate expected number of checks
+      const eventStart = new Date(`${date}T${startTime}`);
+      const eventEnd = new Date(`${date}T${endTime}`);
+      const eventDuration = eventEnd.getTime() - eventStart.getTime();
+      const totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+
+      if (totalChecks === 0) {
+        return true;
+      }
+
+      // Count completed checks
+      const completedCount = checksData.filter(check => check.completed_time !== null).length;
+      return completedCount >= totalChecks;
+
+    } catch (err) {
+      console.error('Error checking completion status:', err);
+      return false;
+    }
+  }, [eventId, startTime, endTime, date, checksData]);
+
+  return { isComplete, isLoading, error };
+};
+
+type Event = Database['public']['Tables']['events']['Row'];
+
+export const useEventOverduePanoptoChecks = (event: Event) => {
+  // Current time that updates every 5 minutes to trigger overdue recalculations
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 300000); // Update every 5 minutes
+    
+    return () => clearInterval(interval);
+  }, []);
+  // Check if an event has recording resources
+  const hasRecordingResource = useMemo(() => {
+    if (!event.resources || !Array.isArray(event.resources)) return false;
+    
+    return event.resources.some((resource: any) => 
+      resource.itemName?.toLowerCase().includes('panopto') ||
+      resource.itemName?.toLowerCase().includes('recording')
+    );
+  }, [event.resources]);
+
+  // Check if an event is currently active (happening now or within 2 hours after end)
+  const isEventCurrentlyActive = useMemo(() => {
+    const now = new Date();
+    const today = now.getFullYear() + '-' + 
+                  String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                  String(now.getDate()).padStart(2, '0');
+    
+    if (!event.date) return false;
+    
+    // Create event start and end times in local timezone
+    const eventStart = new Date(`${event.date}T${event.start_time}`);
+    const eventEnd = new Date(`${event.date}T${event.end_time}`);
+    const twoHoursAfterEnd = new Date(eventEnd.getTime() + (2 * 60 * 60 * 1000));
+    
+    // Event is active if it's today OR we're within 2 hours after the event ended
+    const isToday = event.date === today;
+    const isWithinTwoHoursAfterEnd = now <= twoHoursAfterEnd;
+    
+    if (!isToday && !isWithinTwoHoursAfterEnd) {
+      return false;
+    }
+    
+    // Check if start_time and end_time exist
+    if (!event.start_time || !event.end_time) {
+      return false;
+    }
+    
+    // Check if current time is between start and end time, or within 2 hours after end
+    return now >= eventStart && now <= twoHoursAfterEnd;
+  }, [event.date, event.start_time, event.end_time]);
+
+  // Get panopto checks for this specific event using the existing hook
+  const { data: panoptoChecks, isLoading } = usePanoptoChecksData(event.id);
+
+  // Check if this event has overdue checks
+  const hasOverdueChecks = useMemo(() => {
+    // Only check for overdue if event has recording resources and is currently active
+    if (!hasRecordingResource || !isEventCurrentlyActive) return false;
+    if (!panoptoChecks || panoptoChecks.length === 0) return false;
+    
+    const now = currentTime;
+    
+    // Calculate expected checks for this event
+    if (!event.start_time || !event.end_time || !event.date) return false;
+    
+    const eventStart = new Date(`${event.date}T${event.start_time}`);
+    const eventEnd = new Date(`${event.date}T${event.end_time}`);
+    const eventDuration = eventEnd.getTime() - eventStart.getTime();
+    const totalChecks = Math.floor(eventDuration / PANOPTO_CHECK_INTERVAL);
+
+    if (totalChecks === 0) return false;
+
+    // Check each expected check for overdue status
+    for (let i = 0; i < totalChecks; i++) {
+      const checkNumber = i + 1;
+      const scheduledTime = new Date(eventStart.getTime() + (i * PANOPTO_CHECK_INTERVAL));
+
+      // Only check checks that should have happened by now
+      if (now < scheduledTime) {
+        continue;
+      }
+
+      // Find corresponding check in database
+      const checkData = panoptoChecks.find(c => {
+        const checkTime = new Date(`${event.date}T${c.check_time}`);
+        return Math.abs(checkTime.getTime() - scheduledTime.getTime()) < 60000;
+      });
+
+      // Check if this check is due, overdue, or missed
+      if (checkData?.status === 'missed') {
+        // Database says it's missed - don't flash because user can't do anything about it
+        continue;
+      } else if (now >= scheduledTime) {
+        // Check is due or past due - now check if it's completed
+        if (!checkData?.completed_time && checkData?.status !== 'completed') {
+          // Calculate time since scheduled to determine if it's still actionable
+          const timeSinceScheduled = now.getTime() - scheduledTime.getTime();
+          const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+          
+          // Only flash if it's within 30 minutes (not missed yet)
+          if (timeSinceScheduled < thirtyMinutes) {
+            return true; // This event has overdue checks
+          }
+        }
+      }
+    }
+
+    return false;
+  }, [hasRecordingResource, isEventCurrentlyActive, panoptoChecks, event.date, event.start_time, event.end_time, currentTime]);
+
+  return {
+    hasOverdueChecks,
     isLoading,
-    error,
-    completePanoptoCheck,
-    clearPanoptoChecks,
-    testPanoptoCheck,
-    areAllChecksComplete,
-    completePanoptoCheckForEvent,
-    useEventChecksComplete
+    panoptoChecks: panoptoChecks || []
   };
 };

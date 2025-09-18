@@ -13,6 +13,7 @@ import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
 import { useFilters } from "../hooks/useFilters";
 import { useRooms } from "../hooks/useRooms";
+import { usePanoptoNotifications } from "../hooks/usePanoptoChecks";
 import useRoomStore from "../stores/roomStore";
 import EventDetail from "../components/DetailPage/EventDetail";
 import FacultyListModal from "../components/MenuPanel/FacultyListModal";
@@ -26,7 +27,6 @@ import { Database } from "../types/supabase";
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const currentTimeRef = useRef(new Date());
-  const [scrollPosition, setScrollPosition] = useState({ left: 0, top: 0 });
   
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(false);
@@ -68,6 +68,9 @@ export default function HomePage() {
   // This ensures instant navigation when using next/previous day buttons
   useEventsPrefetch(selectedDate);
 
+  // Handle Panopto check notifications
+  usePanoptoNotifications();
+
   // Helper function for room filtering (using the already filtered data)
   const getFilteredEventsForRoomCallback = (roomName: string) => {
     if (!filteredEvents) return [];
@@ -90,6 +93,7 @@ export default function HomePage() {
       return event.room_name === roomName;
     });
   };
+
   
   // Track if we've loaded events for the current date to prevent flash
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
@@ -243,7 +247,7 @@ export default function HomePage() {
       // Note: Scroll position restoration is now handled by DraggableGridContainer
       // The scroll position will be maintained through the onScrollPositionChange callback
     }
-  }, [selectedDate, isLoading, roomsLoading, selectedRooms.length, scrollPosition]);
+  }, [selectedDate, isLoading, roomsLoading, selectedRooms.length]);
 
   // Enable drag functionality when there are events to scroll
   useEffect(() => {
@@ -334,7 +338,6 @@ export default function HomePage() {
                             pixelsPerMinute={pixelsPerMinute}
                             actualRowCount={calculateActualRowCount()}
                             isDragEnabled={isDragEnabled}
-                            onScrollPositionChange={(position) => setScrollPosition(position)}
                           >
                             <div className="min-w-max relative" style={{ 
                               width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,

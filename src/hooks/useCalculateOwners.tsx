@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { updateEventInCache } from './useEvents';
 import { notifyEventAssignment } from '../utils/notificationUtils';
+import { useShiftBlocks } from './useShiftBlocks';
 import type { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -162,8 +163,11 @@ function createOwnershipTimeline(owners: string[], handOffTimes: string[], manua
 
 // Main hook to get ownership data for an event
 export function useEventOwnership(event: Event | null) {
+  // Use the existing useShiftBlocks hook instead of direct Supabase call
+  const { data: shiftBlocks = [], isLoading: shiftBlocksLoading, error: shiftBlocksError } = useShiftBlocks(event?.date || null);
+  
   return useQuery({
-    queryKey: ['eventOwnership', event?.id, event?.date, event?.man_owner],
+    queryKey: ['eventOwnership', event?.id],
     queryFn: async () => {
       if (!event?.date) return null;
       
@@ -177,23 +181,13 @@ export function useEventOwnership(event: Event | null) {
         };
       }
       
-
-      
-      // Get shift blocks for the event's date
-      const { data: shiftBlocks, error } = await supabase
-        .from('shift_blocks')
-        .select('*')
-        .eq('date', event.date)
-        .order('start_time', { ascending: true });
-      
-      if (error) throw error;
-      
-
+      // If shift blocks are still loading or there was an error, return null
+      if (shiftBlocksLoading || shiftBlocksError) {
+        return null;
+      }
       
       // Get intersecting blocks
-      const intersectingBlocks = getIntersectingBlocks(event, shiftBlocks || []);
-      
-
+      const intersectingBlocks = getIntersectingBlocks(event, shiftBlocks);
       
       // Process ownership data
       const ownershipData = processOwnershipData(intersectingBlocks);
@@ -211,7 +205,7 @@ export function useEventOwnership(event: Event | null) {
         timeline
       };
     },
-    enabled: !!event?.date,
+    enabled: !!event?.date && !shiftBlocksLoading && !shiftBlocksError,
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
     gcTime: Infinity, // Keep in cache indefinitely
     refetchOnMount: false,
