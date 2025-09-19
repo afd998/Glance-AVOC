@@ -231,13 +231,14 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass)}`}
           style={{
             left: `${maxVisibleWidthPx}px`,
-            top: '50%',
+            top: event.event_type === 'KEC' ? 'calc(50%  - 88px)' : '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
             height: '2px',
+            zIndex: -1,
             ...(shouldBlink && { '--original-bg-color': originalColor })
           }}
         />
@@ -245,12 +246,13 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : gradientClass}`}
+          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass)}`}
           style={{
             left: `${maxVisibleWidthPx + continuationWidth}px`,
-            top: 0,
+            top: event.event_type === 'KEC' ? '-90px' : 0,
             width: '2px',
             height: '100%',
+            zIndex: -1,
             ...(shouldBlink && { '--original-bg-color': originalColor })
           }}
         />

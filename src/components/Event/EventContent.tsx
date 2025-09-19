@@ -215,6 +215,84 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
 }
 
 
+// KEC Executive Luxury Event Component
+function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+  const { truncatedEventName: eventName } = getEventTypeInfo(event);
+  const themeColors = getEventThemeColors(event);
+
+  const getEventHeight = () => {
+    if (isMergedRoomEvent) return 'h-full';
+    return 'h-12';
+  };
+
+  return (
+    <div className={`relative ${getEventHeight()} ${isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'}`}>
+      {/* Luxury texture overlay */}
+      <div 
+        className="absolute inset-0 rounded pointer-events-none mix-blend-soft-light"
+        style={{
+          backgroundImage: 'linear-gradient(0deg, #ffffff 1px, transparent 1px)',
+          backgroundSize: '1px 5px',
+          WebkitMaskImage: `radial-gradient(30% 45% at 100% 50%, white 0%, transparent 100%),
+                           radial-gradient(30% 45% at 0% 50%, white 0%, transparent 100%)`,
+          maskImage: `radial-gradient(30% 45% at 100% 50%, white 0%, transparent 100%),
+                     radial-gradient(30% 45% at 0% 50%, white 0%, transparent 100%)`
+        }}
+      ></div>
+      
+      <div className={`relative z-10 flex flex-col items-center justify-center h-full px-4 ${isMergedRoomEvent ? 'py-4' : 'py-2'} gap-2`}>
+        {/* Main title with luxury gradient */}
+        <span
+          className="font-bold transition-all duration-400 ease-out block text-center"
+          style={{
+            transform: isHovering ? 'scale(1.05) translateY(-1px)' : 'scale(1)',
+            transformOrigin: 'center',
+            fontFamily: "'Arial', sans-serif",
+            fontSize: isMergedRoomEvent ? '1.2rem' : '0.9rem',
+            fontWeight: 700,
+            lineHeight: '1.2',
+            letterSpacing: '0.4rem',
+            textTransform: 'uppercase',
+            background: 'linear-gradient(rgb(255, 224, 166), rgb(200, 150, 100))',
+            color: 'transparent',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            textShadow: '0 0 20px rgba(255, 224, 166, 0.3)'
+          }}
+          title={eventName}
+        >
+          {eventName}
+        </span>
+        
+        {/* Luxury subtitle */}
+        <span 
+          className="transition-all duration-300 ease-out text-center"
+          style={{
+            color: '#ffe0a6',
+            fontSize: '0.7rem',
+            letterSpacing: '0.15rem',
+            opacity: 0.8,
+            transform: isHovering ? 'scale(1.02)' : 'scale(1)'
+          }}
+        >
+          EXECUTIVE
+        </span>
+        
+        {/* Animated underline */}
+        <div 
+          className="bg-gradient-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out"
+          style={{
+            height: '1px',
+            width: isHovering ? '90%' : '70%',
+            filter: 'drop-shadow(0 0 4px rgba(255, 224, 166, 0.6))',
+            animation: isHovering ? 'gentle-glow 1.5s ease-in-out infinite alternate' : 'none'
+          }}
+        ></div>
+      </div>
+    </div>
+  );
+}
+
 // Default Event Component
 function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
   // Parse instructor names from JSON field
@@ -292,6 +370,8 @@ export default function EventContent({
     <div className={`flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0 ${isMergedRoomEvent ? 'h-full pt-6' : ''}`}>
       {event.event_type === 'Lecture' ? (
         <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+      ) : event.event_type === 'KEC' ? (
+        <KECEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       ) : (
         <DefaultEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       )}

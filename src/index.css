@@ -1197,14 +1197,133 @@ code {
     radial-gradient(ellipse 200% 200% at center, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%) !important;
 }
 
-/* KEC solid radial gradient background */
+/* KEC luxury card design with multi-layer sophistication */
 .kec-gradient {
-  background: radial-gradient(ellipse 200% 100% at center, #e5e7eb 0%, #e5e7eb 10%, #d1d5db 40%, #9ca3af 70%, #6b7280 100%) !important;
-  border: 1px solid rgba(107, 114, 128, 0.3) !important;
+  border: 2px solid transparent !important;
+  border-image: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.3) 0%, 
+    rgba(255, 255, 255, 0.1) 25%, 
+    rgba(255, 224, 166, 0.2) 50%, 
+    rgba(255, 255, 255, 0.1) 75%, 
+    rgba(255, 224, 166, 0.3) 100%) 1 !important;
+  background: 
+    linear-gradient(135deg, 
+      rgba(255, 224, 166, 0.03) 0%, 
+      rgba(0, 0, 0, 0.7) 25%, 
+      rgba(0, 0, 0, 0.8) 75%, 
+      rgba(255, 224, 166, 0.03) 100%),
+    radial-gradient(
+      100% 61.73% at 100% 50%,
+      rgba(255, 224, 166, 0.05) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      91.09% 56.23% at 0% 50%,
+      rgba(255, 224, 166, 0.05) 0%,
+      transparent 100%
+    ) !important;
+  position: relative !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: all 0.4s ease !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(255, 224, 166, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.1) !important;
+}
+
+.kec-gradient::before {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.15) 0%, 
+    rgba(255, 255, 255, 0.05) 50%, 
+    rgba(255, 224, 166, 0.15) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  inset: -4px;
+  padding: 4px;
+  opacity: 0.6;
+  box-shadow: 
+    0 0 20px rgba(255, 224, 166, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.kec-gradient::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.15) 0%, 
+    rgba(255, 255, 255, 0.05) 50%, 
+    rgba(255, 224, 166, 0.15) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  inset: -8px;
+  padding: 8px;
+  opacity: 0.3;
+  box-shadow: 
+    0 0 40px rgba(255, 224, 166, 0.05),
+    0 0 80px rgba(0, 0, 0, 0.2);
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* Enhanced hover effects for KEC luxury cards */
+.kec-gradient:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 
+    0 16px 64px rgba(0, 0, 0, 0.4),
+    0 4px 16px rgba(255, 224, 166, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.15),
+    0 0 40px rgba(255, 224, 166, 0.1) !important;
+}
+
+.kec-gradient:hover::before {
+  opacity: 0.8 !important;
+  box-shadow: 
+    0 0 30px rgba(255, 224, 166, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.kec-gradient:hover::after {
+  opacity: 0.5 !important;
+  box-shadow: 
+    0 0 60px rgba(255, 224, 166, 0.08),
+    0 0 120px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* KEC luxury animations */
+@keyframes gentle-glow {
+  0% {
+    filter: drop-shadow(0 0 4px rgba(255, 224, 166, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 224, 166, 0.8));
+  }
+}
+
+/* KEC continuation lines - simple and visible */
+.kec-continuation-line {
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.9) 0%, 
+    rgba(255, 224, 166, 0.7) 50%, 
+    rgba(255, 224, 166, 0.9) 100%) !important;
+  box-shadow: 
+    0 0 4px rgba(255, 224, 166, 0.8),
+    0 0 8px rgba(255, 224, 166, 0.4) !important;
+  position: relative !important;
 }
 
 /* KSM FacStaff solid radial gradient background */
@@ -1229,11 +1348,11 @@ code {
 
 /* Student Event solid radial gradient background */
 .student-event-gradient {
-  background: radial-gradient(ellipse 200% 100% at center, #fbbf24 0%, #fbbf24 10%, #f59e0b 40%, #d97706 70%, #92400e 100%) !important;
-  border: 1px solid rgba(146, 64, 14, 0.3) !important;
+  background: radial-gradient(ellipse 200% 100% at center, #4ade80 0%, #4ade80 10%, #22c55e 40%, #16a34a 70%, #15803d 100%) !important;
+  border: 1px solid rgba(21, 128, 61, 0.3) !important;
   box-shadow: 
-    0 8px 32px rgba(245, 158, 11, 0.2),
-    0 2px 8px rgba(245, 158, 11, 0.15),
+    0 8px 32px rgba(34, 197, 94, 0.2),
+    0 2px 8px rgba(34, 197, 94, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
