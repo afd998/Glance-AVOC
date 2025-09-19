@@ -16,6 +16,7 @@
   src: url('./assets/fonts/prokofievc.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -1351,6 +1352,68 @@ code {
   to {
     transform: translateY(600px);
   }
+}
+
+/* ABSOLUTE NUCLEAR OPTION - disable ALL text selection on event components */
+.event-no-select,
+.event-no-select *,
+.event-no-select span,
+.event-no-select div,
+.event-no-select p,
+.event-no-select h1,
+.event-no-select h2,
+.event-no-select h3,
+.event-no-select h4,
+.event-no-select h5,
+.event-no-select h6,
+.event-no-select img,
+.event-no-select svg,
+.event-no-select text,
+[data-event="true"],
+[data-event="true"] *,
+[data-event="true"] span,
+[data-event="true"] div,
+[data-event="true"] p,
+[data-event="true"] h1,
+[data-event="true"] h2,
+[data-event="true"] h3,
+[data-event="true"] h4,
+[data-event="true"] h5,
+[data-event="true"] h6,
+[data-event="true"] img,
+[data-event="true"] svg,
+[data-event="true"] text {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  pointer-events: auto !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-select: none !important;
+}
+
+/* Even more aggressive - target by descendant combinator */
+.event-no-select > * > * > * > *,
+[data-event="true"] > * > * > * > * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Override any potential conflicting styles */
+.event-no-select ::selection,
+[data-event="true"] ::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.event-no-select ::-moz-selection,
+[data-event="true"] ::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 
 

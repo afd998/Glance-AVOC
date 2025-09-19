@@ -167,19 +167,10 @@ export function useEventOwnership(event: Event | null) {
   const { data: shiftBlocks = [], isLoading: shiftBlocksLoading, error: shiftBlocksError } = useShiftBlocks(event?.date || null);
   
   return useQuery({
-    queryKey: ['eventOwnership', event?.id],
+    queryKey: ['eventOwnership', event?.id, event?.date, shiftBlocks],
     queryFn: async () => {
       if (!event?.date) return null;
       
-      // Return no owners for KEC events
-      if (event.event_type === "KEC") {
-        return {
-          intersectingBlocks: [],
-          owners: [],
-          handOffTimes: [],
-          timeline: []
-        };
-      }
       
       // If shift blocks are still loading or there was an error, return null
       if (shiftBlocksLoading || shiftBlocksError) {
@@ -206,9 +197,9 @@ export function useEventOwnership(event: Event | null) {
       };
     },
     enabled: !!event?.date && !shiftBlocksLoading && !shiftBlocksError,
-    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
-    gcTime: Infinity, // Keep in cache indefinitely
-    refetchOnMount: false,
+    staleTime: 0, // Allow data to become stale so it refetches when shift blocks change
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

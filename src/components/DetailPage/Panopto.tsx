@@ -23,7 +23,7 @@ const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export default function Panopto({ event }: PanoptoProps) {
   const { data: panoptoChecksData = [], isLoading } = usePanoptoChecksData(event.id);
-  const { completeCheck } = useCompletePanoptoCheckForEvent(event.id);
+  const { completeCheck, mutateAsync: completeCheckAsync } = useCompletePanoptoCheckForEvent(event.id);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Drag functionality
@@ -256,13 +256,23 @@ export default function Panopto({ event }: PanoptoProps) {
       return;
     }
 
-    completeCheck(checkNumber);
-    // Data will be automatically invalidated by the mutation hook
+    // Use optimistic update - the UI will update immediately
+    completeCheckAsync({ checkNumber });
   };
 
-  // Drag handlers
+  // Drag handlers - only enable dragging on background/empty spaces
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!timelineRef.current) return;
+    
+    // Check if the click target is a check card or its children
+    const target = e.target as HTMLElement;
+    const isCheckCard = target.closest('.check-card') || target.closest('.timeline-dot');
+    
+    // Only enable dragging if clicking on background/empty space
+    if (isCheckCard) {
+      return; // Don't start dragging if clicking on a check card
+    }
+    
     setIsDragging(true);
     setStartX(e.pageX - timelineRef.current.offsetLeft);
     setScrollLeft(timelineRef.current.scrollLeft);
@@ -272,15 +282,13 @@ export default function Panopto({ event }: PanoptoProps) {
   const handleMouseLeave = () => {
     setIsDragging(false);
     if (timelineRef.current) {
-      timelineRef.current.style.cursor = 'grab';
+      timelineRef.current.style.cursor = 'default';
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    if (timelineRef.current) {
-      timelineRef.current.style.cursor = 'grab';
-    }
+    // Cursor will be updated by handleMouseOver when mouse moves
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -288,7 +296,22 @@ export default function Panopto({ event }: PanoptoProps) {
     e.preventDefault();
     const x = e.pageX - timelineRef.current.offsetLeft;
     const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
+    // Only update horizontal scroll position
     timelineRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Handle cursor changes based on hover target
+  const handleMouseOver = (e: React.MouseEvent) => {
+    if (!timelineRef.current) return;
+    
+    const target = e.target as HTMLElement;
+    const isCheckCard = target.closest('.check-card') || target.closest('.timeline-dot');
+    
+    if (isCheckCard) {
+      timelineRef.current.style.cursor = 'default';
+    } else {
+      timelineRef.current.style.cursor = 'grab';
+    }
   };
   
   // Show loading state first
@@ -446,12 +469,13 @@ export default function Panopto({ event }: PanoptoProps) {
           {/* Horizontal Timeline */}
           <div 
             ref={timelineRef}
-            className="relative overflow-x-auto cursor-grab select-none"
+            className="relative overflow-x-auto select-none"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            onMouseOver={handleMouseOver}
+            style={{ cursor: isDragging ? 'grabbing' : 'default' }}
           >
             {/* Timeline line - extends full width of all timeline items */}
             <div 
@@ -468,7 +492,7 @@ export default function Panopto({ event }: PanoptoProps) {
               {panoptoTimeline.map((check, index) => (
                 <div key={check.checkNumber} className="flex flex-col items-center relative flex-shrink-0">
                   {/* Timeline dot */}
-                  <div className={`w-4 h-4 rounded-full border-2 z-10 relative ${
+                  <div className={`timeline-dot w-4 h-4 rounded-full border-2 z-10 relative ${
                     check.status === 'completed' 
                       ? 'bg-green-600 border-green-600' 
                       : check.status === 'current'
@@ -490,7 +514,7 @@ export default function Panopto({ event }: PanoptoProps) {
                   </div>
                   
                   {/* Check details card */}
-                  <div className={`mt-4 p-3 rounded-lg border text-center w-40 transition-colors backdrop-blur-sm shadow-lg ${getStatusColor(check.status)}`}>
+                  <div className={`check-card mt-4 p-3 rounded-lg border text-center w-40 transition-colors backdrop-blur-sm shadow-lg ${getStatusColor(check.status)}`}>
                     <div className="font-semibold text-xs sm:text-sm mb-1">
                       Check #{check.checkNumber}
                     </div>

@@ -16,6 +16,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isRainEnabled } = useRain();
   const { isSnowEnabled } = useSnow();
   
+  // MASTER KILL SWITCH - Set to false to completely disable ALL weather effects for GPU testing
+  const ENABLE_ALL_WEATHER_EFFECTS = false;
+  
   // Toggle for AVOC HOME text overlay
   const showAvocHomeText = false; // Set to true to enable the giant AVOC HOME text
   
@@ -44,13 +47,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
       
       {/* Rain Overlay */}
-      <RainOverlay isEnabled={isRainEnabled} />
+      {ENABLE_ALL_WEATHER_EFFECTS && <RainOverlay isEnabled={isRainEnabled} />}
 
       {/* Leaves Overlay */}
-      <LeavesOverlay />
+      {ENABLE_ALL_WEATHER_EFFECTS && <LeavesOverlay />}
       
       {/* Snow Overlay */}
-      <SnowOverlay isEnabled={isSnowEnabled} />
+      {ENABLE_ALL_WEATHER_EFFECTS && <SnowOverlay isEnabled={isSnowEnabled} />}
       
       {/* AVOC HOME Text Overlay */}
       {showAvocHomeText && (

@@ -43,7 +43,7 @@ export default function RoomRow({
   return (
     <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
       <div 
-        className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ zIndex: 50 }}
         data-room-label="true"
       >
@@ -54,7 +54,11 @@ export default function RoomRow({
             color: 'white',
             mixBlendMode: 'overlay', 
             textShadow: '0 0 40px rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.4)',
-            filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))'
+            filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
           }}
         >
           {roomText}

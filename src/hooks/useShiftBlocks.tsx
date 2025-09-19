@@ -65,6 +65,8 @@ export function useCreateShiftBlock() {
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -89,6 +91,8 @@ export function useUpdateShiftBlock() {
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -105,10 +109,13 @@ export function useDeleteShiftBlock() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // For delete, we need to invalidate all shift blocks queries since we don't have the date
       queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -403,6 +410,8 @@ export function useCreateShiftBlockFromExisting() {
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -437,6 +446,8 @@ export function useUpdateShiftBlockFromExisting() {
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -489,6 +500,8 @@ export function useCopyShiftBlocks() {
       queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
       // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }

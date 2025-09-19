@@ -27,7 +27,8 @@ export default function AppHeader({
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const showDatePicker = !isDragging;
-  const showOtherButtons = !isDragging && (!isModalOpen ? isHovered : true);
+  // Simplified logic: always show buttons when modal is open, or when hovered and not dragging
+  const showOtherButtons = !isDragging && (isModalOpen || isHovered);
 
   return (
     <div
@@ -157,7 +158,7 @@ export default function AppHeader({
 
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} />
+              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
         </div>
@@ -257,7 +258,7 @@ export default function AppHeader({
           {/* Row 2: MenuPanel, NotificationBell, QuarterCount */}
           <div className="flex items-center justify-center">
             <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}>
-              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} />
+              <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
           

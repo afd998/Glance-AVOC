@@ -45,6 +45,7 @@ interface Assignment {
 interface ShiftBlockProps {
   block: any;
   allBlocks: any[];
+  onHeaderDrag?: (deltaX: number, deltaY: number) => void;
 }
 
 // Selection context for managing multi-selection across components
@@ -249,7 +250,7 @@ function RoomsSection({
   );
 }
 
-const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
+const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag }) => {
   const updateShiftBlocks = useUpdateShiftBlocks();
   const { rooms: allRooms } = useRooms();
   
@@ -266,8 +267,12 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     setAssignments(block.assignments || []);
   }, [block.assignments]);
 
-  // Add global key event listeners to track modifier keys
-  React.useEffect(() => {
+  // Background drag-to-scroll state
+  const [isBackgroundDragging, setIsBackgroundDragging] = useState(false);
+  const [backgroundDragStart, setBackgroundDragStart] = useState({ x: 0, y: 0 });
+
+  // Track mouse enter/leave to only detect modifier keys when hovering over this component
+  const handleMouseEnter = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.shiftKey || event.ctrlKey || event.metaKey) {
         setIsInSelectionMode(true);
@@ -283,11 +288,63 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
-    return () => {
+    // Store cleanup function for later use
+    (handleMouseEnter as any).cleanup = () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  };
+
+  const handleMouseLeave = () => {
+    setIsInSelectionMode(false);
+    // Clean up event listeners when mouse leaves
+    if ((handleMouseEnter as any).cleanup) {
+      (handleMouseEnter as any).cleanup();
+      (handleMouseEnter as any).cleanup = null;
+    }
+  };
+
+  // Background drag-to-scroll handlers
+  const handleBackgroundMouseDown = (event: React.MouseEvent) => {
+    if (!onHeaderDrag) return;
+    
+    // Start drag if clicking on the background OR the time header
+    const isBackgroundClick = event.target === event.currentTarget;
+    const isTimeHeaderClick = (event.target as HTMLElement).tagName === 'H5';
+    
+    if (isBackgroundClick || isTimeHeaderClick) {
+      setIsBackgroundDragging(true);
+      setBackgroundDragStart({
+        x: event.clientX,
+        y: event.clientY
+      });
+      event.preventDefault();
+    }
+  };
+
+  // Add global mouse move and up listeners for background drag-to-scroll
+  React.useEffect(() => {
+    if (isBackgroundDragging && onHeaderDrag) {
+      const handleGlobalMouseMove = (event: MouseEvent) => {
+        const deltaX = event.clientX - backgroundDragStart.x;
+        const deltaY = event.clientY - backgroundDragStart.y;
+        
+        onHeaderDrag(deltaX, deltaY);
+      };
+
+      const handleGlobalMouseUp = () => {
+        setIsBackgroundDragging(false);
+      };
+
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+  }, [isBackgroundDragging, backgroundDragStart, onHeaderDrag]);
 
 
 
@@ -440,7 +497,12 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
 
   return (
     <div 
-      className="p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 ${
+        isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
+      }`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onMouseDown={handleBackgroundMouseDown}
       onClick={(event) => {
         // Clear selection when clicking outside room badges
         if (event.target === event.currentTarget) {
@@ -449,7 +511,12 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks }) => {
       }}
     >
       <div className="flex justify-between items-center mb-4">
-        <h5 className="font-medium text-gray-900 dark:text-white">
+        <h5 
+          className={`font-medium text-gray-900 dark:text-white transition-all duration-200 ${
+            isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
+          } ${onHeaderDrag ? 'hover:bg-gray-200/50 dark:hover:bg-gray-700/50 px-2 py-1 rounded' : ''}`}
+          onMouseDown={handleBackgroundMouseDown}
+        >
           {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
         </h5>
         <div className="flex items-center gap-2">

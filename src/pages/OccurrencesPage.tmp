@@ -27,11 +27,15 @@ const timeToFloatHours = (timeString: string | null): number => {
 
 // Convert palette hex values into rgba strings for soft backgrounds and overlays
 const hexToRgba = (hex: string | undefined, alpha: number): string => {
-  if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) {
+  if (!hex || typeof hex !== 'string') {
     return `rgba(79, 70, 229, ${alpha})`;
   }
 
   let normalized = hex.trim();
+  if (!normalized.startsWith('#')) {
+    return `rgba(79, 70, 229, ${alpha})`;
+  }
+
   if (normalized.length === 4) {
     normalized = `#${normalized[1]}${normalized[1]}${normalized[2]}${normalized[2]}${normalized[3]}${normalized[3]}`;
   }
@@ -89,9 +93,8 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
 
   const paletteHex = React.useMemo(() => getEventThemeHexColors(event), [event]);
   const accentColor = paletteHex?.[6] ?? '#4b5563';
-  const midAccent = paletteHex?.[4] ?? '#9ca3af';
+  const mutedAccent = paletteHex?.[4] ?? '#9ca3af';
   const softAccent = paletteHex?.[2] ?? '#e5e7eb';
-
   const resourcesWithNotes = React.useMemo(
     () => resources.filter((resource: any) => Boolean(resource.instruction)),
     [resources]
@@ -121,13 +124,12 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
         tabIndex={0}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
-        className="relative flex flex-col gap-4 rounded-2xl border px-5 py-4 text-left text-gray-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 focus-visible:ring-offset-2 dark:text-gray-100"
+        className="relative flex flex-col gap-4 rounded-2xl border px-5 py-4 text-left shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 focus-visible:ring-offset-2"
         style={{
-          background: `linear-gradient(155deg, ${hexToRgba(softAccent, 0.96)} 0%, ${hexToRgba(midAccent, 0.42)} 55%, ${hexToRgba(accentColor, isCurrentEvent ? 0.5 : 0.34)} 100%)`,
-          borderColor: hexToRgba(accentColor, isCurrentEvent ? 0.85 : 0.35),
+          borderColor: isCurrentEvent ? accentColor : hexToRgba(accentColor, 0.28),
           boxShadow: isCurrentEvent
-            ? `0 24px 46px -24px ${hexToRgba(accentColor, 0.72)}`
-            : `0 18px 42px -28px ${hexToRgba(accentColor, 0.38)}`,
+            ? `0 18px 38px -20px ${hexToRgba(accentColor, 0.55)}`
+            : undefined,
         }}
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -191,19 +193,14 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
               {resources.map((item: any, resourceIndex: number) => (
                 <div
                   key={`${event.id}-resource-${resourceIndex}`}
-                  className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors backdrop-blur-sm"
-                  style={{
-                    backgroundColor: hexToRgba(softAccent, 0.4),
-                    borderColor: hexToRgba(accentColor, isCurrentEvent ? 0.55 : 0.35),
-                    color: accentColor,
-                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/90 px-3 py-1 text-xs font-medium text-gray-600 transition-colors hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-200"
                 >
                   <span className="text-sm" aria-hidden="true">
                     {getResourceIcon(item.itemName)}
                   </span>
                   <span>{getResourceDisplayName(item.itemName)}</span>
                   {item.quantity && item.quantity > 1 && (
-                    <span className="text-[10px] font-semibold uppercase" style={{ color: hexToRgba(accentColor, 0.7) }}>
+                    <span className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-300">
                       x{item.quantity}
                     </span>
                   )}
@@ -211,13 +208,10 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
               ))}
             </div>
             {resourcesWithNotes.length > 0 && (
-              <div className="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-300">
+              <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                 {resourcesWithNotes.map((resource: any, resourceIndex: number) => (
                   <div key={`${event.id}-instruction-${resourceIndex}`} className="flex items-start gap-2">
-                    <span
-                      className="mt-[3px] inline-block h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: hexToRgba(accentColor, 0.6) }}
-                    />
+                    <span className="mt-[3px] inline-block h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span className="flex-1 leading-relaxed" title={resource.instruction}>
                       {resource.instruction}
                     </span>
@@ -292,15 +286,15 @@ export default function OccurrencesPage() {
     return getEventThemeHexColors(currentEvent);
   }, [currentEvent]);
 
-  const accentColor = paletteHex?.[6] ?? '#4b5563';
-
   const headerGradient = React.useMemo(() => {
     if (!paletteHex) {
-      return 'linear-gradient(135deg, rgba(248, 250, 252, 0.98) 0%, rgba(226, 232, 240, 0.92) 55%, rgba(203, 213, 225, 0.88) 100%)';
+      return 'linear-gradient(135deg, rgba(249, 250, 251, 0.95) 0%, rgba(229, 231, 235, 0.8) 65%, rgba(209, 213, 219, 0.72) 100%)';
     }
 
-    return `linear-gradient(135deg, ${hexToRgba(paletteHex[1], 0.98)} 0%, ${hexToRgba(paletteHex[3], 0.9)} 55%, ${hexToRgba(paletteHex[5], 0.85)} 100%)`;
+    return `linear-gradient(135deg, ${hexToRgba(paletteHex[1], 0.95)} 0%, ${hexToRgba(paletteHex[3], 0.7)} 50%, ${hexToRgba(paletteHex[5], 0.65)} 100%)`;
   }, [paletteHex]);
+
+  const accentColor = paletteHex?.[6] ?? '#4b5563';
 
   const occurrencePosition = React.useMemo(() => {
     if (!occurrences || !currentEvent) {
@@ -331,14 +325,14 @@ export default function OccurrencesPage() {
   return (
     <div className="relative w-full max-w-3xl">
       <div
-        className="overflow-hidden rounded-3xl border bg-white shadow-2xl ring-1 ring-black/5 dark:border-gray-800/70 dark:bg-gray-950 dark:ring-white/10"
+        className="overflow-hidden rounded-3xl border bg-white/98 shadow-2xl ring-1 ring-black/5 dark:border-gray-800/70 dark:bg-gray-950/95 dark:ring-white/10"
         style={{ borderColor: hexToRgba(paletteHex?.[4], 0.45) }}
       >
         <div className="relative" style={{ background: headerGradient }}>
           <div
-            className="pointer-events-none absolute inset-0 opacity-40"
+            className="pointer-events-none absolute inset-0 opacity-25"
             style={{
-              background: `radial-gradient(circle at top right, ${hexToRgba(paletteHex?.[6] ?? accentColor, 0.45)}, transparent 65%)`,
+              background: `radial-gradient(circle at top right, ${hexToRgba(paletteHex?.[6], 0.35)}, transparent 60%)`,
             }}
           />
           <div className="relative px-8 py-6 text-gray-900 dark:text-gray-100">
@@ -359,7 +353,7 @@ export default function OccurrencesPage() {
                   style={{
                     borderColor: accentColor,
                     color: accentColor,
-                    backgroundColor: hexToRgba(paletteHex?.[1] ?? '#e5e7eb', 0.6),
+                    backgroundColor: hexToRgba(paletteHex?.[1], 0.5),
                   }}
                 >
                   {currentEvent.event_type || 'Uncategorized'}
@@ -367,7 +361,7 @@ export default function OccurrencesPage() {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-gray-600 transition-colors duration-200 hover:border-black/20 hover:text-gray-900 dark:border-white/10 dark:bg-gray-950/70 dark:text-gray-400 dark:hover:text-gray-100"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-gray-600 transition-colors duration-200 hover:border-black/20 hover:text-gray-900 dark:border-white/10 dark:bg-gray-950/70 dark:text-gray-400 dark:hover:text-gray-100"
                   aria-label="Close occurrences modal"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,15 +404,15 @@ export default function OccurrencesPage() {
         </div>
 
         <div
-          className="bg-gray-50 px-8 py-6 dark:bg-gray-900"
-          style={{ borderTop: `1px solid ${hexToRgba(paletteHex?.[3] ?? '#d1d5db', 0.5)}` }}
+          className="bg-gray-50/70 px-8 py-6 dark:bg-gray-900/70"
+          style={{ borderTop: `1px solid ${hexToRgba(paletteHex?.[3], 0.4)}` }}
         >
           {isLoading ? (
             <div className="flex items-center justify-center py-12 text-gray-500 dark:text-gray-400">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-600" />
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-200/70 bg-white px-6 py-8 text-center text-red-600 dark:border-red-500/40 dark:bg-gray-950/90 dark:text-red-300">
+            <div className="rounded-2xl border border-red-200/70 bg-white/95 px-6 py-8 text-center text-red-600 dark:border-red-500/40 dark:bg-gray-950/90 dark:text-red-300">
               Error loading occurrences
             </div>
           ) : occurrences && occurrences.length > 0 ? (
@@ -434,7 +428,7 @@ export default function OccurrencesPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-300/80 bg-white px-6 py-10 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-300">
+            <div className="rounded-2xl border border-dashed border-gray-300/80 bg-white/95 px-6 py-10 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-300">
               No other occurrences found
             </div>
           )}
@@ -443,3 +437,6 @@ export default function OccurrencesPage() {
     </div>
   );
 }
+
+
+

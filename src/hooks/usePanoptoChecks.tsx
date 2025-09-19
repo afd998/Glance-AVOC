@@ -329,6 +329,23 @@ export const useCompletePanoptoCheckForEvent = (eventId: number | null) => {
   
   // Use the useEvent hook to get event data
   const { data: eventData, isLoading: eventLoading, error: eventError } = useEvent(eventId);
+  
+  // Get current user's profile data for optimistic updates
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .eq('id', user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   const mutation = useMutation({
     mutationFn: async ({ checkNumber }: { checkNumber: number }) => {
@@ -367,13 +384,57 @@ export const useCompletePanoptoCheckForEvent = (eventId: number | null) => {
 
       return { eventId: eventId!, checkNumber, checkTime };
     },
-    onSuccess: (data) => {
-      // Invalidate React Query cache to trigger immediate refetch
-      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', data.eventId] });
-      queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
-      
+    onMutate: async ({ checkNumber }) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['panoptoChecks', eventId] });
+
+      // Snapshot the previous value
+      const previousChecks = queryClient.getQueryData(['panoptoChecks', eventId]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['panoptoChecks', eventId], (old: any) => {
+        if (!old) return old;
+        
+        return old.map((check: any) => {
+          // Calculate the check time for this check number
+          if (eventData?.start_time) {
+            const eventStart = new Date(`${eventData.date}T${eventData.start_time}`);
+            const checkTimeDate = new Date(eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL);
+            const expectedCheckTime = checkTimeDate.toTimeString().split(' ')[0];
+            
+            // If this is the check being completed, update it optimistically
+            if (check.check_time === expectedCheckTime) {
+              return {
+                ...check,
+                completed_time: new Date().toTimeString().split(' ')[0],
+                completed_by_user_id: user?.id || null,
+                status: 'completed',
+                updated_at: new Date().toISOString(),
+                // Include profile data to prevent ID flashing
+                profiles: currentUserProfile ? {
+                  id: currentUserProfile.id,
+                  name: currentUserProfile.name
+                } : null
+              };
+            }
+          }
+          return check;
+        });
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousChecks };
     },
-    onError: (error) => {
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousChecks) {
+        queryClient.setQueryData(['panoptoChecks', eventId], context.previousChecks);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
     }
   });
 
@@ -393,85 +454,6 @@ export const useCompletePanoptoCheckForEvent = (eventId: number | null) => {
   };
 };
 
-// Hook to update panopto check status in the panopto_checks table
-export const useUpdateEventChecks = (eventId: number | null) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  
-  // Use the useEvent hook to get event data
-  const { data: eventData, isLoading: eventLoading, error: eventError } = useEvent(eventId);
-
-  const mutation = useMutation({
-    mutationFn: async ({ checkNumber, completed }: { checkNumber: number; completed: boolean }) => {
-      if (!eventData) {
-        throw new Error('Event data not available');
-      }
-
-      // Calculate the check time based on check number
-      let checkTime: string | null = null;
-      if (eventData.start_time) {
-        const eventStart = new Date(`${eventData.date}T${eventData.start_time}`);
-        const checkTimeDate = new Date(eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL);
-        checkTime = checkTimeDate.toTimeString().split(' ')[0]; // HH:MM:SS format
-      }
-
-      if (!checkTime) {
-        throw new Error('Could not calculate check time');
-      }
-
-      // Update the panopto_checks table
-      const { error: updateError } = await supabase
-        .from('panopto_checks')
-        .update({
-          completed_time: completed ? new Date().toTimeString().split(' ')[0] : null,
-          completed_by_user_id: completed ? user?.id || null : null,
-          status: completed ? 'completed' : 'pending',
-          updated_at: new Date().toISOString()
-        })
-        .eq('event_id', eventId!)
-        .eq('check_time', checkTime);
-
-      if (updateError) {
-        throw new Error(`Error updating check in panopto_checks table: ${updateError.message}`);
-      }
-
-      return { eventId: eventId!, checkNumber, checkTime, completed };
-    },
-    onSuccess: (data) => {
-      // Invalidate React Query cache to trigger immediate refetch
-      queryClient.invalidateQueries({ queryKey: ['panoptoChecks', data.eventId] });
-      queryClient.invalidateQueries({ queryKey: ['allPanoptoChecks'] });
-      
-      console.log(`Updated check ${data.checkNumber} to ${data.completed} for event ${data.eventId} at ${data.checkTime}`);
-    },
-    onError: (error) => {
-      console.error('Error updating event checks:', error);
-    }
-  });
-
-  return {
-    ...mutation,
-    eventData,
-    eventLoading,
-    eventError,
-    // Helper function to mark check as sent (completed = false)
-    markAsSent: (checkNumber: number) => {
-      if (!eventId) {
-        console.error('No event ID provided');
-        return;
-      }
-      mutation.mutate({ checkNumber, completed: false });
-    },
-    // Helper function to mark check as completed (completed = true)
-    markAsCompleted: (checkNumber: number) => {
-      if (!eventId) {
-        console.error('No event ID provided');
-        return;
-      }
-      mutation.mutate({ checkNumber, completed: true });
-    }
-  };
-};
 
 // Hook to check if all checks are complete for a specific event
 export const useEventChecksComplete = (eventId: number, startTime?: string, endTime?: string, date?: string) => {

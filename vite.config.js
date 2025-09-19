@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
-  plugins: [react(),
+  plugins: [react({
+    babel: {
+      plugins: ['babel-plugin-react-compiler'],
+    },
+  }),
     visualizer({
       filename: 'stats.html',   // output file
       open: true,               // auto-open in browser

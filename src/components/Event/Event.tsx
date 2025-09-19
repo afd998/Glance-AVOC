@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import EventHoverCard from "./EventHoverCard";
 import EventHeader from "./EventHeader";
 import EventContent from "./EventContent";
-import { useMultipleFacultyMembers } from "../../hooks/useFaculty";
 import { getEventTypeInfo, calculateEventPosition, getEventThemeColors, getEventGradientClass, getOriginalColorFromTailwindClass } from "../../utils/eventUtils";
 import { useEventDurationHours } from "../../hooks/useEvents";
 import { useEventOverduePanoptoChecks } from "../../hooks/usePanoptoChecks";
@@ -18,92 +16,25 @@ interface EventProps {
   onEventClick: (event: Event) => void;
 }
 
-// Helper function to parse instructor names from JSON
-const parseInstructorNames = (instructorNamesJson: any): string[] => {
-  if (!instructorNamesJson) return [];
-
-  if (Array.isArray(instructorNamesJson)) {
-    return instructorNamesJson.filter(name => typeof name === 'string' && name.trim() !== '');
-  }
-
-  if (typeof instructorNamesJson === 'string') {
-    return [instructorNamesJson];
-  }
-
-  return [];
-};
 
 export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
 
-  // Disable hover card functionality
-  const HOVER_CARD_ENABLED = false;
-
-  const [showHoverCard, setShowHoverCard] = useState(false);
-  const [isHoveringCard, setIsHoveringCard] = useState(false);
   const [isHoveringEvent, setIsHoveringEvent] = useState(false);
-  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
-  // Parse instructor names from JSON field
-  const instructorNames = parseInstructorNames(event.instructor_names);
-
-  const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   
   // Check for overdue Panopto checks for this specific event - much more efficient!
   const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useEventOverduePanoptoChecks(event);
   const hasOverduePanoptoChecks = hasOverdueChecks;
   
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isHoveringRef = useRef(false);
 
-  // Clear timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleMouseEnter = (e: React.MouseEvent) => {
-    isHoveringRef.current = true;
+  const handleMouseEnter = () => {
     setIsHoveringEvent(true);
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    if (HOVER_CARD_ENABLED) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const container = e.currentTarget.closest('.overflow-x-auto') as HTMLElement;
-      const containerRect = container.getBoundingClientRect();
-      
-      setHoverPosition({
-        x: rect.left - containerRect.left + container.scrollLeft,
-        y: rect.top - containerRect.top + container.scrollTop
-      });
-      setShowHoverCard(true);
-    }
   };
 
   const handleMouseLeave = () => {
-    isHoveringRef.current = false;
     setIsHoveringEvent(false);
-    hoverTimeoutRef.current = setTimeout(() => {
-      if (!isHoveringRef.current) {
-        setShowHoverCard(false);
-      }
-    }, 100);
   };
 
-  const handleCardMouseEnter = () => {
-    setIsHoveringCard(true);
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-  };
-
-  const handleCardMouseLeave = () => {
-    setIsHoveringCard(false);
-    setShowHoverCard(false);
-  };
 
   // Use the new room_name field instead of parsing subject_itemName
   const roomName = event.room_name;
@@ -175,28 +106,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const themeColors = getEventThemeColors(event);
   const bgColor = themeColors[5]; // Use theme color for background
   
-  // Additional debugging for CMC events
-  if (event.event_type === 'CMC') {
-    console.log('CMC Event - getEventTypeInfo result:', {
-      isMergedRoomEvent,
-      isReducedHeightEvent,
-      roomName: event.room_name
-    });
-  }
-  
-  // Debug logging for CMC events
-  if (event.event_type === 'CMC') {
-    console.log('CMC Event Debug:', {
-      eventType: event.event_type,
-      roomName: event.room_name,
-      roomNameLength: event.room_name?.length,
-      roomNameIncludesAmpersand: event.room_name?.includes('&'),
-      roomNameCharCodes: event.room_name?.split('').map(c => c.charCodeAt(0)),
-      isMergedRoomEvent,
-      isReducedHeightEvent,
-      eventName: event.event_name
-    });
-  }
   
   // Get gradient class from utility function
   const gradientClass = getEventGradientClass(event.event_type || '');
@@ -217,17 +126,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     const AD_HOC_EVENT_HEIGHT_PX = 48; // Even more reduced height for Ad Hoc Class Meeting events
     const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
     
-    // Debug logging before height calculation
-    if (event.event_type === 'CMC') {
-      console.log('CMC Event - Before height calculation:', {
-        isMergedRoomEvent,
-        isReducedHeightEvent,
-        roomName: event.room_name,
-        MERGED_ROOM_HEIGHT_PX,
-        REDUCED_EVENT_HEIGHT_PX,
-        DEFAULT_EVENT_HEIGHT_PX
-      });
-    }
+  
     
     let height: number;
     let top: string;
@@ -284,7 +183,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         overflow: 'visible',
         textOverflow: 'ellipsis',
         whiteSpace: event.event_type === 'Lecture' ? 'nowrap' : 'normal',
-        zIndex: isHoveringEvent ? 60 : (showHoverCard ? 50 : 49),
+        zIndex: isHoveringEvent ? 60 : 49,
         // No transform/boxShadow here so continuation lines don't scale
       }}
       title={event.event_name || ''}
@@ -312,9 +211,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         />
                 <EventContent
           event={event}
-          facultyMembers={facultyMembers || []}
-          instructorNames={instructorNames}
-          isFacultyLoading={isFacultyLoading}
           isHovering={isHoveringEvent}
           isMergedRoomEvent={isMergedRoomEvent}
           hasOverduePanoptoChecks={shouldBlink}
@@ -356,31 +252,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
             ...(shouldBlink && { '--original-bg-color': originalColor })
           }}
         />
-      )}
-      {HOVER_CARD_ENABLED && showHoverCard && (
-        <div 
-          className="absolute z-[100]"
-          style={{
-            left: 0,
-            [isUpperRow ? 'top' : 'bottom']: '100%',
-            marginTop: isUpperRow ? '8px' : 0,
-            marginBottom: isUpperRow ? 0 : '8px',
-            pointerEvents: 'auto'
-          }}
-          onMouseEnter={handleCardMouseEnter}
-          onMouseLeave={handleCardMouseLeave}
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg"></div>
-            <EventHoverCard
-              event={event}
-              facultyMembers={facultyMembers || []}
-              instructorNames={instructorNames}
-              isFacultyLoading={isFacultyLoading}
-              style={{}}
-            />
-          </div>
-        </div>
       )}
     </div>
   );

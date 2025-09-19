@@ -149,7 +149,6 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   const isReducedHeightEvent = (
     eventType === 'KSM: Kellogg Special Events (KGH)' ||
     eventType === 'KSM: Kellogg FacStaff (KGH)' ||
-    eventType === 'KEC' ||
     eventType === 'CMC' ||
     eventType === 'Ad Hoc Class Meeting'
   );

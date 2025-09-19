@@ -15,9 +15,10 @@ interface MenuPanelProps {
   selectedDate: Date;
   events: Database['public']['Tables']['events']['Row'][] | undefined;
   onModalClose?: () => void;
+  onModalOpen?: () => void;
 }
 
-const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [], onModalClose }) => {
+const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events = [], onModalClose, onModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const { isDarkMode } = useTheme();
@@ -26,6 +27,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ selectedDate = new Date(), events
   const [isSessionAssignmentsOpen, setIsSessionAssignmentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] = useState(false);
+
+  // Notify parent of modal state changes
+  useEffect(() => {
+    const anyModalOpen = isSessionAssignmentsOpen || isNotificationsOpen || isBackgroundSelectorOpen;
+    if (anyModalOpen) {
+      onModalOpen?.();
+    } else {
+      onModalClose?.();
+    }
+  }, [isSessionAssignmentsOpen, isNotificationsOpen, isBackgroundSelectorOpen, onModalOpen, onModalClose]);
   const navigate = useNavigate();
   const { date } = useParams();
   const { currentBackground } = useBackground();

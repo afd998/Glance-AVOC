@@ -3,7 +3,23 @@ import { Database } from '../../types/supabase';
 import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
 import { useEventDurationHours } from '../../hooks/useEvents';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
+import { useMultipleFacultyMembers } from '../../hooks/useFaculty';
 
+
+// Helper function to parse instructor names from JSON
+const parseInstructorNames = (instructorNamesJson: any): string[] => {
+  if (!instructorNamesJson) return [];
+
+  if (Array.isArray(instructorNamesJson)) {
+    return instructorNamesJson.filter(name => typeof name === 'string' && name.trim() !== '');
+  }
+
+  if (typeof instructorNamesJson === 'string') {
+    return [instructorNamesJson];
+  }
+
+  return [];
+};
 
 // Helper function to extract last names from instructor names
 const extractLastNames = (instructorNames: string[]): string => {
@@ -20,9 +36,6 @@ type FacultyMember = Database['public']['Tables']['faculty']['Row'];
 
 interface EventContentProps {
   event: Event;
-  facultyMembers: FacultyMember[];
-  instructorNames: string[];
-  isFacultyLoading: boolean;
   isHovering: boolean;
   isMergedRoomEvent?: boolean;
   hasOverduePanoptoChecks?: boolean;
@@ -30,7 +43,12 @@ interface EventContentProps {
 }
 
 // Lecture Event Component
-function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+  // Parse instructor names from JSON field
+  const instructorNames = parseInstructorNames(event.instructor_names);
+  
+  // Get faculty members data
+  const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   // Get theme colors and truncated event name for this event
   const { truncatedEventName: baseName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -71,7 +89,7 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
   };
 
   // Find faculty member for first instructor (for single avatar case)
-  const firstFacultyMember = facultyMembers.find(fm =>
+  const firstFacultyMember = facultyMembers?.find(fm =>
     fm.twentyfivelive_name === instructorNames[0]
   );
 
@@ -89,12 +107,11 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
               instructorName={instructorNames[0]}
               isHovering={isHovering}
               size="md"
-              pixelated={event.event_type !== 'Lecture'}
             />
           ) : instructorNames.length > 1 ? (
             <div className="flex -space-x-2">
               {instructorNames.slice(0, 3).map((instructorName, index) => {
-                const facultyMember = facultyMembers.find(fm => fm.twentyfivelive_name === instructorName);
+                const facultyMember = facultyMembers?.find(fm => fm.twentyfivelive_name === instructorName);
                 return (
                   <FacultyAvatar
                     key={`${instructorName}-${index}`}
@@ -104,7 +121,6 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
                     isHovering={isHovering}
                     size="md"
                     className="h-10 w-10"
-                    pixelated={event.event_type !== 'Lecture'}
                   />
                 );
               })}
@@ -200,7 +216,12 @@ function LectureEvent({ event, facultyMembers, instructorNames, isHovering, isMe
 
 
 // Default Event Component
-function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+  // Parse instructor names from JSON field
+  const instructorNames = parseInstructorNames(event.instructor_names);
+  
+  // Get faculty members data
+  const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   // Get theme colors, truncated event name, and height flags for this event
   const { truncatedEventName: eventName, isReducedHeightEvent } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
@@ -262,9 +283,6 @@ function DefaultEvent({ event, facultyMembers, instructorNames, isHovering, isMe
 
 export default function EventContent({
   event,
-  facultyMembers,
-  instructorNames,
-  isFacultyLoading,
   isHovering,
   isMergedRoomEvent,
   hasOverduePanoptoChecks,
@@ -273,9 +291,9 @@ export default function EventContent({
   return (
     <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
       {event.event_type === 'Lecture' ? (
-        <LectureEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+        <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       ) : (
-        <DefaultEvent event={event} facultyMembers={facultyMembers} instructorNames={instructorNames} isFacultyLoading={isFacultyLoading} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+        <DefaultEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       )}
     </div>
   );

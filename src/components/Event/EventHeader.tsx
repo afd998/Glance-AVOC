@@ -113,26 +113,10 @@ export default function EventHeader({
   const isShortLecture = currentEvent.event_type === 'Lecture' && eventDurationHours < 2;
 
   // Calculate fisheye scale based on proximity to hovered icon
+  // DISABLED FOR GPU TESTING - fisheye scaling causes massive GPU usage
   const getFisheyeScale = useCallback((iconKey: string) => {
-    if (!hoveredIcon) return 1;
-
-    const hoveredIndex = iconOrder.indexOf(hoveredIcon);
-    const currentIndex = iconOrder.indexOf(iconKey);
-
-    if (hoveredIndex === -1 || currentIndex === -1) return 1;
-
-    const distance = Math.abs(currentIndex - hoveredIndex);
-
-    if (distance === 0) {
-      // Hovered icon: 1.7x scale
-      return 1.7;
-    } else if (distance === 1) {
-      // Adjacent icons: 1.3x scale
-      return 1.3;
-    } else {
-      // Other icons: normal scale
-      return 1;
-    }
+    // Always return 1 to disable all scaling effects that cause 95% GPU usage
+    return 1;
   }, [hoveredIcon, iconOrder]);
 
   // Hover handlers for fisheye effect
@@ -188,14 +172,16 @@ export default function EventHeader({
             )}
           </span>
         )}
-        {currentEvent.event_type !== 'KEC' && hasVideoRecording && (
+        {hasVideoRecording && (
           <div
             className="relative rounded-full bg-red-500 transition-all duration-[250ms] ease-in-out cursor-pointer"
             title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
-              width: `${12 * getFisheyeScale('videoRecording')}px`,
-              height: `${12 * getFisheyeScale('videoRecording')}px`,
-              animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
+              // DISABLED FOR GPU TESTING - fisheye scaling causes continuous GPU calculations
+              width: `12px`, // Fixed size instead of: ${12 * getFisheyeScale('videoRecording')}px
+              height: `12px`, // Fixed size instead of: ${12 * getFisheyeScale('videoRecording')}px
+              // DISABLED FOR GPU TESTING - pulsing animation causes high GPU usage
+              // animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
             }}
             onMouseEnter={() => handleIconHover('videoRecording')}
             onMouseLeave={handleIconLeave}
@@ -211,8 +197,9 @@ export default function EventHeader({
                   strokeLinejoin="round"
                   viewBox="0 0 20 20"
                   style={{
-                    width: `${8 * getFisheyeScale('videoRecording')}px`,
-                    height: `${8 * getFisheyeScale('videoRecording')}px`
+                    // DISABLED FOR GPU TESTING - fisheye scaling causes continuous GPU calculations
+                    width: `8px`, // Fixed size instead of: ${8 * getFisheyeScale('videoRecording')}px
+                    height: `8px` // Fixed size instead of: ${8 * getFisheyeScale('videoRecording')}px
                   }}
                 >
                   <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
@@ -226,7 +213,7 @@ export default function EventHeader({
             )}
           </div>
         )}
-        {currentEvent.event_type !== 'KEC' && hasStaffAssistance && (
+        {hasStaffAssistance && (
           <div
             className="flex items-center justify-center rounded-full bg-green-500 bg-opacity-90 transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Staff Assistance"
@@ -252,7 +239,7 @@ export default function EventHeader({
             )}
           </div>
         )}
-        {currentEvent.event_type !== 'KEC' && hasHandheldMic && (
+        {hasHandheldMic && (
           <span
             className="transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="Handheld Microphone"
@@ -270,7 +257,7 @@ export default function EventHeader({
             )}
           </span>
         )}
-        {currentEvent.event_type !== 'KEC' && hasWebConference && (
+        {hasWebConference && (
           <div className="relative">
             <img
               src="/zoomicon.png"
@@ -291,7 +278,7 @@ export default function EventHeader({
             )}
           </div>
         )}
-        {currentEvent.event_type !== 'KEC' && hasClickers && (
+        {hasClickers && (
           <div className="relative overflow-visible">
             <div
               className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer relative"
@@ -320,7 +307,7 @@ export default function EventHeader({
             </div>
           </div>
         )}
-        {currentEvent.event_type !== 'KEC' && hasAVNotes && (
+        {hasAVNotes && (
           <span
             className="text-xs transition-all duration-[250ms] ease-in-out cursor-pointer relative"
             title="AV Setup Notes"
