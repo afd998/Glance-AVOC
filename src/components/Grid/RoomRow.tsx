@@ -33,17 +33,27 @@ export default function RoomRow({
   const roomText = room.replace(/^GH\s+/, '');
   // const roomSpelling = useRoom(room); // Commented out since we're not using spelling anymore
   
+  // Check if this room has any merged room events
+  const hasMergedRoomEvents = roomEvents?.some(event => 
+    event.room_name?.includes('&') || 
+    (event.event_type === 'CMC' && (event.room_name === 'GH 2410A' || event.room_name === 'GH 2410B' || 
+     event.room_name?.includes('2410A') || event.room_name?.includes('2410B')))
+  ) || false;
+  
   // Use Halloween font and larger size if Halloween theme is active
   const isHalloweenTheme = currentTheme.name === 'Halloween';
   const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Prokofiev';
   const fontSize = isHalloweenTheme ? 'text-7xl' : (roomText.length > 4 ? 'text-xl' : 'text-3xl');
   
+  // Dynamic height based on whether room has merged events
+  const rowHeight = hasMergedRoomEvents ? 'h-48' : 'h-24'; // h-48 = 192px for merged room events
+  
 
 
   return (
-    <div className={`flex h-24 border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
+    <div className={`flex ${rowHeight} border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
       <div 
-        className={`sticky left-0 w-24 h-24 backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        className={`sticky left-0 w-24 ${rowHeight} backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ zIndex: 50 }}
         data-room-label="true"
       >
@@ -66,7 +76,7 @@ export default function RoomRow({
         {/* Room spelling code commented out - now just showing simple room name vertically */}
       </div>
       <div 
-        className={`flex-1 h-24 relative transition-all duration-300 ease-in-out ${isLastRow ? 'rounded-br-md' : ''}`}
+        className={`flex-1 ${rowHeight} relative transition-all duration-300 ease-in-out ${isLastRow ? 'rounded-br-md' : ''}`}
         style={{ zIndex: 45 }}
       >
         {roomEvents?.map((event) => (

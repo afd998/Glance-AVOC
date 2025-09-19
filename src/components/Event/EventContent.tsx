@@ -76,7 +76,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   const avatarTilt = getAvatarTilt(instructorNames[0]);
 
   // Adjust height for merged room events
-  const containerHeight = isMergedRoomEvent ? 'h-40' : 'h-16'; // h-40 = 160px for merged events
+  const containerHeight = isMergedRoomEvent ? 'h-full' : 'h-16'; // Use full height for merged events
   const avatarContainerHeight = 'h-16'; // Keep avatar section the same height always
   
   // Dynamic width based on number of faculty
@@ -94,7 +94,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   );
 
   return (
-         <div className={`flex flex-row ${containerHeight} w-full rounded absolute inset--0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
+         <div className={`flex flex-row ${containerHeight} w-full rounded absolute inset-0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
            className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative flex-shrink-0 -mt-1`}
@@ -235,7 +235,7 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
 
   // Determine height based on event type
   const getEventHeight = () => {
-    if (isMergedRoomEvent) return 'h-30'; // 80px for merged room events
+    if (isMergedRoomEvent) return 'h-full'; // Use full height for merged room events
     if (isReducedHeightEvent) {
       // Ad Hoc Class Meeting gets even more reduced height
       if (event.event_type === 'Ad Hoc Class Meeting') return 'h-8'; // 32px for Ad Hoc Class Meeting
@@ -245,11 +245,11 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   };
 
   return (
-    <div className={`${event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${
+    <div className={`${event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${getEventHeight()} ${
       event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : ''
-    }`}>
+    } ${isMergedRoomEvent ? 'flex items-center justify-center' : ''}`}>
       <div className={`flex items-start justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${
-        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0' : 'py-1'
+        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0' : isMergedRoomEvent ? 'py-2' : 'py-1'
       }`}>
         <span
           className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-relaxed ${
@@ -289,7 +289,7 @@ export default function EventContent({
   isOverdueChecksLoading
 }: EventContentProps) {
   return (
-    <div className="flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0">
+    <div className={`flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0 ${isMergedRoomEvent ? 'h-full pt-6' : ''}`}>
       {event.event_type === 'Lecture' ? (
         <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       ) : (

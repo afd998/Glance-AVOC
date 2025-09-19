@@ -197,7 +197,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           shouldBlink && event.event_type !== 'Lecture'
             ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
             : gradientClass
-        } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} pt-5 pb-1`}
+        } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} ${isMergedRoomEvent ? 'pt-2 pb-2' : 'pt-5 pb-1'}`}
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
@@ -209,13 +209,15 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           event={event}
           isHovering={isHoveringEvent}
         />
-                <EventContent
-          event={event}
-          isHovering={isHoveringEvent}
-          isMergedRoomEvent={isMergedRoomEvent}
-          hasOverduePanoptoChecks={shouldBlink}
-          isOverdueChecksLoading={isOverdueChecksLoading}
-                />
+        <div className="flex-1">
+          <EventContent
+            event={event}
+            isHovering={isHoveringEvent}
+            isMergedRoomEvent={isMergedRoomEvent}
+            hasOverduePanoptoChecks={shouldBlink}
+            isOverdueChecksLoading={isOverdueChecksLoading}
+          />
+        </div>
         {/* Red blinking vignette border for lecture events with overdue Panopto checks */}
         {shouldBlink && event.event_type === 'Lecture' && (
           <div 
