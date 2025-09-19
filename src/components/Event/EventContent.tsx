@@ -340,7 +340,7 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
           style={{
             transform: isHovering ? 'scale(1.02)' : 'scale(1)',
             transformOrigin: 'left top',
-            fontFamily: "'GoudyBookletter1911', serif",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             lineHeight: '1.4',
