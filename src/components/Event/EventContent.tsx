@@ -222,7 +222,7 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
 
   const getEventHeight = () => {
     if (isMergedRoomEvent) return 'h-full';
-    return 'h-12';
+    return 'h-16';
   };
 
   return (
@@ -240,7 +240,7 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
         }}
       ></div>
       
-      <div className={`relative z-10 flex flex-col items-center justify-center h-full px-4 ${isMergedRoomEvent ? 'py-4' : 'py-2'} gap-2`}>
+      <div className={`relative z-10 flex flex-col items-center justify-center h-full px-4 ${isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'} gap-1`}>
         {/* Main title with luxury gradient */}
         <span
           className="font-bold transition-all duration-400 ease-out block text-center"
@@ -248,9 +248,9 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
             transform: isHovering ? 'scale(1.05) translateY(-1px)' : 'scale(1)',
             transformOrigin: 'center',
             fontFamily: "'Arial', sans-serif",
-            fontSize: isMergedRoomEvent ? '1.2rem' : '0.9rem',
+            fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
             fontWeight: 700,
-            lineHeight: '1.2',
+            lineHeight: '1.1',
             letterSpacing: '0.4rem',
             textTransform: 'uppercase',
             background: 'linear-gradient(rgb(255, 224, 166), rgb(200, 150, 100))',
@@ -269,13 +269,13 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
           className="transition-all duration-300 ease-out text-center"
           style={{
             color: '#ffe0a6',
-            fontSize: '0.7rem',
-            letterSpacing: '0.15rem',
+            fontSize: '0.6rem',
+            letterSpacing: '0.1rem',
             opacity: 0.8,
             transform: isHovering ? 'scale(1.02)' : 'scale(1)'
           }}
         >
-          EXECUTIVE
+          EXECUTIVE EDUCATION
         </span>
         
         {/* Animated underline */}
@@ -367,7 +367,7 @@ export default function EventContent({
   isOverdueChecksLoading
 }: EventContentProps) {
   return (
-    <div className={`flex gap-2 relative transition-all duration-200 ease-in-out flex-1 min-w-0 ${isMergedRoomEvent ? 'h-full pt-6' : ''}`}>
+    <div className={`flex gap-2 relative transition-all duration-200 ease-in-out flex-1 ${event.event_type === 'KEC' ? 'w-full justify-center' : 'min-w-0'} ${isMergedRoomEvent ? 'h-full pt-6' : ''}`}>
       {event.event_type === 'Lecture' ? (
         <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
       ) : event.event_type === 'KEC' ? (

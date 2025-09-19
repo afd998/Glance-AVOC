@@ -233,7 +233,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           aria-hidden
           className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass)}`}
           style={{
-            left: `${maxVisibleWidthPx}px`,
+            left: event.event_type === 'KEC' ? `${maxVisibleWidthPx}px` : `${maxVisibleWidthPx}px`,
             top: event.event_type === 'KEC' ? 'calc(50%  - 88px)' : '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
