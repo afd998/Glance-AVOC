@@ -133,7 +133,7 @@ export default function EventHeader({
   
 
   return (
-    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute ${isShortLecture ? 'top-0 left-1 right-0' : 'top-0 left-2 right-2'} z-50`}>
+    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-1 right-0 z-[100]`}>
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
