@@ -152,7 +152,7 @@ export default function EventHeader({
           {timeDisplay}
         </span>
       </div>
-            <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black bg-opacity-20 backdrop-blur-sm rounded-md px-2 py-1 mt-2`}>
+            <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black bg-opacity-20  rounded-md px-2 py-1 mt-2`}>
         {isFirstSession && (
           <span
             className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"
