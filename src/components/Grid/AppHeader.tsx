@@ -269,7 +269,9 @@ export default function AppHeader({
           </div>
           
           <div className="flex items-center justify-center">
-            {/* Empty space */}
+            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+              <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
+            </div>
           </div>
         </div>
       </div>

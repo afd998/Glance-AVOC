@@ -1197,40 +1197,32 @@ code {
     radial-gradient(ellipse 200% 200% at center, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%) !important;
 }
 
-/* KEC luxury card design with multi-layer sophistication */
+/* KEC subdued luxury card design */
 .kec-gradient {
-  border: 2px solid transparent !important;
-  border-image: linear-gradient(135deg, 
-    rgba(255, 224, 166, 0.3) 0%, 
-    rgba(255, 255, 255, 0.1) 25%, 
-    rgba(255, 224, 166, 0.2) 50%, 
-    rgba(255, 255, 255, 0.1) 75%, 
-    rgba(255, 224, 166, 0.3) 100%) 1 !important;
+  border: 1px solid rgba(255, 224, 166, 0.2) !important;
   background: 
     linear-gradient(135deg, 
-      rgba(255, 224, 166, 0.03) 0%, 
-      rgba(0, 0, 0, 0.7) 25%, 
-      rgba(0, 0, 0, 0.8) 75%, 
-      rgba(255, 224, 166, 0.03) 100%),
+      rgba(255, 224, 166, 0.08) 0%, 
+      rgba(0, 0, 0, 0.4) 25%, 
+      rgba(0, 0, 0, 0.5) 75%, 
+      rgba(255, 224, 166, 0.08) 100%),
     radial-gradient(
       100% 61.73% at 100% 50%,
-      rgba(255, 224, 166, 0.05) 0%,
+      rgba(255, 224, 166, 0.02) 0%,
       transparent 100%
     ),
     radial-gradient(
       91.09% 56.23% at 0% 50%,
-      rgba(255, 224, 166, 0.05) 0%,
+      rgba(255, 224, 166, 0.02) 0%,
       transparent 100%
     ) !important;
   position: relative !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
   transition: all 0.4s ease !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(255, 224, 166, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(255, 224, 166, 0.1) !important;
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(255, 224, 166, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.05) !important;
 }
 
 .kec-gradient::before {
@@ -1239,19 +1231,19 @@ code {
   border-radius: inherit;
   border: 1px solid transparent;
   background: linear-gradient(135deg, 
-    rgba(255, 224, 166, 0.15) 0%, 
-    rgba(255, 255, 255, 0.05) 50%, 
-    rgba(255, 224, 166, 0.15) 100%);
+    rgba(255, 224, 166, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 50%, 
+    rgba(255, 224, 166, 0.08) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  inset: -4px;
-  padding: 4px;
-  opacity: 0.6;
+  inset: -2px;
+  padding: 2px;
+  opacity: 0.4;
   box-shadow: 
-    0 0 8px rgba(255, 224, 166, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 0 4px rgba(255, 224, 166, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   z-index: -1;
   pointer-events: none;
 }
@@ -1262,46 +1254,46 @@ code {
   border-radius: inherit;
   border: 1px solid transparent;
   background: linear-gradient(135deg, 
-    rgba(255, 224, 166, 0.15) 0%, 
-    rgba(255, 255, 255, 0.05) 50%, 
-    rgba(255, 224, 166, 0.15) 100%);
+    rgba(255, 224, 166, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 50%, 
+    rgba(255, 224, 166, 0.08) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  inset: -8px;
-  padding: 8px;
-  opacity: 0.3;
+  inset: -4px;
+  padding: 4px;
+  opacity: 0.2;
   box-shadow: 
-    0 0 16px rgba(255, 224, 166, 0.03),
-    0 0 32px rgba(0, 0, 0, 0.1);
+    0 0 8px rgba(255, 224, 166, 0.02),
+    0 0 16px rgba(0, 0, 0, 0.05);
   z-index: -2;
   pointer-events: none;
 }
 
-/* Enhanced hover effects for KEC luxury cards */
+/* Subdued hover effects for KEC luxury cards */
 .kec-gradient:hover {
-  transform: translateY(-2px) scale(1.02) !important;
+  transform: translateY(-1px) scale(1.01) !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    0 2px 8px rgba(255, 224, 166, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(255, 224, 166, 0.1),
-    0 0 16px rgba(255, 224, 166, 0.05) !important;
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(255, 224, 166, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.08),
+    0 0 8px rgba(255, 224, 166, 0.03) !important;
 }
 
 .kec-gradient:hover::before {
-  opacity: 0.8 !important;
+  opacity: 0.6 !important;
   box-shadow: 
-    0 0 12px rgba(255, 224, 166, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    0 0 6px rgba(255, 224, 166, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 .kec-gradient:hover::after {
-  opacity: 0.5 !important;
+  opacity: 0.3 !important;
   box-shadow: 
-    0 0 24px rgba(255, 224, 166, 0.04),
-    0 0 48px rgba(0, 0, 0, 0.15) !important;
+    0 0 12px rgba(255, 224, 166, 0.02),
+    0 0 24px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* KEC luxury animations */
@@ -1380,51 +1372,52 @@ code {
 
 /* Ad Hoc Class Meeting solid background */
 .ad-hoc-solid {
-  background: #9a9aab !important;
-  border: 1px solid rgba(102, 102, 120, 0.3) !important;
+  background: #a8a8b5 !important;
+  border: 1px solid rgba(120, 120, 135, 0.3) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* KSM FacStaff solid background */
 .ksm-facstaff-solid {
-  background: #6d8fbf !important;
-  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  background: #8a9bb3 !important;
+  border: 1px solid rgba(120, 130, 150, 0.2) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* CMC solid background */
 .cmc-solid {
-  background: #c26868 !important;
-  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  background: #b88a8a !important;
+  border: 1px solid rgba(180, 130, 130, 0.3) !important;
   box-shadow: 
-    0 4px 16px rgba(248, 113, 113, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    0 2px 8px rgba(180, 130, 130, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Student Event solid background */
 .student-event-solid {
-  background: #6dd86d !important;
-  border: 1px solid rgba(134, 239, 172, 0.2) !important;
+  background: #9bb39b !important;
+  border: 1px solid rgba(140, 160, 140, 0.2) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Faculty/Staff Event solid background */
 .facstaff-event-solid {
-  background: #ddd6fe !important;
-  border: 1px solid rgba(221, 214, 254, 0.2) !important;
+  background: #c5c0d1 !important;
+  border: 1px solid rgba(180, 175, 190, 0.2) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Default Event solid background */
@@ -1432,8 +1425,8 @@ code {
   background: #9ca3af !important;
   border: 1px solid rgba(107, 114, 128, 0.3) !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
 }
 
 /* Red blinking vignette animation */

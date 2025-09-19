@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProfile } from './useProfile';
 import { useFilters } from './useFilters';
 import useRoomStore from '../stores/roomStore';
@@ -7,18 +7,14 @@ import { Database } from '../types/supabase';
 type Event = Database['public']['Tables']['events']['Row'];
 
 export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) => {
-  console.log('🔄 useAutoHideLogic render', { 
-    filteredEventsLength: filteredEvents?.length || 0, 
-    selectedDate: selectedDate.toISOString().split('T')[0],
-    filteredEventIds: filteredEvents?.map(e => e.id) || []
-  });
+
   
   const { autoHide, currentFilter } = useProfile();
   const { selectedRooms, setSelectedRooms, notificationRooms, setNotificationRooms, allRooms } = useRoomStore();
   const { filters } = useFilters();
 
   // Calculate what rooms should be displayed
-  const targetRooms = useMemo(() => {
+  const targetRooms = (() => {
     if (!filteredEvents) return allRooms;
 
     // Determine the base rooms that should be shown (based on current filter)
@@ -31,7 +27,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
         // For "My Events", we show all rooms since filtering is done by event ownership
         baseRooms = allRooms;
       }
-    }
+    } 
 
     if (autoHide) {
       // Get rooms that have filtered events for the current day
@@ -76,7 +72,7 @@ export const useAutoHideLogic = (filteredEvents: Event[], selectedDate: Date) =>
       // When auto-hide is disabled, show all base rooms
       return baseRooms;
     }
-  }, [filteredEvents, autoHide, currentFilter, filters, allRooms]);
+  })();
 
   // Only update selectedRooms when targetRooms actually changes
   // But don't override when a filter is actively loaded (currentFilter is set)

@@ -227,18 +227,6 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
 
   return (
     <div className={`relative ${getEventHeight()} ${isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'}`}>
-      {/* Luxury texture overlay */}
-      <div 
-        className="absolute inset-0 rounded pointer-events-none mix-blend-soft-light"
-        style={{
-          backgroundImage: 'linear-gradient(0deg, #ffffff 1px, transparent 1px)',
-          backgroundSize: '1px 5px',
-          WebkitMaskImage: `radial-gradient(30% 45% at 100% 50%, white 0%, transparent 100%),
-                           radial-gradient(30% 45% at 0% 50%, white 0%, transparent 100%)`,
-          maskImage: `radial-gradient(30% 45% at 100% 50%, white 0%, transparent 100%),
-                     radial-gradient(30% 45% at 0% 50%, white 0%, transparent 100%)`
-        }}
-      ></div>
       
       <div className={`relative z-10 flex flex-col items-center justify-center h-full px-4 ${isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'} gap-1`}>
         {/* Main title with luxury gradient */}

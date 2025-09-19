@@ -183,7 +183,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         overflow: 'visible',
         textOverflow: 'ellipsis',
         whiteSpace: event.event_type === 'Lecture' ? 'nowrap' : 'normal',
-        zIndex: isHoveringEvent ? 60 : 49,
+        zIndex: isHoveringEvent ? (isMergedRoomEvent ? 70 : 60) : (isMergedRoomEvent ? 52 : 49),
         // No transform/boxShadow here so continuation lines don't scale
       }}
       title={event.event_name || ''}

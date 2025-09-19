@@ -45,13 +45,13 @@ export default function RoomRow({
   const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Prokofiev';
   const fontSize = isHalloweenTheme ? 'text-7xl' : (roomText.length > 4 ? 'text-xl' : 'text-3xl');
   
-  // Dynamic height based on whether room has merged events
-  const rowHeight = hasMergedRoomEvents ? 'h-48' : 'h-24'; // h-48 = 192px for merged room events
+  // All rows have the same height - merged events span across multiple rows naturally
+  const rowHeight = 'h-24'; // Fixed height for all room rows
   
 
 
   return (
-    <div className={`flex ${rowHeight} border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 ${isLastRow ? 'rounded-b-md' : ''}`}>
+    <div className={`flex ${rowHeight} border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}>
       <div 
         className={`sticky left-0 w-24 ${rowHeight} backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ zIndex: 50 }}
@@ -76,8 +76,7 @@ export default function RoomRow({
         {/* Room spelling code commented out - now just showing simple room name vertically */}
       </div>
       <div 
-        className={`flex-1 ${rowHeight} relative transition-all duration-300 ease-in-out ${isLastRow ? 'rounded-br-md' : ''}`}
-        style={{ zIndex: 45 }}
+        className={`flex-1 ${rowHeight} relative transition-all duration-300 ease-in-out overflow-visible ${isLastRow ? 'rounded-br-md' : ''}`}
       >
         {roomEvents?.map((event) => (
           <Event

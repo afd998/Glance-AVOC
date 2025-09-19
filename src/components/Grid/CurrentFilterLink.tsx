@@ -15,11 +15,6 @@ const CurrentFilterLink: React.FC<CurrentFilterLinkProps> = ({ onModalOpen }) =>
   const currentFilter = profile?.current_filter;
   const autoHide = profile?.auto_hide;
 
-  // Don't show anything if no filter is set and auto-hide is off
-  if (!currentFilter && !autoHide) {
-    return null;
-  }
-
   // Determine what text to display
   const displayText = currentFilter || (autoHide ? "Empty Rooms Hidden" : "All Rooms");
 
