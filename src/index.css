@@ -1,0 +1,1574 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Custom Font Declarations */
+@font-face {
+  font-family: 'Geometos';
+  src: url('./assets/fonts/Geometos.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Prokofievc';
+  src: url('./assets/fonts/prokofievc.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Olympus Mount';
+  src: url('./assets/fonts/Olympus Mount.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'The Goodfather';
+  src: url('./assets/fonts/The Goodfather DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'LEMONMILK';
+  src: url('./assets/fonts/LEMONMILK-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GoudyBookletter1911';
+  src: url('./assets/fonts/GoudyBookletter1911.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Kenyan Coffee';
+  src: url('./assets/fonts/Kenyan Coffee Rg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SpecialAgent';
+  src: url('./assets/fonts/specialagent.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Smooth Circulars';
+  src: url('./assets/fonts/SmoothCirculars.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BORUINO';
+  src: url('./assets/fonts/BORUINO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Heathergreen';
+  src: url('./assets/fonts/Heathergreen.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Special Agent';
+  src: url('./assets/fonts/specialagent.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geometos';
+  src: url('./assets/fonts/Geometos.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Antone';
+  src: url('./assets/fonts/Antone.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LEMONMILK';
+  src: url('./assets/fonts/LEMONMILK-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HalloweenInline';
+  src: url('./assets/fonts/HallowenInline.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kenyan Coffee';
+  src: url('./assets/fonts/Kenyan Coffee Rg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClementePDai';
+  src: url('./assets/fonts/ClementePDai-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BebasNeue';
+  src: url('./assets/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Olympus Mount';
+  src: url('./assets/fonts/Olympus Mount.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abduction2002';
+  src: url('./assets/fonts/abduction2002.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pixellari';
+  src: url('./assets/fonts/Pixellari.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GoudyBookletter1911';
+  src: url('./assets/fonts/GoudyBookletter1911.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'The Goodfather';
+  src: url('./assets/fonts/The Goodfather DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DUMERO';
+  src: url('./assets/fonts/DUMERO (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Prokofiev';
+  src: url('./assets/fonts/prokofievc.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* iPhone Safe Area Handling */
+html {
+  /* Ensure the viewport covers the safe area */
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Handle iPhone safe areas */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+
+  /* Force white background */
+  background-color: #ffffff !important;
+}
+
+/* Dark mode body background - removed to allow background image to show */
+
+/* Ensure the root element also handles safe areas */
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Hide scrollbars across the entire app */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* WebKit browsers (Chrome, Safari, Edge) */
+}
+
+/* Performance optimizations for smooth scrolling */
+.grid-container {
+  contain: layout style paint;
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.grid-container.dragging,
+.grid-container.momentum-scrolling {
+  will-change: scroll-position;
+  transform: translate3d(0, 0, 0);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.noise-bg {
+  background-color: #886ec4 !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E") !important;
+  background-blend-mode: multiply !important;
+  opacity: 0.95 !important;
+}
+
+.dark-purple-bg {
+  background-color: #5b4b8a !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E") !important;
+  background-blend-mode: multiply !important;
+  opacity: 0.95 !important;
+}
+
+/* Edge highlighting animations for drag-to-scroll - simple glow */
+@keyframes edge-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.8), 0 0 80px rgba(255, 255, 255, 0.4);
+  }
+}
+
+.edge-highlight {
+  animation: edge-pulse 1.0s ease-in-out infinite;
+}
+
+/* Enhanced DatePicker Glassmorphism Styles */
+.react-datepicker-glassmorphism {
+  backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 
+    0 32px 64px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.05) 100%) !important;
+  animation: glassmorphism-float 6s ease-in-out infinite !important;
+  transform: scale(1.4) !important;
+  transform-origin: center center !important;
+}
+
+@keyframes glassmorphism-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(0.5deg); }
+}
+
+/* Enhanced DatePicker Dark Mode Glassmorphism Styles */
+.react-datepicker-dark {
+  background: linear-gradient(135deg, 
+    rgba(31, 41, 55, 0.4) 0%, 
+    rgba(17, 24, 39, 0.25) 50%,
+    rgba(15, 23, 42, 0.15) 100%) !important;
+  border: 1px solid rgba(75, 85, 99, 0.4) !important;
+  color: #f9fafb !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 
+    0 32px 64px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(32px) saturate(200%) brightness(0.9) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(0.9) !important;
+  animation: glassmorphism-float-dark 6s ease-in-out infinite !important;
+  transform: scale(1.4) !important;
+  transform-origin: center center !important;
+}
+
+@keyframes glassmorphism-float-dark {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(-0.5deg); }
+}
+
+.react-datepicker-dark .react-datepicker__header {
+  background: linear-gradient(135deg, 
+    rgba(17, 24, 39, 0.4) 0%, 
+    rgba(31, 41, 55, 0.2) 100%) !important;
+  border: none !important;
+  color: #f9fafb !important;
+  border-top-left-radius: 1.5rem !important;
+  border-top-right-radius: 1.5rem !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.react-datepicker-dark .react-datepicker__current-month {
+  color: #f9fafb !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+}
+
+.react-datepicker-dark .react-datepicker__day-name {
+  color: #d1d5db !important;
+  font-weight: 500 !important;
+  font-size: 1.2rem !important;
+}
+
+.react-datepicker-dark .react-datepicker__day {
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.2s ease-in-out !important;
+  font-size: 1.3rem !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  line-height: 3rem !important;
+}
+
+.react-datepicker-dark .react-datepicker__day:hover {
+  background: linear-gradient(135deg, 
+    rgba(75, 85, 99, 0.7) 0%, 
+    rgba(55, 65, 81, 0.5) 100%) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  transform: scale(1.08) translateY(-1px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.react-datepicker-dark .react-datepicker__day--selected {
+  background: linear-gradient(135deg, 
+    rgba(147, 51, 234, 0.9) 0%, 
+    rgba(124, 58, 237, 0.8) 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
+  box-shadow: 
+    0 0 25px rgba(147, 51, 234, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05) !important;
+  animation: selected-pulse-purple 2s ease-in-out infinite !important;
+}
+
+@keyframes selected-pulse-purple {
+  0%, 100% { box-shadow: 0 0 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+  50% { box-shadow: 0 0 35px rgba(147, 51, 234, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+}
+
+.react-datepicker-dark .react-datepicker__day--keyboard-selected {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+.react-datepicker-dark .react-datepicker__day--today {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.react-datepicker-dark .react-datepicker__day--today:hover {
+  background-color: rgba(75, 85, 99, 0.7) !important;
+  color: #ffffff !important;
+}
+
+/* Keep actual current date styling normal */
+.react-datepicker-dark .react-datepicker__day--today.react-datepicker__day--selected {
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Remove highlighting from same day number across different months */
+.react-datepicker-dark .react-datepicker__day--in-selecting-range,
+.react-datepicker-dark .react-datepicker__day--in-range,
+.react-datepicker-dark .react-datepicker__day--range-start,
+.react-datepicker-dark .react-datepicker__day--range-end,
+.react-datepicker-dark .react-datepicker__day--selecting-range-start,
+.react-datepicker-dark .react-datepicker__day--selecting-range-end {
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Override any day that's not the actual selected date - but keep current month days normal color */
+.react-datepicker-dark .react-datepicker__day:not(.react-datepicker__day--selected):not(.react-datepicker__day--today):not(.react-datepicker__day--outside-month) {
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Force remove any highlighting from days that aren't the exact selected date */
+.react-datepicker-dark .react-datepicker__day[data-day]:not(.react-datepicker__day--selected) {
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.react-datepicker-dark .react-datepicker__navigation {
+  color: #f9fafb !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.react-datepicker-dark .react-datepicker__navigation:hover {
+  background: linear-gradient(135deg, 
+    rgba(75, 85, 99, 0.7) 0%, 
+    rgba(55, 65, 81, 0.5) 100%) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  transform: scale(1.1) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Rain Overlay Styles */
+.rain {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -5;
+}
+
+.rain.back-row {
+  display: none;
+  z-index: -6;
+  bottom: 60px;
+  opacity: 0.5;
+}
+
+.rain.back-row.show-back-row {
+  display: block;
+}
+
+.drop {
+  position: absolute;
+  bottom: 100%;
+  width: 15px;
+  height: 120px;
+  pointer-events: none;
+  animation: drop 0.5s linear infinite;
+}
+
+
+
+@keyframes drop {
+  0% {
+    transform: translateY(0vh);
+  }
+  75% {
+    transform: translateY(90vh);
+  }
+  100% {
+    transform: translateY(90vh);
+  }
+}
+
+.stem {
+  width: 1px;
+  height: 60%;
+  margin-left: 7px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.25));
+  animation: stem 0.5s linear infinite;
+}
+
+@keyframes stem {
+  0% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+
+
+
+.react-datepicker-dark .react-datepicker__month-container {
+  background-color: rgba(31, 41, 55, 0.6) !important;
+  border-radius: 1rem !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.react-datepicker-dark .react-datepicker__triangle {
+  border-bottom-color: #1f2937 !important;
+}
+
+.react-datepicker-dark .react-datepicker__triangle::before {
+  border-bottom-color: #374151 !important;
+}
+
+.react-datepicker-dark .react-datepicker__day--outside-month {
+  color: #6b7280 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.react-datepicker-dark .react-datepicker__day--disabled {
+  color: #4b5563 !important;
+  cursor: not-allowed !important;
+}
+
+/* Enhanced Light mode glassmorphism */
+.react-datepicker {
+  border-radius: 1.5rem !important;
+  box-shadow: 
+    0 32px 64px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(248, 250, 252, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%) !important;
+  backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  animation: glassmorphism-float 6s ease-in-out infinite !important;
+  transform: scale(1.4) !important;
+  transform-origin: center center !important;
+}
+
+.react-datepicker__header {
+  border-top-left-radius: 1.5rem !important;
+  border-top-right-radius: 1.5rem !important;
+  background: linear-gradient(135deg, 
+    rgba(249, 250, 251, 0.5) 0%, 
+    rgba(243, 244, 246, 0.3) 100%) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  border: none !important;
+}
+
+.react-datepicker__day {
+  border-radius: 0.75rem !important;
+  transition: all 0.2s ease-in-out !important;
+  font-size: 1.3rem !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  line-height: 3rem !important;
+}
+
+.react-datepicker__day:hover {
+  background: linear-gradient(135deg, 
+    rgba(243, 244, 246, 0.8) 0%, 
+    rgba(229, 231, 235, 0.6) 100%) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  transform: scale(1.08) translateY(-1px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.react-datepicker__day--selected {
+  background: linear-gradient(135deg, 
+    rgba(147, 51, 234, 0.9) 0%, 
+    rgba(124, 58, 237, 0.8) 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
+  box-shadow: 
+    0 0 25px rgba(147, 51, 234, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+  animation: selected-pulse-light-purple 2s ease-in-out infinite !important;
+}
+
+@keyframes selected-pulse-light-purple {
+  0%, 100% { box-shadow: 0 0 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(147, 51, 234, 0.6), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+.react-datepicker__day--today {
+  background-color: transparent !important;
+  color: #374151 !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.react-datepicker__day--today:hover {
+  background-color: rgba(243, 244, 246, 0.8) !important;
+  color: #374151 !important;
+}
+
+/* Keep actual current date styling normal */
+.react-datepicker__day--today.react-datepicker__day--selected {
+  background: transparent !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Remove highlighting from same day number across different months */
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end,
+.react-datepicker__day--selecting-range-start,
+.react-datepicker__day--selecting-range-end {
+  background: transparent !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Override any day that's not the actual selected date - but keep current month days normal color */
+.react-datepicker__day:not(.react-datepicker__day--selected):not(.react-datepicker__day--today):not(.react-datepicker__day--outside-month) {
+  background: transparent !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Force remove any highlighting from days that aren't the exact selected date */
+.react-datepicker__day[data-day]:not(.react-datepicker__day--selected) {
+  background: transparent !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.react-datepicker__navigation {
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.react-datepicker__navigation:hover {
+  background: linear-gradient(135deg, 
+    rgba(243, 244, 246, 0.8) 0%, 
+    rgba(229, 231, 235, 0.6) 100%) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  transform: scale(1.1) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Dark mode custom input styling */
+.dark .react-datepicker__input-container input,
+.dark .react-datepicker__input-container button {
+  background: linear-gradient(135deg, 
+    rgba(31, 41, 55, 0.4) 0%, 
+    rgba(17, 24, 39, 0.2) 100%) !important;
+  border: 1px solid rgba(75, 85, 99, 0.3) !important;
+  color: #f9fafb !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .react-datepicker__input-container input:hover,
+.dark .react-datepicker__input-container button:hover {
+  background: linear-gradient(135deg, 
+    rgba(55, 65, 81, 0.5) 0%, 
+    rgba(31, 41, 55, 0.3) 100%) !important;
+  border: 1px solid rgba(107, 114, 128, 0.4) !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.react-datepicker__month-container {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2) 0%, 
+    rgba(248, 250, 252, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%) !important;
+  border-radius: 1.5rem !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.react-datepicker__triangle {
+  border-bottom-color: rgba(255, 255, 255, 0.8) !important;
+  filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.1)) !important;
+}
+
+.react-datepicker__triangle::before {
+  border-bottom-color: rgba(229, 231, 235, 0.4) !important;
+}
+
+.react-datepicker__day--outside-month {
+  color: #9ca3af !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
+}
+
+/* Academic Calendar Info Icon Styles */
+.react-datepicker__day .academic-info-icon {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  z-index: 10 !important;
+  color: #8b5cf6 !important;
+  transition: all 0.2s ease-in-out !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+  pointer-events: auto !important;
+}
+
+.react-datepicker__day .academic-info-icon:hover {
+  color: #7c3aed !important;
+  transform: scale(1.1) !important;
+  filter: drop-shadow(0 2px 4px rgba(139, 92, 246, 0.4)) !important;
+}
+
+/* Dark mode academic info icon */
+.react-datepicker-dark .react-datepicker__day .academic-info-icon {
+  color: #a78bfa !important;
+}
+
+.react-datepicker-dark .react-datepicker__day .academic-info-icon:hover {
+  color: #8b5cf6 !important;
+  filter: drop-shadow(0 2px 4px rgba(167, 139, 250, 0.4)) !important;
+}
+
+/* Force white color for all current month days in dark mode */
+.react-datepicker-dark .react-datepicker__day:not(.react-datepicker__day--outside-month) {
+  color: #ffffff !important;
+}
+
+/* Even more aggressive white color rule */
+.react-datepicker-dark .react-datepicker__day {
+  color: #ffffff !important;
+}
+
+/* Force white on all day elements */
+.react-datepicker-dark .react-datepicker__day * {
+  color: #ffffff !important;
+}
+
+/* Force white color on all day numbers in dark mode */
+.react-datepicker-dark .react-datepicker__day {
+  color: #ffffff !important;
+}
+
+/* Force white on day numbers that don't have custom rendering */
+.react-datepicker-dark .react-datepicker__day:not([style*="color"]) {
+  color: #ffffff !important;
+}
+
+/* Nuclear option - force white on everything in datepicker */
+.react-datepicker-dark .react-datepicker__day,
+.react-datepicker-dark .react-datepicker__day span,
+.react-datepicker-dark .react-datepicker__day div {
+  color: #ffffff !important;
+}
+
+/* Force white on all text content */
+.react-datepicker-dark .react-datepicker__day {
+  color: #ffffff !important;
+}
+
+.react-datepicker-dark .react-datepicker__day * {
+  color: #ffffff !important;
+}
+
+/* Academic Calendar Tooltip Styles */
+.academic-tooltip {
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 
+    0 20px 40px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  animation: tooltip-fade-in 0.2s ease-out !important;
+  z-index: 99999 !important;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Maximum specificity override for day colors */
+.react-datepicker.react-datepicker-dark .react-datepicker__day {
+  color: #ffffff !important;
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+.react-datepicker.react-datepicker-dark .react-datepicker__day * {
+  color: #ffffff !important;
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply Prokofievc font to all day numbers */
+.react-datepicker__day {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+.react-datepicker__day * {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply Prokofievc font to weekday labels */
+.react-datepicker__day-name {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+.react-datepicker-dark .react-datepicker__day-name {
+  font-family: 'Prokofievc', sans-serif !important;
+}
+
+/* Apply BebasNeue font to month/year heading */
+.react-datepicker__current-month {
+  font-family: 'BebasNeue', sans-serif !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+  text-transform: uppercase !important;
+  font-weight: normal !important;
+}
+
+.react-datepicker-dark .react-datepicker__current-month {
+  font-family: 'BebasNeue', sans-serif !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+  text-transform: uppercase !important;
+  font-weight: normal !important;
+}
+
+/* Make DatePicker backdrop less dark */
+.react-datepicker__portal {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.react-datepicker__backdrop {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Alternative backdrop selectors */
+[data-portal] {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Make any modal backdrop lighter */
+.react-datepicker__portal::before {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Falling Leaves Styles for Halloween */
+#leaves {
+  position: relative;
+  top: -50px;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#leaves i {
+  display: block;
+  position: absolute;
+  width: 200px;
+  height: 150px;
+  background: linear-gradient(to bottom right, #309900, #005600);
+  transform: skew(20deg);
+  border-radius: 5% 40% 70%;
+  box-shadow: inset 0px 0px 1px #222;
+  border: 1px solid #333;
+  z-index: 1;
+  -webkit-animation: falling 5s 0s infinite;
+  animation: falling 5s 0s infinite;
+}
+
+#leaves i:nth-of-type(2n) { 
+  -webkit-animation: falling2 5s 0s infinite; 
+  animation: falling2 5s 0s infinite;
+}
+#leaves i:nth-of-type(3n) { 
+  -webkit-animation: falling3 5s 0s infinite; 
+  animation: falling3 5s 0s infinite;
+}
+
+#leaves i:before {
+  position: absolute;
+  content: '';
+  top: 117px;
+  right: 9px;
+  height: 27px;
+  width: 32px;
+  transform: rotate(49deg);
+  border-radius: 0% 15% 15% 0%;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  border-left: 0px solid #222;
+  border-right: 1px solid #222;
+  background: linear-gradient(to right, rgba(139,69,19,1), #654321);
+  z-index: 1;
+}
+
+#leaves i:after {
+  content: '';
+  height: 125px;
+  width: 10px;
+  background: linear-gradient(to right, rgba(0,0,0,.15), rgba(0,0,0,0));
+  display: block;
+  transform: rotate(125deg);
+  position: absolute;
+  left: 85px;
+  border-radius: 50%;
+}
+
+#leaves i:nth-of-type(n)    { height:23px; width:30px; }
+#leaves i:nth-of-type(n):before { width:7px; height:5px; top:17px; right:1px; }
+#leaves i:nth-of-type(n):after { width:2px; height:17px; left: 12px; top:0px; }
+
+#leaves i:nth-of-type(2n+1)    { height:11px; width:16px; }
+#leaves i:nth-of-type(2n+1):before { width:4px; height:3px; top:7px; right:0px; }
+#leaves i:nth-of-type(2n+1):after { width:2px; height:6px; left: 5px; top:1px; }
+
+#leaves i:nth-of-type(3n+2)  { height:17px; width:23px; }
+#leaves i:nth-of-type(3n+2):before  { height:4px; width:4px; top:12px; right:1px; }
+#leaves i:nth-of-type(3n+2):after  { height:10px; width:2px; top:1px; left:8px; }
+
+#leaves i:nth-of-type(n)   { -webkit-animation-delay: 1.9s; animation-delay: 1.9s;}
+#leaves i:nth-of-type(2n)  { -webkit-animation-delay: 3.9s; animation-delay: 3.9s;}
+#leaves i:nth-of-type(3n)  { -webkit-animation-delay: 2.3s; animation-delay: 2.3s;}
+#leaves i:nth-of-type(4n)  { -webkit-animation-delay: 4.4s; animation-delay: 4.4s;}
+#leaves i:nth-of-type(5n)  { -webkit-animation-delay: 5s; animation-delay: 5s;  }
+#leaves i:nth-of-type(6n)  { -webkit-animation-delay: 3.5s; animation-delay: 3.5s;}
+#leaves i:nth-of-type(7n)  { -webkit-animation-delay: 2.8s; animation-delay: 2.8s;}
+#leaves i:nth-of-type(8n)  { -webkit-animation-delay: 1.5s; animation-delay: 1.5s;}
+#leaves i:nth-of-type(9n)  { -webkit-animation-delay: 3.3s; animation-delay: 3.3s;}
+#leaves i:nth-of-type(10n) { -webkit-animation-delay: 2.5s; animation-delay: 2.5s;}
+#leaves i:nth-of-type(11n) { -webkit-animation-delay: 1.2s; animation-delay: 1.2s;}
+#leaves i:nth-of-type(12n) { -webkit-animation-delay: 4.1s; animation-delay: 4.1s;}
+#leaves i:nth-of-type(13n) { -webkit-animation-delay: 1s; animation-delay: 1s;  }
+#leaves i:nth-of-type(14n) { -webkit-animation-delay: 4.7s; animation-delay: 4.7s;}
+#leaves i:nth-of-type(15n) { -webkit-animation-delay: 3s; animation-delay: 3s;  }
+
+#leaves i:nth-of-type(n)    { background: linear-gradient(to bottom right, #8B4513, #654321); }
+#leaves i:nth-of-type(2n+2)  { background: linear-gradient(to bottom right, #A0522D, #8B4513); }
+#leaves i:nth-of-type(4n+1)  { background: linear-gradient(to bottom right, #CD853F, #A0522D); }
+
+#leaves i:nth-of-type(n)    { opacity: 1;}
+#leaves i:nth-of-type(3n+1)  { opacity: 0.9;}
+#leaves i:nth-of-type(3n+2)  { opacity: 0.8;}
+
+#leaves i:nth-of-type(n)    {transform: rotate(180deg);}
+
+#leaves i:nth-of-type(n) { -webkit-animation-timing-function:ease-in-out; animation-timing-function:ease-in-out;}
+
+@-webkit-keyframes falling {
+    0% {
+        -webkit-transform:
+            translate3d(300,0,0)
+            rotate(0deg);
+    }
+    100% {
+        -webkit-transform:
+            translate3d(-350px,700px,0)
+            rotate(90deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling {
+    0% {
+        transform:
+            translate3d(300,0,0)
+            rotate(0deg);
+    }
+    100% {
+        transform:
+            translate3d(-350px,700px,0)
+            rotate(90deg);
+        opacity: 0;
+    }
+}
+
+@-webkit-keyframes falling3 {
+     0% {
+        -webkit-transform:
+            translate3d(0,0,0)
+            rotate(-20deg);
+    }
+    100% {
+        -webkit-transform:
+            translate3d(-230px,640px,0)
+            rotate(-70deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling3 {
+     0% {
+        transform:
+            translate3d(0,0,0)
+            rotate(-20deg);
+    }
+    100% {
+        transform:
+            translate3d(-230px,640px,0)
+            rotate(-70deg);
+        opacity: 0;
+    }
+}
+
+@-webkit-keyframes falling2 {
+     0% {
+        -webkit-transform:
+            translate3d(0,0,0)
+            rotate(90deg);
+    }
+    100% {
+        -webkit-transform:
+            translate3d(-400px,680px,0)
+            rotate(0deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling2 {
+     0% {
+        transform:
+            translate3d(0,0,0)
+            rotate(90deg);
+    }
+    100% {
+        transform:
+            translate3d(-400px,680px,0)
+            rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* Ad Hoc Class Meeting elliptical gradient background */
+.ad-hoc-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #d4d4da 0%, #d4d4da 10%, #9a9aab 40%, #666678 70%, #666678 100%) !important;
+}
+
+/* Lecture elliptical gradient background */
+.lecture-gradient {
+  background: 
+    radial-gradient(ellipse 150% 100% at center, #9a8bb8 0%, #9a8bb8 5%, #8a7ba9 20%, #7a6b9a 40%, #6a5a8a 60%, #5a4a7a 100%),
+    radial-gradient(ellipse 200% 200% at center, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%) !important;
+}
+
+/* KEC subdued luxury card design */
+.kec-gradient {
+  border: 1px solid rgba(255, 224, 166, 0.2) !important;
+  background: 
+    linear-gradient(135deg, 
+      rgba(255, 224, 166, 0.08) 0%, 
+      rgba(0, 0, 0, 0.4) 25%, 
+      rgba(0, 0, 0, 0.5) 75%, 
+      rgba(255, 224, 166, 0.08) 100%),
+    radial-gradient(
+      100% 61.73% at 100% 50%,
+      rgba(255, 224, 166, 0.02) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      91.09% 56.23% at 0% 50%,
+      rgba(255, 224, 166, 0.02) 0%,
+      transparent 100%
+    ) !important;
+  position: relative !important;
+  transition: all 0.4s ease !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(255, 224, 166, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.05) !important;
+}
+
+.kec-gradient::before {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 50%, 
+    rgba(255, 224, 166, 0.08) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  inset: -2px;
+  padding: 2px;
+  opacity: 0.4;
+  box-shadow: 
+    0 0 4px rgba(255, 224, 166, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.kec-gradient::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 50%, 
+    rgba(255, 224, 166, 0.08) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  inset: -4px;
+  padding: 4px;
+  opacity: 0.2;
+  box-shadow: 
+    0 0 8px rgba(255, 224, 166, 0.02),
+    0 0 16px rgba(0, 0, 0, 0.05);
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* Subdued hover effects for KEC luxury cards */
+.kec-gradient:hover {
+  transform: translateY(-1px) scale(1.01) !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(255, 224, 166, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.08),
+    0 0 8px rgba(255, 224, 166, 0.03) !important;
+}
+
+.kec-gradient:hover::before {
+  opacity: 0.6 !important;
+  box-shadow: 
+    0 0 6px rgba(255, 224, 166, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.kec-gradient:hover::after {
+  opacity: 0.3 !important;
+  box-shadow: 
+    0 0 12px rgba(255, 224, 166, 0.02),
+    0 0 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* KEC luxury animations */
+@keyframes gentle-glow {
+  0% {
+    filter: drop-shadow(0 0 4px rgba(255, 224, 166, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 224, 166, 0.8));
+  }
+}
+
+/* KEC continuation lines - simple and visible */
+.kec-continuation-line {
+  background: linear-gradient(135deg, 
+    rgba(255, 224, 166, 0.9) 0%, 
+    rgba(255, 224, 166, 0.7) 50%, 
+    rgba(255, 224, 166, 0.9) 100%) !important;
+  box-shadow: 
+    0 0 4px rgba(255, 224, 166, 0.8),
+    0 0 8px rgba(255, 224, 166, 0.4) !important;
+  position: relative !important;
+}
+
+/* KSM FacStaff muted gradient background */
+.ksm-facstaff-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #e2e8f0 0%, #e2e8f0 10%, #cbd5e1 40%, #94a3b8 70%, #64748b 100%) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* CMC muted gradient background */
+.cmc-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #fef2f2 0%, #fef2f2 10%, #fee2e2 40%, #fecaca 70%, #f87171 100%) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  box-shadow: 
+    0 4px 16px rgba(248, 113, 113, 0.15),
+    0 1px 4px rgba(248, 113, 113, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Student Event muted gradient background */
+.student-event-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #f0fdf4 0%, #f0fdf4 10%, #dcfce7 40%, #bbf7d0 70%, #86efac 100%) !important;
+  border: 1px solid rgba(134, 239, 172, 0.2) !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Faculty/Staff Event muted gradient background */
+.facstaff-event-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #faf5ff 0%, #faf5ff 10%, #f3e8ff 40%, #e9d5ff 70%, #ddd6fe 100%) !important;
+  border: 1px solid rgba(221, 214, 254, 0.2) !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Default Event solid radial gradient background */
+.default-event-gradient {
+  background: radial-gradient(ellipse 200% 100% at center, #f3f4f6 0%, #f3f4f6 10%, #e5e7eb 40%, #9ca3af 70%, #6b7280 100%) !important;
+  border: 1px solid rgba(107, 114, 128, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Solid color backgrounds for non-KEC, non-lecture events */
+
+/* Ad Hoc Class Meeting solid background */
+.ad-hoc-solid {
+  background: #a8a8b5 !important;
+  border: 1px solid rgba(120, 120, 135, 0.3) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* KSM FacStaff solid background */
+.ksm-facstaff-solid {
+  background: #8a9bb3 !important;
+  border: 1px solid rgba(120, 130, 150, 0.2) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* CMC solid background */
+.cmc-solid {
+  background: #b88a8a !important;
+  border: 1px solid rgba(180, 130, 130, 0.3) !important;
+  box-shadow: 
+    0 2px 8px rgba(180, 130, 130, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Student Event solid background */
+.student-event-solid {
+  background: #9bb39b !important;
+  border: 1px solid rgba(140, 160, 140, 0.2) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Faculty/Staff Event solid background */
+.facstaff-event-solid {
+  background: #c5c0d1 !important;
+  border: 1px solid rgba(180, 175, 190, 0.2) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Default Event solid background */
+.default-event-solid {
+  background: #9ca3af !important;
+  border: 1px solid rgba(107, 114, 128, 0.3) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Red blinking vignette animation */
+@keyframes blink-red-vignette {
+  0% {
+    box-shadow: inset 0 0 30px 8px rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    box-shadow: inset 0 0 30px 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: inset 0 0 30px 8px rgba(239, 68, 68, 0.8);
+  }
+}
+
+/* Snow Effect for Jacobs Center Theme */
+.snow-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -3;
+  overflow: hidden;
+}
+
+.snow, .snow:before, .snow:after {
+  position: absolute;
+  top: -600px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-image: 
+    radial-gradient(6px 6px at 20px 30px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0)),
+    radial-gradient(8px 8px at 40px 70px, rgba(255,255,255,1) 50%, rgba(0,0,0,0)),
+    radial-gradient(4px 4px at 90px 40px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0)),
+    radial-gradient(5px 5px at 130px 80px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0)),
+    radial-gradient(7px 7px at 160px 30px, rgba(255,255,255,0.95) 50%, rgba(0,0,0,0)),
+    radial-gradient(3px 3px at 200px 60px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0)),
+    radial-gradient(9px 9px at 240px 20px, rgba(255,255,255,1) 50%, rgba(0,0,0,0)),
+    radial-gradient(4px 4px at 280px 50px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0)),
+    radial-gradient(6px 6px at 320px 80px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0)),
+    radial-gradient(5px 5px at 360px 40px, rgba(255,255,255,0.85) 50%, rgba(0,0,0,0)),
+    radial-gradient(8px 8px at 400px 70px, rgba(255,255,255,0.95) 50%, rgba(0,0,0,0)),
+    radial-gradient(3px 3px at 440px 30px, rgba(255,255,255,0.75) 50%, rgba(0,0,0,0)),
+    radial-gradient(7px 7px at 480px 60px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0)),
+    radial-gradient(4px 4px at 520px 20px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0)),
+    radial-gradient(6px 6px at 560px 80px, rgba(255,255,255,0.95) 50%, rgba(0,0,0,0)),
+    radial-gradient(5px 5px at 80px 120px, rgba(255,255,255,0.85) 50%, rgba(0,0,0,0)),
+    radial-gradient(8px 8px at 120px 150px, rgba(255,255,255,1) 50%, rgba(0,0,0,0)),
+    radial-gradient(4px 4px at 180px 100px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0)),
+    radial-gradient(6px 6px at 220px 140px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0)),
+    radial-gradient(7px 7px at 260px 110px, rgba(255,255,255,0.95) 50%, rgba(0,0,0,0));
+  background-size: 600px 600px;
+  animation: snow 4s linear infinite;
+  content: "";
+}
+
+.snow:after {
+  margin-left: -200px;
+  opacity: 0.6;
+  animation-duration: 8s;
+  animation-direction: reverse;
+  filter: blur(2px);
+}
+
+.snow:before {
+  animation-duration: 12s;
+  animation-direction: reverse;
+  margin-left: -300px;
+  opacity: 0.8;
+  filter: blur(1px);
+}
+
+@keyframes snow {
+  to {
+    transform: translateY(600px);
+  }
+}
+
+/* ABSOLUTE NUCLEAR OPTION - disable ALL text selection on event components */
+.event-no-select,
+.event-no-select *,
+.event-no-select span,
+.event-no-select div,
+.event-no-select p,
+.event-no-select h1,
+.event-no-select h2,
+.event-no-select h3,
+.event-no-select h4,
+.event-no-select h5,
+.event-no-select h6,
+.event-no-select img,
+.event-no-select svg,
+.event-no-select text,
+[data-event="true"],
+[data-event="true"] *,
+[data-event="true"] span,
+[data-event="true"] div,
+[data-event="true"] p,
+[data-event="true"] h1,
+[data-event="true"] h2,
+[data-event="true"] h3,
+[data-event="true"] h4,
+[data-event="true"] h5,
+[data-event="true"] h6,
+[data-event="true"] img,
+[data-event="true"] svg,
+[data-event="true"] text {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  pointer-events: auto !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-select: none !important;
+}
+
+/* Even more aggressive - target by descendant combinator */
+.event-no-select > * > * > * > *,
+[data-event="true"] > * > * > * > * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Override any potential conflicting styles */
+.event-no-select ::selection,
+[data-event="true"] ::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.event-no-select ::-moz-selection,
+[data-event="true"] ::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+
+

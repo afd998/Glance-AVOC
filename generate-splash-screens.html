@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splash Screen Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e40af;
+            color: white;
+        }
+        .splash-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 60px;
+        }
+        .app-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .app-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .download-btn {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background-color: white;
+            color: #1e40af;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .instructions {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+        }
+        .instructions ol {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <div class="logo">🐾</div>
+        <div class="app-name">Glance AVOC</div>
+        <div class="app-subtitle">Kellogg School of Management</div>
+        <button class="download-btn" onclick="downloadSplash()">Download Splash Screen</button>
+    </div>
+
+    <div class="instructions">
+        <h3>How to create splash screen images:</h3>
+        <ol>
+            <li>Right-click on the splash screen above and select "Save image as..."</li>
+            <li>Save it as different sizes for different iPhone models:</li>
+            <ul>
+                <li>iPhone 14 Pro Max: 1290x2796px</li>
+                <li>iPhone 14 Pro: 1179x2556px</li>
+                <li>iPhone 14 Plus: 1284x2778px</li>
+                <li>iPhone 14: 1170x2532px</li>
+                <li>iPhone 13 Mini: 1125x2436px</li>
+                <li>iPhone 11 Pro Max: 1242x2688px</li>
+                <li>iPhone 11 Pro: 1125x2436px</li>
+                <li>iPhone 11: 828x1792px</li>
+            </ul>
+            <li>Place the images in your <code>public</code> folder</li>
+            <li>The HTML already includes the correct meta tags for each size</li>
+        </ol>
+    </div>
+
+    <script>
+        function downloadSplash() {
+            // Create a canvas with the splash screen
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size (using iPhone 14 Pro Max size as default)
+            canvas.width = 1290;
+            canvas.height = 2796;
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1e40af');
+            gradient.addColorStop(1, '#3b82f6');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add logo (white circle)
+            const logoSize = 200;
+            const logoX = (canvas.width - logoSize) / 2;
+            const logoY = canvas.height * 0.3;
+            
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.roundRect(logoX, logoY, logoSize, logoSize, 30);
+            ctx.fill();
+            
+            // Add app name
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Glance AVOC', canvas.width / 2, logoY + logoSize + 120);
+            
+            // Add subtitle
+            ctx.font = '40px Arial';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('Kellogg School of Management', canvas.width / 2, logoY + logoSize + 180);
+            
+            // Download the image
+            const link = document.createElement('a');
+            link.download = 'splash_iphone_14_pro_max.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html> 
