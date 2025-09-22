@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvents } from './useEvents';
 import { useEvent } from './useEvent';
+import { useProfile } from './useProfile';
 import { useShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { Database } from '../types/supabase';
@@ -332,21 +333,7 @@ export const useCompletePanoptoCheckForEvent = (eventId: number | null) => {
   const { data: eventData, isLoading: eventLoading, error: eventError } = useEvent(eventId);
   
   // Get current user's profile data for optimistic updates
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .eq('id', user.id)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
+  const { profile: currentUserProfile } = useProfile();
 
   const mutation = useMutation({
     mutationFn: async ({ checkNumber }: { checkNumber: number }) => {

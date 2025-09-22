@@ -91,7 +91,7 @@ export default function HomePage() {
   
   // Track if we've loaded events for the current date to prevent flash
   
-  // useAutoHideLogic(filteredEvents || [], selectedDate);
+  useAutoHideLogic(filteredEvents || [], selectedDate);
   // console.log('🔄 HomePage after useAutoHideLogic');
  
   const { updateCurrentFilter, updateAutoHide } = useProfile();
