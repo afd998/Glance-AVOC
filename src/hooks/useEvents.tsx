@@ -16,15 +16,6 @@ type Event = Database['public']['Tables']['events']['Row'];
 const fetchEvents = async (date: Date): Promise<Event[]> => {
 
   try {
-    
-    // Calculate date range for the target date
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setDate(date.getDate() + 1);
-    
-    
     // Query events for the target date using the new date column
     const { data, error } = await supabase
       .from('events')
@@ -136,29 +127,14 @@ export function useEventDurationHours(eventId: number) {
   return useQuery({
     queryKey: ['eventDurationHours', eventId],
     queryFn: async (): Promise<number> => {
-      // First try to get the event from the individual event cache
+      // Get the event from the individual event cache (useEvent hook manages this)
       const cachedEvent = queryClient.getQueryData(['event', eventId]) as Event | undefined;
       
-      if (cachedEvent) {
-        return computeEventDurationHours(cachedEvent);
+      if (!cachedEvent) {
+        throw new Error(`Event with id ${eventId} not found in cache. Make sure to use useEvent hook first.`);
       }
       
-      // If not in cache, fetch the event from the database
-      const { data: event, error } = await supabase
-        .from('events')
-        .select('start_time, end_time')
-        .eq('id', eventId)
-        .single();
-        
-      if (error) {
-        throw error;
-      }
-      
-      if (!event) {
-        throw new Error(`Event with id ${eventId} not found`);
-      }
-      
-      return computeEventDurationHours(event);
+      return computeEventDurationHours(cachedEvent);
     },
     staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes (duration rarely changes)
     gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour

@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-export default function CurrentTimeIndicator({ currentTime, startHour, endHour, pixelsPerMinute }) {
+export default function CurrentTimeIndicator({ startHour, endHour, pixelsPerMinute }) {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const currentTimeRef = useRef(new Date());
+
+  useEffect(() => {
+    // Initial time set
+    const now = new Date();
+    currentTimeRef.current = now;
+    setCurrentTime(now);
+    
+    // Update every 30 seconds for more responsive indicator
+    const timer = setInterval(() => {
+      const newTime = new Date();
+      currentTimeRef.current = newTime;
+      setCurrentTime(newTime);
+    }, 30000);
+    return () => { clearInterval(timer); };
+  }, []);
   const currentHour = currentTime.getHours();
   const currentMinute = currentTime.getMinutes();
   const totalCurrentMinutes = (currentHour - startHour) * 60 + currentMinute;

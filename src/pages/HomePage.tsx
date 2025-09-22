@@ -25,8 +25,6 @@ import { Database } from "../types/supabase";
 
 
 export default function HomePage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const currentTimeRef = useRef(new Date());
   
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(false);
@@ -62,9 +60,9 @@ export default function HomePage() {
   
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
-  useEventsPrefetch(selectedDate);
+  // useEventsPrefetch(selectedDate);
 
-  // Handle Panopto check notifications
+  // // Handle Panopto check notifications
   usePanoptoNotifications(selectedDate);
 
   // Helper function for room filtering (using the already filtered data)
@@ -92,47 +90,19 @@ export default function HomePage() {
 
   
   // Track if we've loaded events for the current date to prevent flash
-  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   
   // useAutoHideLogic(filteredEvents || [], selectedDate);
   // console.log('🔄 HomePage after useAutoHideLogic');
-  
-  // Temporary mock data to isolate the issue
-  // const events: any[] = [];
-  // const isLoading = false;
-  // const error: any = null;
-  // const filteredEvents: any[] = [];
-  // const getFilteredEventsForRoom = (room: string) => [];
+ 
   const { updateCurrentFilter, updateAutoHide } = useProfile();
-  const { filters, loadFilter, getFilterByName, saveFilter } = useFilters();
+  const { loadFilter, getFilterByName } = useFilters();
   
-  // Temporary mock data
-  // const updateCurrentFilter = (filter: any) => {};
-  // const updateAutoHide = (hide: boolean) => {};
-  // const filters: any[] = [];
-  // const loadFilter = (filter: any) => {};
-  // const getFilterByName = (name: string) => null;
-  // const saveFilter = (name: string, rooms: string[]) => {};
+  
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
 
-  // Ensure "All Rooms" default filter exists
-  React.useEffect(() => {
-    const initializeAllRoomsFilter = async () => {
-      if (rooms.length > 0 && filters.length > 0 && !getFilterByName('All Rooms')) {
-        try {
-          console.log('Creating default All Rooms filter');
-          const roomNames = rooms.filter((room: string) => !room.includes('&'));
-          await saveFilter('All Rooms', roomNames);
-        } catch (error) {
-          console.error('Failed to create default All Rooms filter:', error);
-        }
-      }
-    };
-
-    initializeAllRoomsFilter();
-  }, [rooms, filters, saveFilter, getFilterByName]);
+ 
 
   // React.useEffect(() => {
   //   if (events && events.length > 0) {
@@ -140,81 +110,35 @@ export default function HomePage() {
   //   }
   // }, [events, scheduleNotificationsForEvents]);
 
-  // Track when events have been loaded for the current date
-  React.useEffect(() => {
-    if (!isLoading && !error) {
-      setHasLoadedEvents(true);
-    }
-  }, [isLoading, error]);
-
-  // Reset hasLoadedEvents when date changes
-  React.useEffect(() => {
-    setHasLoadedEvents(false);
-  }, [selectedDate]);
 
 
   // Check if there are any events that match the current filter
-  const hasFilteredEvents = React.useMemo(() => {
+  const hasFilteredEvents = (() => {
     if (!filteredEvents || filteredEvents.length === 0) return false;
     // Check if any room has events after filtering
     return selectedRooms.some((room: string) => {
       const roomEvents = getFilteredEventsForRoomCallback(room);
       return roomEvents && roomEvents.length > 0;
     });
-  }, [filteredEvents, selectedRooms, getFilteredEventsForRoomCallback]);
+  })();
 
   // Handler to clear the current filter (load "All Rooms" filter)
   const handleClearFilter = async () => {
     try {
       // Check if there's already an "All Rooms" filter
-      let allRoomsFilter = getFilterByName('All Rooms');
-
-      if (!allRoomsFilter) {
-        // If no "All Rooms" filter exists, create one with all available rooms
-        const { allRooms } = useRoomStore.getState();
-        const roomNames = allRooms.filter((room: string) => !room.includes('&')); // Exclude merged rooms
-
-        console.log('Creating All Rooms filter with rooms:', roomNames);
-        
-        // Save the "All Rooms" filter to the database
-        // The saveFilter function will automatically set it as the current filter
-        await saveFilter('All Rooms', roomNames);
-        
-        // The saveFilter function sets the current filter, so we're done
-        return;
+      const allRoomsFilter = getFilterByName('All Rooms');
+      
+      if (allRoomsFilter) {
+        await loadFilter(allRoomsFilter);
+      } else {
+       
       }
-
-      // Load the existing "All Rooms" filter
-      console.log('Loading existing All Rooms filter:', allRoomsFilter);
-      await loadFilter(allRoomsFilter);
     } catch (error) {
       console.error('Error handling clear filter:', error);
-      // Fallback: just clear filter and select all rooms
-      try {
-        await updateCurrentFilter(null);
-        await updateAutoHide(false);
-        const { selectAllRooms } = useRoomStore.getState();
-        selectAllRooms();
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
-      }
+    
     }
   };
 
-  React.useEffect(() => {
-    // Initial time set
-    const now = new Date();
-    currentTimeRef.current = now;
-    setCurrentTime(now);
-    
-    // Update every 30 seconds for more responsive indicator
-    const timer = setInterval(() => {
-      const newTime = new Date();
-      currentTimeRef.current = newTime;
-      setCurrentTime(newTime);
-    }, 30000);
-    return () => { clearInterval(timer); };
-  }, []);
 
 
 
@@ -346,7 +270,6 @@ export default function HomePage() {
                               {hasFilteredEvents && (
                                 <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
                                   <CurrentTimeIndicator
-                                    currentTime={currentTimeRef.current}
                                     startHour={startHour}
                                     endHour={endHour}
                                     pixelsPerMinute={pixelsPerMinute}
@@ -378,7 +301,7 @@ export default function HomePage() {
                             </div>
                           </DraggableGridContainer>
       {/* Absolutely positioned no-events message */}
-      {!hasFilteredEvents && !isLoading && !roomsLoading && hasLoadedEvents && (
+      {!hasFilteredEvents && !isLoading && !roomsLoading && (
         <NoEventsMessage onClearFilter={handleClearFilter} />
       )}
       {/* Event Detail Modal Overlay */}

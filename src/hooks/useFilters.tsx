@@ -41,89 +41,18 @@ export const useFilters = () => {
   const { data: filters, isLoading, error } = useQuery({
     queryKey: filtersQueryKey,
     queryFn: async () => {
-      if (!user) throw new Error('No user');
-      
-      // Fetch user's own filters
-      const { data: userFilters, error: userError } = await supabase
+      // Fetch all filters
+      const { data: allFilters, error } = await supabase
         .from('room_filters')
-        .select('*')
-        .eq('owner', user.id);
+        .select('*');
 
-      if (userError) throw userError;
+      if (error) throw error;
 
-      // Fetch default filters (available to everyone)
-      const { data: defaultFilters, error: defaultError } = await supabase
-        .from('room_filters')
-        .select('*')
-        .eq('default', true);
-
-      if (defaultError) throw defaultError;
-
-      // Combine and parse all filters, removing duplicates by ID
-      const allFilters = [...(userFilters || []), ...(defaultFilters || [])];
-      const uniqueFilters = allFilters.filter((filter, index, self) => 
-        index === self.findIndex(f => f.id === filter.id)
-      );
-      return uniqueFilters.map(parseFilter);
+      return allFilters.map(parseFilter);
     },
     enabled: !!user,
   });
 
-  // Save filter mutation
-  const saveFilterMutation = useMutation({
-    mutationFn: async (filter: Omit<Filter, 'id' | 'createdAt'>) => {
-      if (!user) throw new Error('No user');
-      
-      const { data, error } = await supabase
-        .from('room_filters')
-        .insert({
-          name: filter.name,
-          display: filter.display,
-          owner: user.id,
-          default: false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      // Also update the profile to set this as the current filter
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          current_filter: filter.name,
-          auto_hide: false 
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-      
-      return parseFilter(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: filtersQueryKey });
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-    },
-  });
-
-  // Delete filter mutation
-  const deleteFilterMutation = useMutation({
-    mutationFn: async (filterId: number) => {
-      if (!user) throw new Error('No user');
-      
-      const { error } = await supabase
-        .from('room_filters')
-        .delete()
-        .eq('id', filterId)
-        .eq('owner', user.id); // Only allow deleting own filters
-
-      if (error) throw error;
-      return filterId;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: filtersQueryKey });
-    },
-  });
 
   // Load filter mutation
   const loadFilterMutation = useMutation({
@@ -159,20 +88,6 @@ export const useFilters = () => {
     },
   });
 
-  // Convenience methods
-  const saveFilter = (name: string, displayRooms: string[]) => {
-    const newFilter: Omit<Filter, 'id' | 'createdAt'> = {
-      name,
-      display: displayRooms,
-      owner: user?.id || null,
-      isDefault: false,
-    };
-    saveFilterMutation.mutate(newFilter);
-  };
-
-  const deleteFilter = (filterId: number) => {
-    deleteFilterMutation.mutate(filterId);
-  };
 
   const loadFilter = (filter: Filter) => {
     loadFilterMutation.mutate(filter);
@@ -186,28 +101,17 @@ export const useFilters = () => {
   return {
     // Data
     filters: filters || [],
-    userFilters: filters?.filter(f => f.owner === user?.id) || [],
-    defaultFilters: filters?.filter(f => f.isDefault) || [],
     
     // Loading states
     isLoading,
-    isSavingFilter: saveFilterMutation.isPending,
-    isDeletingFilter: deleteFilterMutation.isPending,
     isLoadingFilter: loadFilterMutation.isPending,
     
     // Errors
     error,
-    saveFilterError: saveFilterMutation.error,
-    deleteFilterError: deleteFilterMutation.error,
     loadFilterError: loadFilterMutation.error,
     
     // Actions
-    saveFilter,
-    deleteFilter,
     loadFilter,
     getFilterByName,
-    
-    // Mutations (for direct access)
-    saveFilterMutation,
   };
 }; 
