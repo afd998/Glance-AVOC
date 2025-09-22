@@ -33,7 +33,7 @@ export default function EventHeader({
   const isFirstSession = occurrencesData?.isFirstSession || false;
   
   // Get ownership data including timeline
-  const { data: ownershipData } = useEventOwnership(currentEvent);
+  const { data: ownershipData } = useEventOwnership(currentEvent?.id);
   
   // Get timeline entries
   const timeline = ownershipData?.timeline || [];

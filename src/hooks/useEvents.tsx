@@ -6,49 +6,30 @@ import { parseEventResources, isUserEventOwner } from '../utils/eventUtils';
 import { useProfile } from './useProfile';
 import { useFilters } from './useFilters';
 import { useAuth } from '../contexts/AuthContext';
-import { useAllShiftBlocks, ShiftBlock } from './useShiftBlocks';
+import { useShiftBlocks, ShiftBlock } from './useShiftBlocks';
+import { useEvent } from './useEvent';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
-// Calculate days difference between two dates
-const getDaysDifference = (date1: Date, date2: Date): number => {
-  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  return Math.ceil(diffTime / oneDay);
-};
 
 // Fetch events from the events table
-const fetchEvents = async ({ queryKey }: { queryKey: [string, Date, Date] }): Promise<Event[]> => {
-  const [_, date] = queryKey;
+const fetchEvents = async (date: Date): Promise<Event[]> => {
 
   try {
-    // Calculate days from today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(date);
-    targetDate.setHours(0, 0, 0, 0);
-    
-    const daysDifference = getDaysDifference(today, targetDate);
-    
-    // If date is beyond 80 days, return no events
-    if (daysDifference > 80) {
-      console.log(`📅 useEvents: Date ${targetDate.toISOString().split('T')[0]} is beyond 80 days (${daysDifference} days), returning no events`);
-      return [];
-    }
     
     // Calculate date range for the target date
-    const startOfDay = new Date(targetDate);
+    const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     
-    const endOfDay = new Date(targetDate);
-    endOfDay.setDate(targetDate.getDate() + 1);
+    const endOfDay = new Date(date);
+    endOfDay.setDate(date.getDate() + 1);
     
     
     // Query events for the target date using the new date column
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .eq('date', targetDate.toISOString().split('T')[0])
+      .eq('date', date.toISOString().split('T')[0])
       .order('start_time', { ascending: true });
       
     if (error) {
@@ -78,47 +59,30 @@ export const updateEventInCache = (
 };
 
 export function useEvents(date: Date) {
-  const queryClient = useQueryClient();
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
   const { user } = useAuth();
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
-
-  // Memoize shift blocks IDs to prevent unnecessary re-renders
-  const shiftBlocksKey = useMemo(() => 
-    allShiftBlocks.map(sb => sb.id).join(','), 
-    [allShiftBlocks]
-  );
-
+  
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
+  const { data: allShiftBlocks = [] } = useShiftBlocks(dateString);
 
-  // Calculate days from today to determine if we should fetch
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
-  const daysDifference = getDaysDifference(today, targetDate);
-  const isOutsideWindow = daysDifference > 80;
 
   // ✅ Clean React Query pattern: Use select for transformations
   const { data: filteredEvents, isLoading, error, isFetching } = useQuery({
     queryKey: [
       'events',
       dateString,
-      currentFilter ?? 'null', // Include current filter in key
-      user?.id ?? 'null',      // Include user ID in key
-      filters.map(f => `${f.name}-${f.display.join(',')}`).join('|'), // Include filters in key
-      shiftBlocksKey // Use memoized shift blocks key
+      currentFilter ?? 'null' // Include current filter in key
     ],
-    queryFn: () => fetchEvents({ queryKey: ['events', date, date] }),
+    queryFn: () => fetchEvents(date),
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
     gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
     refetchOnMount: false, // Don't refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch when window gains focus
     refetchOnReconnect: false, // Don't refetch when reconnecting
     placeholderData: undefined, // Don't show any placeholder data
-    enabled: !isOutsideWindow, // Skip query if outside window
+    enabled: !!currentFilter, // Only fetch when there's a current filter
     select: (data) => {
       // Filter events using React Query's select option
       const safeCurrentFilter = currentFilter ?? null;
@@ -138,47 +102,24 @@ export function useEvents(date: Date) {
 
 // Hook to get cached parsed event resources with computed flags
 export function useEventResources(eventId: number) {
-  const queryClient = useQueryClient();
+  const { data: event, isLoading, error } = useEvent(eventId);
 
   return useQuery({
     queryKey: ['eventResources', eventId],
-    queryFn: async () => {
+    queryFn: () => {
       // Don't make queries for invalid event IDs
       if (!eventId || eventId <= 0) {
         return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false };
       }
-      // First try to get the event from the individual event cache
-      const cachedEvent = queryClient.getQueryData(['event', eventId]) as Event | undefined;
-      
-      if (cachedEvent) {
-        // Parse resources from cached event
-        const resourceData = parseEventResources(cachedEvent);
-        return computeResourceFlags(resourceData);
-      }
-      
-      // If not in cache, fetch the event from the database
-      const { data: event, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', eventId)
-        .single();
-        
-      if (error) {
-        throw error;
-      }
       
       if (!event) {
-        throw new Error(`Event with id ${eventId} not found`);
+        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false };
       }
       
-      // Cache the event for future use
-      queryClient.setQueryData(['event', eventId], event);
-      
-      // Parse resources and compute flags
-      const resourceData = parseEventResources(event);
-      return computeResourceFlags(resourceData);
+      // Parse resources and compute flags in one go
+      return parseEventResources(event);
     },
-    enabled: !!eventId && eventId > 0, // Only run query for valid event IDs
+    enabled: !!eventId && eventId > 0 && !!event, // Only run when we have valid event ID and event data
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
     gcTime: Infinity, // Keep in cache indefinitely
     refetchOnMount: false,
@@ -187,21 +128,6 @@ export function useEventResources(eventId: number) {
   });
 }
 
-// Helper function to compute all resource flags
-function computeResourceFlags(resourceData: { resources: any[] }) {
-  const { resources } = resourceData;
-  
-  return {
-    resources,
-    // Computed boolean flags
-    hasVideoRecording: resources.some(item => item.displayName?.includes('Recording')),
-    hasStaffAssistance: resources.some(item => item.displayName === 'Staff Assistance'),
-    hasHandheldMic: resources.some(item => item.displayName === 'Handheld Microphone'),
-    hasWebConference: resources.some(item => item.displayName === 'Web Conference'),
-    hasClickers: resources.some(item => item.displayName === 'Clickers (Polling)'),
-    hasAVNotes: resources.some(item => item.displayName === 'AV Setup Notes'),
-  };
-}
 
 // Hook to get cached event duration in hours
 export function useEventDurationHours(eventId: number) {
@@ -294,3 +220,38 @@ export const filterEvents = (
   // No filter applied - show all events
   return events;
 };
+
+// Simple prefetch function
+export const prefetchEvents = async (queryClient: any, date: Date, currentFilter: string | null) => {
+  const dateString = date.toISOString().split('T')[0];
+  
+  await queryClient.prefetchQuery({
+    queryKey: ['events', dateString, currentFilter ?? 'null'],
+    queryFn: () => fetchEvents(date),
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
+};
+
+// Simple prefetch hook
+export function useEventsPrefetch(currentDate: Date) {
+  const queryClient = useQueryClient();
+  const { currentFilter } = useProfile();
+
+  useEffect(() => {
+    const prefetchAdjacentDays = async () => {
+      // Prefetch previous day
+      const previousDay = new Date(currentDate);
+      previousDay.setDate(currentDate.getDate() - 1);
+      await prefetchEvents(queryClient, previousDay, currentFilter ?? null);
+
+      // Prefetch next day
+      const nextDay = new Date(currentDate);
+      nextDay.setDate(currentDate.getDate() + 1);
+      await prefetchEvents(queryClient, nextDay, currentFilter ?? null);
+    };
+
+    // Run prefetching in the background
+    setTimeout(prefetchAdjacentDays, 100);
+  }, [currentDate, currentFilter]);
+}

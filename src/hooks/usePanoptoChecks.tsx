@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvents } from './useEvents';
 import { useEvent } from './useEvent';
-import { useAllShiftBlocks } from './useShiftBlocks';
+import { useShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { Database } from '../types/supabase';
 
@@ -38,9 +38,10 @@ export const usePanoptoChecksData = (eventId: number) => {
 };
 
 // Hook to handle Panopto check notifications and timer
-export const usePanoptoNotifications = () => {
+export const usePanoptoNotifications = (date: Date) => {
   const { user } = useAuth();
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
+  const dateString = date.toISOString().split('T')[0];
+  const { data: allShiftBlocks = [] } = useShiftBlocks(dateString);
   
   // Use local date for current day events
   const [localDate, setLocalDate] = useState(() => {

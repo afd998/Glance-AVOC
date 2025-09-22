@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { formatTime, formatDate } from '../utils/timeUtils';
 import {
-  getResourceIcon,
+  getAVResourceIcon,
   getResourceDisplayName,
   getEventThemeHexColors,
 } from '../utils/eventUtils';
@@ -199,7 +199,7 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
                   }}
                 >
                   <span className="text-sm" aria-hidden="true">
-                    {getResourceIcon(item.itemName)}
+                    {getAVResourceIcon(item.itemName)}
                   </span>
                   <span>{getResourceDisplayName(item.itemName)}</span>
                   {item.quantity && item.quantity > 1 && (

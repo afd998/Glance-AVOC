@@ -222,3 +222,109 @@ export function useDeleteShiftsForDate() {
 }
 
 // Cleanup function removed; duplication is prevented at the source
+
+// Mutation for copying schedule from previous week
+export function useCopyScheduleFromPreviousWeek() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ weekDates, previousWeekStartDate }: { 
+      weekDates: Date[], 
+      previousWeekStartDate: Date 
+    }) => {
+      // First, delete all existing shifts and shift blocks for the target week
+      const deletePromises = weekDates.map(async (targetDate) => {
+        const targetDateString = targetDate.toISOString().split('T')[0];
+        
+        // Delete all shifts for this date
+        const { error: shiftsDeleteError } = await supabase
+          .from('shifts')
+          .delete()
+          .eq('date', targetDateString);
+        
+        if (shiftsDeleteError) throw shiftsDeleteError;
+        
+        // Delete all shift blocks for this date
+        const { error: blocksDeleteError } = await supabase
+          .from('shift_blocks')
+          .delete()
+          .eq('date', targetDateString);
+        
+        if (blocksDeleteError) throw blocksDeleteError;
+      });
+      
+      await Promise.all(deletePromises);
+      
+      // Then copy from previous week
+      const copyPromises = weekDates.map(async (targetDate, index) => {
+        const targetDateString = targetDate.toISOString().split('T')[0];
+        const sourceDate = new Date(previousWeekStartDate);
+        sourceDate.setDate(sourceDate.getDate() + index);
+        const sourceDateString = sourceDate.toISOString().split('T')[0];
+        
+        // Copy shifts
+        const { data: sourceShifts, error: shiftsError } = await supabase
+          .from('shifts')
+          .select('*')
+          .eq('date', sourceDateString);
+        
+        if (shiftsError) throw shiftsError;
+        
+        if (sourceShifts && sourceShifts.length > 0) {
+          const shiftsToInsert = sourceShifts.map(shift => ({
+            ...shift,
+            id: undefined, // Let database generate new ID
+            date: targetDateString,
+            created_at: undefined,
+            updated_at: undefined
+          }));
+          
+          const { error: insertShiftsError } = await supabase
+            .from('shifts')
+            .insert(shiftsToInsert);
+          
+          if (insertShiftsError) throw insertShiftsError;
+        }
+        
+        // Copy shift blocks
+        const { data: sourceBlocks, error: blocksError } = await supabase
+          .from('shift_blocks')
+          .select('*')
+          .eq('date', sourceDateString);
+        
+        if (blocksError) throw blocksError;
+        
+        if (sourceBlocks && sourceBlocks.length > 0) {
+          const blocksToInsert = sourceBlocks.map(block => ({
+            ...block,
+            id: undefined, // Let database generate new ID
+            date: targetDateString,
+            created_at: undefined,
+            updated_at: undefined
+          }));
+          
+          const { error: insertBlocksError } = await supabase
+            .from('shift_blocks')
+            .insert(blocksToInsert);
+          
+          if (insertBlocksError) throw insertBlocksError;
+        }
+      });
+      
+      await Promise.all(copyPromises);
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate all shift_blocks queries for the week dates
+      variables.weekDates.forEach(date => {
+        const dateString = date.toISOString().split('T')[0];
+        queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateString] });
+      });
+      
+      // Invalidate shifts queries
+      queryClient.invalidateQueries({ queryKey: ['shifts'] });
+      
+      // Invalidate event ownership queries
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+    },
+  });
+}

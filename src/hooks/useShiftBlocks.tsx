@@ -6,45 +6,38 @@ export type ShiftBlock = Database['public']['Tables']['shift_blocks']['Row'];
 export type ShiftBlockInsert = Database['public']['Tables']['shift_blocks']['Insert'];
 export type Shift = Database['public']['Tables']['shifts']['Row'];
 
-// Updated to use date instead of day_of_week and week_start
 export function useShiftBlocks(date: string | null) {
   return useQuery({
     queryKey: ['shift_blocks', date],
     queryFn: async () => {
-      if (date == null) return [];
-      console.log('Fetching shift blocks for date:', date);
+      if (date == null) {
+        // If no date provided, fetch all shift blocks
+        const { data, error } = await supabase
+          .from('shift_blocks')
+          .select('*')
+          .order('date', { ascending: true })
+          .order('start_time', { ascending: true });
+        if (error) throw error;
+        return data || [];
+      }
+      
+      // Fetch shift blocks for specific date
       const { data, error } = await supabase
         .from('shift_blocks')
         .select('*')
         .eq('date', date)
         .order('start_time', { ascending: true });
       if (error) throw error;
-      console.log('Fetched shift blocks:', data);
-      return data || [];
-    },
-    enabled: date != null,
-  });
-}
-
-export function useAllShiftBlocks() {
-  return useQuery({
-    queryKey: ['allShiftBlocks'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shift_blocks')
-        .select('*')
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true });
-      if (error) throw error;
       return data || [];
     },
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
-    gcTime: Infinity, // Keep in cache indefinitely
+    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
 }
+
 
 export function useCreateShiftBlock() {
   const queryClient = useQueryClient();
@@ -62,9 +55,7 @@ export function useCreateShiftBlock() {
       if (variables.date) {
         queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
       }
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
@@ -88,9 +79,7 @@ export function useUpdateShiftBlock() {
       if (variables.date) {
         queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
       }
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
@@ -111,9 +100,7 @@ export function useDeleteShiftBlock() {
     onSuccess: () => {
       // For delete, we need to invalidate all shift blocks queries since we don't have the date
       queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
@@ -372,9 +359,7 @@ export function useUpdateShiftBlocks() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
@@ -407,8 +392,7 @@ export function useCreateShiftBlockFromExisting() {
       if (variables.date) {
         queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
       }
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
+    // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
       queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
@@ -443,9 +427,7 @@ export function useUpdateShiftBlockFromExisting() {
       if (variables.date) {
         queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
       }
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+    
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
@@ -497,10 +479,114 @@ export function useCopyShiftBlocks() {
       // Invalidate shift blocks queries only
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.sourceDate] });
       queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.targetDate] });
-      queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
+      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
+      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+    },
+  });
+}
+
+// Mutation for copying schedule from previous week
+export function useCopyScheduleFromPreviousWeek() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ weekDates, previousWeekStartDate }: { 
+      weekDates: Date[], 
+      previousWeekStartDate: Date 
+    }) => {
+      // First, delete all existing shifts and shift blocks for the target week
+      const deletePromises = weekDates.map(async (targetDate) => {
+        const targetDateString = targetDate.toISOString().split('T')[0];
+        
+        // Delete all shifts for this date
+        const { error: shiftsDeleteError } = await supabase
+          .from('shifts')
+          .delete()
+          .eq('date', targetDateString);
+        
+        if (shiftsDeleteError) throw shiftsDeleteError;
+        
+        // Delete all shift blocks for this date
+        const { error: blocksDeleteError } = await supabase
+          .from('shift_blocks')
+          .delete()
+          .eq('date', targetDateString);
+        
+        if (blocksDeleteError) throw blocksDeleteError;
+      });
+      
+      await Promise.all(deletePromises);
+      
+      // Then copy from previous week
+      const copyPromises = weekDates.map(async (targetDate, index) => {
+        const targetDateString = targetDate.toISOString().split('T')[0];
+        const sourceDate = new Date(previousWeekStartDate);
+        sourceDate.setDate(sourceDate.getDate() + index);
+        const sourceDateString = sourceDate.toISOString().split('T')[0];
+        
+        // Copy shift blocks
+        const { data: sourceBlocks, error: blocksError } = await supabase
+          .from('shift_blocks')
+          .select('*')
+          .eq('date', sourceDateString);
+        
+        if (blocksError) throw blocksError;
+        
+        if (sourceBlocks && sourceBlocks.length > 0) {
+          const blocksToInsert = sourceBlocks.map(block => ({
+            ...block,
+            id: undefined, // Let database generate new ID
+            date: targetDateString,
+            created_at: undefined,
+            updated_at: undefined
+          }));
+          
+          const { error: insertBlocksError } = await supabase
+            .from('shift_blocks')
+            .insert(blocksToInsert);
+          
+          if (insertBlocksError) throw insertBlocksError;
+        }
+        
+        // Copy shifts
+        const { data: sourceShifts, error: shiftsError } = await supabase
+          .from('shifts')
+          .select('*')
+          .eq('date', sourceDateString);
+        
+        if (shiftsError) throw shiftsError;
+        
+        if (sourceShifts && sourceShifts.length > 0) {
+          const shiftsToInsert = sourceShifts.map(shift => ({
+            ...shift,
+            id: undefined, // Let database generate new ID
+            date: targetDateString,
+            created_at: undefined,
+            updated_at: undefined
+          }));
+          
+          const { error: insertShiftsError } = await supabase
+            .from('shifts')
+            .insert(shiftsToInsert);
+          
+          if (insertShiftsError) throw insertShiftsError;
+        }
+      });
+      
+      await Promise.all(copyPromises);
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate all shift_blocks queries for the week dates
+      variables.weekDates.forEach(date => {
+        const dateString = date.toISOString().split('T')[0];
+        queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateString] });
+      });
+      
+      // Invalidate shifts queries
+      queryClient.invalidateQueries({ queryKey: ['shifts'] });
+      
+      // Invalidate event ownership queries
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });

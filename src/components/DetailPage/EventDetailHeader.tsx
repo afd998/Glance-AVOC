@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, shouldUseZoomIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
+import { getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 import Avatar from '../Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -370,7 +370,7 @@ export default function EventDetailHeader({
                                   <div className="flex items-start gap-3">
                                     {/* Icon */}
                                     <div className={`flex-shrink-0 w-8 h-8 bg-gradient-to-br ${themeColors[9]} ${themeColors[10]} rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
-                                      {shouldUseZoomIcon(item.itemName) ? (
+                                      {getAVResourceIcon(item.itemName) === 'ZOOM_ICON' ? (
                                         <img
                                           src="/zoomicon.png"
                                           alt="Zoom"

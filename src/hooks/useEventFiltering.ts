@@ -43,10 +43,10 @@ export const useCachedMyEventsFilter = (
 
 
 // Legacy hook for backward compatibility
-export const useEventFiltering = (events: Event[] | undefined) => {
+export const useEventFiltering = (events: Event[] | undefined, date: Date) => {
   const { currentFilter } = useProfile();
   const { filters } = useFilters();
-  const { myEvents } = useMyEventsFilter(events);
+  const { myEvents } = useMyEventsFilter(events, date);
 
   const filteredEvents = useMemo(() => {
     if (!events || events.length === 0) {

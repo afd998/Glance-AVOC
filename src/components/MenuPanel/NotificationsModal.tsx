@@ -6,7 +6,7 @@ import { isUserEventOwner } from '../../utils/eventUtils';
 import { useEventResources } from '../../hooks/useEvents';
 import useRoomStore from '../../stores/roomStore';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAllShiftBlocks } from '../../hooks/useShiftBlocks';
+import { useShiftBlocks } from '../../hooks/useShiftBlocks';
 import NotificationSettings from './NotificationSettings';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -27,7 +27,11 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
   const { isDarkMode } = useTheme();
   const { notificationRooms } = useRoomStore();
   const { user } = useAuth();
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
+  
+  // Get today's date for events and shift blocks
+  const today = new Date();
+  const todayString = today.toISOString().split('T')[0];
+  const { data: allShiftBlocks = [] } = useShiftBlocks(todayString);
   const [scheduledNotifications, setScheduledNotifications] = useState<ScheduledNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,27 +93,24 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
-      // Get events for today and next 7 days
+      // Get events for today only
       const notifications: ScheduledNotification[] = [];
-      
-      for (let i = 0; i < 8; i++) {
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() + i);
-        const dateString = targetDate.toISOString().split('T')[0];
+      const dateString = today.toISOString().split('T')[0];
         
-        const { data: events, error } = await supabase
-          .from('events')
-          .select('*')
-          .eq('date', dateString)
-          .not('start_time', 'is', null)
-          .order('start_time', { ascending: true });
+      const { data: events, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('date', dateString)
+        .not('start_time', 'is', null)
+        .order('start_time', { ascending: true });
 
-        if (error) {
-          console.error('Error fetching events:', error);
-          continue;
-        }
+      if (error) {
+        console.error('Error fetching events:', error);
+        setError('Failed to fetch events');
+        return;
+      }
 
-        if (events) {
+      if (events) {
           events.forEach(event => {
             // Check if event has staff assistance
             if (!hasStaffAssistance(event)) return;
@@ -152,8 +153,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
                 timeUntilNotification
               });
             }
-          });
-        }
+        });
       }
 
       // Sort by notification time (earliest first)

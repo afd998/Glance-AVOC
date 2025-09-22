@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useUserProfiles } from '../../hooks/useUserProfiles';
-import { useShifts, useCreateShift, useCopyShifts, Shift } from '../../hooks/useShifts';
+import { useShifts, useCreateShift, useCopyShifts, useCopyScheduleFromPreviousWeek, Shift } from '../../hooks/useShifts';
 import { supabase } from '../../lib/supabase';
 import { calculateNewShiftBlocks, useUpdateShiftBlocks, useCopyShiftBlocks } from '../../hooks/useShiftBlocks';
 import ShiftBlocks from './ShiftBlocks';
@@ -122,73 +122,14 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   // Fetch shifts for all days in the week, not just the selected day
   const allWeekDates = weekDates.map(date => date.toISOString().split('T')[0]);
   const { data: shifts, isLoading: shiftsLoading, error: shiftsError } = useShifts(allWeekDates);
-
-
-  
   const createShift = useCreateShift();
   const updateShiftBlocks = useUpdateShiftBlocks();
   const copyShiftBlocks = useCopyShiftBlocks();
   const copyShifts = useCopyShifts();
+  const copyScheduleFromPreviousWeek = useCopyScheduleFromPreviousWeek();
   const queryClient = useQueryClient();
 
-  // Fetch all shift blocks for all days in the week
-  const { data: allShiftBlocks = [], isLoading: shiftBlocksLoading } = useQuery({
-    queryKey: ['allShiftBlocks', allWeekDates],
-    queryFn: async () => {
-      const allBlocks = [];
-      for (const date of allWeekDates) {
-        const blocks = await getAllShiftBlocksForDate(date);
-        allBlocks.push(...blocks);
-      }
-      return allBlocks;
-    },
-    enabled: allWeekDates.length > 0,
-  });
 
-  // Utility: For a given day, are all rooms assigned in EVERY shift block?
-  function allRoomsAssignedForDay(dayIdx: number): boolean {
-    if (!allRooms || !allShiftBlocks) return false;
-    const dateForDay = weekDates[dayIdx].toISOString().split('T')[0];
-    const blocksForDay = allShiftBlocks.filter((b: any) => b.date === dateForDay);
-    if (blocksForDay.length === 0) return false;
-    
-    // All room names (ignore null/empty)
-    const roomNames = allRooms.filter((n): n is string => !!n);
-    
-    // Check EACH shift block individually - ALL must have ALL rooms assigned
-    const blockResults = blocksForDay.map((block: any) => {
-      const assignedRoomsInBlock = new Set<string>();
-      
-      if (block.assignments && Array.isArray(block.assignments)) {
-        for (const assignment of block.assignments) {
-          if (
-            assignment &&
-            typeof assignment === 'object' &&
-            'rooms' in assignment &&
-            Array.isArray((assignment as any).rooms)
-          ) {
-            (assignment as any).rooms.forEach((room: string) => assignedRoomsInBlock.add(room));
-          }
-        }
-      }
-      
-      const allRoomsAssignedInThisBlock = roomNames.every((r: string) => assignedRoomsInBlock.has(r));
-      
-      return {
-        blockId: block.id,
-        startTime: block.start_time,
-        endTime: block.end_time,
-        assignedRooms: assignedRoomsInBlock.size,
-        missingRooms: roomNames.filter((r: string) => !assignedRoomsInBlock.has(r)),
-        allAssigned: allRoomsAssignedInThisBlock
-      };
-    });
-    
-    // ALL blocks must have ALL rooms assigned
-    const result = blockResults.every(block => block.allAssigned);
-    
-    return result;
-  }
 
   // Modal state
   const [editingCell, setEditingCell] = useState<{ profileId: string, dayIdx: number } | null>(null);
@@ -199,11 +140,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
   const [isCopyingSchedule, setIsCopyingSchedule] = useState(false);
   // Loading state for copy shift blocks operation
   const [isCopyingShiftBlocks, setIsCopyingShiftBlocks] = useState(false);
-
-  // Get all available technicians
-  const availableTechnicians = profiles?.filter(profile => 
-    profile.roles && Array.isArray(profile.roles) && profile.roles.includes('TECHNICIAN')
-  ) || [];
 
 
   // Lightweight toast for copy shift blocks feedback
@@ -225,15 +161,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
 
   const closeCellModal = () => setEditingCell(null);
 
-  // Fetch latest shifts for a date directly from DB
-  const fetchShiftsForDate = async (date: string) => {
-    const { data, error } = await supabase
-      .from('shifts')
-      .select('*')
-      .eq('date', date);
-    if (error) throw error;
-    return data || [];
-  };
 
   const handleSave = () => {
     if (!editingCell) return;
@@ -246,15 +173,10 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
       end_time: modalEnd,
     }, {
       onSuccess: async (data) => {
-        // Get fresh shifts from DB, then fully replace shift blocks for that day
-        const latestShiftsForDay = await fetchShiftsForDate(dateForDay);
+        // Get fresh shifts for the day from the existing data
+        const latestShiftsForDay = shifts?.filter(shift => shift.date === dateForDay) || [];
         const newBlocks = calculateNewShiftBlocks(latestShiftsForDay, dateForDay);
         await updateShiftBlocks.mutateAsync({ date: dateForDay, newBlocks });
-
-        // Refresh queries so UI shows latest shifts and blocks
-        queryClient.invalidateQueries({ queryKey: ['shifts'] });
-        queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateForDay] });
 
         closeCellModal();
       },
@@ -350,96 +272,21 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
     
     setIsCopyingSchedule(true);
     
-    // First, delete all existing shifts and shift blocks for the target week
-    const deletePromises = weekDates.map(async (targetDate) => {
-      const targetDateString = targetDate.toISOString().split('T')[0];
-      
-      try {
-        // Delete all shifts for this date
-        const { error: shiftsDeleteError } = await supabase
-          .from('shifts')
-          .delete()
-          .eq('date', targetDateString);
-        
-        if (shiftsDeleteError) throw shiftsDeleteError;
-        
-        // Delete all shift blocks for this date
-        const { error: blocksDeleteError } = await supabase
-          .from('shift_blocks')
-          .delete()
-          .eq('date', targetDateString);
-        
-        if (blocksDeleteError) throw blocksDeleteError;
-      } catch (error) {
-        console.error(`Failed to delete existing data for ${targetDateString}:`, error);
-        throw error;
-      }
-    });
-    
-    // After deleting, copy the new schedule
-    Promise.all(deletePromises)
-      .then(() => {
-        // Copy shifts and blocks for each day of the week
-        const copyPromises = weekDates.map(async (targetDate, dayIdx) => {
-          const sourceDate = new Date(previousWeekStartDate);
-          sourceDate.setDate(previousWeekStartDate.getDate() + dayIdx);
-          const sourceDateString = sourceDate.toISOString().split('T')[0];
-          const targetDateString = targetDate.toISOString().split('T')[0];
-          
-          try {
-            // Copy shifts for this day
-            await copyShifts.mutateAsync({
-              sourceDate: sourceDateString,
-              targetDate: targetDateString,
-            });
-            
-            // Copy shift blocks for this day
-            await copyShiftBlocks.mutateAsync({
-              sourceDate: sourceDateString,
-              targetDate: targetDateString,
-            });
-          } catch (error) {
-            console.error(`Failed to copy schedule for ${targetDateString}:`, error);
-          }
-        });
-        
-        return Promise.all(copyPromises);
-      })
-      .then(() => {
+    copyScheduleFromPreviousWeek.mutate({
+      weekDates,
+      previousWeekStartDate
+    }, {
+      onSuccess: () => {
         setIsCopyingSchedule(false);
-        
-        // Force a refetch of the current week's data
-        queryClient.invalidateQueries({ 
-          queryKey: ['shifts'], 
-          predicate: (query) => {
-            const queryKey = query.queryKey;
-            return queryKey[0] === 'shifts' && Array.isArray(queryKey[1]);
-          }
-        });
-        queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
-      })
-      .catch((error) => {
+      },
+      onError: (error) => {
         console.error('Failed to copy schedule from previous week:', error);
         setIsCopyingSchedule(false);
-      });
+      }
+    });
   };
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
-
+  
   if (!isOpen) return null;
 
   return (
@@ -529,7 +376,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
             </div>
           )}
           
-          {(profilesLoading || shiftsLoading || roomsLoading || shiftBlocksLoading) && <span className="text-lg text-gray-500 dark:text-gray-300">Loading…</span>}
+          {(profilesLoading || shiftsLoading || roomsLoading ) && <span className="text-lg text-gray-500 dark:text-gray-300">Loading…</span>}
           {(profilesError || shiftsError) && <span className="text-lg text-red-500">Error loading data</span>}
           
           {!profilesLoading && !shiftsLoading && !profilesError && !shiftsError && (
@@ -576,7 +423,6 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                         >
                           <div className="flex flex-col items-center">
                             <span className="font-semibold">{formatShortDay(date)}{' '}
-                              {allRoomsAssignedForDay(idx) && <span title="All rooms assigned">✅</span>}
                             </span>
                             <span className="text-xs">{formatShortDate(date)}</span>
                           </div>
@@ -622,7 +468,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
               <ShiftBlocks date={selectedDate} />
               
               {/* Copy Shift Blocks Button */}
-              {allRoomsAssignedForDay(selectedDay) && (
+              {false && (
                 <div className="mt-4 flex justify-center">
                   <button
                     onClick={handleCopyShiftBlocks}
@@ -706,14 +552,13 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
                        end_time: null,
                      }, {
                        onSuccess: async () => {
-                          // Fetch fresh shifts and fully replace shift blocks for that day
-                          const latestShiftsForDay = await fetchShiftsForDate(dateForDay);
+                          // Get fresh shifts for the day from the existing data
+                          const latestShiftsForDay = shifts?.filter(shift => shift.date === dateForDay) || [];
                           const newBlocks = calculateNewShiftBlocks(latestShiftsForDay, dateForDay);
                           await updateShiftBlocks.mutateAsync({ date: dateForDay, newBlocks });
 
                           // Refresh queries so UI shows latest shifts and blocks
                           queryClient.invalidateQueries({ queryKey: ['shifts'] });
-                          queryClient.invalidateQueries({ queryKey: ['allShiftBlocks'] });
                           queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateForDay] });
 
                          closeCellModal();

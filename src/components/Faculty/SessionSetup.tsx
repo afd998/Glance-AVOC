@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
-import { getResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
+import { getAVResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 // import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 import { FacultyAvatar } from '../FacultyAvatar';

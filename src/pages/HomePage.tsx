@@ -7,7 +7,7 @@ import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
 import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
 import { useEvents } from "../hooks/useEvents";
-import { useEventsPrefetch } from "../hooks/useEventsPrefetch";
+import { useEventsPrefetch } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
 import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
@@ -36,11 +36,7 @@ export default function HomePage() {
   const { selectedRooms, setAllRooms } = useRoomStore();
   const { rooms, isLoading: roomsLoading } = useRooms();
   
-  // Temporary mock data
-  // const selectedRooms: string[] = [];
-  // const setAllRooms = () => {};
-  // const rooms: string[] = [];
-  // const roomsLoading = false;
+
 
   React.useEffect(() => {
     if (rooms.length > 0) {
@@ -48,7 +44,7 @@ export default function HomePage() {
     }
   }, [rooms, setAllRooms]);
 
-  const selectedDate = React.useMemo(() => {
+  const selectedDate = (() => {
     if (!date) {
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
@@ -56,7 +52,7 @@ export default function HomePage() {
     const [year, month, day] = date.split('-').map(Number);
     const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
     return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-  }, [date]);
+  })();
 
   const pixelsPerMinute = 2;
   const startHour = 6;
@@ -69,7 +65,7 @@ export default function HomePage() {
   useEventsPrefetch(selectedDate);
 
   // Handle Panopto check notifications
-  usePanoptoNotifications();
+  usePanoptoNotifications(selectedDate);
 
   // Helper function for room filtering (using the already filtered data)
   const getFilteredEventsForRoomCallback = (roomName: string) => {

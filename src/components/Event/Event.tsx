@@ -31,11 +31,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const shouldFetchOrg = event.organization === "JAPAN CLUB" || event.organization === "KELLOGG MARKETING CLUB" || event.organization === "KELLOGG KIDS" || event.organization === "ASIAN MANAGEMENT ASSOCIATION" || event.organization === "KELLOGG VETERANS ASSOCIATION" || event.organization === "Entrepreneurship Acquisition Club";
   const { data: organization } = useOrganization(shouldFetchOrg ? (event.organization || "") : "");
   
-  // Debug logging
-  if (event.organization) {
-    console.log('Event organization:', `"${event.organization}"`, 'Length:', event.organization.length, 'Should fetch:', shouldFetchOrg, 'Org data:', organization);
-  }
-  
+
 
   const handleMouseEnter = () => {
     setIsHoveringEvent(true);

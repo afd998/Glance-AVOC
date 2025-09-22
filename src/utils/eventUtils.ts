@@ -11,6 +11,12 @@ interface ResourceItem {
 
 interface ResourceFlags {
   resources: ResourceItem[];
+  hasVideoRecording: boolean;
+  hasStaffAssistance: boolean;
+  hasHandheldMic: boolean;
+  hasWebConference: boolean;
+  hasClickers: boolean;
+  hasAVNotes: boolean;
 }
 
 interface EventTypeInfo {
@@ -37,43 +43,47 @@ interface EventPosition {
  * @returns Object containing boolean flags and resource list
  */
 export const parseEventResources = (event: Event): ResourceFlags => {
-  // Check if event has resources in the new JSONB format
-  if (!event.resources || !Array.isArray(event.resources)) {
-    return {
-      resources: []
-    };
-  }
-
-  const resources = event.resources as ResourceItem[];
+  const resources = (event.resources as ResourceItem[]) || [];
 
   // Add icon and displayName properties to each resource item
   const resourcesWithIcons = resources.map(item => ({
     ...item,
-    icon: getResourceIcon(item.itemName),
+    icon: getAVResourceIcon(item.itemName),
     displayName: getResourceDisplayName(item.itemName)
   }));
 
+  // Single pass through resources to compute all flags
+  let hasVideoRecording = false;
+  let hasStaffAssistance = false;
+  let hasHandheldMic = false;
+  let hasWebConference = false;
+  let hasClickers = false;
+  let hasAVNotes = false;
+  
+  for (const item of resourcesWithIcons) {
+    const displayName = item.displayName;
+    if (!displayName) continue;
+    
+    if (displayName.includes('Recording')) hasVideoRecording = true;
+    if (displayName === 'Staff Assistance') hasStaffAssistance = true;
+    if (displayName === 'Handheld Microphone') hasHandheldMic = true;
+    if (displayName === 'Web Conference') hasWebConference = true;
+    if (displayName === 'Clickers (Polling)') hasClickers = true;
+    if (displayName === 'AV Setup Notes') hasAVNotes = true;
+  }
+
   return {
-    resources: resourcesWithIcons
+    resources: resourcesWithIcons,
+    // Computed boolean flags
+    hasVideoRecording,
+    hasStaffAssistance,
+    hasHandheldMic,
+    hasWebConference,
+    hasClickers,
+    hasAVNotes,
   };
 };
 
-/**
- * Get icon for a resource item
- */
-export const getResourceIcon = (itemName: string): string => {
-  const name = itemName?.toLowerCase() || '';
-
-  if (name.includes('laptop') || name.includes('computer')) return '💻';
-  if (name.includes('camera') || name.includes('doc cam')) return '📷';
-  if (name.includes('zoom') || name.includes('video')) return '📹';
-  if (name.includes('panel') || name.includes('control')) return '🎛️';
-  if (name.includes('audio') || name.includes('microphone')) return '🎤';
-  if (name.includes('display') || name.includes('monitor')) return '🖥️';
-  if (name.includes('ksm-kgh-av-kis notes') || name.includes('notes')) return '📝';
-
-  return '📱'; // Default icon
-};
 
 /**
  * Get specific icon for AV resources (similar to EventHeader style)
@@ -88,15 +98,9 @@ export const getAVResourceIcon = (itemName: string): string => {
 
   // Video-related resources
   if (name.includes('video-recording') || name.includes('recording')) return '🔴';
-  if (name.includes('camera') || name.includes('doc cam')) return '📷';
 
   // Audio-related resources
   if (name.includes('microphone') || name.includes('mic')) return '🎤';
-  if (name.includes('audio')) return '🔊';
-
-  // Control/display resources
-  if (name.includes('panel') || name.includes('control')) return '🎛️';
-  if (name.includes('display') || name.includes('monitor')) return '🖥️';
 
   // Notes/assistance
   if (name.includes('staff') || name.includes('assistance')) return '🚶';
@@ -108,31 +112,54 @@ export const getAVResourceIcon = (itemName: string): string => {
   return '📱'; // Default icon
 };
 
+
 /**
- * Check if a resource should use the Zoom icon image instead of emoji
+ * Get display name for a resource item (optimized version)
  */
-export const shouldUseZoomIcon = (itemName: string): boolean => {
-  const name = itemName?.toLowerCase() || '';
-  return name.includes('video-conferencing') || name.includes('web conference') || name.includes('zoom');
+const getResourceDisplayNameFast = (itemName: string, lowerName: string): string => {
+  if (!itemName) return itemName;
+  
+  // Use faster string operations and avoid regex where possible
+  if (lowerName.startsWith('laptop') || lowerName.startsWith('computer')) {
+    return 'Laptop ' + itemName.substring(itemName.indexOf(' ') + 1);
+  }
+  if (lowerName.startsWith('camera') || lowerName.startsWith('doc cam')) {
+    return 'Camera ' + itemName.substring(itemName.indexOf(' ') + 1);
+  }
+  if (lowerName.includes('zoom')) {
+    return itemName.replace(/zoom/i, 'Zoom');
+  }
+  if (lowerName.endsWith('staff assistance')) {
+    return 'Staff Assistance';
+  }
+  if (lowerName.endsWith('web conference')) {
+    return 'Web Conference';
+  }
+  if (lowerName === 'ksm-kgh-video-conferencing') {
+    return 'Web Conference';
+  }
+  if (lowerName.startsWith('ksm-kgh-video-recording')) {
+    return 'Video Recording';
+  }
+  if (lowerName.endsWith('handheld microphone')) {
+    return 'Handheld Microphone';
+  }
+  if (lowerName.includes('clickers') && lowerName.includes('polling')) {
+    return 'Clickers (Polling)';
+  }
+  if (lowerName === 'ksm-kgh-av-kis notes') {
+    return 'AV Setup Notes';
+  }
+  
+  return itemName;
 };
 
 /**
- * Get display name for a resource item
+ * Get display name for a resource item (legacy version)
  */
 export const getResourceDisplayName = (itemName: string): string => {
-  // Clean up common patterns
-  return itemName
-    ?.replace(/^(laptop|computer)\s*-?\s*/i, 'Laptop ')
-    ?.replace(/^(camera|doc cam)\s*-?\s*/i, 'Camera ')
-    ?.replace(/zoom/i, 'Zoom')
-    ?.replace(/^.*staff assistance$/i, 'Staff Assistance')
-    ?.replace(/^.*web conference$/i, 'Web Conference')
-    ?.replace(/^ksm-kgh-video-conferencing$/i, 'Web Conference')
-    ?.replace(/^ksm-kgh-video-recording.*$/i, 'Video Recording')
-    ?.replace(/^.*handheld microphone$/i, 'Handheld Microphone')
-    ?.replace(/^.*clickers.*polling.*$/i, 'Clickers (Polling)')
-    ?.replace(/^ksm-kgh-av-kis notes$/i, 'AV Setup Notes')
-    || itemName;
+  const lowerName = itemName?.toLowerCase() || '';
+  return getResourceDisplayNameFast(itemName, lowerName);
 };
 
 /**
@@ -155,12 +182,12 @@ export const getEventTypeInfo = (event: Event): EventTypeInfo => {
   );
 
   // Determine if it's a merged room event
-  const isMergedRoomEvent = event.room_name?.includes('&') || false;
+  const isMergedRoomEvent = Boolean(event.room_name?.includes('&'));
   
   // TEMPORARY FIX: Force CMC events in 2410A or 2410B to be treated as merged room events
   const isCMCIn2410 = event.event_type === 'CMC' && 
     (event.room_name === 'GH 2410A' || event.room_name === 'GH 2410B' || 
-     event.room_name?.includes('2410A') || event.room_name?.includes('2410B'));
+     Boolean(event.room_name?.includes('2410A')) || Boolean(event.room_name?.includes('2410B')));
   const finalIsMergedRoomEvent = isMergedRoomEvent || isCMCIn2410;
   
   // Debug logging for the temporary fix

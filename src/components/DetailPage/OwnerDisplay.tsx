@@ -88,7 +88,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, isVisible }) => {
 
 export default function OwnerDisplay({ event, isHandOffTimeLoading }: OwnerDisplayProps) {
   // Get ownership data including timeline
-  const { data: ownershipData } = useEventOwnership(event);
+  const { data: ownershipData } = useEventOwnership(event?.id);
   
   // Get timeline entries
   const timeline = ownershipData?.timeline || [];

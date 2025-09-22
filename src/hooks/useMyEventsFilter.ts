@@ -1,16 +1,17 @@
 import { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from './useProfile';
-import { useAllShiftBlocks } from './useShiftBlocks';
+import { useShiftBlocks } from './useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
-export const useMyEventsFilter = (events: Event[] | undefined) => {
+export const useMyEventsFilter = (events: Event[] | undefined, date: Date) => {
   const { user } = useAuth();
   const { currentFilter } = useProfile();
-  const { data: allShiftBlocks = [] } = useAllShiftBlocks();
+  const dateString = date.toISOString().split('T')[0];
+  const { data: allShiftBlocks = [] } = useShiftBlocks(dateString);
 
   const myEvents = useMemo(() => {
     if (!events || events.length === 0 || currentFilter !== 'My Events' || !user) {

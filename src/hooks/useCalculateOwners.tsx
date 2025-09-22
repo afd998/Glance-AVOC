@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { updateEventInCache } from './useEvents';
 import { notifyEventAssignment } from '../utils/notificationUtils';
 import { useShiftBlocks } from './useShiftBlocks';
+import { useEvent } from './useEvent';
 import type { Database } from '../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -162,15 +163,17 @@ function createOwnershipTimeline(owners: string[], handOffTimes: string[], manua
 }
 
 // Main hook to get ownership data for an event
-export function useEventOwnership(event: Event | null) {
+export function useEventOwnership(eventId: number | null) {
+  // Fetch the event data using the useEvent hook
+  const { data: event, isLoading: eventLoading, error: eventError } = useEvent(eventId);
+  
   // Use the existing useShiftBlocks hook instead of direct Supabase call
   const { data: shiftBlocks = [], isLoading: shiftBlocksLoading, error: shiftBlocksError } = useShiftBlocks(event?.date || null);
   
   return useQuery({
-    queryKey: ['eventOwnership', event?.id, event?.date, shiftBlocks],
+    queryKey: ['eventOwnership', eventId],
     queryFn: async () => {
       if (!event?.date) return null;
-      
       
       // If shift blocks are still loading or there was an error, return null
       if (shiftBlocksLoading || shiftBlocksError) {
@@ -179,11 +182,9 @@ export function useEventOwnership(event: Event | null) {
       
       // Get intersecting blocks
       const intersectingBlocks = getIntersectingBlocks(event, shiftBlocks);
-      
       // Process ownership data
       const ownershipData = processOwnershipData(intersectingBlocks);
       
-
       
       // Create timeline for display
       const timeline = createOwnershipTimeline(ownershipData.owners, ownershipData.handOffTimes, event.man_owner);
@@ -196,10 +197,10 @@ export function useEventOwnership(event: Event | null) {
         timeline
       };
     },
-    enabled: !!event?.date && !shiftBlocksLoading && !shiftBlocksError,
-    staleTime: 0, // Allow data to become stale so it refetches when shift blocks change
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
-    refetchOnMount: true,
+  
+    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
+    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

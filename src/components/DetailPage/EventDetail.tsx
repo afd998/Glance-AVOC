@@ -59,12 +59,13 @@ export default function EventDetail() {
   ];
   
   // Parse the date from URL params
-  const selectedDate = React.useMemo(() => {
-    if (!date) return new Date();
-    const [year, month, day] = date.split('-').map(Number);
-    const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
-    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-  }, [date]);
+  const selectedDate = !date 
+    ? new Date() 
+    : (() => {
+        const [year, month, day] = date.split('-').map(Number);
+        const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
+        return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+      })();
   
   // Get all events for the specific date (now returns data instead of events)
   const { data: filteredEvents, isLoading, error } = useEvents(selectedDate);
@@ -85,7 +86,7 @@ export default function EventDetail() {
   const updateFacultyAttributes = useUpdateFacultyAttributes();
   
   // Get ownership data including hand-off times
-  const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event);
+  const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event?.id);
   
   // Use the first hand-off time if there are multiple
   const handOffTime = ownershipData?.handOffTimes && ownershipData.handOffTimes.length > 0 ? ownershipData.handOffTimes[0] : null;
