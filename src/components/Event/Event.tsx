@@ -108,7 +108,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const gradientClass = getEventGradientClass(event.event_type || '');
   
   // Determine if we should show the overdue blinking effect
-  const shouldBlink = 1;
+  const shouldBlink = hasOverduePanoptoChecks;
   
   
   // Get original color from utility function
@@ -189,7 +189,8 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         }}
       >
         <EventHeader 
-          event={event}
+          eventId={event.id}
+          date={event.date || undefined}
           isHovering={isHoveringEvent}
         />
         <div className="flex-1">

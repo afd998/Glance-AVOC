@@ -69,6 +69,8 @@
     "autoprefixer": "^10.4.16",
     "babel-plugin-react-compiler": "^19.1.0-rc.3",
     "drizzle-kit": "^0.31.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^6.0.0-rc.2",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",

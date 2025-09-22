@@ -13,37 +13,41 @@ import Avatar from '../Avatar';
 type Event = Database['public']['Tables']['events']['Row'];
 
 interface EventHeaderProps {
-  event: Event;
+  eventId: number;
+  date?: string;
   isHovering: boolean;
 }
 
 export default function EventHeader({ 
-  event, 
+  eventId, 
+  date,
   isHovering = false
 }: EventHeaderProps) {
-  // Get fresh event data from individual event cache (will use cache if available)
-  const { data: freshEvent } = useEvent(event.id);
+  // Get event data from useEvent hook (will use cache if available)
+  const { data: currentEvent } = useEvent(eventId, date);
   
-  // Use fresh event data if available, otherwise fall back to prop
-  const currentEvent = freshEvent || event;
-  
+  // Early return if no event data
+  if (!currentEvent) {
+    return null;
+  }
+
   // Get all occurrences of this event and isFirstSession flag
   const { data: occurrencesData } = useOccurrences(currentEvent);
   const occurrences = occurrencesData?.occurrences || [];
   const isFirstSession = occurrencesData?.isFirstSession || false;
   
   // Get ownership data including timeline
-  const { data: ownershipData } = useEventOwnership(currentEvent?.id);
+  const { data: ownershipData } = useEventOwnership(currentEvent.id);
   
   // Get timeline entries
   const timeline = ownershipData?.timeline || [];
   
   // Get Panopto checks functionality
   const { isComplete: allChecksComplete, isLoading: checksLoading } = useEventChecksComplete(
-    event.id,
-    event.start_time || undefined,
-    event.end_time || undefined,
-    event.date || undefined
+    currentEvent.id,
+    currentEvent.start_time || undefined,
+    currentEvent.end_time || undefined,
+    currentEvent.date || undefined
   );
   
   // Get parsed event resources and computed flags from cache
@@ -137,9 +141,9 @@ export default function EventHeader({
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
-            event.event_type === 'Ad Hoc Class Meeting' 
+            currentEvent.event_type === 'Ad Hoc Class Meeting' 
               ? (isHovering ? 'text-white' : 'text-gray-600')
-              : event.event_type === 'Lecture'
+              : currentEvent.event_type === 'Lecture'
                 ? 'text-black'
                 : 'text-white'
           }`}

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 
@@ -25,14 +25,21 @@ const fetchEvent = async (eventId: number): Promise<Event | null> => {
   }
 };
 
-export function useEvent(eventId: number | null) {
+export function useEvent(eventId: number | null, date?: string) {
+  const queryClient = useQueryClient();
+  
   return useQuery({
     queryKey: ['event', eventId],
     queryFn: () => fetchEvent(eventId!),
     enabled: !!eventId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 60, // 1 hour
-    refetchOnMount: false, 
+    refetchOnMount: false,
+    initialData: () => {
+      if (!date) return undefined;
+      const eventsCache = queryClient.getQueryData(['events', date]);
+      return Array.isArray(eventsCache) ? eventsCache.find((event: Event) => event.id === eventId) : undefined;
+    },
   });
 }
 

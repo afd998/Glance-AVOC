@@ -60,7 +60,7 @@ export default function HomePage() {
   
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
-  // useEventsPrefetch(selectedDate);
+  useEventsPrefetch(selectedDate);
 
   // // Handle Panopto check notifications
   usePanoptoNotifications(selectedDate);

@@ -64,7 +64,7 @@ export function useEvents(date: Date) {
     queryKey: [
       'events',
       dateString,
-      currentFilter ?? 'null' // Include current filter in key
+     
     ],
     queryFn: () => fetchEvents(date),
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
@@ -202,7 +202,7 @@ export const prefetchEvents = async (queryClient: any, date: Date, currentFilter
   const dateString = date.toISOString().split('T')[0];
   
   await queryClient.prefetchQuery({
-    queryKey: ['events', dateString, currentFilter ?? 'null'],
+    queryKey: ['events', dateString],
     queryFn: () => fetchEvents(date),
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
