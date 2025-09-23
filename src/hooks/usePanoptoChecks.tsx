@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvents } from './useEvents';
 import { useEvent } from './useEvent';
@@ -12,9 +12,15 @@ import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 
 const PANOPTO_CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-// Hook to get panopto checks data for a specific event
+// Hook to get panopto checks data for a specific event with realtime updates
 export const usePanoptoChecksData = (eventId: number) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const queryClientRef = useRef(queryClient);
+
+  // Keep the ref updated
+  queryClientRef.current = queryClient;
+
+  const query = useQuery({
     queryKey: ['panoptoChecks', eventId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,9 +39,59 @@ export const usePanoptoChecksData = (eventId: number) => {
       return data || [];
     },
     enabled: !!eventId,
-    refetchInterval: 300000, // Refetch every 5 minutes
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time feel
     staleTime: 120000, // Consider data stale after 2 minutes
   });
+
+  // Set up realtime subscription for this specific event
+  useEffect(() => {
+    if (!eventId) return;
+
+    let channel: any = null;
+
+    const setupBroadcast = async () => {
+      console.log(`🔴 Setting up broadcast subscription for panopto_checks, event_id: ${eventId}`);
+
+      // Set auth for broadcast (required for authorization)
+      await supabase.realtime.setAuth();
+      
+      // Use Broadcast approach - listen to topic for this specific event
+      channel = supabase
+        .channel(`topic:${eventId}`)
+        .on('broadcast', { event: 'INSERT' }, (payload) => {
+          console.log('🔴 Broadcast INSERT received:', payload);
+          queryClientRef.current.invalidateQueries({ 
+            queryKey: ['panoptoChecks', eventId] 
+          });
+        })
+        .on('broadcast', { event: 'UPDATE' }, (payload) => {
+          console.log('🔴 Broadcast UPDATE received:', payload);
+          queryClientRef.current.invalidateQueries({ 
+            queryKey: ['panoptoChecks', eventId] 
+          });
+        })
+        .on('broadcast', { event: 'DELETE' }, (payload) => {
+          console.log('🔴 Broadcast DELETE received:', payload);
+          queryClientRef.current.invalidateQueries({ 
+            queryKey: ['panoptoChecks', eventId] 
+          });
+        })
+        .subscribe((status) => {
+          console.log(`🔴 Broadcast subscription status:`, status);
+        });
+    };
+
+    setupBroadcast();
+
+    return () => {
+      if (channel) {
+        console.log(`🔴 Cleaning up broadcast subscription for event_id: ${eventId}`);
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [eventId]);
+
+  return query;
 };
 
 // Hook to handle Panopto check notifications and timer
