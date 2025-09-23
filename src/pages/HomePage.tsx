@@ -328,9 +328,9 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container  mx-8 2xl:mx-14 3xl:mx-24 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
+          className="grid-container  mx-8 2xl:mx-16 3xl:mx-24 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
           style={{ 
-            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 60px) 100%, 0 100%)',
+            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)',
             WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 5%)',
             maskImage: 'linear-gradient(to top, transparent 0%, black 5%)'
           }}
