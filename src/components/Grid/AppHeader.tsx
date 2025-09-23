@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePickerComponent from './DatePickerComponent';
 import AcademicCalendarInfo from './AcademicCalendarInfo';
 import CurrentFilterLink from './CurrentFilterLink';
@@ -15,6 +15,7 @@ interface AppHeaderProps {
   isLoading: boolean;
   events: Event[] | undefined;
   isDragging?: boolean;
+  onHoverChange?: (isHovered: boolean) => void; // Callback for hover state changes
 }
 
 export default function AppHeader({ 
@@ -22,12 +23,20 @@ export default function AppHeader({
   setSelectedDate, 
   isLoading, 
   events,
-  isDragging = false
+  isDragging = false,
+  onHoverChange
 }: AppHeaderProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Make the entire header invisible when not hovering (except when modal is open)
   const showHeader = isHovered || isModalOpen;
+
+  // Notify parent component when hover state changes
+  useEffect(() => {
+    if (onHoverChange) {
+      onHoverChange(showHeader);
+    }
+  }, [showHeader, onHoverChange]);
 
   return (
     <div
@@ -90,17 +99,15 @@ export default function AppHeader({
             </button>
           </div>
 
-          {/* DatePicker - always visible except when dragging */}
+          {/* DatePicker - always visible */}
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
-              <DatePickerComponent
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                isLoading={isLoading}
-                onCalendarOpen={() => setIsModalOpen(true)}
-                onCalendarClose={() => setIsModalOpen(false)}
-              />
-            </div>
+            <DatePickerComponent
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              isLoading={isLoading}
+              onCalendarOpen={() => setIsModalOpen(true)}
+              onCalendarClose={() => setIsModalOpen(false)}
+            />
           </div>
 
           <div className="flex items-center justify-center">
@@ -218,17 +225,15 @@ export default function AppHeader({
             </button>
           </div>
           
-          {/* DatePicker - always visible except when dragging */}
+          {/* DatePicker - always visible */}
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
-              <DatePickerComponent
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                isLoading={isLoading}
-                onCalendarOpen={() => setIsModalOpen(true)}
-                onCalendarClose={() => setIsModalOpen(false)}
-              />
-            </div>
+            <DatePickerComponent
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              isLoading={isLoading}
+              onCalendarOpen={() => setIsModalOpen(true)}
+              onCalendarClose={() => setIsModalOpen(false)}
+            />
           </div>
           
           <div className="flex items-center justify-center">

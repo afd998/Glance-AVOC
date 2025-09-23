@@ -4,9 +4,10 @@ import { useParams } from 'react-router-dom';
 interface DateDisplayProps {
   className?: string;
   style?: React.CSSProperties;
+  isHeaderHovered?: boolean; // Whether the header is currently hovered
 }
 
-export default function DateDisplay({ className = '', style = {} }: DateDisplayProps) {
+export default function DateDisplay({ className = '', style = {}, isHeaderHovered = false }: DateDisplayProps) {
   const { date } = useParams<{ date: string }>();
 
   // Get selected date from URL params
@@ -39,8 +40,12 @@ export default function DateDisplay({ className = '', style = {} }: DateDisplayP
 
   return (
     <div 
-      className={`inline-block text-left text-xs font-medium text-white px-2 py-1 bg-black/30 rounded-md ${className}`}
-      style={style}
+      className={`inline-block text-left text-xs font-medium text-white px-2 py-1 bg-black rounded-md transition-opacity duration-300 ${className}`}
+      style={{
+        ...style,
+        opacity: isHeaderHovered ? 0 : 1,
+        pointerEvents: isHeaderHovered ? 'none' : 'auto'
+      }}
     >
       {displayDate}
     </div>
