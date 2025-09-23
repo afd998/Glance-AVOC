@@ -95,7 +95,7 @@ export default function HomePage() {
   useAutoHideLogic(filteredEvents || [], selectedDate);
   // console.log('🔄 HomePage after useAutoHideLogic');
  
-  const { updateCurrentFilter, updateAutoHide } = useProfile();
+  const { updateCurrentFilter, updateAutoHide, autoHide } = useProfile();
   const { loadFilter, getFilterByName } = useFilters();
   
   
@@ -187,53 +187,63 @@ export default function HomePage() {
 
   // Helper function to calculate the actual number of rows that will be rendered
   const calculateActualRowCount = () => {
-    if (!filteredEvents) return 0;
-    
-    // Get all unique room names that will have rows
-    const roomsWithRows = new Set<string>();
-    
-    // Add all individual room events
-    filteredEvents.forEach((event: any) => {
-      if (event.room_name && !event.room_name.includes('&')) {
-        roomsWithRows.add(event.room_name);
-      }
-    });
-    
-    // Handle merged room events - they create rows for constituent rooms
-    filteredEvents.forEach((event: any) => {
-      if (event.room_name && event.room_name.includes('&')) {
-        const parts = event.room_name.split('&');
-        if (parts.length === 2) {
-          const baseRoom = parts[0].trim(); // e.g., "GH 1420"
-          const suffix = parts[1].trim(); // e.g., "30", "B"
-          
-          // Add the base room
-          roomsWithRows.add(baseRoom);
-          
-          // Handle different merge patterns
-          if (suffix === '30') {
-            // 1420&30 case: show both 1420 and 1430
-            const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
-            if (roomNumber) {
-              const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
-              roomsWithRows.add(secondRoom);
+    if (autoHide) {
+      // When autohide is ON: only show rooms that have events
+      if (!filteredEvents) return 0;
+      
+      // Get all unique room names that will have rows
+      const roomsWithRows = new Set<string>();
+      
+      // Add all individual room events
+      filteredEvents.forEach((event: any) => {
+        if (event.room_name && !event.room_name.includes('&')) {
+          roomsWithRows.add(event.room_name);
+        }
+      });
+      
+      // Handle merged room events - they create rows for constituent rooms
+      filteredEvents.forEach((event: any) => {
+        if (event.room_name && event.room_name.includes('&')) {
+          const parts = event.room_name.split('&');
+          if (parts.length === 2) {
+            const baseRoom = parts[0].trim(); // e.g., "GH 1420"
+            const suffix = parts[1].trim(); // e.g., "30", "B"
+            
+            // Add the base room
+            roomsWithRows.add(baseRoom);
+            
+            // Handle different merge patterns
+            if (suffix === '30') {
+              // 1420&30 case: show both 1420 and 1430
+              const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
+              if (roomNumber) {
+                const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
+                roomsWithRows.add(secondRoom);
+              }
+            } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
+              // A&B case: show both A and B variants
+              const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
+              roomsWithRows.add(`${baseRoomWithoutSuffix}A`);
+              roomsWithRows.add(`${baseRoomWithoutSuffix}B`);
             }
-          } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
-            // A&B case: show both A and B variants
-            const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
-            roomsWithRows.add(`${baseRoomWithoutSuffix}A`);
-            roomsWithRows.add(`${baseRoomWithoutSuffix}B`);
           }
         }
-      }
-    });
-    
-    // Filter to only include rooms that are in selectedRooms (after autohide/filtering)
-    const visibleRoomsWithRows = Array.from(roomsWithRows).filter(room => 
-      selectedRooms.includes(room)
-    );
-    
-    return visibleRoomsWithRows.length;
+      });
+      
+      // Filter to only include rooms that are in selectedRooms (after autohide/filtering)
+      const visibleRoomsWithRows = Array.from(roomsWithRows).filter(room => 
+        selectedRooms.includes(room)
+      );
+       
+      
+      return visibleRoomsWithRows.length;
+    } else {
+      // When autohide is OFF: just return the count of rooms from the current filter
+      const rowCount = selectedRooms.length;
+      
+      
+      return rowCount;
+    }
   };
 
 
@@ -243,7 +253,7 @@ export default function HomePage() {
   }
 
     return (
-    <div className="flex-col items-center justify-center p-1 px-2 2xl:px-14 3xl:px-12 min-h-screen relative gpu-optimized">
+    <div className="flex-col items-center justify-center p-1 px-2 2xl:px-14 3xl:px-24 min-h-screen relative gpu-optimized">
       {/* Bottom fade overlay for scrollable content */}
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-20" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)' }}></div>
              <AppHeader
@@ -337,7 +347,12 @@ export default function HomePage() {
         }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
           {hasFilteredEvents && (
-            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+            <VerticalLines 
+              startHour={startHour} 
+              endHour={endHour} 
+              pixelsPerMinute={pixelsPerMinute} 
+              actualRowCount={calculateActualRowCount()} 
+            />
           )}
           {hasFilteredEvents && (
             <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">

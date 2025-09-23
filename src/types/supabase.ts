@@ -121,6 +121,7 @@ export type Database = {
           left_source: string | null
           right_source: string | null
           setup_notes: string | null
+          setup_updated_at: string | null
           temperment: number | null
           timing: number | null
           twentyfivelive_name: string | null
@@ -141,6 +142,7 @@ export type Database = {
           left_source?: string | null
           right_source?: string | null
           setup_notes?: string | null
+          setup_updated_at?: string | null
           temperment?: number | null
           timing?: number | null
           twentyfivelive_name?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           left_source?: string | null
           right_source?: string | null
           setup_notes?: string | null
+          setup_updated_at?: string | null
           temperment?: number | null
           timing?: number | null
           twentyfivelive_name?: string | null

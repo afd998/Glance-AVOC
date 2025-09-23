@@ -3,6 +3,7 @@ import { Database } from '../../types/supabase';
 import { getAVResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 // import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
+import SetupOptions from './SetupOptions';
 import { FacultyAvatar } from '../FacultyAvatar';
 
 
@@ -133,121 +134,14 @@ export default function SessionSetup({
         <div className="space-y-4 sm:space-y-6">
           {/* Setup Options Group */}
           {instructorNames.length > 0 && facultyMember && (
-            <div className="backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 sm:p-4 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
-              <div className="space-y-4">
-                {/* Uses Microphone */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="relative m-0 p-0">
-                      <div className="absolute top-0 left-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-200 rounded-full"></div>
-                    <img 
-                      src="/lapel.png" 
-                      alt="Lapel microphone" 
-                        className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 object-cover m-0 p-0 scale-150 -top-3 sm:-top-4"
-                    />
-                    </div>
-                    <span className="text-sm sm:text-base text-black font-medium">Uses Microphone</span>
-                  </div>
-                  <label className="inline-flex items-center cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      className="hidden peer"
-                      checked={facultyMember.uses_mic || false}
-                      onChange={() => {
-                        if (!updateFacultyAttributes.isPending) {
-                          updateFacultyAttributes.mutate({
-                            twentyfiveliveName: primaryInstructorName,
-                            attributes: {
-                              timing: facultyMember.timing ?? 0,
-                              complexity: facultyMember.complexity ?? 0,
-                              temperment: facultyMember.temperment ?? 0,
-                              uses_mic: !facultyMember.uses_mic,
-                              left_source: facultyMember.left_source ?? '',
-                              right_source: facultyMember.right_source ?? ''
-                            }
-                          });
-                        }
-                      }}
-                      disabled={updateFacultyAttributes.isPending}
-                    />
-                    <span className={
-                      `w-6 h-6 flex items-center justify-center border-2 rounded transition-colors duration-150
-                      ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors[3]}`}
-                      ${updateFacultyAttributes.isPending ? 'opacity-60' : ''}`
-                    }>
-                      {updateFacultyAttributes.isPending ? (
-                        <span className="animate-spin w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full"></span>
-                      ) : facultyMember.uses_mic ? (
-                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                      ) : null}
-                    </span>
-                  </label>
-                </div>
-                
-                {(facultyMember.right_source || facultyMember.left_source) && (
-                  <div className="mt-6">
-                    <h4 className="text-base sm:text-lg font-medium text-black mb-3">Panel</h4>
-                    <div className="flex gap-3 sm:gap-4">
-                      {facultyMember.left_source && (
-                        <div className="flex-1">
-                          <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
-                          <button
-                            onClick={() => openPanelModal('left')}
-                            className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
-                            title="Click to change panel setup"
-                          >
-                            <img 
-                              src={`/panel-images/${facultyMember.left_source}.png`}
-                              alt={`Left panel setup for ${primaryInstructorName}`}
-                              className="max-w-full max-h-full object-contain"
-                              onError={(e) => {
-                                console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.left_source}.png</span>`;
-                              }}
-                              onLoad={(e) => {
-                                
-                              }}
-                            />
-                          </button>
-                          <p className="text-xs text-black text-center mt-2 font-medium">
-                            {facultyMember.left_source.replace(/_/g, ' ')}
-                          </p>
-                        </div>
-                      )}
-                      {facultyMember.right_source && (
-                        <div className="flex-1">
-                          <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
-                          <button
-                            onClick={() => openPanelModal('right')}
-                            className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
-                            title="Click to change panel setup"
-                          >
-                            <img 
-                              src={`/panel-images/${facultyMember.right_source}.png`}
-                              alt={`Right panel setup for ${primaryInstructorName}`}
-                              className="max-w-full max-h-full object-contain"
-                              onError={(e) => {
-                                console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.right_source}.png</span>`;
-                              }}
-                              onLoad={(e) => {
-                                
-                              }}
-                            />
-                          </button>
-                          <p className="text-xs text-black text-center mt-2 font-medium">
-                            {facultyMember.right_source.replace(/_/g, ' ')}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            )}
+            <SetupOptions
+              event={event}
+              facultyMember={facultyMember}
+              primaryInstructorName={primaryInstructorName}
+              updateFacultyAttributes={updateFacultyAttributes}
+              openPanelModal={openPanelModal}
+            />
+          )}
 
           {/* Attributes */}
           {/* {instructorNames.length > 0 && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (

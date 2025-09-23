@@ -70,13 +70,23 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     
     // Calculate the actual content dimensions
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
+    const actualContentHeight = (actualRowCount * 96) + 24; // 24px for TimeGrid (h-6 class)
+    
+    console.log('📏 Content Dimensions:', {
+      actualRowCount,
+      actualContentWidth,
+      actualContentHeight,
+      clientWidth,
+      clientHeight,
+      calculatedMaxScrollTop: Math.max(0, actualContentHeight - clientHeight + 8)
+    });
     
     // Calculate maximum scroll positions with iOS-specific adjustments
     // iOS Safari sometimes reports incorrect clientWidth/Height, so we add a small buffer
     const iosBuffer = 2; // Small buffer for iOS Safari viewport issues
+    const scrollBuffer = 8; // Additional buffer to ensure all content is accessible
     const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth + iosBuffer);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + iosBuffer);
+    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + iosBuffer + scrollBuffer);
     
     // Clamp the values with more lenient boundaries for iOS
     return {
@@ -102,12 +112,13 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     
     // Calculate the actual content dimensions
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
+    const actualContentHeight = (actualRowCount * 96) + 24; // 24px for TimeGrid (h-6 class)
     
     // Add tolerance for edge detection
     const tolerance = 20;
+    const scrollBuffer = 8; // Additional buffer to ensure all content is accessible
     const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
+    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + scrollBuffer);
     
     // Edge detection
     const newEdgeHighlight = {

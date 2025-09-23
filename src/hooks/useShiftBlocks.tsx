@@ -534,13 +534,13 @@ export function useCopyScheduleFromPreviousWeek() {
         if (blocksError) throw blocksError;
         
         if (sourceBlocks && sourceBlocks.length > 0) {
-          const blocksToInsert = sourceBlocks.map(block => ({
-            ...block,
-            id: undefined, // Let database generate new ID
-            date: targetDateString,
-            created_at: undefined,
-            updated_at: undefined
-          }));
+          const blocksToInsert = sourceBlocks.map(block => {
+            const { id, created_at, ...blockWithoutId } = block;
+            return {
+              ...blockWithoutId,
+              date: targetDateString
+            };
+          });
           
           const { error: insertBlocksError } = await supabase
             .from('shift_blocks')
@@ -558,13 +558,13 @@ export function useCopyScheduleFromPreviousWeek() {
         if (shiftsError) throw shiftsError;
         
         if (sourceShifts && sourceShifts.length > 0) {
-          const shiftsToInsert = sourceShifts.map(shift => ({
-            ...shift,
-            id: undefined, // Let database generate new ID
-            date: targetDateString,
-            created_at: undefined,
-            updated_at: undefined
-          }));
+          const shiftsToInsert = sourceShifts.map(shift => {
+            const { id, created_at, ...shiftWithoutId } = shift;
+            return {
+              ...shiftWithoutId,
+              date: targetDateString
+            };
+          });
           
           const { error: insertShiftsError } = await supabase
             .from('shifts')

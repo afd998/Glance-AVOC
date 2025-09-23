@@ -53,7 +53,8 @@ const updateFacultyAttributes = async ({ twentyfiveliveName, attributes }: Updat
       temperment: attributes.temperment,
       uses_mic: attributes.uses_mic,
       left_source: attributes.left_source,
-      right_source: attributes.right_source
+      right_source: attributes.right_source,
+      setup_updated_at: new Date().toISOString()
     })
     .eq('twentyfivelive_name', twentyfiveliveName)
     .select()
@@ -130,7 +131,8 @@ export const useUpdateFacultyAttributes = () => {
             temperment: variables.attributes.temperment,
             uses_mic: variables.attributes.uses_mic,
             left_source: variables.attributes.left_source,
-            right_source: variables.attributes.right_source
+            right_source: variables.attributes.right_source,
+            setup_updated_at: new Date().toISOString()
           };
         }
         return oldData;
@@ -151,7 +153,8 @@ export const useUpdateFacultyAttributes = () => {
                 temperment: variables.attributes.temperment,
                 uses_mic: variables.attributes.uses_mic,
                 left_source: variables.attributes.left_source,
-                right_source: variables.attributes.right_source
+                right_source: variables.attributes.right_source,
+                setup_updated_at: new Date().toISOString()
               };
             }
             return member;
