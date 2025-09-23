@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Event from '../Event/Event';
 import { Database } from '../../types/supabase';
 import { useRoom } from '../../hooks/useRoom';
@@ -30,6 +30,7 @@ export default function RoomRow({
   isLastRow = false 
 }: RoomRowProps) {
   const { currentTheme } = useTheme();
+  const [isHoveringRow, setIsHoveringRow] = useState(false);
   const roomText = room.replace(/^GH\s+/, '');
   // const roomSpelling = useRoom(room); // Commented out since we're not using spelling anymore
   
@@ -56,10 +57,16 @@ export default function RoomRow({
       style={{ 
         backgroundColor: isEvenRow ? 'rgba(180, 185, 190, 0.6)' : 'rgba(190, 195, 200, 0.6)' // closer gray shades
       }}
+      onMouseEnter={() => setIsHoveringRow(true)}
+      onMouseLeave={() => setIsHoveringRow(false)}
     >
       <div 
-        className={`sticky left-0 w-24 ${rowHeight} backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
-        style={{ zIndex: 50 }}
+        className={`sticky left-0 w-24 ${rowHeight} backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        style={{ 
+          zIndex: 50,
+          backgroundColor: isHoveringRow ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+          boxShadow: isHoveringRow ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+        }}
         data-room-label="true"
       >
         <span 
