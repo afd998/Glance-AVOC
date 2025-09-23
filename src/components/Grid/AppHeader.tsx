@@ -26,9 +26,8 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const showDatePicker = !isDragging;
-  // Simplified logic: always show buttons when modal is open, or when hovered and not dragging
-  const showOtherButtons = !isDragging && (isModalOpen || isHovered);
+  // Make the entire header invisible when not hovering (except when modal is open)
+  const showHeader = isHovered || isModalOpen;
 
   return (
     <div
@@ -57,7 +56,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10 text-black'
                   : 'bg-white/5 border-white/10 text-black hover:bg-white/10 dark:bg-white/20 dark:border-white/20 dark:text-black dark:hover:bg-white/25'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Go to today"
             >
               {/* Glassmorphic shine effect */}
@@ -82,7 +81,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Previous day"
             >
               <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +92,7 @@ export default function AppHeader({
 
           {/* DatePicker - always visible except when dragging */}
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showDatePicker ? 1 : 0, pointerEvents: showDatePicker ? 'auto' : 'none' }}>
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
               <DatePickerComponent
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
@@ -118,7 +117,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Next day"
             >
               <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,19 +127,19 @@ export default function AppHeader({
           </div>
 
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <AcademicCalendarInfo />
             </div>
           </div>
 
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <QuarterCount />
             </div>
           </div>
 
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
@@ -151,13 +150,13 @@ export default function AppHeader({
           </div>
 
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <NotificationBell />
             </div>
           </div>
 
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
@@ -185,7 +184,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10 text-black'
                   : 'bg-white/5 border-white/10 text-black hover:bg-white/10 dark:bg-white/20 dark:border-white/20 dark:text-black dark:hover:bg-white/25'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Go to today"
             >
               {/* Glassmorphic shine effect */}
@@ -210,7 +209,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Previous day"
             >
               <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,7 +220,7 @@ export default function AppHeader({
           
           {/* DatePicker - always visible except when dragging */}
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showDatePicker ? 1 : 0, pointerEvents: showDatePicker ? 'auto' : 'none' }}>
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
               <DatePickerComponent
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
@@ -246,7 +245,7 @@ export default function AppHeader({
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
               }`}
-              style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}
+              style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Next day"
             >
               <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,19 +256,19 @@ export default function AppHeader({
           
           {/* Row 2: MenuPanel, NotificationBell, QuarterCount */}
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}>
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
               <MenuPanel selectedDate={selectedDate} events={events} onModalClose={() => setIsModalOpen(false)} onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>
           
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }}>
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}>
               <NotificationBell />
             </div>
           </div>
           
           <div className="flex items-center justify-center">
-            <div style={{ opacity: showOtherButtons ? 1 : 0, pointerEvents: showOtherButtons ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
+            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
               <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
             </div>
           </div>

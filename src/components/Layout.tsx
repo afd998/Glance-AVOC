@@ -28,16 +28,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div
         className="fixed inset-0 -z-10"
         style={{
-          backgroundImage: currentBackground ? `url('/${currentBackground}')` : 'none',
-          backgroundSize: currentBackground === 'jaobscenter.jpeg' ? "cover" : "120% 120%",
-          backgroundRepeat: "no-repeat",
+          backgroundImage: currentBackground && currentBackground !== 'offwhite' ? `url('/${currentBackground}')` : 'none',
+          backgroundSize: currentBackground === 'jaobscenter.jpeg' ? "cover" : currentBackground === 'offwhite' ? "auto" : "120% 120%",
+          backgroundRepeat: currentBackground === 'offwhite' ? "repeat" : "no-repeat",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#9ca3af",
           filter: currentBackground
             ? currentBackground === 'halloween.png'
               ? "blur(4px)"
               : currentBackground === 'jaobscenter.jpeg'
+              ? "none"
+              : currentBackground === 'offwhite'
               ? "none"
               : "blur(8px)"
             : "none",

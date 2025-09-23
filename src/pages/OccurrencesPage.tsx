@@ -303,7 +303,7 @@ export default function OccurrencesPage() {
   }, [paletteHex]);
 
   const occurrencePosition = React.useMemo(() => {
-    if (!occurrences || !currentEvent) {
+    if (!occurrences || !Array.isArray(occurrences) || !currentEvent) {
       return null;
     }
     const index = occurrences.findIndex((occurrence) => occurrence.id === currentEvent.id);

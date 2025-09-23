@@ -6,6 +6,7 @@ import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
 import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
+import DateDisplay from "../components/Grid/DateDisplay";
 import { useEvents } from "../hooks/useEvents";
 import { useEventsPrefetch } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
@@ -242,7 +243,7 @@ export default function HomePage() {
   }
 
     return (
-    <div className="flex-col items-center justify-center p-4 min-h-screen relative">
+    <div className="flex-col items-center justify-center p-1 px-5 min-h-screen relative">
       {/* Bottom fade overlay for scrollable content */}
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-20" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)' }}></div>
              <AppHeader
@@ -251,8 +252,34 @@ export default function HomePage() {
          isLoading={isLoading}
          events={filteredEvents || []}
        />
+      {/* Sticky Date Display */}
+      <div className="fixed top-[3px] left-[17px] z-50">
+        <DateDisplay />
+      </div>
+      
+      {/* AVOC HOME text in bottom right corner */}
+      {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
+        <svg width="400" height="400" viewBox="-0 -100 250 120" style={{ transform: 'rotate(-65deg)' }}>
+          <defs>
+            <path id="avoc-curve" d="M 20 15 Q 105 100 230 20" />
+          </defs>
+          <text fontSize="20" fill="rgba(255,255,255,0.8)" fontWeight="bold">
+            <textPath href="#avoc-curve" startOffset="0%">
+              AVOC HOME
+            </textPath>
+          </text>
+        </svg>
+      </div> */}
+      
+      <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50">
+        <div className="text-4xl font-bold text-white/80 leading-none">AVOC</div>
+        <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
+      </div>
                           <DraggableGridContainer
-                            className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-md relative shadow-2xl"
+                            className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-tr rounded-bl relative shadow-2xl"
+                            style={{ 
+                              clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 60px) 100%, 0 100%)'
+                            }}
                             startHour={startHour}
                             endHour={endHour}
                             pixelsPerMinute={pixelsPerMinute}

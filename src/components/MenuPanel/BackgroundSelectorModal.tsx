@@ -62,6 +62,12 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
       name: 'Jacobs Center',
       preview: '/jaobscenter.jpeg',
       description: 'Jacobs Center background'
+    },
+    {
+      id: 'offwhite',
+      name: 'Off White',
+      preview: null, // No image preview for CSS background
+      description: 'Clean off-white CSS background'
     }
   ];
 
@@ -122,21 +128,38 @@ const BackgroundSelectorModal: React.FC<BackgroundSelectorModalProps> = ({
                 >
                   {/* Preview Image */}
                   <div className="relative h-24 rounded-t-xl overflow-hidden">
-                    <img
-                      src={option.preview}
-                      alt={option.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    {/* Fallback if image fails to load */}
-                    <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm ${
-                      isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'
-                    } hidden`}>
-                      <span className="text-xs opacity-60">Preview</span>
-                    </div>
+                    {option.preview ? (
+                      <>
+                        <img
+                          src={option.preview}
+                          alt={option.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        {/* Fallback if image fails to load */}
+                        <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm ${
+                          isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'
+                        } hidden`}>
+                          <span className="text-xs opacity-60">Preview</span>
+                        </div>
+                      </>
+                    ) : (
+                      /* CSS Background Preview */
+                      <div 
+                        className="w-full h-full flex items-center justify-center"
+                        style={{
+                          backgroundColor: '#9ca3af'
+                        }}
+                      >
+                        <div className="text-center">
+                          <div className="text-lg font-medium text-gray-600 mb-1">CSS</div>
+                          <div className="text-xs text-gray-500">Background</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Option Info */}

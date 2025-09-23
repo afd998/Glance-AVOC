@@ -51,7 +51,12 @@ export default function RoomRow({
 
 
   return (
-    <div className={`flex ${rowHeight} border-b border-white/60 dark:border-white/60 bg-gray-400/70 dark:bg-gray-800/70 overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}>
+    <div 
+      className={`flex ${rowHeight} overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
+      style={{ 
+        backgroundColor: isEvenRow ? 'rgba(180, 185, 190, 0.6)' : 'rgba(190, 195, 200, 0.6)' // closer gray shades
+      }}
+    >
       <div 
         className={`sticky left-0 w-24 ${rowHeight} backdrop-blur-sm border-r border-white/20 dark:border-white/10 flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ zIndex: 50 }}

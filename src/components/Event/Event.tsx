@@ -177,7 +177,9 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
         style={{
           transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
           transformOrigin: 'center center',
-          boxShadow: isHoveringEvent ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
+          boxShadow: isHoveringEvent 
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+            : '0 2px 8px rgba(0, 0, 0, 0.15)',
           ...(shouldBlink && { '--original-bg-color': originalColor }),
           ...(organization?.logo && {
             backgroundColor: 'white',

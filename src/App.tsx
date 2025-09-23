@@ -57,7 +57,6 @@ export default function App() {
             </LeavesProvider>
           </RainProvider>
         </ThemeProvider>
-        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </AuthProvider>
   );

@@ -11,7 +11,8 @@ const THEMES = {
   'Vista.avif': { isDark: false, name: 'Vista' },
   'halloween.png': { isDark: true, name: 'Halloween' },
   'Ryan Fieldhouse.jpg': { isDark: false, name: 'Ryan Fieldhouse' },
-  'jaobscenter.jpeg': { isDark: false, name: 'Jacobs Center' }
+  'jaobscenter.jpeg': { isDark: false, name: 'Jacobs Center' },
+  'offwhite': { isDark: false, name: 'Off White' }
 };
 
 export function ThemeProvider({ children }) {

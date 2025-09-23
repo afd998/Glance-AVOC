@@ -145,6 +145,7 @@ export default function EventDetail() {
     closeModal();
   };
 
+
   if (isLoading || !event) {
     return null;
   }
@@ -161,11 +162,11 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="relative  min-h-screen">
+    <div className="relative min-h-screen">
       {/* Close Button */}
       <button
         onClick={handleBack}
-        className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 backdrop-blur-sm bg-white/20 dark:bg-black/20 text-gray-600 dark:text-gray-300 rounded-full hover:bg-white/30 dark:hover:bg-black/30 border border-white/20 dark:border-white/10 transition-colors shadow-lg"
+        className="absolute top-4 right-4 z-20 flex items-center justify-center w-10 h-10 backdrop-blur-sm bg-white/20 dark:bg-black/20 text-gray-600 dark:text-gray-300 rounded-full hover:bg-white/30 dark:hover:bg-black/30 border border-white/20 dark:border-white/10 transition-colors shadow-lg"
         aria-label="Close"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +174,7 @@ export default function EventDetail() {
         </svg>
       </button>
 
-      <div className="p-4 sm:p-6">
+      <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-start gap-4">
             {/* Main Content */}
