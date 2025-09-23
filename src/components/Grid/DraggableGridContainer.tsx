@@ -141,7 +141,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
 
   // Drag-to-scroll handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !isDragEnabled) return;
     
     // Only start dragging if clicking on the background (not on events)
     const target = e.target as HTMLElement;
@@ -167,9 +167,9 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       document.body.style.userSelect = 'none';
     }
     
-    // Prevent default text selection behavior
+    // Only prevent default when we're actually starting a drag
     e.preventDefault();
-  }, []);
+  }, [isDragEnabled]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
@@ -233,6 +233,34 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     // Clear edge highlights immediately when dragging stops
     setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, [isDragEnabled]);
+
+  // Handle wheel events for normal scrolling
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (!containerRef.current) return;
+    
+    // Allow normal wheel scrolling
+    e.preventDefault();
+    
+    const container = containerRef.current;
+    const { scrollLeft, scrollTop } = container;
+    
+    // Calculate new scroll position
+    const newScrollLeft = scrollLeft + e.deltaX;
+    const newScrollTop = scrollTop + e.deltaY;
+    
+    // Clamp scroll position
+    const clampedPosition = clampScrollPosition(newScrollLeft, newScrollTop);
+    container.scrollLeft = clampedPosition.scrollLeft;
+    container.scrollTop = clampedPosition.scrollTop;
+    
+    // Notify parent of scroll position change
+    if (onScrollPositionChange) {
+      onScrollPositionChange({
+        left: clampedPosition.scrollLeft,
+        top: clampedPosition.scrollTop
+      });
+    }
+  }, [clampScrollPosition, onScrollPositionChange]);
 
   // Touch support for mobile devices
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -343,6 +371,18 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       document.body.style.userSelect = '';
     };
   }, []);
+
+  // Add wheel event listener
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleWheel]);
 
   return (
     <div className="relative">
