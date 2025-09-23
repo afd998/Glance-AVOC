@@ -72,14 +72,16 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
     const actualContentHeight = (actualRowCount * 96) + 32; // 32px for TimeGrid
     
-    // Calculate maximum scroll positions
-    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight);
+    // Calculate maximum scroll positions with iOS-specific adjustments
+    // iOS Safari sometimes reports incorrect clientWidth/Height, so we add a small buffer
+    const iosBuffer = 2; // Small buffer for iOS Safari viewport issues
+    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth + iosBuffer);
+    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + iosBuffer);
     
-    // Clamp the values
+    // Clamp the values with more lenient boundaries for iOS
     return {
-      scrollLeft: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
-      scrollTop: Math.max(0, Math.min(scrollTop, maxScrollTop))
+      scrollLeft: Math.max(-iosBuffer, Math.min(scrollLeft, maxScrollLeft)),
+      scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop))
     };
   }, [endHour, startHour, pixelsPerMinute, actualRowCount]);
 
@@ -230,6 +232,11 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       return;
     }
     
+    // Check if this is a single touch (not multi-touch)
+    if (e.touches.length !== 1) {
+      return;
+    }
+    
     setIsDragging(true);
     const touch = e.touches[0];
     setDragStart({
@@ -239,12 +246,21 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       scrollTop: containerRef.current.scrollTop
     });
     
+    // Add momentum scrolling class for iOS
+    if (containerRef.current) {
+      containerRef.current.classList.add('momentum-scrolling');
+    }
+    
     e.preventDefault();
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging || !containerRef.current) return;
-    e.preventDefault();
+    
+    // Only prevent default if we have a single touch
+    if (e.touches.length === 1) {
+      e.preventDefault();
+    }
     
     const currentTime = Date.now();
     
@@ -258,8 +274,9 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const x = touch.pageX - containerRef.current.offsetLeft;
     const y = touch.pageY - containerRef.current.offsetTop;
     
-    const walkX = (x - dragStart.x) * 2;
-    const walkY = (y - dragStart.y) * 2;
+    // Reduce sensitivity for touch to prevent jittery scrolling
+    const walkX = (x - dragStart.x) * 1.5;
+    const walkY = (y - dragStart.y) * 1.5;
     const newScrollLeft = dragStart.scrollLeft - walkX;
     const newScrollTop = dragStart.scrollTop - walkY;
     
@@ -282,6 +299,28 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
+    
+    // Remove momentum scrolling class after a delay to allow for momentum
+    if (containerRef.current) {
+      setTimeout(() => {
+        if (containerRef.current) {
+          containerRef.current.classList.remove('momentum-scrolling');
+        }
+      }, 100);
+    }
+    
+    // Clear edge highlights immediately when dragging stops
+    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
+  }, []);
+
+  const handleTouchCancel = useCallback(() => {
+    setIsDragging(false);
+    
+    // Remove momentum scrolling class immediately on cancel
+    if (containerRef.current) {
+      containerRef.current.classList.remove('momentum-scrolling');
+    }
+    
     // Clear edge highlights immediately when dragging stops
     setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, []);
@@ -341,6 +380,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
       >
         {children}
       </div>

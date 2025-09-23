@@ -54,7 +54,7 @@ export default function AppHeader({
               className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer relative overflow-hidden ${
                 isLoading
                   ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10 text-black'
-                  : 'bg-white/5 border-white/10 text-black hover:bg-white/10 dark:bg-white/20 dark:border-white/20 dark:text-black dark:hover:bg-white/25'
+                  : 'bg-white/5 border-white/10 text-black hover:backdrop-blur-sm dark:border-white/20 dark:text-black dark:hover:bg-white/25'
               }`}
               style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Go to today"
@@ -182,7 +182,7 @@ export default function AppHeader({
               className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer relative overflow-hidden ${
                 isLoading
                   ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10 text-black'
-                  : 'bg-white/5 border-white/10 text-black hover:bg-white/10 dark:bg-white/20 dark:border-white/20 dark:text-black dark:hover:bg-white/25'
+                  : 'bg-white/5 border-white/10 text-black hover:backdrop-blur-sm dark:border-white/20 dark:text-black dark:hover:bg-white/25'
               }`}
               style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
               aria-label="Go to today"

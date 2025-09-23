@@ -168,9 +168,7 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
     >
       <div
         className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
-          shouldBlink
-            ? 'animate-[blink-red-custom_6s_ease-in-out_infinite]' 
-            : organization?.logo
+          organization?.logo
             ? '' // Don't apply gradient class when we have an organization logo
             : gradientClass
         } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded ${isShortLecture ? 'px-1' : 'px-2'} ${isMergedRoomEvent ? 'pt-2 pb-2' : 'pt-5 pb-1'}`}
@@ -180,7 +178,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
           boxShadow: isHoveringEvent 
             ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
             : '0 2px 8px rgba(0, 0, 0, 0.15)',
-          ...(shouldBlink && { '--original-bg-color': originalColor }),
           ...(organization?.logo && {
             backgroundColor: 'white',
             backgroundImage: `url(${organization.logo})`,
@@ -217,29 +214,27 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass)}`}
+          className={`absolute pointer-events-none ${event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass}`}
           style={{
             left: event.event_type === 'KEC' ? `${maxVisibleWidthPx}px` : `${maxVisibleWidthPx}px`,
             top: event.event_type === 'KEC' ? 'calc(50%  - 88px)' : '50%',
             transform: 'translateY(-50%)',
             width: `${continuationWidth}px`,
             height: '2px',
-            zIndex: -1,
-            ...(shouldBlink && { '--original-bg-color': originalColor })
+            zIndex: -1
           }}
         />
       )}
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
-          className={`absolute pointer-events-none ${shouldBlink ? 'animate-[blink-red-custom-slow_4s_ease-in-out_infinite]' : (event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass)}`}
+          className={`absolute pointer-events-none ${event.event_type === 'KEC' ? 'kec-continuation-line' : gradientClass}`}
           style={{
             left: `${maxVisibleWidthPx + continuationWidth}px`,
             top: event.event_type === 'KEC' ? '-90px' : 0,
             width: '2px',
             height: '100%',
-            zIndex: -1,
-            ...(shouldBlink && { '--original-bg-color': originalColor })
+            zIndex: -1
           }}
         />
       )}

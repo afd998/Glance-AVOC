@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { RainProvider } from './contexts/RainContext';
 import { LeavesProvider } from './contexts/LeavesContext';
 import { SnowProvider } from './contexts/SnowContext';
+import performanceMonitor from './utils/performanceMonitor';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';

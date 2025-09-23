@@ -39,7 +39,7 @@ export default function DateDisplay({ className = '', style = {} }: DateDisplayP
 
   return (
     <div 
-      className={`inline-block text-left text-xs font-medium text-white px-2 py-1 ${className}`}
+      className={`inline-block text-left text-xs font-medium text-white px-2 py-1 bg-black/30 rounded-md ${className}`}
       style={style}
     >
       {displayDate}

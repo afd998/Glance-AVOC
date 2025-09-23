@@ -284,6 +284,30 @@ body {
   display: none; /* WebKit browsers (Chrome, Safari, Edge) */
 }
 
+/* GPU Performance Optimization for Multi-Monitor Setups */
+.gpu-optimized {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  isolation: isolate;
+  will-change: auto;
+}
+
+/* Reduce backdrop blur performance impact */
+.backdrop-blur-reduced {
+  backdrop-filter: blur(4px) saturate(120%);
+  -webkit-backdrop-filter: blur(4px) saturate(120%);
+}
+
+/* Alternative to backdrop blur for better performance */
+.solid-bg-fallback {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dark .solid-bg-fallback {
+  background: rgba(17, 24, 39, 0.9);
+}
+
 /* Performance optimizations for smooth scrolling */
 .grid-container {
   contain: layout style paint;
@@ -291,12 +315,27 @@ body {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
+  /* iOS-specific optimizations */
+  -webkit-overflow-scrolling: touch;
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  /* GPU performance optimizations for multi-monitor setups */
+  isolation: isolate;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .grid-container.dragging,
 .grid-container.momentum-scrolling {
   will-change: scroll-position;
   transform: translate3d(0, 0, 0);
+  /* Enhanced iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+  -webkit-transform: translate3d(0, 0, 0);
+  /* Prevent iOS bounce scrolling on the container */
+  overscroll-behavior: contain;
+  -webkit-overscroll-behavior: contain;
 }
 
 code {
@@ -336,8 +375,8 @@ code {
 
 /* Enhanced DatePicker Glassmorphism Styles */
 .react-datepicker-glassmorphism {
-  backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
   border-radius: 1.5rem !important;
   box-shadow: 
     0 32px 64px -12px rgba(0, 0, 0, 0.25),
@@ -373,8 +412,8 @@ code {
     0 0 0 1px rgba(255, 255, 255, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(32px) saturate(200%) brightness(0.9) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(0.9) !important;
+  backdrop-filter: blur(8px) saturate(150%) brightness(0.95) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(0.95) !important;
   animation: glassmorphism-float-dark 6s ease-in-out infinite !important;
   transform: scale(1.4) !important;
   transform-origin: center center !important;
@@ -643,8 +682,8 @@ code {
     rgba(255, 255, 255, 0.25) 0%, 
     rgba(248, 250, 252, 0.15) 50%,
     rgba(255, 255, 255, 0.08) 100%) !important;
-  backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+  backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
   animation: glassmorphism-float 6s ease-in-out infinite !important;
   transform: scale(1.4) !important;
   transform-origin: center center !important;
@@ -812,8 +851,8 @@ code {
     rgba(248, 250, 252, 0.1) 50%,
     rgba(255, 255, 255, 0.05) 100%) !important;
   border-radius: 1.5rem !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  backdrop-filter: blur(6px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(130%) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
@@ -910,8 +949,8 @@ code {
 
 /* Academic Calendar Tooltip Styles */
 .academic-tooltip {
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  backdrop-filter: blur(6px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(130%) !important;
   border-radius: 0.75rem !important;
   box-shadow: 
     0 20px 40px -12px rgba(0, 0, 0, 0.25),

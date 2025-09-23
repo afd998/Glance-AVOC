@@ -243,7 +243,7 @@ export default function HomePage() {
   }
 
     return (
-    <div className="flex-col items-center justify-center p-1 px-5 min-h-screen relative">
+    <div className="flex-col items-center justify-center p-1 px-2 2xl:px-14 3xl:px-12 min-h-screen relative gpu-optimized">
       {/* Bottom fade overlay for scrollable content */}
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-20" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)' }}></div>
              <AppHeader
@@ -275,58 +275,104 @@ export default function HomePage() {
         <div className="text-4xl font-bold text-white/80 leading-none">AVOC</div>
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
       </div>
-                          <DraggableGridContainer
-                            className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] overflow-auto rounded-tr rounded-bl relative shadow-2xl"
-                            style={{ 
-                              clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 60px) 100%, 0 100%)'
-                            }}
-                            startHour={startHour}
-                            endHour={endHour}
-                            pixelsPerMinute={pixelsPerMinute}
-                            actualRowCount={calculateActualRowCount()}
-                            isDragEnabled={isDragEnabled}
-                          >
-                            <div className="min-w-max relative" style={{ 
-                              width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
-                              minHeight: '100%' // Ensure content fills the full height
-                            }}>
-                              <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-                              {hasFilteredEvents && (
-                                <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-                              )}
-                              {hasFilteredEvents && (
-                                <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
-                                  <CurrentTimeIndicator
-                                    startHour={startHour}
-                                    endHour={endHour}
-                                    pixelsPerMinute={pixelsPerMinute}
-                                  />
-                                </div>
-                              )}
-                              {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
-                                const roomEvents = getFilteredEventsForRoomCallback(room);
-                                const currentFloor = room.match(/GH (\d)/)?.[1];
-                                const nextRoom = selectedRooms[index + 1];
-                                const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
-                                const isFloorBreak = currentFloor !== nextFloor;
-                                const isLastRow = index === selectedRooms.length - 1;
-                                return (
-                                  <RoomRow
-                                    key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
-                                    room={room}
-                                    roomEvents={roomEvents}
-                                    startHour={startHour}
-                                    pixelsPerMinute={pixelsPerMinute}
-                                    rooms={selectedRooms}
-                                    isFloorBreak={isFloorBreak}
-                                    onEventClick={handleEventClick}
-                                    isEvenRow={index % 2 === 0}
-                                    isLastRow={isLastRow}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </DraggableGridContainer>
+      
+      {/* Navigation Arrows - Only show on xl and larger screens */}
+      {/* Previous Day Button - Left Side */}
+      <button
+        onClick={() => {
+          const newDate = new Date(selectedDate);
+          newDate.setDate(newDate.getDate() - 1);
+          newDate.setHours(0, 0, 0, 0);
+          handleDateChange(newDate);
+        }}
+        disabled={isLoading}
+        className={`!hidden xl:!flex fixed left-4 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center bg-gray-100/40 dark:bg-gray-700/40 backdrop-blur-sm border border-gray-300/30 dark:border-gray-600/30 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] z-50 ${
+          isLoading
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
+        }`}
+        aria-label="Previous day"
+      >
+        <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* Next Day Button - Right Side */}
+      <button
+        onClick={() => {
+          const newDate = new Date(selectedDate);
+          newDate.setDate(newDate.getDate() + 1);
+          newDate.setHours(0, 0, 0, 0);
+          handleDateChange(newDate);
+        }}
+        disabled={isLoading}
+        className={`!hidden xl:!flex fixed right-4 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center bg-gray-100/40 dark:bg-gray-700/40 backdrop-blur-sm border border-gray-300/30 dark:border-gray-600/30 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] z-50 ${
+          isLoading
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:bg-gray-200/50 dark:hover:bg-gray-600/50 hover:scale-105 active:scale-95'
+        }`}
+        aria-label="Next day"
+      >
+        <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      {/* Grid Container */}
+      <DraggableGridContainer
+        className="grid-container h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-tr rounded-bl relative shadow-2xl"
+        style={{ 
+          clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 60px) 100%, 0 100%)'
+        }}
+        startHour={startHour}
+        endHour={endHour}
+        pixelsPerMinute={pixelsPerMinute}
+        actualRowCount={calculateActualRowCount()}
+        isDragEnabled={isDragEnabled}
+      >
+        <div className="min-w-max relative" style={{ 
+          width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
+          minHeight: '100%' // Ensure content fills the full height
+        }}>
+          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+          {hasFilteredEvents && (
+            <VerticalLines startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
+          )}
+          {hasFilteredEvents && (
+            <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+              <CurrentTimeIndicator
+                startHour={startHour}
+                endHour={endHour}
+                pixelsPerMinute={pixelsPerMinute}
+              />
+            </div>
+          )}
+          {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
+            const roomEvents = getFilteredEventsForRoomCallback(room);
+            const currentFloor = room.match(/GH (\d)/)?.[1];
+            const nextRoom = selectedRooms[index + 1];
+            const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
+            const isFloorBreak = currentFloor !== nextFloor;
+            const isLastRow = index === selectedRooms.length - 1;
+            return (
+              <RoomRow
+                key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
+                room={room}
+                roomEvents={roomEvents}
+                startHour={startHour}
+                pixelsPerMinute={pixelsPerMinute}
+                rooms={selectedRooms}
+                isFloorBreak={isFloorBreak}
+                onEventClick={handleEventClick}
+                isEvenRow={index % 2 === 0}
+                isLastRow={isLastRow}
+              />
+            );
+          })}
+        </div>
+      </DraggableGridContainer>
+
       {/* Absolutely positioned no-events message */}
       {!hasFilteredEvents && !isLoading && !roomsLoading && (
         <NoEventsMessage onClearFilter={handleClearFilter} />
