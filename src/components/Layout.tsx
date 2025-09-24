@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div
         className="fixed inset-0 -z-5 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at center, rgba(255, 255, 255, 1.0) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%)',
+          background: 'radial-gradient(circle at center, rgba(255, 255, 255, 1.0) 0%, rgba(255, 255, 250, 0.9) 20%, rgba(255, 250, 240, 0.7) 40%, rgba(255, 240, 220, 0.5) 60%, transparent 80%)',
           mixBlendMode: 'screen'
         }}
       />

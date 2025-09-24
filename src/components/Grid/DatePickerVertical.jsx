@@ -6,8 +6,8 @@ import { useAcademicCalendarRange, getAcademicEventsForDate } from '../../hooks/
 import { Info } from 'lucide-react';
 import "react-datepicker/dist/react-datepicker.css";
 
-// Custom date formatter function
-const formatDate = (date) => {
+// Custom date formatter function for vertical display
+const formatDateVertical = (date) => {
   const month = date.getMonth(); // 0-indexed, so October is 9
   const day = date.getDate();
   
@@ -16,21 +16,26 @@ const formatDate = (date) => {
     return "Halloween";
   }
   
-  // Default format for other dates
-  const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  // For vertical display, show each part on its own line
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const monthAbbr = date.toLocaleDateString('en-US', { month: 'short' });
+  const dayNum = date.getDate().toString();
+  const yearNum = date.getFullYear().toString();
+  
+  // Return each part on its own line with explicit line breaks
+  return weekday + '\n' + monthAbbr + '\n' + dayNum + '\n' + yearNum;
 };
 
-const CustomInput = React.forwardRef(({ value, onClick, disabled, selectedDate }, ref) => {
-  // Format the date using our custom formatter
-  const displayValue = selectedDate ? formatDate(selectedDate) : value;
+const CustomInputVertical = React.forwardRef(({ value, onClick, disabled, selectedDate }, ref) => {
+  
+  const displayValue = selectedDate ? formatDateVertical(selectedDate) : value;
   
   // Check if the value is "Halloween" to apply special styling
   const isHalloween = displayValue === "Halloween";
   
   return (
     <button
-      className={`w-32 sm:w-48 h-12 px-2 py-1 sm:px-4 sm:py-2 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-sm sm:text-lg font-semibold ${
+      className={`w-12 h-48 px-1 py-2 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-xs font-semibold flex items-center justify-center ${
         disabled
           ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/40 dark:bg-gray-700/40 text-gray-500 dark:text-gray-300'
           : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/40 dark:bg-gray-700/40 text-gray-700 dark:text-gray-200 hover:border-gray-400/50 dark:hover:border-gray-400/50 hover:bg-gray-200/50 dark:hover:bg-gray-600/50'
@@ -39,9 +44,11 @@ const CustomInput = React.forwardRef(({ value, onClick, disabled, selectedDate }
       ref={ref}
       disabled={disabled}
     >
-      <div style={isHalloween ? { fontFamily: 'HalloweenInline' } : {}}>
-        {displayValue}
-      </div>
+      <div 
+        style={isHalloween ? { fontFamily: 'HalloweenInline' } : {}}
+        className="vertical-text"
+        dangerouslySetInnerHTML={{ __html: displayValue.replace(/\n/g, '<br>') }}
+      />
     </button>
   );
 });
@@ -52,26 +59,13 @@ const AcademicTooltip = ({ events, isDarkMode }) => {
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
 
-  if (events.length === 0) return null;
-
   const handleMouseEnter = () => {
     if (iconRef.current) {
-      // Get the date cell (parent of the icon)
-      const dateCell = iconRef.current.closest('.react-datepicker__day');
-      if (dateCell) {
-        const rect = dateCell.getBoundingClientRect();
-        setTooltipPosition({
-          top: rect.top - 8,
-          left: rect.left + (rect.width / 2) - 100 // Center tooltip over the date cell
-        });
-      } else {
-        // Fallback to icon position
-        const rect = iconRef.current.getBoundingClientRect();
-        setTooltipPosition({
-          top: rect.top - 8,
-          left: rect.left - 100
-        });
-      }
+      const rect = iconRef.current.getBoundingClientRect();
+      setTooltipPosition({
+        top: rect.top - 10,
+        left: rect.right + 10
+      });
     }
     setIsVisible(true);
   };
@@ -144,7 +138,7 @@ const AcademicTooltip = ({ events, isDarkMode }) => {
   );
 };
 
-const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading, onCalendarOpen, onCalendarClose }) => {
+const DatePickerVertical = ({ selectedDate, setSelectedDate, isLoading, onCalendarOpen, onCalendarClose }) => {
   const { isDarkMode } = useTheme();
 
   // Create a new date object for the DatePicker
@@ -169,68 +163,27 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading, onCalen
   // Custom day renderer to show "Today" on the actual current date and academic calendar info
   const renderDayContents = (day, date) => {
     const today = new Date();
-    const isActualToday = date.toDateString() === today.toDateString();
-    const dayAcademicEvents = getAcademicEventsForDate(academicEvents, date);
-    const hasAcademicEvents = dayAcademicEvents.length > 0;
+    const isToday = date.toDateString() === today.toDateString();
     
-    if (isActualToday) {
-      return (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          height: '100%',
-          width: '100%',
-          position: 'relative'
-        }}>
-          <div style={{ 
-            fontSize: '1.3rem', 
-            fontWeight: 'bold',
-            lineHeight: '1',
-            color: '#ffffff'
-          }}>{day}</div>
-          <div style={{ 
-            fontSize: '0.5rem', 
-            marginTop: '1px',
-            lineHeight: '1',
-            opacity: '0.8'
-          }}>Today</div>
-          {hasAcademicEvents && (
-            <AcademicTooltip events={dayAcademicEvents} isDarkMode={isDarkMode} />
-          )}
-        </div>
-      );
-    }
+    // Get academic events for this date
+    const dayEvents = getAcademicEventsForDate(academicEvents, date);
+    const hasAcademicEvents = dayEvents.length > 0;
     
-    if (hasAcademicEvents) {
-      return (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          height: '100%',
-          width: '100%',
-          position: 'relative'
-        }}>
-          <div style={{ 
-            fontSize: '1.3rem', 
-            fontWeight: 'bold',
-            lineHeight: '1',
-            color: '#ffffff'
-          }}>{day}</div>
-          <AcademicTooltip events={dayAcademicEvents} isDarkMode={isDarkMode} />
-        </div>
-      );
-    }
-    
-    return day;
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <span className={isToday ? 'font-bold text-blue-600 dark:text-blue-400' : ''}>
+          {day}
+        </span>
+        {hasAcademicEvents && (
+          <AcademicTooltip events={dayEvents} isDarkMode={isDarkMode} />
+        )}
+      </div>
+    );
   };
 
-  // Custom CSS classes for glassmorphism
+  // Custom popper class for glassmorphism effect
   const customPopperClassName = isDarkMode 
-    ? "z-[9999] react-datepicker-dark react-datepicker-glassmorphism" 
+    ? "z-[9999] react-datepicker-glassmorphism-dark" 
     : "z-[9999] react-datepicker-glassmorphism";
 
   return (
@@ -238,10 +191,10 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading, onCalen
       <DatePicker
         selected={displayDate}
         onChange={handleDateChange}
-        customInput={<CustomInput disabled={isLoading} selectedDate={displayDate} />}
+        customInput={<CustomInputVertical disabled={isLoading} selectedDate={displayDate} />}
         dateFormat="EEE, MMM d, yyyy"
         popperClassName={customPopperClassName}
-        popperPlacement="bottom-start"
+        popperPlacement="right-start"
         popperModifiers={[
           {
             name: "preventOverflow",
@@ -263,4 +216,4 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading, onCalen
   );
 };
 
-export default DatePickerComponent; 
+export default DatePickerVertical;

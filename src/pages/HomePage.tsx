@@ -5,6 +5,9 @@ import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
 import RoomRow from "../components/Grid/RoomRow";
 import VerticalLines from "../components/Grid/VerticalLines";
 import AppHeader from "../components/Grid/AppHeader";
+import AppHeaderVertical from "../components/Grid/AppHeaderVertical";
+import { NotificationBell } from "../components/Grid/NotificationBell";
+import MenuPanel from "../components/MenuPanel/MenuPanel";
 import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
 import DateDisplay from "../components/Grid/DateDisplay";
 import { useEvents } from "../hooks/useEvents";
@@ -255,14 +258,42 @@ export default function HomePage() {
   }
 
     return (
-    <div className="flex-col items-center justify-center p-1  min-h-screen relative gpu-optimized">
-             <AppHeader
-         selectedDate={selectedDate}
-         setSelectedDate={handleDateChange}
-         isLoading={isLoading}
-         events={filteredEvents || []}
-         onHoverChange={setIsHeaderHovered}
-       />
+    <div className="flex items-start justify-center p-1 min-h-screen relative gpu-optimized">
+      {/* Vertical Header - positioned to the left */}
+      <AppHeaderVertical
+        selectedDate={selectedDate}
+        setSelectedDate={handleDateChange}
+        isLoading={isLoading}
+        events={filteredEvents || []}
+        onHoverChange={setIsHeaderHovered}
+      />
+      
+      {/* Main content area - offset to account for vertical header on 2xl+ screens */}
+      <div className="flex-1 2xl:ml-20 w-full max-w-full overflow-hidden">
+             {/* Original AppHeader - shown on screens smaller than 2xl */}
+             <div className="2xl:hidden">
+               <AppHeader
+                 selectedDate={selectedDate}
+                 setSelectedDate={handleDateChange}
+                 isLoading={isLoading}
+                 events={filteredEvents || []}
+                 onHoverChange={setIsHeaderHovered}
+               />
+             </div>
+             
+             {/* Menu Panel and Notification Bell - shown on 2xl+ screens */}
+             <div 
+               className="hidden 2xl:flex fixed top-4 right-4 z-[9998] gap-2"
+               onMouseEnter={() => setIsHeaderHovered(true)}
+               onMouseLeave={() => setIsHeaderHovered(false)}
+             >
+               <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
+                 <NotificationBell />
+               </div>
+               <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
+                 <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} onModalClose={() => {}} onModalOpen={() => {}} />
+               </div>
+             </div>
       
       {/* AVOC HOME text in bottom right corner */}
       {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
@@ -278,14 +309,14 @@ export default function HomePage() {
         </svg>
       </div> */}
       
-      <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50">
+      <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50 2xl:hidden">
         <div className="text-4xl font-bold text-white/80 leading-none">AVOC</div>
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
       </div>
       
       {/* Navigation Arrows - Only show on xl and larger screens */}
-      {/* Previous Day Button - Left Side */}
-      <button
+      {/* Previous Day Button - Left Side - Commented out since we have vertical header */}
+      {/* <button
         onClick={() => {
           const newDate = new Date(selectedDate);
           newDate.setDate(newDate.getDate() - 1);
@@ -303,7 +334,7 @@ export default function HomePage() {
         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-      </button>
+      </button> */}
 
       {/* Next Day Button - Right Side */}
       <button
@@ -328,7 +359,7 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container mx-0 md:mx-1 2xl:mx-20 3xl:mx-24 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
+          className="grid-container mx-0 md:mx-1 2xl:mx-0 3xl:mx-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
@@ -425,8 +456,7 @@ export default function HomePage() {
       {isFacultyDetailModalRoute && (
         <FacultyDetailModal />
       )}
-
-
+      </div> {/* Close main content area div */}
     </div>
   );
 }
