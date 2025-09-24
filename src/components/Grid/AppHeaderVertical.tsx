@@ -5,9 +5,11 @@ import AcademicCalendarInfo from './AcademicCalendarInfo';
 import CurrentFilterLink from './CurrentFilterLink';
 import CurrentFilterLinkVertical from './CurrentFilterLinkVertical';
 import MenuPanel from '../MenuPanel/MenuPanel';
+import FilterRoomsModal from '../MenuPanel/FilterRoomsModal';
 import { NotificationBell } from './NotificationBell';
 import QuarterCount from './QuarterCount';
 import QuarterCountVertical from './QuarterCountVertical';
+import useModalStore from '../../stores/modalStore';
 import { Database } from '../../types/supabase';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -30,6 +32,7 @@ export default function AppHeaderVertical({
   onHoverChange
 }: AppHeaderVerticalProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
 
   return (
     <div
@@ -145,6 +148,15 @@ export default function AppHeaderVertical({
         </div>
 
       </div>
+      
+      {/* Filter Rooms Modal */}
+      <FilterRoomsModal
+        isOpen={isFilterRoomsModalOpen}
+        onClose={() => {
+          closeFilterRoomsModal();
+          setIsModalOpen(false);
+        }}
+      />
     </div>
   );
 }
