@@ -33,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           backgroundRepeat: currentBackground === 'offwhite' ? "repeat" : "no-repeat",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
-          backgroundColor: "#9ca3af",
+          backgroundColor: "#000000",
           filter: currentBackground
             ? currentBackground === 'halloween.png'
               ? "blur(4px)"
@@ -46,6 +46,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           transform: "translateZ(0)"
         }}
         id="parallax-background"
+      />
+      
+      {/* Center Light Effect */}
+      <div
+        className="fixed inset-0 -z-5 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(255, 255, 255, 1.0) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%)',
+          mixBlendMode: 'screen'
+        }}
       />
       
       {/* Rain Overlay */}

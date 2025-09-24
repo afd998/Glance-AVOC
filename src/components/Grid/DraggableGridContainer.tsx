@@ -24,7 +24,7 @@ interface DragStart {
   y: number;
   scrollLeft: number;
   scrollTop: number;
-}
+};
 
 const THROTTLE_INTERVAL = 16; // ~60fps
 const EDGE_HIGHLIGHT_THROTTLE = 50; // Update edge highlights less frequently
@@ -386,7 +386,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
 
   return (
     <div className="relative">
-      {/* Edge highlighting overlays - positioned outside the scrollable container */}
+      {/* Edge highlighting overlays - temporarily commented out 
       {edgeHighlight.top && (
         <div className="absolute -top-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
              style={{
@@ -415,6 +415,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
                background: 'rgba(255, 255, 255, 0.1)'
              }} />
       )}
+      */}
       
       {/* The actual scrollable container */}
       <div 

@@ -30,7 +30,7 @@ const CustomInput = React.forwardRef(({ value, onClick, disabled, selectedDate }
   
   return (
     <button
-      className={`w-40 sm:w-64 h-12 px-2 py-1 sm:px-4 sm:py-2 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-base sm:text-lg font-semibold ${
+      className={`w-48 sm:w-80 h-16 px-3 py-2 sm:px-6 sm:py-3 border backdrop-blur-sm rounded-xl shadow-lg focus:outline-none transition-all duration-200 hover:shadow-xl hover:scale-[1.02] text-xl sm:text-2xl font-semibold ${
         disabled
           ? 'opacity-50 cursor-not-allowed border-gray-300/50 dark:border-gray-600/50 bg-gray-100/40 dark:bg-gray-700/40 text-gray-500 dark:text-gray-300'
           : 'border-gray-300/50 dark:border-gray-600/50 bg-gray-100/40 dark:bg-gray-700/40 text-gray-700 dark:text-gray-200 hover:border-gray-400/50 dark:hover:border-gray-400/50 hover:bg-gray-200/50 dark:hover:bg-gray-600/50'

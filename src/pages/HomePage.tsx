@@ -296,7 +296,7 @@ export default function HomePage() {
         className={`!hidden xl:!flex fixed left-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
           isLoading
             ? 'opacity-20 cursor-not-allowed'
-            : 'hover:opacity-60 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:scale-105 active:scale-95'
+            : 'hover:opacity-60  hover:scale-150 active:scale-95'
         }`}
         aria-label="Previous day"
       >
@@ -317,7 +317,7 @@ export default function HomePage() {
         className={`!hidden xl:!flex fixed right-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
           isLoading
             ? 'opacity-20 cursor-not-allowed'
-            : 'hover:opacity-60 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:scale-105 active:scale-95'
+            : 'hover:opacity-60 h hover:scale-150 active:scale-95'
         }`}
         aria-label="Next day"
       >
@@ -328,11 +328,9 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container  mx-8 2xl:mx-16 3xl:mx-24 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
+          className="grid-container mx-0 md:mx-1 2xl:mx-20 3xl:mx-24 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
           style={{ 
-            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)',
-            WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 5%)',
-            maskImage: 'linear-gradient(to top, transparent 0%, black 5%)'
+            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
         startHour={startHour}
         endHour={endHour}

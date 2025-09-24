@@ -285,6 +285,12 @@ export default function OccurrencesPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Filter out the current event to show only "other" occurrences
+  const otherOccurrences = React.useMemo(() => {
+    if (!occurrences || !eventId) return [];
+    return occurrences.filter(event => event.id !== parseInt(eventId, 10));
+  }, [occurrences, eventId]);
+
   const paletteHex = React.useMemo(() => {
     if (!currentEvent) {
       return null;
@@ -421,15 +427,15 @@ export default function OccurrencesPage() {
             <div className="rounded-2xl border border-red-200/70 bg-white px-6 py-8 text-center text-red-600 dark:border-red-500/40 dark:bg-gray-950/90 dark:text-red-300">
               Error loading occurrences
             </div>
-          ) : occurrences && occurrences.length > 0 ? (
+          ) : otherOccurrences && otherOccurrences.length > 0 ? (
             <div className="max-h-[55vh] space-y-4 overflow-y-auto pr-1" role="list">
-              {occurrences.map((event, index) => (
+              {otherOccurrences.map((event, index) => (
                 <OccurrenceCard
                   key={event.id}
                   event={event}
                   index={index}
-                  isCurrentEvent={event.id === parseInt(eventId || '0', 10)}
-                  totalCards={occurrences.length}
+                  isCurrentEvent={false}
+                  totalCards={otherOccurrences.length}
                 />
               ))}
             </div>

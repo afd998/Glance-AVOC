@@ -58,7 +58,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
   return (
     <div className="sticky top-0 w-full h-6 bg-white/90 dark:bg-gray-900/90 border-b border-purple-400/20 dark:border-purple-500/50 z-50 flex items-center" style={{ 
       zIndex: 60, 
-      background: 'rgba(255, 255, 255, 0.2)'
+      background: 'rgba(56, 30, 67, 0.4)'
     }}>
       {hourLabels}
       {shortVerticalLines}

@@ -55,7 +55,7 @@ export default function RoomRow({
     <div 
       className={`flex ${rowHeight} overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
       style={{ 
-        backgroundColor: isEvenRow ? 'rgba(180, 185, 190, 0.75)' : 'rgba(190, 195, 200, 0.75)' // closer gray shades
+        backgroundColor: isEvenRow ? 'rgba(200, 200, 200, 0.5)' : 'rgba(220, 220, 220, 0.55)' // more transparent
       }}
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}
