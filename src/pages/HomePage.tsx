@@ -288,7 +288,7 @@ export default function HomePage() {
           <img 
             src="/Kellogg_H_RGB.png" 
             alt="Kellogg School of Management" 
-            className="3xl:h-64 2xl:h-40 xl:h-36 lg:h-20 h-10
+            className="3xl:h-64 2xl:h-64 xl:h-24 lg:h-20 h-10
             object-contain opacity-90 relative z-10"
           />
         </div>
