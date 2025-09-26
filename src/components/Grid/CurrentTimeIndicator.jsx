@@ -49,7 +49,7 @@ export default function CurrentTimeIndicator({ startHour, endHour, pixelsPerMinu
         
         {/* Vertical line */}
         <div
-          className="w-px bg-red-500 animate-pulse"
+          className="w-px  bg-red-500 animate-pulse "
           style={{ 
             position: 'absolute',
             left: `${currentPosition}px`,

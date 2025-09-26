@@ -43,7 +43,7 @@ const AcademicCalendarInfo: React.FC = () => {
     <div className="group relative inline-block">
       {/* Container with info icon - matching QuarterCount style */}
       <div
-        className={`text-xs px-3 py-1.5 rounded-lg backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
+        className={`text-xs px-2 py-1.5 rounded-lg backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
           isDarkMode
             ? 'bg-white/10 border-white/20 text-purple-300 hover:bg-white/15'
             : 'bg-white/30 border-white/40 text-purple-600 hover:bg-white/40'
