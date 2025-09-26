@@ -10,6 +10,7 @@ import {
   getEventThemeHexColors,
 } from '../utils/eventUtils';
 import { useEventResources } from '../hooks/useEvents';
+import { useOccurrences } from '../hooks/useOccurrences';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -258,36 +259,16 @@ export default function OccurrencesPage() {
   });
 
   const {
-    data: occurrences,
+    data: occurrencesData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['occurrences', currentEvent?.event_name],
-    queryFn: async (): Promise<Event[]> => {
-      if (!currentEvent?.event_name) {
-        return [];
-      }
-
-      const { data, error: occurrencesError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('event_name', currentEvent.event_name)
-        .order('start_time', { ascending: true });
-
-      if (occurrencesError) {
-        console.error('Error fetching occurrences:', occurrencesError);
-        throw occurrencesError;
-      }
-
-      return data || [];
-    },
-    enabled: !!currentEvent?.event_name,
-    staleTime: 5 * 60 * 1000,
-  });
+  } = useOccurrences(currentEvent);
+  
+  const occurrences = occurrencesData?.occurrences || [];
 
   // Filter out the current event to show only "other" occurrences
   const otherOccurrences = React.useMemo(() => {
-    if (!occurrences || !eventId) return [];
+    if (!occurrences || !Array.isArray(occurrences) || !eventId) return [];
     return occurrences.filter(event => event.id !== parseInt(eventId, 10));
   }, [occurrences, eventId]);
 

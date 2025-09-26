@@ -270,7 +270,7 @@ export default function HomePage() {
       />
            
       {/* Kellogg Logo - shown on all screens */}
-      <div className=" z-50 pointer-events-none relative h-auto pt-10">
+      <div className="z-50 pointer-events-none relative h-auto pt-10">
        
           {/* Light effect behind logo */}
           <div 
@@ -288,7 +288,7 @@ export default function HomePage() {
           <img 
             src="/Kellogg_H_RGB.png" 
             alt="Kellogg School of Management" 
-            className="h-64 object-contain opacity-90 relative z-10"
+            className="2xl:h-64 h-40 object-contain opacity-90 relative z-10"
           />
         </div>
       
@@ -308,7 +308,7 @@ export default function HomePage() {
       </div>
 
       {/* Main content area - offset to account for vertical header on all screens */}
-      <div className="flex-1 2xl:pr-16 overflow-hidden">
+      <div className="flex-1 2xl:pr-16 pr-4 overflow-hidden">
              {/* Original AppHeader - commented out to use vertical header for all screen sizes */}
              {/* <div className="2xl:hidden">
                <AppHeader

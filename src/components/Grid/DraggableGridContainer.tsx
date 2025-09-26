@@ -72,14 +72,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
     const actualContentHeight = (actualRowCount * 96) + 24; // 24px for TimeGrid (h-6 class)
     
-    console.log('📏 Content Dimensions:', {
-      actualRowCount,
-      actualContentWidth,
-      actualContentHeight,
-      clientWidth,
-      clientHeight,
-      calculatedMaxScrollTop: Math.max(0, actualContentHeight - clientHeight + 8)
-    });
     
     // Calculate maximum scroll positions with iOS-specific adjustments
     // iOS Safari sometimes reports incorrect clientWidth/Height, so we add a small buffer
