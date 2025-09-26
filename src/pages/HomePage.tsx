@@ -308,7 +308,7 @@ export default function HomePage() {
       </div>
 
       {/* Main content area - offset to account for vertical header on all screens */}
-      <div className="flex-1  overflow-hidden">
+      <div className="flex-1 2xl:pr-20 overflow-hidden">
              {/* Original AppHeader - commented out to use vertical header for all screen sizes */}
              {/* <div className="2xl:hidden">
                <AppHeader
@@ -385,7 +385,7 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container mx-0 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative overflow-hidden"
+          className="grid-container mx-0 h-[calc(100vh-4rem)] h-[calc(100vh-1rem)] overflow-auto rounded-lg relative overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
@@ -399,7 +399,7 @@ export default function HomePage() {
         {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
-        <div className="min-w-max relative shadow-2xl" style={{ 
+        <div className="min-w-max rounded-lg  h-full relative shadow-2xl" style={{ 
           width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
           minHeight: '100%' // Ensure content fills the full height
         }}>

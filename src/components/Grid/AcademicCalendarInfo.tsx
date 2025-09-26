@@ -21,22 +21,7 @@ const AcademicCalendarInfo: React.FC = () => {
   };
 
   const selectedDate = getSelectedDate();
-  const { data: calendarItems = [], isLoading, error } = useAcademicCalendar(selectedDate);
-
-  if (isLoading) {
-    return (
-      <div className={`ml-4 p-2 rounded-lg border ${
-        isDarkMode 
-          ? 'bg-gray-800 border-gray-600 text-gray-300' 
-          : 'bg-gray-100 border-gray-300 text-gray-600'
-      }`}>
-        <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current"></div>
-          <span className="text-sm">Loading calendar...</span>
-        </div>
-      </div>
-    );
-  }
+  const { data: calendarItems = [], error } = useAcademicCalendar(selectedDate);
 
   if (error) {
     return (
@@ -58,20 +43,20 @@ const AcademicCalendarInfo: React.FC = () => {
     <div className="group relative inline-block">
       {/* Container with info icon - matching QuarterCount style */}
       <div
-        className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
+        className={`text-xs px-3 py-1.5 rounded-lg backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
           isDarkMode
             ? 'bg-white/10 border-white/20 text-purple-300 hover:bg-white/15'
             : 'bg-white/30 border-white/40 text-purple-600 hover:bg-white/40'
         }`}
       >
         {/* Glassmorphic shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
-        <div className="relative z-10 flex items-center gap-2">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-lg"></div>
+        <div className="relative z-10 flex flex-col items-center gap-1">
         {/* Graduation cap icon */}
         <GraduationCap className="w-4 h-4 flex-shrink-0" />
 
         {/* Hover indicator */}
-        <span className="font-medium opacity-75">
+        <span className="font-medium opacity-75 text-center">
           {calendarItems.length} item{calendarItems.length !== 1 ? 's' : ''}
         </span>
         </div>

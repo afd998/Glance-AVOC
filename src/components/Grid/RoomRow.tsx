@@ -101,9 +101,7 @@ export default function RoomRow({
           />
         ))}
       </div>
-      {isFloorBreak && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300 dark:bg-gray-600" />
-      )}
+     
     </div>
   );
 } 
