@@ -377,7 +377,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   }, [handleWheel]);
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       {/* Edge highlighting overlays - temporarily commented out 
       {edgeHighlight.top && (
         <div className="absolute -top-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
