@@ -295,6 +295,31 @@ export default function HomePage() {
                </div>
              </div>
       
+      {/* Kellogg Logo - shown on 2xl+ screens */}
+      <div className="hidden 2xl:block fixed -left-[90px] bottom-24 z-50 pointer-events-none">
+        <div className="relative w-64 h-64 flex items-center justify-center">
+          {/* Light effect behind logo */}
+          <div 
+            className="absolute rounded-full blur-2xl opacity-80"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 20%, rgba(255, 255, 255, 0.6) 40%, rgba(255, 255, 255, 0.3) 60%, rgba(255, 255, 255, 0.1) 80%, transparent 100%)',
+              width: '320px',
+              height: '320px',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1
+            }}
+          />
+          <img 
+            src="/Kellogg_H_RGB.png" 
+            alt="Kellogg School of Management" 
+            className="w-64 h-auto object-contain opacity-90 relative z-10"
+            style={{ transform: 'rotate(90deg) scaleX(-1) scaleY(-1)' }}
+          />
+        </div>
+      </div>
+
       {/* AVOC HOME text in bottom right corner */}
       {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
         <svg width="400" height="400" viewBox="-0 -100 250 120" style={{ transform: 'rotate(-65deg)' }}>
@@ -359,7 +384,7 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container mx-0 md:mx-1 2xl:mx-0 3xl:mx-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
+          className="grid-container mx-0 md:mx-1 2xl:mr-8 3xl:mx-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}

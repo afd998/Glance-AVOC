@@ -1561,6 +1561,134 @@ code {
   }
 }
 
+/* Early 2000s Low-Res LCD Screen Effect */
+.retro-screen {
+  /* Force the app to render smaller, then blow it up = blocky look */
+  transform: scale(1.5);
+  transform-origin: top left;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  
+  /* Early 2000s washed-out TN panel colors */
+  filter: 
+    contrast(0.85) 
+    brightness(0.9) 
+    saturate(0.7) 
+    hue-rotate(5deg);
+  
+  /* Simulate low refresh rate blur */
+  animation: retro-flicker 0.1s ease-in-out infinite alternate;
+  
+  /* Add subtle scan lines */
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+}
+
+/* Subtle flicker animation for that old LCD feel */
+@keyframes retro-flicker {
+  0% {
+    filter: 
+      contrast(0.85) 
+      brightness(0.9) 
+      saturate(0.7) 
+      hue-rotate(5deg);
+  }
+  100% {
+    filter: 
+      contrast(0.87) 
+      brightness(0.92) 
+      saturate(0.72) 
+      hue-rotate(3deg);
+  }
+}
+
+/* Container to handle the scaling properly */
+.retro-screen-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: #1a1a1a; /* Dark bezel color */
+}
+
+/* Retro screen bezel effect */
+.retro-screen-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(45deg, #2a2a2a 0%, #1a1a1a 50%, #2a2a2a 100%),
+    radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  border: 8px solid #333;
+  border-radius: 12px;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(0, 0, 0, 0.8);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Retro screen power indicator */
+.retro-screen-container::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  background: #00ff00;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px #00ff00,
+    inset 0 0 5px rgba(0, 255, 0, 0.5);
+  animation: power-led-blink 2s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes power-led-blink {
+  0%, 90% { opacity: 1; }
+  95% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+/* Pixelated text rendering */
+.retro-screen * {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  text-rendering: optimizeSpeed;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* Early 2000s color palette adjustments */
+.retro-screen {
+  /* Reduce color depth simulation */
+  color-scheme: light;
+}
+
+/* Simulate TN panel viewing angles */
+.retro-screen {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
 /* ABSOLUTE NUCLEAR OPTION - disable ALL text selection on event components */
 .event-no-select,
 .event-no-select *,
