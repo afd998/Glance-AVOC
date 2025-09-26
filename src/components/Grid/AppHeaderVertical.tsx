@@ -36,7 +36,7 @@ export default function AppHeaderVertical({
 
   return (
     <div
-      className="hidden 2xl:block fixed left-0 top-0 bottom-0 z-[9999] w-20"
+      className=" "
     >
       {/* Vertical Layout - Stack components vertically */}
       <div className="flex flex-col items-center justify-start h-full p-2 gap-2">

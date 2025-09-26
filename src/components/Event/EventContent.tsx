@@ -235,7 +235,7 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
           style={{
             transform: isHovering ? 'scale(1.05) translateY(-1px)' : 'scale(1)',
             transformOrigin: 'center',
-            fontFamily: "'Arial', sans-serif",
+            fontFamily: "'Morrison', sans-serif",
             fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
             fontWeight: 700,
             lineHeight: '1.1',

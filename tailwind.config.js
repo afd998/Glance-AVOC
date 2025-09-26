@@ -14,6 +14,7 @@ export default {
         'geometos': ['Geometos', 'sans-serif'],
         'antone': ['Antone', 'sans-serif'],
         'lemonmilk': ['LEMONMILK', 'sans-serif'],
+        'morrison': ['Morrison', 'sans-serif'],
       },
       keyframes: {
         slideDown: {

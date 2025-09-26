@@ -219,6 +219,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Morrison';
+  src: url('./assets/fonts/Morrison-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @keyframes pulse {
   0% {
     opacity: 1;
@@ -1252,30 +1260,31 @@ code {
 
 /* KEC subdued luxury card design */
 .kec-gradient {
-  border: 1px solid rgba(255, 224, 166, 0.2) !important;
+  border: 1px solid rgba(255, 224, 166, 0.4) !important;
+  border-radius: 1rem !important;
   background: 
     linear-gradient(135deg, 
-      rgba(255, 224, 166, 0.08) 0%, 
-      rgba(0, 0, 0, 0.4) 25%, 
-      rgba(0, 0, 0, 0.5) 75%, 
-      rgba(255, 224, 166, 0.08) 100%),
+      rgba(255, 224, 166, 0.15) 0%, 
+      rgba(0, 0, 0, 0.6) 25%, 
+      rgba(0, 0, 0, 0.7) 75%, 
+      rgba(255, 224, 166, 0.15) 100%),
     radial-gradient(
       100% 61.73% at 100% 50%,
-      rgba(255, 224, 166, 0.02) 0%,
+      rgba(255, 224, 166, 0.05) 0%,
       transparent 100%
     ),
     radial-gradient(
       91.09% 56.23% at 0% 50%,
-      rgba(255, 224, 166, 0.02) 0%,
+      rgba(255, 224, 166, 0.05) 0%,
       transparent 100%
     ) !important;
   position: relative !important;
   transition: all 0.4s ease !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.15),
-    0 1px 4px rgba(255, 224, 166, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(255, 224, 166, 0.05) !important;
+    0 4px 16px rgba(0, 0, 0, 0.25),
+    0 1px 4px rgba(255, 224, 166, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.1) !important;
 }
 
 .kec-gradient::before {
@@ -1284,19 +1293,19 @@ code {
   border-radius: inherit;
   border: 1px solid transparent;
   background: linear-gradient(135deg, 
-    rgba(255, 224, 166, 0.08) 0%, 
-    rgba(255, 255, 255, 0.03) 50%, 
-    rgba(255, 224, 166, 0.08) 100%);
+    rgba(255, 224, 166, 0.15) 0%, 
+    rgba(255, 255, 255, 0.06) 50%, 
+    rgba(255, 224, 166, 0.15) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   inset: -2px;
   padding: 2px;
-  opacity: 0.4;
+  opacity: 0.6;
   box-shadow: 
-    0 0 4px rgba(255, 224, 166, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 0 4px rgba(255, 224, 166, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   z-index: -1;
   pointer-events: none;
 }
@@ -1307,19 +1316,19 @@ code {
   border-radius: inherit;
   border: 1px solid transparent;
   background: linear-gradient(135deg, 
-    rgba(255, 224, 166, 0.08) 0%, 
-    rgba(255, 255, 255, 0.03) 50%, 
-    rgba(255, 224, 166, 0.08) 100%);
+    rgba(255, 224, 166, 0.15) 0%, 
+    rgba(255, 255, 255, 0.06) 50%, 
+    rgba(255, 224, 166, 0.15) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   inset: -4px;
   padding: 4px;
-  opacity: 0.2;
+  opacity: 0.3;
   box-shadow: 
-    0 0 8px rgba(255, 224, 166, 0.02),
-    0 0 16px rgba(0, 0, 0, 0.05);
+    0 0 8px rgba(255, 224, 166, 0.04),
+    0 0 16px rgba(0, 0, 0, 0.08);
   z-index: -2;
   pointer-events: none;
 }
@@ -1328,25 +1337,25 @@ code {
 .kec-gradient:hover {
   transform: translateY(-1px) scale(1.01) !important;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 1px 4px rgba(255, 224, 166, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(255, 224, 166, 0.08),
-    0 0 8px rgba(255, 224, 166, 0.03) !important;
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 1px 4px rgba(255, 224, 166, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 224, 166, 0.15),
+    0 0 8px rgba(255, 224, 166, 0.06) !important;
 }
 
 .kec-gradient:hover::before {
-  opacity: 0.6 !important;
+  opacity: 0.8 !important;
   box-shadow: 
-    0 0 6px rgba(255, 224, 166, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    0 0 6px rgba(255, 224, 166, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 .kec-gradient:hover::after {
-  opacity: 0.3 !important;
+  opacity: 0.5 !important;
   box-shadow: 
-    0 0 12px rgba(255, 224, 166, 0.02),
-    0 0 24px rgba(0, 0, 0, 0.08) !important;
+    0 0 12px rgba(255, 224, 166, 0.04),
+    0 0 24px rgba(0, 0, 0, 0.12) !important;
 }
 
 /* KEC luxury animations */

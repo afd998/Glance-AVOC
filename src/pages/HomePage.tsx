@@ -258,7 +258,8 @@ export default function HomePage() {
   }
 
     return (
-    <div className="flex items-start justify-center p-1 min-h-screen relative gpu-optimized">
+    <div className="flex  justify-center p-1 min-h-screen  gpu-optimized">
+     <div className="flex flex-col items-center justifty-between h-full w-full- ">
       {/* Vertical Header - positioned to the left */}
       <AppHeaderVertical
         selectedDate={selectedDate}
@@ -267,42 +268,15 @@ export default function HomePage() {
         events={filteredEvents || []}
         onHoverChange={setIsHeaderHovered}
       />
-      
-      {/* Main content area - offset to account for vertical header on 2xl+ screens */}
-      <div className="flex-1 2xl:ml-20 w-full max-w-full overflow-hidden">
-             {/* Original AppHeader - shown on screens smaller than 2xl */}
-             <div className="2xl:hidden">
-               <AppHeader
-                 selectedDate={selectedDate}
-                 setSelectedDate={handleDateChange}
-                 isLoading={isLoading}
-                 events={filteredEvents || []}
-                 onHoverChange={setIsHeaderHovered}
-               />
-             </div>
-             
-             {/* Menu Panel and Notification Bell - shown on 2xl+ screens */}
-             <div 
-               className="hidden 2xl:flex fixed top-4 right-4 z-[9998] gap-2"
-               onMouseEnter={() => setIsHeaderHovered(true)}
-               onMouseLeave={() => setIsHeaderHovered(false)}
-             >
-               <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
-                 <NotificationBell />
-               </div>
-               <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
-                 <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} onModalClose={() => {}} onModalOpen={() => {}} />
-               </div>
-             </div>
-      
-      {/* Kellogg Logo - shown on 2xl+ screens */}
-      <div className="hidden 2xl:block fixed -left-[90px] bottom-24 z-50 pointer-events-none">
-        <div className="relative w-64 h-64 flex items-center justify-center">
+           
+      {/* Kellogg Logo - shown on all screens */}
+      <div className=" z-50 pointer-events-none relative h-auto pt-10">
+       
           {/* Light effect behind logo */}
           <div 
-            className="absolute rounded-full blur-2xl opacity-80"
+            className="absolute rounded-full blur-2xl opacity-100"
             style={{
-              background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 20%, rgba(255, 255, 255, 0.6) 40%, rgba(255, 255, 255, 0.3) 60%, rgba(255, 255, 255, 0.1) 80%, transparent 100%)',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 15%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0.2) 85%, transparent 100%)',
               width: '320px',
               height: '320px',
               left: '50%',
@@ -314,11 +288,38 @@ export default function HomePage() {
           <img 
             src="/Kellogg_H_RGB.png" 
             alt="Kellogg School of Management" 
-            className="w-64 h-auto object-contain opacity-90 relative z-10"
-            style={{ transform: 'rotate(90deg) scaleX(-1) scaleY(-1)' }}
+            className="h-64 object-contain opacity-90 relative z-10"
           />
         </div>
+      
       </div>
+      {/* Menu Panel and Notification Bell - shown on all screens */}
+      <div 
+        className="flex fixed top-4 right-4 z-[9998] gap-2"
+        onMouseEnter={() => setIsHeaderHovered(true)}
+        onMouseLeave={() => setIsHeaderHovered(false)}
+      >
+        <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
+          <NotificationBell />
+        </div>
+        <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
+          <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} onModalClose={() => {}} onModalOpen={() => {}} />
+        </div>
+      </div>
+
+      {/* Main content area - offset to account for vertical header on all screens */}
+      <div className="flex-1  overflow-hidden">
+             {/* Original AppHeader - commented out to use vertical header for all screen sizes */}
+             {/* <div className="2xl:hidden">
+               <AppHeader
+                 selectedDate={selectedDate}
+                 setSelectedDate={handleDateChange}
+                 isLoading={isLoading}
+                 events={filteredEvents || []}
+                 onHoverChange={setIsHeaderHovered}
+               />
+             </div> */}
+ 
 
       {/* AVOC HOME text in bottom right corner */}
       {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
@@ -334,10 +335,10 @@ export default function HomePage() {
         </svg>
       </div> */}
       
-      <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50 2xl:hidden">
+      {/* <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50">
         <div className="text-4xl font-bold text-white/80 leading-none">AVOC</div>
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
-      </div>
+      </div> */}
       
       {/* Navigation Arrows - Only show on xl and larger screens */}
       {/* Previous Day Button - Left Side - Commented out since we have vertical header */}
@@ -384,7 +385,7 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container mx-0 md:mx-1 2xl:mr-8 3xl:mx-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative shadow-2xl overflow-hidden"
+          className="grid-container mx-0 h-[calc(100vh-4rem)] sm:h-[calc(100vh-1rem)] overflow-auto rounded-lg relative overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
@@ -398,7 +399,7 @@ export default function HomePage() {
         {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
-        <div className="min-w-max relative" style={{ 
+        <div className="min-w-max relative shadow-2xl" style={{ 
           width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
           minHeight: '100%' // Ensure content fills the full height
         }}>

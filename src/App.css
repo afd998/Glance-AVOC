@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html, body {
-  background-color: #000000;
+  background-color: #FFFFFF;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -11,12 +11,12 @@ html, body {
 
 #root {
   min-height: 100vh;
-  background: #000000;
+  background: #FFFFFF;
 }
 
 #root {
   min-height: 100vh;
-  background: #000000;
+  background: #FFFFFF;
 }
 
 .App {

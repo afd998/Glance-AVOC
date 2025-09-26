@@ -6,7 +6,7 @@ import { useQuarterStartDates } from '../../hooks/useQuarterStartDates';
 const QuarterCountVertical: React.FC = () => {
   const { isDarkMode } = useTheme();
   const { date } = useParams<{ date: string }>();
-  const { data: quarterStartDates = [], isLoading, error } = useQuarterStartDates();
+  const { data: quarterStartDates = [], error } = useQuarterStartDates();
 
   // Get selected date from URL params
   const getSelectedDate = (): Date => {
@@ -49,9 +49,6 @@ const QuarterCountVertical: React.FC = () => {
 
   const closestQuarterStart = findClosestQuarterStart();
 
-  if (isLoading) {
-    return null; // Don't show anything while loading
-  }
 
   if (error) {
     return null; // Don't show anything on error
