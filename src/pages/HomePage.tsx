@@ -270,7 +270,7 @@ export default function HomePage() {
       />
            
       {/* Kellogg Logo - shown on all screens */}
-      <div className="z-50 pointer-events-none relative h-auto pt-10">
+      <div className="z-50 pointer-events-none relative h-auto 2xl:pt-10 lg:pt-0 pt-2" >
        
           {/* Light effect behind logo */}
           <div 
@@ -288,7 +288,8 @@ export default function HomePage() {
           <img 
             src="/Kellogg_H_RGB.png" 
             alt="Kellogg School of Management" 
-            className="2xl:h-64 h-40 object-contain opacity-90 relative z-10"
+            className="3xl:h-64 2xl:h-40 xl:h-36 lg:h-20 h-10
+            object-contain opacity-90 relative z-10"
           />
         </div>
       
