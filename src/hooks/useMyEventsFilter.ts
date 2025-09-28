@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from './useProfile';
-import { useShiftBlocks } from './useShiftBlocks';
+import { useShiftBlocks } from '../features/SessionAssignments/hooks/useShiftBlocks';
 import { isUserEventOwner } from '../utils/eventUtils';
 import { Database } from '../types/supabase';
 

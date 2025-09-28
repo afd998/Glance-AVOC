@@ -34,7 +34,7 @@ const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => 
 // React Query hook for fetching user profile
 export const useUserProfile = (userId: string) => {
   return useQuery({
-    queryKey: ['userProfile', userId],
+    queryKey: ['profile', userId],
     queryFn: () => fetchUserProfile(userId),
     enabled: !!userId,
   });

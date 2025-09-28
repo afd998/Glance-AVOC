@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Database } from '../types/supabase';
-import useRoomStore from '../stores/roomStore';
 
 type RoomFilter = Database['public']['Tables']['room_filters']['Row'];
 
@@ -32,7 +31,7 @@ const parseFilter = (filter: RoomFilter): Filter => {
 export const useFilters = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { setSelectedRooms } = useRoomStore();
+
 
   // Query key for filters data
   const filtersQueryKey = ['filters', user?.id];
@@ -82,8 +81,7 @@ export const useFilters = () => {
     },
     onSuccess: (filter) => {
       // Update room store state with the filter's room selections
-      setSelectedRooms(filter.display);
-      
+    
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
     },
   });

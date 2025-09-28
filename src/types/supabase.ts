@@ -38,6 +38,48 @@ export type Database = {
         }
         Relationships: []
       }
+      event_services: {
+        Row: {
+          created_at: string
+          event: number | null
+          id: number
+          service_id: number | null
+          start_time: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          event?: number | null
+          id?: number
+          service_id?: number | null
+          start_time?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: number | null
+          id?: number
+          service_id?: number | null
+          start_time?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_services_event_fkey"
+            columns: ["event"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -54,7 +96,7 @@ export type Database = {
           organization: string | null
           raw: Json | null
           resources: Json | null
-          room_name: string | null
+          room_name: string
           start_time: string | null
           updated_at: string | null
         }
@@ -73,7 +115,7 @@ export type Database = {
           organization?: string | null
           raw?: Json | null
           resources?: Json | null
-          room_name?: string | null
+          room_name: string
           start_time?: string | null
           updated_at?: string | null
         }
@@ -92,7 +134,7 @@ export type Database = {
           organization?: string | null
           raw?: Json | null
           resources?: Json | null
-          room_name?: string | null
+          room_name?: string
           start_time?: string | null
           updated_at?: string | null
         }
@@ -390,6 +432,24 @@ export type Database = {
           id?: number
           name?: string | null
           spelling?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string | null
         }
         Relationships: []
       }

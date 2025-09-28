@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playNotificationAudio } from '../utils/notificationSound';
 import { notifySetupReminder } from '../utils/notificationUtils';
-import useRoomStore from '../stores/roomStore';
 
 export function useNotifications() {
   const [permission, setPermission] = useState('default');

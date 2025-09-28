@@ -1,28 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import TimeGrid from "../components/Grid/TimeGrid";
-import CurrentTimeIndicator from "../components/Grid/CurrentTimeIndicator";
-import RoomRow from "../components/Grid/RoomRow";
-import VerticalLines from "../components/Grid/VerticalLines";
-import AppHeader from "../components/Grid/AppHeader";
-import AppHeaderVertical from "../components/Grid/AppHeaderVertical";
-import { NotificationBell } from "../components/Grid/NotificationBell";
-import MenuPanel from "../components/MenuPanel/MenuPanel";
-import DraggableGridContainer from "../components/Grid/DraggableGridContainer";
-import DateDisplay from "../components/Grid/DateDisplay";
-import { useEvents } from "../hooks/useEvents";
-import { useEventsPrefetch } from "../hooks/useEvents";
+import TimeGrid from "../features/Grid/TimeGrid";
+import CurrentTimeIndicator from "../features/Grid/CurrentTimeIndicator";
+import RoomRow from "../features/Grid/RoomRow";
+import VerticalLines from "../features/Grid/VerticalLines";
+import AppHeader from "../features/Grid/AppHeader";
+import AppHeaderVertical from "../features/Grid/AppHeaderVertical";
+import { NotificationBell } from "../features/Grid/NotificationBell";
+import MenuPanel from "../features/MenuPanel/MenuPanel";
+import DraggableGridContainer from "../features/Grid/DraggableGridContainer";
+import DateDisplay from "../features/Grid/DateDisplay";
+import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows
+ } from "../hooks/useEvents";
 import { useNotifications } from "../hooks/useNotifications";
-import { useAutoHideLogic } from "../hooks/useAutoHideLogic";
 import { useProfile } from "../hooks/useProfile";
-import { useFilters } from "../hooks/useFilters";
 import { useRooms } from "../hooks/useRooms";
 import { usePanoptoNotifications } from "../hooks/usePanoptoChecks";
-import useRoomStore from "../stores/roomStore";
-import EventDetail from "../components/DetailPage/EventDetail";
-import FacultyListModal from "../components/MenuPanel/FacultyListModal";
-import FacultyDetailModal from "../components/Faculty/FacultyDetailModal";
-import NoEventsMessage from "../components/NoEventsMessage";
+import EventDetail from "../features/DetailPage/EventDetail";
+import FacultyListModal from "../features/MenuPanel/FacultyListModal";
+import FacultyDetailModal from "../features/Faculty/FacultyDetailModal";
+import NoEventsMessage from "../features/NoEventsMessage";
 
 import { Database } from "../types/supabase";
 
@@ -31,22 +28,13 @@ import { Database } from "../types/supabase";
 export default function HomePage() {
   
   // Drag functionality
-  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [isDragEnabled, setIsDragEnabled] = useState(true);
   // Header hover state to control DateDisplay visibility
-  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
-  const { selectedRooms, setAllRooms } = useRoomStore();
-  const { rooms, isLoading: roomsLoading } = useRooms();
   
 
-
-  React.useEffect(() => {
-    if (rooms.length > 0) {
-      setAllRooms(rooms);
-    }
-  }, [rooms, setAllRooms]);
 
   const selectedDate = (() => {
     if (!date) {
@@ -62,7 +50,7 @@ export default function HomePage() {
   const startHour = 7;
   const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
-  const { data: filteredEvents, isLoading, error } = useEvents(selectedDate);
+  const { data: filteredEvents, isLoading, error } = useFilteredEvents(selectedDate);
   
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
@@ -96,12 +84,8 @@ export default function HomePage() {
 
   
   // Track if we've loaded events for the current date to prevent flash
-  
-  useAutoHideLogic(filteredEvents || [], selectedDate);
-  // console.log('🔄 HomePage after useAutoHideLogic');
- 
-  const { updateCurrentFilter, updateAutoHide, autoHide } = useProfile();
-  const { loadFilter, getFilterByName } = useFilters();
+  const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
+
   
   
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
@@ -115,36 +99,6 @@ export default function HomePage() {
   //     scheduleNotificationsForEvents(events);
   //   }
   // }, [events, scheduleNotificationsForEvents]);
-
-
-
-  // Check if there are any events that match the current filter
-  const hasFilteredEvents = (() => {
-    if (!filteredEvents || filteredEvents.length === 0) return false;
-    // Check if any room has events after filtering
-    return selectedRooms.some((room: string) => {
-      const roomEvents = getFilteredEventsForRoomCallback(room);
-      return roomEvents && roomEvents.length > 0;
-    });
-  })();
-
-  // Handler to clear the current filter (load "All Rooms" filter)
-  const handleClearFilter = async () => {
-    try {
-      // Check if there's already an "All Rooms" filter
-      const allRoomsFilter = getFilterByName('All Rooms');
-      
-      if (allRoomsFilter) {
-        await loadFilter(allRoomsFilter);
-      } else {
-       
-      }
-    } catch (error) {
-      console.error('Error handling clear filter:', error);
-    
-    }
-  };
-
 
 
 
@@ -167,89 +121,12 @@ export default function HomePage() {
     }
   }, [date, selectedDate, navigate]);
 
-  // Restore scroll position after date change and content is loaded
-  useEffect(() => {
-    if (!isLoading && !roomsLoading && selectedRooms.length > 0) {
-      // Note: Scroll position restoration is now handled by DraggableGridContainer
-      // The scroll position will be maintained through the onScrollPositionChange callback
-    }
-  }, [selectedDate, isLoading, roomsLoading, selectedRooms.length]);
-
-  // Enable drag functionality when there are events to scroll
-  useEffect(() => {
-    if (hasFilteredEvents) {
-      setIsDragEnabled(true);
-    } else {
-      setIsDragEnabled(false);
-    }
-  }, [hasFilteredEvents]);
 
   const handleEventClick = (event: Database['public']['Tables']['events']['Row']) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
     navigate(`/${dateStr}/${event.id}`);
   };
 
-
-  // Helper function to calculate the actual number of rows that will be rendered
-  const calculateActualRowCount = () => {
-    if (autoHide) {
-      // When autohide is ON: only show rooms that have events
-      if (!filteredEvents) return 0;
-      
-      // Get all unique room names that will have rows
-      const roomsWithRows = new Set<string>();
-      
-      // Add all individual room events
-      filteredEvents.forEach((event: any) => {
-        if (event.room_name && !event.room_name.includes('&')) {
-          roomsWithRows.add(event.room_name);
-        }
-      });
-      
-      // Handle merged room events - they create rows for constituent rooms
-      filteredEvents.forEach((event: any) => {
-        if (event.room_name && event.room_name.includes('&')) {
-          const parts = event.room_name.split('&');
-          if (parts.length === 2) {
-            const baseRoom = parts[0].trim(); // e.g., "GH 1420"
-            const suffix = parts[1].trim(); // e.g., "30", "B"
-            
-            // Add the base room
-            roomsWithRows.add(baseRoom);
-            
-            // Handle different merge patterns
-            if (suffix === '30') {
-              // 1420&30 case: show both 1420 and 1430
-              const roomNumber = baseRoom.match(/GH (\d+)/)?.[1];
-              if (roomNumber) {
-                const secondRoom = `GH ${parseInt(roomNumber) + 10}`;
-                roomsWithRows.add(secondRoom);
-              }
-            } else if (suffix.length === 1 && /[AB]/.test(suffix)) {
-              // A&B case: show both A and B variants
-              const baseRoomWithoutSuffix = baseRoom.replace(/[AB]$/, '');
-              roomsWithRows.add(`${baseRoomWithoutSuffix}A`);
-              roomsWithRows.add(`${baseRoomWithoutSuffix}B`);
-            }
-          }
-        }
-      });
-      
-      // Filter to only include rooms that are in selectedRooms (after autohide/filtering)
-      const visibleRoomsWithRows = Array.from(roomsWithRows).filter(room => 
-        selectedRooms.includes(room)
-      );
-       
-      
-      return visibleRoomsWithRows.length;
-    } else {
-      // When autohide is OFF: just return the count of rooms from the current filter
-      const rowCount = selectedRooms.length;
-      
-      
-      return rowCount;
-    }
-  };
 
 
 
@@ -266,7 +143,7 @@ export default function HomePage() {
         setSelectedDate={handleDateChange}
         isLoading={isLoading}
         events={filteredEvents || []}
-        onHoverChange={setIsHeaderHovered}
+
       />
            
       {/* Kellogg Logo - shown on all screens */}
@@ -297,30 +174,19 @@ export default function HomePage() {
       {/* Menu Panel and Notification Bell - shown on all screens */}
       <div 
         className="flex fixed top-4 right-4 z-[9998] gap-2"
-        onMouseEnter={() => setIsHeaderHovered(true)}
-        onMouseLeave={() => setIsHeaderHovered(false)}
+    
       >
-        <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
+      
           <NotificationBell />
-        </div>
-        <div style={{ opacity: isHeaderHovered ? 1 : 0, pointerEvents: isHeaderHovered ? 'auto' : 'none' }}>
-          <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} onModalClose={() => {}} onModalOpen={() => {}} />
-        </div>
+       
+       
+          <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} />
+     
       </div>
 
       {/* Main content area - offset to account for vertical header on all screens */}
       <div className="flex-1 2xl:pr-16 pr-4 overflow-hidden">
-             {/* Original AppHeader - commented out to use vertical header for all screen sizes */}
-             {/* <div className="2xl:hidden">
-               <AppHeader
-                 selectedDate={selectedDate}
-                 setSelectedDate={handleDateChange}
-                 isLoading={isLoading}
-                 events={filteredEvents || []}
-                 onHoverChange={setIsHeaderHovered}
-               />
-             </div> */}
- 
+            
 
       {/* AVOC HOME text in bottom right corner */}
       {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
@@ -393,7 +259,7 @@ export default function HomePage() {
         startHour={startHour}
         endHour={endHour}
         pixelsPerMinute={pixelsPerMinute}
-        actualRowCount={calculateActualRowCount()}
+        actualRowCount={roomRows?.length || 0}
         isDragEnabled={isDragEnabled}
       >
         {/* Date Display positioned relative to grid */}
@@ -405,15 +271,15 @@ export default function HomePage() {
           minHeight: '100%' // Ensure content fills the full height
         }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-          {hasFilteredEvents && (
+         
             <VerticalLines 
               startHour={startHour} 
               endHour={endHour} 
               pixelsPerMinute={pixelsPerMinute} 
-              actualRowCount={calculateActualRowCount()} 
+              actualRowCount={roomRows?.length || 0} 
             />
-          )}
-          {hasFilteredEvents && (
+        
+         
             <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
               <CurrentTimeIndicator
                 startHour={startHour}
@@ -421,26 +287,23 @@ export default function HomePage() {
                 pixelsPerMinute={pixelsPerMinute}
               />
             </div>
-          )}
-          {hasFilteredEvents && selectedRooms.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
+         
+          {roomRows.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
             const roomEvents = getFilteredEventsForRoomCallback(room);
             const currentFloor = room.match(/GH (\d)/)?.[1];
-            const nextRoom = selectedRooms[index + 1];
-            const nextFloor = nextRoom?.match(/GH (\d)/)?.[1];
-            const isFloorBreak = currentFloor !== nextFloor;
-            const isLastRow = index === selectedRooms.length - 1;
+        
             return (
               <RoomRow
-                key={`${room}-${selectedDate.toISOString().split('T')[0]}`}
+                key={`${room}`}
                 room={room}
                 roomEvents={roomEvents}
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
-                rooms={selectedRooms}
-                isFloorBreak={isFloorBreak}
+                rooms={roomRows}
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}
-                isLastRow={isLastRow}
+                isLastRow={index === roomRows.length - 1}
+                isFloorBreak={false}
               />
             );
           })}
@@ -448,8 +311,8 @@ export default function HomePage() {
       </DraggableGridContainer>
 
       {/* Absolutely positioned no-events message */}
-      {!hasFilteredEvents && !isLoading && !roomsLoading && (
-        <NoEventsMessage onClearFilter={handleClearFilter} />
+      {(!filteredEvents || filteredEvents.length === 0) && !isLoading && (
+        <NoEventsMessage />
       )}
       {/* Event Detail Modal Overlay */}
       {isEventDetailRoute && eventId && (

@@ -125,12 +125,6 @@
   font-display: swap;
 }
 
-/* Multi-line text for date picker */
-.vertical-text {
-  white-space: pre-line;
-  line-height: 1.2;
-  text-align: center;
-}
 
 /* Remove polygon clip path on 2xl+ screens */
 @media (min-width: 1536px) {

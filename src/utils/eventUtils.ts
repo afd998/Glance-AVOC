@@ -793,11 +793,6 @@ export function isUserEventOwner(
     return true;
   }
 
-  // For KEC events, there are no calculated owners, so only check manual ownership
-  if (event.event_type === "KEC") {
-    return false;
-  }
-
   // Check if user is a calculated owner from shift blocks
   if (!event.date || !event.start_time || !event.end_time || !event.room_name) {
     return false;
@@ -844,3 +839,29 @@ export function isUserEventOwner(
 
   return false;
 } 
+
+
+export function filterEvents(events: Event[], filters: any[], currentFilter: string | null, userId: string | null, allShiftBlocks: ShiftBlock[]) {
+
+   // Special case: MY_EVENTS filter - filter events where user is owner
+ if (currentFilter === 'My Events' && userId) {
+  // Filter events to only show those where the current user is an owner
+  return events.filter((event: Event) => {
+    return isUserEventOwner(event, userId, allShiftBlocks);
+  });
+}
+
+// If there's a current filter, filter events based on filter's display rooms
+if (currentFilter && filters.length > 0) {
+  const currentFilterData = filters.find(filter => filter.name === currentFilter);
+  if (currentFilterData && currentFilterData.display.length > 0) {
+    // Only show events from rooms that are in the filter's display list
+    return events.filter((event: Event) => {
+      const eventRoomName = event.room_name;
+      if (!eventRoomName) return false;
+      return currentFilterData.display.includes(eventRoomName);
+    });
+  }
+}
+
+}

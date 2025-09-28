@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
+import Layout from "./features/Layout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,7 +14,7 @@ import performanceMonitor from './utils/performanceMonitor';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './features/ProtectedRoute';
 import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
@@ -54,6 +54,7 @@ export default function App() {
                   </Routes>
                 </Layout>
                 </Router>
+                <ReactQueryDevtools initialIsOpen={false} />
               </SnowProvider>
             </LeavesProvider>
           </RainProvider>
