@@ -1,6 +1,6 @@
 import React from 'react';
 import { useUserProfiles } from '../hooks/useUserProfiles';
-import Avatar from './Avatar';
+import Avatar from '../components/ui/Avatar';
 
 interface UserSelectionModalProps {
   isOpen: boolean;

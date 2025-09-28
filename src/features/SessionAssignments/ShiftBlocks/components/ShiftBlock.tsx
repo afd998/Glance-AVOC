@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import Avatar from '../Avatar';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { useRooms } from '../../hooks/useRooms';
-import { useUpdateShiftBlocks } from '../SessionAssignments/hooks/useShiftBlocks';
+import Avatar from '../../../../components/ui/Avatar';
+import { useUserProfile } from '../../../../hooks/useUserProfile';
+import { useRooms } from '../../../../hooks/useRooms';
+import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
 
 
 function formatTimeLabel(time: string | null): string {

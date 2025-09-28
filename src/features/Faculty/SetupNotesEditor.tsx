@@ -3,7 +3,7 @@ import { Database } from '../../types/supabase';
 import { useFacultyUpdates, useCreateFacultyUpdate, useUpdateFacultyUpdate, useDeleteFacultyUpdate } from '../../hooks/useFacultyUpdates';
 import { useAuth } from '../../contexts/AuthContext';
 import { getEventThemeColors } from '../../utils/eventUtils';
-import Avatar from '../Avatar';
+import Avatar from '../../components/ui/Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];

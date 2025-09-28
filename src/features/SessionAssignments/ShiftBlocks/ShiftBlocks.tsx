@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { useShiftBlocks } from '../SessionAssignments/hooks/useShiftBlocks';
-import ShiftBlock from './ShiftBlock';
+import { useShiftBlocks } from '../hooks/useShiftBlocks';
+import ShiftBlock from './components/ShiftBlock';
 
 interface ShiftBlocksProps {
   date: string;

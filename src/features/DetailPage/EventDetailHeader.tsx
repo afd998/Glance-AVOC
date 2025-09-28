@@ -4,10 +4,10 @@ import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
 import { getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
-import Avatar from '../Avatar';
+import Avatar from '../../components/ui/Avatar';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
-import { FacultyAvatar } from '../FacultyAvatar';
+import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
 
 // Helper function to extract hex color from Tailwind bg class
 const extractHexFromBgClass = (bgClass: string): string => {

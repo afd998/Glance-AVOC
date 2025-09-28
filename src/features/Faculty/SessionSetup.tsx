@@ -4,7 +4,7 @@ import { getAVResourceIcon, getResourceDisplayName, getEventThemeColors, getEven
 // import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 import SetupOptions from './SetupOptions';
-import { FacultyAvatar } from '../FacultyAvatar';
+import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
 
 
 type Event = Database['public']['Tables']['events']['Row'];

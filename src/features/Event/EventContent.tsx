@@ -2,7 +2,7 @@ import React from 'react';
 import { Database } from '../../types/supabase';
 import { getEventTypeInfo, getEventThemeColors } from '../../utils/eventUtils';
 import { useEventDurationHours } from '../../hooks/useEvents';
-import { FacultyAvatar, MultipleFacultyAvatars } from '../FacultyAvatar';
+import { FacultyAvatar, MultipleFacultyAvatars } from '../../core/faculty/FacultyAvatar';
 import { useMultipleFacultyMembers } from '../../hooks/useFaculty';
 
 

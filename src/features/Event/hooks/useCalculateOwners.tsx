@@ -200,7 +200,7 @@ export function useEventOwnership(eventId: number | null) {
   
     staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
     gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
-    refetchOnMount: false,
+    refetchOnMount: true, // Allow refetching when component mounts
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

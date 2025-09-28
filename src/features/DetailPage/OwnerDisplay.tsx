@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useEventOwnership, useAssignManualOwner, useClearManualOwner } from '../Event/hooks/useCalculateOwners';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import Avatar from '../Avatar';
+import Avatar from '../../components/ui/Avatar';
 import UserSelectionModal from '../UserSelectionModal';
 import type { Database } from '../../types/supabase';
 

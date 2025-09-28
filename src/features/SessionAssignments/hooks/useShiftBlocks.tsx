@@ -42,91 +42,6 @@ export function useShiftBlocks(date: string | null) {
 
 
 
-export function useUpdateShiftBlock() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: number } & Partial<ShiftBlock>) => {
-      const { data, error } = await supabase
-        .from('shift_blocks')
-        .update(updates)
-        .eq('id', id)
-        .select();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data, variables) => {
-      if (variables.date) {
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      }
-      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
-      // Invalidate event ownership queries so useCalculateOwners updates
-      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-    },
-  });
-}
-
-
-// Function to automatically assign all rooms to single users in shift blocks
-export async function autoAssignRoomsToSingleUsers(date: string): Promise<void> {
-  try {
-    // Get all shift blocks for the date
-    const { data: blocks, error: blocksError } = await supabase
-      .from('shift_blocks')
-      .select('*')
-      .eq('date', date);
-    
-    if (blocksError) throw blocksError;
-    
-    if (!blocks || blocks.length === 0) return;
-    
-    // Get all available rooms
-    const { data: rooms, error: roomsError } = await supabase
-      .from('rooms')
-      .select('name')
-      .order('name');
-    
-    if (roomsError) throw roomsError;
-    
-    const allRoomNames = rooms.map(room => room.name).filter((name): name is string => Boolean(name));
-    
-    // Check each block for single users and auto-assign rooms
-    const updatedBlocks = blocks.map(block => {
-      const assignments = (block.assignments as any[]) || [];
-      
-      // If there's only one user and they have no rooms assigned
-      if (assignments.length === 1 && assignments[0].rooms.length === 0) {
-        const singleUser = assignments[0];
-        return {
-          ...block,
-          assignments: [{
-            ...singleUser,
-            rooms: allRoomNames
-          }]
-        };
-      }
-      
-      return block;
-    });
-    
-    // Update the blocks in the database
-    for (const block of updatedBlocks) {
-      const { error: updateError } = await supabase
-        .from('shift_blocks')
-        .update({ assignments: block.assignments })
-        .eq('id', block.id);
-      
-      if (updateError) {
-        console.error('Error updating block:', block.id, updateError);
-      }
-    }
-    
-    console.log('✅ Auto-assigned rooms to single users for date:', date);
-  } catch (error) {
-    console.error('❌ Error auto-assigning rooms to single users:', error);
-    throw error;
-  }
-}
 
 
 
@@ -178,12 +93,7 @@ export function useUpdateShiftBlocks() {
         
         console.log('✅ Successfully inserted', data?.length, 'new blocks');
         
-        // Auto-assign rooms to single users after creating blocks
-        try {
-          await autoAssignRoomsToSingleUsers(date);
-        } catch (error) {
-          console.error('Warning: Failed to auto-assign rooms to single users:', error);
-        }
+     
         
         return data;
       }
@@ -195,77 +105,12 @@ export function useUpdateShiftBlocks() {
       queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
       // Invalidate event ownership queries so useCalculateOwners updates
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+      // Force refetch of event ownership queries
+      queryClient.refetchQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
 
-export function useCreateShiftBlockFromExisting() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (shiftBlock: ShiftBlockInsert) => {
-      if (!shiftBlock.start_time || !shiftBlock.end_time || !shiftBlock.date) {
-        throw new Error('Missing required fields: start_time, end_time, or date');
-      }
-      
-      const { data, error } = await supabase
-        .from('shift_blocks')
-        .insert([{
-          date: shiftBlock.date,
-          start_time: shiftBlock.start_time,
-          end_time: shiftBlock.end_time,
-          assignments: shiftBlock.assignments,
-        }])
-        .select();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data, variables) => {
-      if (variables.date) {
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      }
-    // Also invalidate the shiftBlocksForOwner query used by useOwnerDisplay
-      queryClient.invalidateQueries({ queryKey: ['shiftBlocksForOwner'] });
-      // Invalidate event ownership queries so useCalculateOwners updates
-      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-    },
-  });
-}
-
-export function useUpdateShiftBlockFromExisting() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (shiftBlock: ShiftBlockInsert & { id: number }) => {
-      if (!shiftBlock.start_time || !shiftBlock.end_time || !shiftBlock.date) {
-        throw new Error('Missing required fields: start_time, end_time, or date');
-      }
-      
-      const { data, error } = await supabase
-        .from('shift_blocks')
-        .update({
-          date: shiftBlock.date,
-          start_time: shiftBlock.start_time,
-          end_time: shiftBlock.end_time,
-          assignments: shiftBlock.assignments,
-        })
-        .eq('id', shiftBlock.id)
-        .select();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data, variables) => {
-      if (variables.date) {
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      }
-    
-      // Invalidate event ownership queries so useCalculateOwners updates
-      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-    },
-  });
-}
 
 
 // Mutation for copying schedule from previous week

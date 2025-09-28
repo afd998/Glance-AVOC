@@ -8,7 +8,7 @@ import { useEventOwnership } from './hooks/useCalculateOwners';
 import { useEventChecksComplete } from '../../hooks/usePanoptoChecks';
 import { useEvent } from './hooks/useEvent';
 import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
-import Avatar from '../Avatar';
+import Avatar from '../../components/ui/Avatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 

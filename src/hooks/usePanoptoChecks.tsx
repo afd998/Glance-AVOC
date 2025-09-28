@@ -50,7 +50,6 @@ export const usePanoptoChecksData = (eventId: number) => {
     let channel: any = null;
 
     const setupBroadcast = async () => {
-      console.log(`🔴 Setting up broadcast subscription for panopto_checks, event_id: ${eventId}`);
 
       // Set auth for broadcast (required for authorization)
       await supabase.realtime.setAuth();
@@ -59,19 +58,16 @@ export const usePanoptoChecksData = (eventId: number) => {
       channel = supabase
         .channel(`topic:${eventId}`)
         .on('broadcast', { event: 'INSERT' }, (payload) => {
-          console.log('🔴 Broadcast INSERT received:', payload);
           queryClientRef.current.invalidateQueries({ 
             queryKey: ['panoptoChecks', eventId] 
           });
         })
         .on('broadcast', { event: 'UPDATE' }, (payload) => {
-          console.log('🔴 Broadcast UPDATE received:', payload);
           queryClientRef.current.invalidateQueries({ 
             queryKey: ['panoptoChecks', eventId] 
           });
         })
         .on('broadcast', { event: 'DELETE' }, (payload) => {
-          console.log('🔴 Broadcast DELETE received:', payload);
           queryClientRef.current.invalidateQueries({ 
             queryKey: ['panoptoChecks', eventId] 
           });
@@ -85,7 +81,6 @@ export const usePanoptoChecksData = (eventId: number) => {
 
     return () => {
       if (channel) {
-        console.log(`🔴 Cleaning up broadcast subscription for event_id: ${eventId}`);
         supabase.removeChannel(channel);
       }
     };

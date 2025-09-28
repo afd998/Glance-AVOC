@@ -3,7 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useUserProfiles } from '../../hooks/useUserProfiles';
 import { useShifts, useCopyScheduleFromPreviousWeek } from './hooks/useShifts';
 import { useCopyShiftBlocksToDaysWithSameSchedule } from './hooks/useCopyShiftBlocksToDaysWithSameSchedule';
-import ShiftBlocks from '../MenuPanel/ShiftBlocks';
+import ShiftBlocks from './ShiftBlocks/ShiftBlocks';
 import SessionAssignmentSchedule from './SessionAssignmentSchedule';
 import { useRooms } from '../../hooks/useRooms';
 import { getAllShiftBlocksForDate } from '../../utils/eventUtils';
