@@ -22,7 +22,6 @@ interface SessionSetupProps {
   facultyMembers: FacultyMember[];
   instructorNames: string[];
   isFacultyLoading: boolean;
-  updateFacultyAttributes: any; // Type this properly when the hook is converted
   openPanelModal: (panel: 'left' | 'right') => void;
 }
 
@@ -32,7 +31,6 @@ export default function SessionSetup({
   facultyMembers,
   instructorNames,
   isFacultyLoading,
-  updateFacultyAttributes,
   openPanelModal
 }: SessionSetupProps) {
   // Use the provided instructor data (now handles individual instructors properly)
@@ -138,7 +136,6 @@ export default function SessionSetup({
               event={event}
               facultyMember={facultyMember}
               primaryInstructorName={primaryInstructorName}
-              updateFacultyAttributes={updateFacultyAttributes}
               openPanelModal={openPanelModal}
             />
           )}

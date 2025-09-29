@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Routes, Route, useLocation } from 'react-router-dom';
-import { useMultipleFacultyMembers, useUpdateFacultyAttributes } from '../../hooks/useFaculty';
+import { useMultipleFacultyMembers } from '../../hooks/useFaculty';
+import { useUpdateFacultySetupAttributes, useFacultySetup } from '../Faculty/hooks/useFacultySetup';
 import { useEvents } from '../../hooks/useEvents';
 import { useEventOwnership } from '../Event/hooks/useCalculateOwners';
 import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
@@ -83,7 +84,11 @@ export default function EventDetail() {
   }, [event]);
 
   const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
-  const updateFacultyAttributes = useUpdateFacultyAttributes();
+  const updateFacultySetupAttributes = useUpdateFacultySetupAttributes();
+  
+  // Get faculty setup data for the first faculty member (for panel modal updates)
+  const firstFacultyMember = facultyMembers && facultyMembers.length > 0 ? facultyMembers[0] : null;
+  const { data: facultySetup } = useFacultySetup(firstFacultyMember?.id || 0);
   
   // Get ownership data including hand-off times
   const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event?.id);
@@ -120,25 +125,25 @@ export default function EventDetail() {
   };
 
   const selectPanelImage = (imageId: string) => {
-    if (!editingPanel || !facultyMembers || facultyMembers.length === 0 || !event) return;
+    if (!editingPanel || !facultyMembers || facultyMembers.length === 0 || !event || !facultySetup) return;
 
     // For multiple instructors, update the first one found
     // In a real application, you might want to show a selector for which instructor to update
     const facultyMember = facultyMembers[0];
 
+    // Get current faculty setup data to preserve existing values
+    const currentLeftSource = facultySetup.left_source ?? '';
+    const currentRightSource = facultySetup.right_source ?? '';
+    const currentUsesMic = facultySetup.uses_mic ?? false;
+
     const updatedAttributes = {
-      timing: facultyMember.timing ?? 0,
-      complexity: facultyMember.complexity ?? 0,
-      temperment: facultyMember.temperment ?? 0,
-      uses_mic: facultyMember.uses_mic ?? false,
-      left_source: facultyMember.left_source ?? '',
-      right_source: facultyMember.right_source ?? '',
-      setup_notes: facultyMember.setup_notes ?? '',
-      [editingPanel === 'left' ? 'left_source' : 'right_source']: imageId
+      uses_mic: currentUsesMic,
+      left_source: editingPanel === 'left' ? imageId : currentLeftSource,
+      right_source: editingPanel === 'right' ? imageId : currentRightSource
     };
 
-    updateFacultyAttributes.mutate({
-      twentyfiveliveName: facultyMember.twentyfivelive_name || '',
+    updateFacultySetupAttributes.mutate({
+      facultyId: facultyMember.id,
       attributes: updatedAttributes
     });
 
@@ -205,7 +210,6 @@ export default function EventDetail() {
                     facultyMembers={facultyMember ? [facultyMember] : []}
                     instructorNames={[instructorName]}
                     isFacultyLoading={isFacultyLoading}
-                    updateFacultyAttributes={updateFacultyAttributes}
                     openPanelModal={openPanelModal}
                   />
                 );

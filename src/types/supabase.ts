@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -150,7 +150,6 @@ export type Database = {
       }
       faculty: {
         Row: {
-          complexity: number | null
           created_at: string
           cutout_image: string | null
           id: number
@@ -162,8 +161,6 @@ export type Database = {
           kelloggdirectory_title: string | null
           left_source: string | null
           right_source: string | null
-          setup_notes: string | null
-          setup_updated_at: string | null
           temperment: number | null
           timing: number | null
           twentyfivelive_name: string | null
@@ -171,7 +168,6 @@ export type Database = {
           uses_mic: boolean | null
         }
         Insert: {
-          complexity?: number | null
           created_at?: string
           cutout_image?: string | null
           id?: number
@@ -183,8 +179,6 @@ export type Database = {
           kelloggdirectory_title?: string | null
           left_source?: string | null
           right_source?: string | null
-          setup_notes?: string | null
-          setup_updated_at?: string | null
           temperment?: number | null
           timing?: number | null
           twentyfivelive_name?: string | null
@@ -192,7 +186,6 @@ export type Database = {
           uses_mic?: boolean | null
         }
         Update: {
-          complexity?: number | null
           created_at?: string
           cutout_image?: string | null
           id?: number
@@ -204,8 +197,6 @@ export type Database = {
           kelloggdirectory_title?: string | null
           left_source?: string | null
           right_source?: string | null
-          setup_notes?: string | null
-          setup_updated_at?: string | null
           temperment?: number | null
           timing?: number | null
           twentyfivelive_name?: string | null
@@ -213,6 +204,41 @@ export type Database = {
           uses_mic?: boolean | null
         }
         Relationships: []
+      }
+      faculty_setup: {
+        Row: {
+          created_at: string
+          id: number
+          left_source: string | null
+          right_source: string | null
+          updated_at: string | null
+          uses_mic: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          left_source?: string | null
+          right_source?: string | null
+          updated_at?: string | null
+          uses_mic?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          left_source?: string | null
+          right_source?: string | null
+          updated_at?: string | null
+          uses_mic?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_setup_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faculty_updates: {
         Row: {

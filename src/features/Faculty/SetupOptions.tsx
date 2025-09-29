@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
 import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
+import { useFacultySetup, useUpdateFacultySetupAttributes } from './hooks/useFacultySetup';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -9,7 +10,6 @@ interface SetupOptionsProps {
   event: Event;
   facultyMember: FacultyMember;
   primaryInstructorName: string;
-  updateFacultyAttributes: any;
   openPanelModal: (panel: 'left' | 'right') => void;
 }
 
@@ -17,15 +17,29 @@ export default function SetupOptions({
   event,
   facultyMember,
   primaryInstructorName,
-  updateFacultyAttributes,
   openPanelModal
 }: SetupOptionsProps) {
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
   
+  // Get faculty setup data
+  const { data: facultySetup, isLoading: isLoadingSetup } = useFacultySetup(facultyMember.id);
+  const updateFacultySetupAttributes = useUpdateFacultySetupAttributes();
+  
   // Get theme colors based on event type
   const themeColors = getEventThemeColors(event);
   const themeHexColors = getEventThemeHexColors(event);
+
+  // Show loading state while fetching faculty setup data
+  if (isLoadingSetup) {
+    return (
+      <div className="backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 sm:p-4 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 sm:p-4 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
@@ -67,32 +81,29 @@ export default function SetupOptions({
               <input
                 type="checkbox"
                 className="hidden peer"
-                checked={facultyMember.uses_mic || false}
+                checked={facultySetup?.uses_mic || false}
                 onChange={() => {
-                  if (!updateFacultyAttributes.isPending) {
-                    updateFacultyAttributes.mutate({
-                      twentyfiveliveName: primaryInstructorName,
+                  if (!updateFacultySetupAttributes.isPending && facultySetup) {
+                    updateFacultySetupAttributes.mutate({
+                      facultyId: facultyMember.id,
                       attributes: {
-                        timing: facultyMember.timing ?? 0,
-                        complexity: facultyMember.complexity ?? 0,
-                        temperment: facultyMember.temperment ?? 0,
-                        uses_mic: !facultyMember.uses_mic,
-                        left_source: facultyMember.left_source ?? '',
-                        right_source: facultyMember.right_source ?? ''
+                        uses_mic: !facultySetup.uses_mic,
+                        left_source: facultySetup.left_source ?? '',
+                        right_source: facultySetup.right_source ?? ''
                       }
                     });
                   }
                 }}
-                disabled={updateFacultyAttributes.isPending}
+                disabled={updateFacultySetupAttributes.isPending || isLoadingSetup}
               />
               <span className={
                 `w-6 h-6 flex items-center justify-center border-2 rounded transition-colors duration-150
-                ${facultyMember.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors[3]}`}
-                ${updateFacultyAttributes.isPending ? 'opacity-60' : ''}`
+                ${facultySetup?.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors[3]}`}
+                ${updateFacultySetupAttributes.isPending ? 'opacity-60' : ''}`
               }>
-                {updateFacultyAttributes.isPending ? (
+                {updateFacultySetupAttributes.isPending ? (
                   <span className="animate-spin w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full"></span>
-                ) : facultyMember.uses_mic ? (
+                ) : facultySetup?.uses_mic ? (
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 ) : null}
               </span>
@@ -100,9 +111,9 @@ export default function SetupOptions({
           ) : (
             <div className="flex items-center">
               <span className={`w-6 h-6 flex items-center justify-center border-2 rounded ${
-                facultyMember.uses_mic ? 'border-green-600 bg-green-100' : 'border-gray-400 bg-gray-100'
+                facultySetup?.uses_mic ? 'border-green-600 bg-green-100' : 'border-gray-400 bg-gray-100'
               }`}>
-                {facultyMember.uses_mic ? (
+                {facultySetup?.uses_mic ? (
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 ) : null}
               </span>
@@ -111,11 +122,11 @@ export default function SetupOptions({
         </div>
         
         {/* Panels */}
-        {(facultyMember.right_source || facultyMember.left_source) && (
+        {(facultySetup?.right_source || facultySetup?.left_source) && (
           <div className="mt-6">
             <h4 className="text-base sm:text-lg font-medium text-black mb-3">Panel</h4>
             <div className="flex gap-3 sm:gap-4">
-              {facultyMember.left_source && (
+              {facultySetup?.left_source && (
                 <div className="flex-1">
                   <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
                   {isEditMode ? (
@@ -125,36 +136,36 @@ export default function SetupOptions({
                       title="Click to change panel setup"
                     >
                       <img 
-                        src={`/panel-images/${facultyMember.left_source}.png`}
+                        src={`/panel-images/${facultySetup.left_source}.png`}
                         alt={`Left panel setup for ${primaryInstructorName}`}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
-                          console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
+                          console.error('Error loading left panel image:', facultySetup.left_source, 'Full path:', `/panel-images/${facultySetup.left_source}.png`);
                           (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.left_source}.png</span>`;
+                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultySetup.left_source}.png</span>`;
                         }}
                       />
                     </button>
                   ) : (
                     <div className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center backdrop-blur-sm shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}>
                       <img 
-                        src={`/panel-images/${facultyMember.left_source}.png`}
+                        src={`/panel-images/${facultySetup.left_source}.png`}
                         alt={`Left panel setup for ${primaryInstructorName}`}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
-                          console.error('Error loading left panel image:', facultyMember.left_source, 'Full path:', `/panel-images/${facultyMember.left_source}.png`);
+                          console.error('Error loading left panel image:', facultySetup.left_source, 'Full path:', `/panel-images/${facultySetup.left_source}.png`);
                           (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.left_source}.png</span>`;
+                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultySetup.left_source}.png</span>`;
                         }}
                       />
                     </div>
                   )}
                   <p className="text-xs text-black text-center mt-2 font-medium">
-                    {facultyMember.left_source.replace(/_/g, ' ')}
+                    {facultySetup.left_source.replace(/_/g, ' ')}
                   </p>
                 </div>
               )}
-              {facultyMember.right_source && (
+              {facultySetup?.right_source && (
                 <div className="flex-1">
                   <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
                   {isEditMode ? (
@@ -164,32 +175,32 @@ export default function SetupOptions({
                       title="Click to change panel setup"
                     >
                       <img 
-                        src={`/panel-images/${facultyMember.right_source}.png`}
+                        src={`/panel-images/${facultySetup.right_source}.png`}
                         alt={`Right panel setup for ${primaryInstructorName}`}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
-                          console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
+                          console.error('Error loading right panel image:', facultySetup.right_source, 'Full path:', `/panel-images/${facultySetup.right_source}.png`);
                           (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.right_source}.png</span>`;
+                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultySetup.right_source}.png</span>`;
                         }}
                       />
                     </button>
                   ) : (
                     <div className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center backdrop-blur-sm shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}>
                       <img 
-                        src={`/panel-images/${facultyMember.right_source}.png`}
+                        src={`/panel-images/${facultySetup.right_source}.png`}
                         alt={`Right panel setup for ${primaryInstructorName}`}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
-                          console.error('Error loading right panel image:', facultyMember.right_source, 'Full path:', `/panel-images/${facultyMember.right_source}.png`);
+                          console.error('Error loading right panel image:', facultySetup.right_source, 'Full path:', `/panel-images/${facultySetup.right_source}.png`);
                           (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultyMember.right_source}.png</span>`;
+                          (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-black">Failed to load: ${facultySetup.right_source}.png</span>`;
                         }}
                       />
                     </div>
                   )}
                   <p className="text-xs text-black text-center mt-2 font-medium">
-                    {facultyMember.right_source.replace(/_/g, ' ')}
+                    {facultySetup.right_source.replace(/_/g, ' ')}
                   </p>
                 </div>
               )}
@@ -200,8 +211,8 @@ export default function SetupOptions({
         {/* Setup Updated Timestamp */}
         <div className="mt-4 pt-3 border-t border-white/10">
           <p className="text-xs text-black/70">
-            {facultyMember.setup_updated_at 
-              ? `Last updated: ${new Date(facultyMember.setup_updated_at).toLocaleString()}`
+            {facultySetup?.updated_at 
+              ? `Last updated: ${new Date(facultySetup.updated_at).toLocaleString()}`
               : 'Never updated'
             }
           </p>

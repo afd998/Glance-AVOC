@@ -6,7 +6,6 @@ import { Database } from '../../types/supabase';
 import FacultyStatusBars from './FacultyStatusBars';
 import SetupNotesEditor from './SetupNotesEditor';
 import SessionSetup from './SessionSetup';
-import { useUpdateFacultyAttributes } from '../../hooks/useFaculty';
 
 const fetchFacultyById = async (facultyId: string) => {
   const { data, error } = await supabase
@@ -27,7 +26,6 @@ const FacultyDetailModal: React.FC = () => {
     enabled: !!facultyId,
   });
   
-  const updateFacultyAttributes = useUpdateFacultyAttributes();
   
   // Create a mock event object for the SessionSetup component
   const mockEvent = facultyMember ? {
@@ -80,7 +78,6 @@ const FacultyDetailModal: React.FC = () => {
               : []
             }
             isFacultyLoading={false}
-            updateFacultyAttributes={updateFacultyAttributes}
             openPanelModal={handlePanelModal}
           />
         ) : null}
