@@ -100,13 +100,13 @@ export function useUpdateShiftBlocks() {
       
       return [];
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
-      queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
-      // Invalidate event ownership queries so useCalculateOwners updates
+    onSuccess: async (data, variables) => {
+      // First, refetch the shift blocks to ensure they're updated
+      await queryClient.refetchQueries({ queryKey: ['shift_blocks', variables.date] });
+      await queryClient.refetchQueries({ queryKey: ['shift_blocks'] });
+      
+      // Then invalidate event ownership queries so they use the updated shift blocks
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-      // Force refetch of event ownership queries
-      queryClient.refetchQueries({ queryKey: ['eventOwnership'] });
     },
   });
 }
@@ -203,17 +203,17 @@ export function useCopyScheduleFromPreviousWeek() {
       
       await Promise.all(copyPromises);
     },
-    onSuccess: (_, variables) => {
-      // Invalidate all shift_blocks queries for the week dates
-      variables.weekDates.forEach(date => {
+    onSuccess: async (_, variables) => {
+      // First, refetch all shift_blocks queries for the week dates
+      for (const date of variables.weekDates) {
         const dateString = date.toISOString().split('T')[0];
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', dateString] });
-      });
+        await queryClient.refetchQueries({ queryKey: ['shift_blocks', dateString] });
+      }
       
-      // Invalidate shifts queries
-      queryClient.invalidateQueries({ queryKey: ['shifts'] });
+      // Refetch shifts queries
+      await queryClient.refetchQueries({ queryKey: ['shifts'] });
       
-      // Invalidate event ownership queries
+      // Then invalidate event ownership queries so they use the updated shift blocks
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
   });

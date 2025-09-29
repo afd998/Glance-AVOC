@@ -113,12 +113,13 @@ export function useRoomRows(filteredEvents: Event[]) {
   }
 }  
 
-export function useFilteredEvents(date: Date) {
+export  function useFilteredEvents(date: Date) {
 const { data: events, isLoading, error, isFetching } = useEvents(date);
-const { currentFilter } = useProfile();
+const  { currentFilter } = useProfile();
 const { filters } = useFilters();
 const { user } = useAuth();
 console.log("useFilteredEvents", currentFilter);
+console.log("useFilteredEvents events", events);
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
   const { data: allShiftBlocks = [] } = useShiftBlocks(dateString);
@@ -135,7 +136,7 @@ const filteredQ = useQuery({
   // keep it in memory so toggling days back/forward reuses it
   staleTime: Infinity,
   gcTime: 1000 * 60 * 60, // 1h (tune as you like)
-  enabled: events !== undefined && allShiftBlocks !== undefined,
+  enabled: events !== undefined &&  events !== null && ((currentFilter === "My Events") ? (allShiftBlocks !== undefined) : true) && currentFilter !== undefined,
 });
 
 return {

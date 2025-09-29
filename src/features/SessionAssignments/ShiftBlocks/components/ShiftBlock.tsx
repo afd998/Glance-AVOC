@@ -85,7 +85,7 @@ function RoomBadge({
   return (
     <span
       onClick={handleClick}
-      className={`inline-block px-2 py-1 text-xs rounded-lg cursor-pointer transition-all duration-200 backdrop-blur-sm shadow-sm ${
+      className={`inline-block px-2 py-1 text-xs rounded-lg cursor-pointer transition-all duration-200 backdrop-blur-sm shadow-sm select-none ${
         getRoomBadgeColor(room)
       } ${
         isSelected
@@ -101,7 +101,7 @@ function RoomBadge({
 // User name component for dropdown
 function UserNameDisplay({ userId }: { userId: string }) {
   const { data: profile } = useUserProfile(userId);
-  return <span>{profile?.name || userId}</span>;
+  return <span className="select-none">{profile?.name || userId}</span>;
 }
 
 // Bulk move button component
@@ -124,20 +124,20 @@ function BulkMoveButton({
     <div className="relative">
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="px-3 py-1 bg-blue-600/90 text-white text-xs rounded-lg hover:bg-blue-700/90 transition-all duration-200 backdrop-blur-sm border border-blue-500/50 shadow-md"
+        className="px-3 py-1 bg-blue-600/90 text-white text-xs rounded-lg hover:bg-blue-700/90 transition-all duration-200 backdrop-blur-sm border border-blue-500/50 shadow-md select-none"
       >
         Move {selectedCount} selected
       </button>
       
       {showDropdown && (
-        <div className="absolute top-full left-0 mt-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-xl z-50 min-w-[150px]">
+        <div className="absolute top-full left-0 mt-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-xl z-50 min-w-[150px] select-none">
           <div className="p-2 border-b border-gray-200/50 dark:border-gray-700/50">
             <button
               onClick={() => {
                 onMoveToRooms();
                 setShowDropdown(false);
               }}
-              className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm"
+              className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm select-none"
             >
               Move to Unassigned
             </button>
@@ -149,7 +149,7 @@ function BulkMoveButton({
                   onMoveToUser(userId);
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm"
+                className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm select-none"
               >
                 Move to <UserNameDisplay userId={userId} />
               </button>
@@ -184,7 +184,7 @@ function ShiftBlockAssignment({
 
   return (
     <div
-      className={`flex flex-col p-3 rounded-lg border-2 transition-all duration-200 backdrop-blur-sm ${
+      className={`flex flex-col p-3 rounded-lg border-2 transition-all duration-200 backdrop-blur-sm select-none ${
         hasAllRooms
           ? 'border-green-300 bg-green-50/70 dark:bg-green-900/30'
           : 'border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70'
@@ -192,11 +192,11 @@ function ShiftBlockAssignment({
     >
       <div className="flex items-center gap-2 mb-2">
         <Avatar userId={userId} size="sm" />
-        <span className="font-medium text-gray-900 dark:text-white">
+        <span className="font-medium text-gray-900 dark:text-white select-none">
           {profile?.name || userId}
         </span>
         {hasAllRooms && (
-          <span className="px-1 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 rounded">
+          <span className="px-1 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 rounded select-none">
             All Rooms
           </span>
         )}
@@ -228,10 +228,10 @@ function RoomsSection({
 }) {
   return (
     <div
-      className="p-3 rounded-lg border-2 transition-all duration-200 min-h-[60px] backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70"
+      className="p-3 rounded-lg border-2 transition-all duration-200 min-h-[60px] backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 select-none"
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="font-medium text-gray-900 dark:text-white">
+        <span className="font-medium text-gray-900 dark:text-white select-none">
           Rooms:
         </span>
       </div>
@@ -497,7 +497,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
 
   return (
     <div 
-      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 ${
+      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 select-none ${
         isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       onMouseEnter={handleMouseEnter}
@@ -512,7 +512,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
     >
       <div className="flex justify-between items-center mb-4">
         <h5 
-          className={`font-medium text-gray-900 dark:text-white transition-all duration-200 ${
+          className={`font-medium text-gray-900 dark:text-white transition-all duration-200 select-none ${
             isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
           } ${onHeaderDrag ? 'hover:bg-gray-200/50 dark:hover:bg-gray-700/50 px-2 py-1 rounded' : ''}`}
           onMouseDown={handleBackgroundMouseDown}

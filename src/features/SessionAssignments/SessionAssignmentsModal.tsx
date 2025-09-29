@@ -300,7 +300,7 @@ const SessionAssignmentsModal: React.FC<SessionAssignmentsModalProps> = ({ isOpe
               <ShiftBlocks date={selectedDate} />
               
               {/* Copy Shift Blocks Button */}
-              {false && (
+              {true && (
                 <div className="mt-4 flex justify-center">
                   <button
                     onClick={handleCopyShiftBlocks}

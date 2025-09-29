@@ -39,7 +39,6 @@ export const usePanoptoChecksData = (eventId: number) => {
       return data || [];
     },
     enabled: !!eventId,
-    refetchInterval: 10000, // Refetch every 10 seconds for real-time feel
     staleTime: 120000, // Consider data stale after 2 minutes
   });
 

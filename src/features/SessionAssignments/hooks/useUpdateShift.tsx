@@ -237,24 +237,25 @@ export function useUpdateShift() {
         return [];
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       console.log('Shift mutation success, invalidating queries for date:', variables.date);
       // Invalidate the specific query
-      queryClient.invalidateQueries({ queryKey: ['shifts', variables.date] });
+ 
       // Also invalidate all shifts queries to be safe
-      queryClient.invalidateQueries({ queryKey: ['shifts'] });
+      await queryClient.invalidateQueries({ queryKey: ['shifts'] });
       // Invalidate shift blocks for this date
-      queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
+      await queryClient.invalidateQueries({ queryKey: ['shift_blocks', variables.date] });
       // Invalidate event ownership queries
-      queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
-      // Invalidate any array-based queries that might include this date
-      queryClient.invalidateQueries({ 
+     
+      await queryClient.invalidateQueries({ 
         queryKey: ['shifts'], 
         predicate: (query) => {
           const queryKey = query.queryKey;
           return queryKey[0] === 'shifts' && Array.isArray(queryKey[1]);
         }
       });
+       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
+      // Invalidate any array-based queries that might include this date
     },
   });
 }

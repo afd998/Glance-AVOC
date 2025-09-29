@@ -117,27 +117,10 @@ export function useCopyShiftBlocksToDaysWithSameSchedule() {
 
       return { copiedDays: copiedCount };
     },
-    onSuccess: (data, sourceDate) => {
-      console.log(`✅ Copied shift blocks to ${data.copiedDays} day(s) with same schedule`);
-      
-      // Invalidate shift blocks queries for all affected dates
-      const sourceDateObj = new Date(sourceDate);
-      const weekStart = new Date(sourceDateObj);
-      weekStart.setDate(sourceDateObj.getDate() - sourceDateObj.getDay() + 1);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekDates = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        return date.toISOString().split('T')[0];
-      });
-
-      weekDates.forEach(date => {
-        queryClient.invalidateQueries({ queryKey: ['shift_blocks', date] });
-        queryClient.invalidateQueries({ queryKey: ['allRoomsAssigned', date] });
-      });
-      
-      // Invalidate event ownership queries
+    onSuccess: async (data, sourceDate) => {
+    
+       await queryClient.invalidateQueries({ queryKey: ['shift_blocks'] });
+       await queryClient.invalidateQueries({ queryKey: ['allRoomsAssigned'] });   
       queryClient.invalidateQueries({ queryKey: ['eventOwnership'] });
     },
     onError: (error) => {
