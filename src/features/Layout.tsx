@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react';
-import { useBackground } from '../hooks/useBackground';
+import { useBackground } from './ThemeModal/useBackground';
 import { useRain } from '../contexts/RainContext';
 import { useSnow } from '../contexts/SnowContext';
 import { useLocation } from 'react-router-dom';
-import RainOverlay from './RainOverlay';
-import LeavesOverlay from './LeavesOverlay';
-import SnowOverlay from './SnowOverlay';
+import RainOverlay from './ThemeModal/components/RainOverlay';
+import LeavesOverlay from './ThemeModal/components/LeavesOverlay';
+import SnowOverlay from './ThemeModal/components/SnowOverlay';
 
 interface LayoutProps {
   children: ReactNode;

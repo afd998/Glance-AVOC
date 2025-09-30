@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useBackground } from '../hooks/useBackground';
+import { useBackground } from '../features/ThemeModal/useBackground';
 
 const ThemeContext = createContext();
 

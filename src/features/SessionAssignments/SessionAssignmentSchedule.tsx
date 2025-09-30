@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useUserProfiles } from '../../hooks/useUserProfiles';
+import { useUserProfiles } from '../../core/User/useUserProfiles';
 import { useShifts, Shift } from './hooks/useShifts';
 import { useUpdateShift } from './hooks/useUpdateShift';
 import { useQueryClient } from '@tanstack/react-query';

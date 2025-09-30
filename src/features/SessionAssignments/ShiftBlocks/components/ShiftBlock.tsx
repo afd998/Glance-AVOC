@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Avatar from '../../../../components/ui/Avatar';
-import { useUserProfile } from '../../../../hooks/useUserProfile';
-import { useRooms } from '../../../../hooks/useRooms';
+import { useUserProfile } from '../../../../core/User/useUserProfile';
+import { useRooms } from '../../../../core/Rooms/useRooms';
 import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
 
 

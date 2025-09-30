@@ -1,25 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import TimeGrid from "../features/Grid/TimeGrid";
-import CurrentTimeIndicator from "../features/Grid/CurrentTimeIndicator";
-import RoomRow from "../features/Grid/RoomRow";
-import VerticalLines from "../features/Grid/VerticalLines";
-import AppHeader from "../features/Grid/AppHeader";
-import AppHeaderVertical from "../features/Grid/AppHeaderVertical";
-import { NotificationBell } from "../features/Grid/NotificationBell";
-import MenuPanel from "../features/MenuPanel/MenuPanel";
-import DraggableGridContainer from "../features/Grid/DraggableGridContainer";
-import DateDisplay from "../features/Grid/DateDisplay";
+import TimeGrid from "../features/Schedule/components/TimeGrid";
+import CurrentTimeIndicator from "../features/Schedule/components/CurrentTimeIndicator";
+import RoomRow from "../features/Schedule/components/RoomRow";
+import VerticalLines from "../features/Schedule/components/VerticalLines";
+import AppHeader from "../components/AppHeader";
+import AppHeaderVertical from "../components/AppHeaderVertical";
+import { NotificationBell } from "../features/notifications/NotificationBell";
+import MenuPanel from "../components/MenuPanel";
+import DraggableGridContainer from "../features/Schedule/DraggableGridContainer";
+import DateDisplay from "../features/Schedule/components/DateDisplay";
 import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows
- } from "../hooks/useEvents";
-import { useNotifications } from "../hooks/useNotifications";
-import { useProfile } from "../hooks/useProfile";
-import { useRooms } from "../hooks/useRooms";
-import { usePanoptoNotifications } from "../hooks/usePanoptoChecks";
-import EventDetail from "../features/DetailPage/EventDetail";
-import FacultyListModal from "../features/MenuPanel/FacultyListModal";
+ } from "../features/Schedule/hooks/useEvents";
+import { useNotifications } from "../features/notifications/useNotifications";
+import { useProfile } from "../core/User/useProfile";
+import { useRooms } from "../core/Rooms/useRooms";
+import { usePanoptoNotifications } from "../hooks/usePanoptoNotifications";
+import EventDetail from "./EventDetail";
+import FacultyListModal from "../features/Faculty/FacultyListModal";
 import FacultyDetailModal from "../features/Faculty/FacultyDetailModal";
-import NoEventsMessage from "../features/NoEventsMessage";
+import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
 
 import { Database } from "../types/supabase";
 

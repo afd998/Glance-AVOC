@@ -15,7 +15,7 @@ import performanceMonitor from './utils/performanceMonitor';
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './features/ProtectedRoute';
-import AccountPage from './pages/AccountPage';
+import UserProfilePage from './pages/UserProfilePage';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 
@@ -49,7 +49,7 @@ export default function App() {
                     <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path=":date/faculty" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path=":date/faculty/:facultyId" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                    <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+                    <Route path="/account" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
                     <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
                   </Routes>
                 </Layout>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUserProfile } from '../../hooks/useUserProfile';
+import { useUserProfile } from '../../core/User/useUserProfile';
 
 interface AvatarProps {
   userId: string;

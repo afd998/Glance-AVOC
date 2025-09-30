@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
-import FacultyStatusBars from './FacultyStatusBars';
-import SetupNotesEditor from './SetupNotesEditor';
-import SessionSetup from './SessionSetup';
+import FacultyStatusBars from '../../core/faculty/FacultyStatusBars';
+import SetupNotesEditor from '../../core/faculty/SetupNotesEditor';
+import SessionSetup from '../../core/faculty/SessionSetup';
 
 const fetchFacultyById = async (facultyId: string) => {
   const { data, error } = await supabase
