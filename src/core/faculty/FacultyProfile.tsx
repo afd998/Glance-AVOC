@@ -49,7 +49,7 @@ export default function SessionSetup({
   // BYOD handled in BYODDevicesCard
   
   return (
-    <div className=" min-h-[600px] backdrop-blur-md rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-3 sm:p-6 mb-8" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}CC, ${themeHexColors[2]}AA)` }}>
+    <div className=" min-h-[700px] backdrop-blur-md rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-3 sm:p-6 mb-8" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}CC, ${themeHexColors[2]}AA)` }}>
       {/* Collapsible Header */}
       <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
         <h2 className="text-lg sm:text-xl font-semibold text-black">

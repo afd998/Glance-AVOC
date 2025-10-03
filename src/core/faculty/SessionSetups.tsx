@@ -252,7 +252,7 @@ export default function SessionSetups({
           {/* Tab Content */}
           {setups.map((setup) => (
             <TabsContent key={setup.id} value={setup.id} className="mt-0">
-              <div ref={contentRef} className="space-y-4 max-h-96 overflow-y-auto">
+              <div ref={contentRef} className="space-y-4  overflow-y-auto">
         {/* Panels */}
         <div className="mt-6">
           <h4 className="text-base sm:text-lg font-medium text-black mb-3">Panel</h4>
