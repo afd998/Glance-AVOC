@@ -502,7 +502,7 @@ export default function SessionSetups({
           <h4 className="text-base sm:text-lg font-medium text-black mb-3">Notes</h4>
           {!isEditingNotes ? (
             <div className="space-y-2">
-              <div className="text-sm text-black whitespace-pre-wrap min-h-[2rem]">
+              <div className="text-sm text-black whitespace-pre-wrap min-h-[2rem] border border-white/20 dark:border-white/10 rounded-md p-3 bg-white/20 dark:bg-black/10">
                 {setup?.notes ? String(setup.notes) : <span className="text-black/60">No notes</span>}
               </div>
               <div className="flex gap-2">
@@ -511,7 +511,14 @@ export default function SessionSetups({
             </div>
           ) : (
             <div className="space-y-2">
-              <Textarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} placeholder="Enter notes for this setup" />
+              <div className="rounded-md border border-black/30 dark:border-white/20 bg-white/20 dark:bg-black/10 p-1">
+                <Textarea
+                  className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={notesDraft}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  placeholder="Enter notes for this setup"
+                />
+              </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={() => {
                   if (!setup?.id) return;
