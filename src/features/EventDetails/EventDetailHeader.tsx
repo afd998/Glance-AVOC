@@ -8,6 +8,7 @@ import Avatar from '../../components/ui/Avatar';
 import { useUserProfile } from '../../core/User/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
+import { Monitor } from 'lucide-react';
 
 // Helper function to extract hex color from Tailwind bg class
 const extractHexFromBgClass = (bgClass: string): string => {
@@ -376,6 +377,10 @@ export default function EventDetailHeader({
                                           alt="Zoom"
                                           className="w-5 h-5 object-contain"
                                         />
+                                      ) : getAVResourceIcon(item.itemName) === 'TV_ICON' ? (
+                                        <div className="bg-white rounded-full flex items-center justify-center w-6 h-6">
+                                          <Monitor className="w-4 h-4 text-purple-600" strokeWidth={2.5} />
+                                        </div>
                                       ) : (
                                         <span className="text-sm text-white font-bold">
                                           {getAVResourceIcon(item.itemName)}

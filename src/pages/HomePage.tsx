@@ -10,8 +10,8 @@ import { NotificationBell } from "../features/notifications/NotificationBell";
 import MenuPanel from "../components/MenuPanel";
 import DraggableGridContainer from "../features/Schedule/DraggableGridContainer";
 import DateDisplay from "../features/Schedule/components/DateDisplay";
-import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows
- } from "../features/Schedule/hooks/useEvents";
+import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows} from "../features/Schedule/hooks/useEvents";
+import { useLCRooms   } from "../core/Rooms/useRooms";
 import { useNotifications } from "../features/notifications/useNotifications";
 import { useProfile } from "../core/User/useProfile";
 import { useRooms } from "../core/Rooms/useRooms";
@@ -20,7 +20,7 @@ import EventDetail from "./EventDetail";
 import FacultyListModal from "../features/Faculty/FacultyListModal";
 import FacultyDetailModal from "../features/Faculty/FacultyDetailModal";
 import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
-
+  import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
 import { Database } from "../types/supabase";
 
 
@@ -29,6 +29,8 @@ export default function HomePage() {
   
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(true);
+  
+
   // Header hover state to control DateDisplay visibility
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,7 +53,9 @@ export default function HomePage() {
   const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
   const { data: filteredEvents, isLoading, error } = useFilteredEvents(selectedDate);
-  
+  const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
+  const { data: filteredLCEvents, isLoading: filteredLCEventsLoading } = useFilteredLCEvents(selectedDate);
+ 
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
   useEventsPrefetch(selectedDate);
@@ -59,7 +63,7 @@ export default function HomePage() {
   // // Handle Panopto check notifications
   usePanoptoNotifications(selectedDate);
 
-  // Helper function for room filtering (using the already filtered data)
+
   const getFilteredEventsForRoomCallback = (roomName: string) => {
     if (!filteredEvents) return [];
 
@@ -82,12 +86,6 @@ export default function HomePage() {
     });
   };
 
-  
-  // Track if we've loaded events for the current date to prevent flash
-  const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
-
-  
-  
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
   const isFacultyModalRoute = location.pathname.endsWith('/faculty');
   const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
@@ -259,7 +257,7 @@ export default function HomePage() {
         startHour={startHour}
         endHour={endHour}
         pixelsPerMinute={pixelsPerMinute}
-        actualRowCount={roomRows?.length || 0}
+         actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
         isDragEnabled={isDragEnabled}
       >
         {/* Date Display positioned relative to grid */}
@@ -276,7 +274,7 @@ export default function HomePage() {
               startHour={startHour} 
               endHour={endHour} 
               pixelsPerMinute={pixelsPerMinute} 
-              actualRowCount={roomRows?.length || 0} 
+              actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length|| 0)}
             />
         
          
@@ -288,18 +286,17 @@ export default function HomePage() {
               />
             </div>
          
-          {roomRows.filter((room: string) => !room.includes('&')).map((room: string, index: number) => {
-            const roomEvents = getFilteredEventsForRoomCallback(room);
-            const currentFloor = room.match(/GH (\d)/)?.[1];
+          {roomRows.map((room: any, index: number) => {
+            const roomEvents = getFilteredEventsForRoomCallback(room.name);
         
             return (
               <RoomRow
-                key={`${room}`}
-                room={room}
+                key={`${room.name}`}
+                room={room.name}
                 roomEvents={roomEvents}
                 startHour={startHour}
                 pixelsPerMinute={pixelsPerMinute}
-                rooms={roomRows}
+              
                 onEventClick={handleEventClick}
                 isEvenRow={index % 2 === 0}
                 isLastRow={index === roomRows.length - 1}
@@ -307,6 +304,26 @@ export default function HomePage() {
               />
             );
           })}
+<div className="my-2 border-t border-white-300 ">
+          {filteredLCEvents?.map((roomData: any, index: number) => {
+            const roomEvents = roomData.events;
+            console.log("roomData", roomData);
+            return (
+              <RoomRow
+                key={`${roomData.room_name}`}
+                room={roomData.room_name}
+                roomEvents={roomEvents}
+                startHour={startHour}
+                pixelsPerMinute={pixelsPerMinute}
+              
+                onEventClick={handleEventClick}
+                isEvenRow={index % 2 === 0}
+                isLastRow={index === roomRows.length - 1}
+                isFloorBreak={false}
+              />
+            );
+          })}
+           </div>
         </div>
       </DraggableGridContainer>
 

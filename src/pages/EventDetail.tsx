@@ -91,7 +91,7 @@ export default function EventDetail() {
   const { data: facultySetup } = useFacultySetup(firstFacultyMember?.id || 0);
   
   // Get ownership data including hand-off times
-  const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event?.id);
+  const { data: ownershipData, isLoading: isHandOffTimeLoading } = useEventOwnership(event?.id ?? null);
   
   // Use the first hand-off time if there are multiple
   const handOffTime = ownershipData?.handOffTimes && ownershipData.handOffTimes.length > 0 ? ownershipData.handOffTimes[0] : null;
@@ -167,7 +167,7 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative">
       {/* Close Button */}
       <button
         onClick={handleBack}
@@ -234,10 +234,11 @@ export default function EventDetail() {
           onClick={() => navigate(`/${date}/${eventId}`)}
         >
           <div 
-            className="w-full max-w-2xl max-h-[80vh] overflow-visible bg-transparent"
-            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl max-h-[80vh] overflow-visible bg-transparent pointer-events-none"
           >
-            <OccurrencesPage />
+            <div className="pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+              <OccurrencesPage />
+            </div>
           </div>
         </div>
       )}

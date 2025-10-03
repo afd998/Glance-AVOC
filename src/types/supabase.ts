@@ -38,30 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
-      event_services: {
+      event_tasks: {
         Row: {
           created_at: string
           event: number | null
           id: number
-          service_id: number | null
           start_time: string | null
           status: string | null
+          task_id: number | null
         }
         Insert: {
           created_at?: string
           event?: number | null
           id?: number
-          service_id?: number | null
           start_time?: string | null
           status?: string | null
+          task_id?: number | null
         }
         Update: {
           created_at?: string
           event?: number | null
           id?: number
-          service_id?: number | null
           start_time?: string | null
           status?: string | null
+          task_id?: number | null
         }
         Relationships: [
           {
@@ -72,10 +72,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "event_services_service_id_fkey"
-            columns: ["service_id"]
+            foreignKeyName: "event_tasks_task_id_fkey"
+            columns: ["task_id"]
             isOneToOne: false
-            referencedRelation: "services"
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -159,13 +159,8 @@ export type Database = {
           kelloggdirectory_name: string | null
           kelloggdirectory_subtitle: string | null
           kelloggdirectory_title: string | null
-          left_source: string | null
-          right_source: string | null
-          temperment: number | null
-          timing: number | null
           twentyfivelive_name: string | null
           updated_at: string | null
-          uses_mic: boolean | null
         }
         Insert: {
           created_at?: string
@@ -177,13 +172,8 @@ export type Database = {
           kelloggdirectory_name?: string | null
           kelloggdirectory_subtitle?: string | null
           kelloggdirectory_title?: string | null
-          left_source?: string | null
-          right_source?: string | null
-          temperment?: number | null
-          timing?: number | null
           twentyfivelive_name?: string | null
           updated_at?: string | null
-          uses_mic?: boolean | null
         }
         Update: {
           created_at?: string
@@ -195,13 +185,8 @@ export type Database = {
           kelloggdirectory_name?: string | null
           kelloggdirectory_subtitle?: string | null
           kelloggdirectory_title?: string | null
-          left_source?: string | null
-          right_source?: string | null
-          temperment?: number | null
-          timing?: number | null
           twentyfivelive_name?: string | null
           updated_at?: string | null
-          uses_mic?: boolean | null
         }
         Relationships: []
       }
@@ -444,38 +429,26 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          name: string | null
+          name: string
           spelling: string | null
+          sub_type: string | null
+          type: string | null
         }
         Insert: {
           created_at?: string
           id?: number
-          name?: string | null
+          name: string
           spelling?: string | null
+          sub_type?: string | null
+          type?: string | null
         }
         Update: {
           created_at?: string
           id?: number
-          name?: string | null
+          name?: string
           spelling?: string | null
-        }
-        Relationships: []
-      }
-      services: {
-        Row: {
-          created_at: string
-          id: number
-          name: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          name?: string | null
+          sub_type?: string | null
+          type?: string | null
         }
         Relationships: []
       }
@@ -541,15 +514,29 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          created_at: string
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      initialize_panopto_checks_for_existing_events: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
       mark_missed_panopto_checks: {
         Args: Record<PropertyKey, never>
         Returns: number

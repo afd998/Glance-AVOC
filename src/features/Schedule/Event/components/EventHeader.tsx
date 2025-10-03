@@ -9,6 +9,7 @@ import { useEventChecksComplete } from '../hooks/useEventChecksComplete';
 import { useEvent } from '../../../../core/event/hooks/useEvent';
 import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
 import Avatar from '../../../../components/ui/Avatar';
+import { Monitor } from 'lucide-react';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -61,6 +62,7 @@ export default function EventHeader({
   const hasWebConference = resourcesData?.hasWebConference || false;
   const hasClickers = resourcesData?.hasClickers || false;
   const hasAVNotes = resourcesData?.hasAVNotes || false;
+  const hasNeatBoard = resourcesData?.hasNeatBoard || false;
   
   // Get theme colors for this event type
   const themeColors = getEventThemeColors(currentEvent);
@@ -77,7 +79,7 @@ export default function EventHeader({
   
   // State for fisheye effect
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
-  const iconOrder = ['firstSession', 'videoRecording', 'staffAssistance', 'handheldMic', 'webConference', 'clickers', 'avNotes'];
+  const iconOrder = ['firstSession', 'videoRecording', 'staffAssistance', 'handheldMic', 'webConference', 'clickers', 'avNotes', 'neatBoard'];
   
   // Format start and end times from HH:MM:SS format (memoized)
   const formatTimeFromISO = useCallback((timeString: string | null) => {
@@ -157,7 +159,7 @@ export default function EventHeader({
         </span>
       </div>
       {/* Only show the container if there are resources or assignees */}
-      {((isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes) || timeline.length > 0) && (
+      {((isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes || hasNeatBoard) || timeline.length > 0) && (
         <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black bg-opacity-20  rounded-md px-2 py-1 mt-2`}>
         {isFirstSession && (
           <span
@@ -331,9 +333,39 @@ export default function EventHeader({
             )}
           </span>
         )}
+        {hasNeatBoard && (
+          <div 
+            className="relative"
+            title="Neat Board"
+            onMouseEnter={() => handleIconHover('neatBoard')}
+            onMouseLeave={handleIconLeave}
+          >
+            <div 
+              className="bg-white rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer"
+              style={{
+                width: `${16 * getFisheyeScale('neatBoard')}px`,
+                height: `${16 * getFisheyeScale('neatBoard')}px`
+              }}
+            >
+              <Monitor
+                className="text-purple-600"
+                strokeWidth={2.5}
+                style={{
+                  width: `${12 * getFisheyeScale('neatBoard')}px`,
+                  height: `${12 * getFisheyeScale('neatBoard')}px`
+                }}
+              />
+            </div>
+            {hoveredIcon === 'neatBoard' && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                Neat Board
+              </span>
+            )}
+          </div>
+        )}
         
         {/* Separator bar between resource icons and owner icons */}
-        {(isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes) && timeline.length > 0 && (
+        {(isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes || hasNeatBoard) && timeline.length > 0 && (
           <div className="w-0.5 h-4 bg-white dark:bg-gray-800 mx-0.5 opacity-20"></div>
         )}
         

@@ -11,7 +11,6 @@ interface RoomRowProps {
   roomEvents: Event[] | undefined;
   startHour: number;
   pixelsPerMinute: number;
-  rooms: string[];
   isFloorBreak: boolean;
   onEventClick: (event: Event) => void;
   isEvenRow?: boolean; // Make optional with default
@@ -23,7 +22,7 @@ export default function RoomRow({
   roomEvents, 
   startHour, 
   pixelsPerMinute, 
-  rooms, 
+ 
   isLastRow,
   onEventClick, 
   isEvenRow = false, 
@@ -96,7 +95,6 @@ export default function RoomRow({
             event={event}
             startHour={startHour}
             pixelsPerMinute={pixelsPerMinute}
-            rooms={rooms}
             onEventClick={onEventClick}
           />
         ))}

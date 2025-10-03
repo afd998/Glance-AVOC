@@ -9,7 +9,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useShiftBlocks, ShiftBlock } from '../../SessionAssignments/hooks/useShiftBlocks';
 import { useEvent } from '../../../core/event/hooks/useEvent';
 import { useRooms } from '../../../core/Rooms/useRooms';
-
+import { useLCRooms } from '../../../core/Rooms/useRooms';
 type Event = Database['public']['Tables']['events']['Row'];
 
 
@@ -99,7 +99,7 @@ export function useRoomRows(filteredEvents: Event[]) {
     }
     
     // Sort filteredEventRooms based on the order they appear in rooms
-    const sortedRooms = rooms?.filter(room => filteredEventRooms.includes(room)) || [];
+    const sortedRooms = rooms?.filter(room => filteredEventRooms.includes(room.name)) || [];
     return { data: sortedRooms, isLoading: false };
   }
   
@@ -108,10 +108,11 @@ export function useRoomRows(filteredEvents: Event[]) {
   const filteredRooms = filterRooms?.filter((room: string) => !room.includes('&')) || [];
   
   // Sort filteredRooms based on the order they appear in rooms
-  const sortedRooms = rooms?.filter(room => filteredRooms.includes(room)) || [];
+  const sortedRooms = rooms?.filter(room => filteredRooms.includes(room.name)) || [];
   return { data: sortedRooms, isLoading: false };
   }
 }  
+
 
 export  function useFilteredEvents(date: Date) {
 const { data: events, isLoading, error, isFetching } = useEvents(date);
@@ -146,6 +147,8 @@ return {
   isFetching: filteredQ.isFetching || isFetching
 };
 }
+
+
 // Hook to get cached parsed event resources with computed flags
 export function useEventResources(eventId: number) {
   const { data: event, isLoading, error } = useEvent(eventId);
@@ -155,11 +158,11 @@ export function useEventResources(eventId: number) {
     queryFn: () => {
       // Don't make queries for invalid event IDs
       if (!eventId || eventId <= 0) {
-        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false };
+        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false, hasNeatBoard: false };
       }
       
       if (!event) {
-        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false };
+        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false, hasNeatBoard: false };
       }
       
       // Parse resources and compute flags in one go

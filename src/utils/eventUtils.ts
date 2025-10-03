@@ -17,6 +17,7 @@ interface ResourceFlags {
   hasWebConference: boolean;
   hasClickers: boolean;
   hasAVNotes: boolean;
+  hasNeatBoard: boolean;
 }
 
 interface EventTypeInfo {
@@ -59,6 +60,7 @@ export const parseEventResources = (event: Event): ResourceFlags => {
   let hasWebConference = false;
   let hasClickers = false;
   let hasAVNotes = false;
+  let hasNeatBoard = false;
   
   for (const item of resourcesWithIcons) {
     const displayName = item.displayName;
@@ -70,6 +72,7 @@ export const parseEventResources = (event: Event): ResourceFlags => {
     if (displayName === 'Web Conference') hasWebConference = true;
     if (displayName === 'Clickers (Polling)') hasClickers = true;
     if (displayName === 'AV Setup Notes') hasAVNotes = true;
+    if (displayName === 'Neat Board') hasNeatBoard = true;
   }
 
   return {
@@ -81,6 +84,7 @@ export const parseEventResources = (event: Event): ResourceFlags => {
     hasWebConference,
     hasClickers,
     hasAVNotes,
+    hasNeatBoard,
   };
 };
 
@@ -94,6 +98,11 @@ export const getAVResourceIcon = (itemName: string): string => {
   // Special case for web conferencing - should use Zoom icon image
   if (name.includes('video-conferencing') || name.includes('web conference') || name.includes('zoom')) {
     return 'ZOOM_ICON'; // Special marker for zoom icon image
+  }
+
+  // Special case for Surface Hub - should use TV icon
+  if (name.includes('surface hub') || name.includes('ksm-kgh-av-surface hub')) {
+    return 'TV_ICON'; // Special marker for TV icon
   }
 
   // Video-related resources
@@ -149,6 +158,9 @@ const getResourceDisplayNameFast = (itemName: string, lowerName: string): string
   }
   if (lowerName === 'ksm-kgh-av-kis notes') {
     return 'AV Setup Notes';
+  }
+  if (lowerName === 'ksm-kgh-av-surface hub') {
+    return 'Neat Board';
   }
   
   return itemName;

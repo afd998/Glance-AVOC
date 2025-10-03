@@ -13,12 +13,11 @@ interface EventProps {
   event: Event;
   startHour: number;
   pixelsPerMinute: number;
-  rooms: string[];
   onEventClick: (event: Event) => void;
 }
 
 
-export default function Event({ event, startHour, pixelsPerMinute, rooms, onEventClick }: EventProps) {
+export default function Event({ event, startHour, pixelsPerMinute, onEventClick }: EventProps) {
 
   const [isHoveringEvent, setIsHoveringEvent] = useState(false);
 
@@ -45,20 +44,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   // Use the new room_name field instead of parsing subject_itemName
   const roomName = event.room_name;
   
-  // Calculate room index for merged room events
-  const roomIndex = (() => {
-    if (roomName?.includes('&')) {
-      // Extract the base room name (everything before &)
-      const baseRoomName = roomName.split('&')[0];
-      return rooms.indexOf(baseRoomName);
-    } else {
-      return rooms.indexOf(roomName || '');
-    }
-  })();
-  
-  if (roomIndex === -1) {
-    return null;
-  }
 
   // Get cached event duration in hours
   const { data: eventDurationHours = 0 } = useEventDurationHours(event.id);
@@ -91,8 +76,6 @@ export default function Event({ event, startHour, pixelsPerMinute, rooms, onEven
   const continuationWidth = isClamped ? Math.max(0, realWidthPx - MAX_VISIBLE_WIDTH_PX) : 0;
   const maxVisibleWidthPx = MAX_VISIBLE_WIDTH_PX;
 
-  // Determine if this is an upper row
-  const isUpperRow = roomIndex < 4;
 
   // Get event type info using the utility function
   const { isReducedHeightEvent, isMergedRoomEvent } = getEventTypeInfo(event);
