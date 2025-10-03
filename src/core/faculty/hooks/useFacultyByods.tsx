@@ -10,7 +10,7 @@ const fetchByods = async (facultyId: number): Promise<ByodRow[]> => {
   const { data, error } = await supabase
     .from('faculty_byods')
     .select('*')
-    .eq('faculty', facultyId)
+    .or(`faculty.eq.${facultyId},faculty.is.null`)
     .order('created_at', { ascending: false });
   if (error) {
     console.error('Error fetching faculty_byods:', error);

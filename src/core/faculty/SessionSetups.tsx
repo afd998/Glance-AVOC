@@ -15,7 +15,7 @@ import BYODOSSelector from './BYODOSSelector';
 import PanelModal from './PanelModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFacultyByods, useCreateFacultyByod } from './hooks/useFacultyByods';
+import { useFacultyByods } from './hooks/useFacultyByods';
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -52,39 +52,9 @@ export default function SessionSetups({
   const [isByodDialogOpen, setIsByodDialogOpen] = useState(false);
   const [byodTarget, setByodTarget] = useState<'left' | 'right' | null>(null);
   const { data: byods = [] } = useFacultyByods(facultyMember?.id || 0);
-  const createByod = useCreateFacultyByod(facultyMember?.id || 0);
 
   const handleSelectByod = (value: string) => {
     if (!setup?.id || !byodTarget) return;
-    if (value === 'KIS_PROVIDED') {
-      const existing = byods.find(d => (d.name || '') === 'Kis Provided Laptop');
-      const applyDevice = (deviceId: number) => {
-        updateDevices.mutate({
-          setupId: setup.id,
-          leftDeviceId: byodTarget === 'left' ? deviceId : undefined,
-          rightDeviceId: byodTarget === 'right' ? deviceId : undefined,
-          facultyId: facultyMember?.id,
-        }, {
-          onSettled: () => {
-            setIsByodDialogOpen(false);
-            setByodTarget(null);
-          }
-        });
-      };
-      if (existing) {
-        applyDevice(existing.id);
-      } else if (facultyMember?.id) {
-        createByod.mutate({ faculty: facultyMember.id, name: 'Kis Provided Laptop', os: 'PC' }, {
-          onSuccess: (created) => applyDevice(created.id),
-          onSettled: () => {
-            // ensure dialog closes even if mutation fails to chain
-            setIsByodDialogOpen(false);
-            setByodTarget(null);
-          }
-        });
-      }
-      return;
-    }
     const byodId = Number(value);
     if (Number.isNaN(byodId)) {
       setIsByodDialogOpen(false);
@@ -341,7 +311,7 @@ export default function SessionSetups({
                   <div className="w-full flex justify-center mt-2">
                     {setup?.left_device ? (
                       <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}>
-                        {renderByodIcon('PC' /* default to laptop icon for provided */)}
+                        {renderByodIcon(byods.find(b => b.id === setup.left_device)?.os)}
                         <span>{byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}</span>
                         <button
                           type="button"
@@ -415,7 +385,7 @@ export default function SessionSetups({
                   <div className="w-full flex justify-center mt-2">
                     {setup?.right_device ? (
                       <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}>
-                        {renderByodIcon('PC' /* default to laptop icon for provided */)}
+                        {renderByodIcon(byods.find(b => b.id === setup.right_device)?.os)}
                         <span>{byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}</span>
                         <button
                           type="button"
@@ -567,7 +537,6 @@ export default function SessionSetups({
               </SelectTrigger>
               {(
                 <SelectContent>
-                  <SelectItem value="KIS_PROVIDED">Kis Provided Laptop</SelectItem>
                   {byods.map((d) => (
                     <SelectItem key={d.id} value={String(d.id)}>
                       {(d.name || 'Unnamed Device') + (d.os ? ` (${d.os})` : '')}
