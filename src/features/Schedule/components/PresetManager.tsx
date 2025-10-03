@@ -35,6 +35,12 @@ const PresetManager: React.FC = () => {
         loadFilter(filter),
         new Promise(resolve => setTimeout(resolve, 500)) // Minimum 500ms loading time
       ]);
+      
+      // Turn off auto-hide if the selected filter is not "All Rooms"
+      if (filter.name?.toLowerCase() !== 'all rooms' && autoHide) {
+        updateAutoHide(false);
+      }
+      
       console.log('Filter loaded successfully:', filter.name);
     } catch (error) {
       console.error('Failed to load filter:', error);
@@ -55,6 +61,12 @@ const PresetManager: React.FC = () => {
         updateCurrentFilter('My Events'),
         new Promise(resolve => setTimeout(resolve, 500)) // Minimum 500ms loading time
       ]);
+      
+      // Turn off auto-hide when "My Events" is selected
+      if (autoHide) {
+        updateAutoHide(false);
+      }
+      
       console.log('My Events filter loaded successfully');
     } catch (error) {
       console.error('Failed to set My Events filter:', error);
@@ -131,8 +143,7 @@ const PresetManager: React.FC = () => {
               return (
                 <div
                   key={filter.id}
-                  onClick={() => !loadingFilterName && handleLoadFilter(filter)}
-                  className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
+                  className={`grid grid-cols-2 gap-4 p-3 border rounded-xl transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
                     isSelected
                       ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
                       : isDarkMode
@@ -140,7 +151,11 @@ const PresetManager: React.FC = () => {
                       : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
                   } ${loadingFilterName ? 'opacity-75' : ''}`}
                 >
-                  <div className="flex items-center flex-1">
+                  {/* Left Column - Preset Info */}
+                  <div 
+                    className="flex items-center cursor-pointer"
+                    onClick={() => !loadingFilterName && handleLoadFilter(filter)}
+                  >
                     {isSelected && (
                       <div className="mr-2">
                         {isLoadingThisFilter ? (
@@ -173,26 +188,43 @@ const PresetManager: React.FC = () => {
                     </div>
                   </div>
                   
+                  {/* Right Column - Toggle (only for All Rooms) */}
+                  {filter.name?.toLowerCase() === 'all rooms' && (
+                    <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs ${isSelected ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          Hide empty rooms
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => isSelected && updateAutoHide(!autoHide)}
+                          disabled={!isSelected}
+                          aria-pressed={autoHide}
+                          aria-label="Hide empty rooms"
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full p-[2px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                            !isSelected
+                              ? 'bg-gray-200 dark:bg-gray-700 cursor-not-allowed opacity-50'
+                              : autoHide
+                              ? 'bg-blue-600 focus-visible:ring-blue-500'
+                              : 'bg-gray-300 dark:bg-gray-600 focus-visible:ring-gray-400'
+                          }`}
+                        >
+                          <span
+                            className={`h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
+                              autoHide ? 'translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })
             )}
           </div>
 
-        {/* Auto-hide Setting */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoHide}
-              onChange={(e) => updateAutoHide(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Hide room rows without filtered events
-            </span>
-          </label>
-        </div>
+        
     </div>
   );
 };

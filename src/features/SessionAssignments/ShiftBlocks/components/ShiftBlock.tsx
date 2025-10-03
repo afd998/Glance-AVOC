@@ -37,6 +37,24 @@ function displayRoomName(name: string) {
   return name.startsWith('GH ') ? name.slice(3) : name;
 }
 
+// Normalize a room value that may be a string or an object with a name
+function getRoomName(room: any): string {
+  if (typeof room === 'string') return room;
+  if (room && typeof room.name === 'string') return room.name;
+  return '';
+}
+
+// Ensure all assignments store room names as strings
+function normalizeAssignments(rawAssignments: any[]): Assignment[] {
+  if (!Array.isArray(rawAssignments)) return [];
+  return rawAssignments.map((a: any) => ({
+    user: a.user,
+    rooms: Array.isArray(a.rooms)
+      ? a.rooms.map((r: any) => getRoomName(r)).filter((n: string) => n && typeof n === 'string')
+      : []
+  }));
+}
+
 interface Assignment {
   user: string;
   rooms: string[];
@@ -202,15 +220,19 @@ function ShiftBlockAssignment({
         )}
       </div>
       <div className="flex flex-wrap gap-1">
-        {rooms.map((room) => (
-          <RoomBadge
-            key={room}
-            room={room}
-            isSelected={selectionContext.isSelected(room)}
-            selectionContext={selectionContext}
-            isInSelectionMode={isInSelectionMode}
-          />
-        ))}
+        {rooms.map((room) => {
+          const name = getRoomName(room as any);
+          if (!name) return null;
+          return (
+            <RoomBadge
+              key={name}
+              room={name}
+              isSelected={selectionContext.isSelected(name)}
+              selectionContext={selectionContext}
+              isInSelectionMode={isInSelectionMode}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -236,15 +258,19 @@ function RoomsSection({
         </span>
       </div>
       <div className="flex flex-wrap gap-1">
-        {rooms.map((room) => (
-          <RoomBadge
-            key={room}
-            room={room}
-            isSelected={selectionContext.isSelected(room)}
-            selectionContext={selectionContext}
-            isInSelectionMode={isInSelectionMode}
-          />
-        ))}
+        {rooms.map((room) => {
+          const name = getRoomName(room as any);
+          if (!name) return null;
+          return (
+            <RoomBadge
+              key={name}
+              room={name}
+              isSelected={selectionContext.isSelected(name)}
+              selectionContext={selectionContext}
+              isInSelectionMode={isInSelectionMode}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -255,7 +281,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
   const { rooms: allRooms } = useRooms();
   
   // Local state for assignments - sync with block.assignments when it changes
-  const [assignments, setAssignments] = useState<Assignment[]>(block.assignments || []);
+  const [assignments, setAssignments] = useState<Assignment[]>(normalizeAssignments(block.assignments || []));
 
   // Selection state
   const [selectedRooms, setSelectedRooms] = useState<Set<string>>(new Set());
@@ -264,7 +290,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
 
   // Keep local state in sync with prop data
   React.useEffect(() => {
-    setAssignments(block.assignments || []);
+    setAssignments(normalizeAssignments(block.assignments || []));
   }, [block.assignments]);
 
   // Background drag-to-scroll state
@@ -351,12 +377,14 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
   // Get all assigned rooms
   const assignedRooms = new Set<string>();
   assignments.forEach((a: Assignment) => {
-    a.rooms?.forEach(room => assignedRooms.add(room));
+    a.rooms?.forEach(room => assignedRooms.add(getRoomName(room as any)));
   });
 
-  // Get unassigned rooms
-  const allRoomNames = allRooms?.filter((n): n is string => !!n) || [];
-  const unassignedRooms = allRoomNames.filter((room: string) => !assignedRooms.has(room));
+  // Get unassigned rooms (map room objects to their names)
+  const allRoomNames = (allRooms || [])
+    .map((room: any) => room?.name)
+    .filter((name: any): name is string => typeof name === 'string' && name.length > 0);
+  const unassignedRooms = allRoomNames.filter((roomName: string) => !assignedRooms.has(roomName));
 
   // Check if the single user has all rooms assigned
   const singleUserHasAllRooms = assignments.length === 1 && unassignedRooms.length === 0;

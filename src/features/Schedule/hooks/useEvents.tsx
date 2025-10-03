@@ -84,31 +84,48 @@ export function useRoomRows(filteredEvents: Event[]) {
     for (let room of filteredEventRooms) {
       if (room.includes('&')) {
         let parts = room.split('&');
-        let baseRoom = parts[0];
+        let firstRoom = parts[0];
         let suffix = parts[1];
         let secondRoom;
         if (suffix === '30') {
         secondRoom = `1430`;
         }else{
-        secondRoom = `${baseRoom.slice(0, -1)}${suffix}`;
+        secondRoom = `${firstRoom.slice(0, -1)}${suffix}`;
         }
-        filteredEventRooms.push(baseRoom)
+        filteredEventRooms.push(firstRoom)
         filteredEventRooms.push(secondRoom)
-        filteredEventRooms.splice(filteredEventRooms.indexOf(room), 1)
       }
     }
-    
-    // Sort filteredEventRooms based on the order they appear in rooms
-    const sortedRooms = rooms?.filter(room => filteredEventRooms.includes(room.name)) || [];
+    // Remove aggregated entries containing '&' and de-duplicate by name
+    const filteredNoAgg = filteredEventRooms.filter((name: string) => !name.includes('&'));
+    const uniqueNames = Array.from(new Set(filteredNoAgg));
+
+    // Sort uniqueNames based on the order they appear in rooms and dedupe by room.name
+    const sortedRoomsRaw = rooms?.filter(room => uniqueNames.includes(room.name)) || [];
+    const seen = new Set<string>();
+    const sortedRooms = sortedRoomsRaw.filter(room => {
+      if (!room?.name) return false;
+      if (seen.has(room.name)) return false;
+      seen.add(room.name);
+      return true;
+    });
     return { data: sortedRooms, isLoading: false };
   }
   
   else {
   let filterRooms = filters.find((filter: any) => filter.name === currentFilter)?.display;
   const filteredRooms = filterRooms?.filter((room: string) => !room.includes('&')) || [];
-  
-  // Sort filteredRooms based on the order they appear in rooms
-  const sortedRooms = rooms?.filter(room => filteredRooms.includes(room.name)) || [];
+
+  // De-duplicate names, then sort and dedupe by room.name
+  const uniqueNames = Array.from(new Set(filteredRooms));
+  const sortedRoomsRaw = rooms?.filter(room => uniqueNames.includes(room.name)) || [];
+  const seen = new Set<string>();
+  const sortedRooms = sortedRoomsRaw.filter(room => {
+    if (!room?.name) return false;
+    if (seen.has(room.name)) return false;
+    seen.add(room.name);
+    return true;
+  });
   return { data: sortedRooms, isLoading: false };
   }
 }  
