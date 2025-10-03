@@ -7,9 +7,8 @@ import { useEventOwnership } from '../core/event/hooks/useCalculateOwners';
 import { getEventThemeColors, getEventThemeHexColors } from '../utils/eventUtils';
 import { useEventResources } from '../features/Schedule/hooks/useEvents';
 import EventDetailHeader from '../features/EventDetails/EventDetailHeader';
-import SessionSetup from '../core/faculty/SessionSetup';
+import SessionSetup from '../core/faculty/FacultyProfile';
 import Panopto from '../features/PanoptoChecks/Panopto';
-import PanelModal from '../core/faculty/PanelModal';
 import OccurrencesPage from '../features/EventDetails/OccurrencesModal';
 import { Database } from '../types/supabase';
 
@@ -45,19 +44,6 @@ export default function EventDetail() {
   // Check if we're on the occurrences route
   const isOccurrencesRoute = location.pathname.endsWith('/occurrences');
   
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPanel, setEditingPanel] = useState<'left' | 'right' | null>(null);
-  
-  // Panel image options
-  const panelOptions: PanelOption[] = [
-    { id: 'ROOM_PC', label: 'Room PC', image: '/panel-images/ROOM_PC.png' },
-    { id: 'DOC_CAM', label: 'Document Camera', image: '/panel-images/DOC_CAM.png' },
-    { id: 'LAPTOP_1', label: 'Laptop 1', image: '/panel-images/LAPTOP_1.png' },
-    { id: 'LAPTOP_2', label: 'Laptop 2', image: '/panel-images/LAPTOP_2.png' },
-    { id: 'LAPTOP_3', label: 'Laptop 3', image: '/panel-images/LAPTOP_3.png' },
-    { id: 'PC_EXT', label: 'PC Extension', image: '/panel-images/PC_EXT.png' },
-  ];
   
   // Parse the date from URL params
   const selectedDate = !date 
@@ -114,41 +100,6 @@ export default function EventDetail() {
     navigate(`/${date}`);
   };
 
-  const openPanelModal = (panel: 'left' | 'right') => {
-    setEditingPanel(panel);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingPanel(null);
-  };
-
-  const selectPanelImage = (imageId: string) => {
-    if (!editingPanel || !facultyMembers || facultyMembers.length === 0 || !event || !facultySetup) return;
-
-    // For multiple instructors, update the first one found
-    // In a real application, you might want to show a selector for which instructor to update
-    const facultyMember = facultyMembers[0];
-
-    // Get current faculty setup data to preserve existing values
-    const currentLeftSource = facultySetup.left_source ?? '';
-    const currentRightSource = facultySetup.right_source ?? '';
-    const currentUsesMic = facultySetup.uses_mic ?? false;
-
-    const updatedAttributes = {
-      uses_mic: currentUsesMic,
-      left_source: editingPanel === 'left' ? imageId : currentLeftSource,
-      right_source: editingPanel === 'right' ? imageId : currentRightSource
-    };
-
-    updateFacultySetupAttributes.mutate({
-      facultyId: facultyMember.id,
-      attributes: updatedAttributes
-    });
-
-    closeModal();
-  };
 
 
   if (isLoading || !event) {
@@ -210,7 +161,6 @@ export default function EventDetail() {
                     facultyMembers={facultyMember ? [facultyMember] : []}
                     instructorNames={[instructorName]}
                     isFacultyLoading={isFacultyLoading}
-                    openPanelModal={openPanelModal}
                   />
                 );
               })}
@@ -219,13 +169,6 @@ export default function EventDetail() {
         </div>
       </div>
 
-      <PanelModal
-        isModalOpen={isModalOpen}
-        editingPanel={editingPanel}
-        panelOptions={panelOptions}
-        onClose={closeModal}
-        onSelectPanel={selectPanelImage}
-      />
 
       {/* Occurrences Modal Overlay */}
       {isOccurrencesRoute && (

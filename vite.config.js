@@ -15,6 +15,12 @@ export default defineConfig({
       brotliSize: true          // show brotli sizes
     }),
   ],
+  resolve: {
+    alias: {
+      src: '/src',
+      '@': '/src',
+    },
+  },
   server: {
     port: 3000, // match CRA's default if you want
     historyApiFallback: true, // Enable client-side routing in development

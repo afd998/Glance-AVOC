@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
 import { getAVResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 // import FacultyStatusBars from './FacultyStatusBars';
-import SetupNotesEditor from './SetupNotesEditor';
-import SetupOptions from './SetupOptions';
-import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
+import { FacultyAvatar } from './FacultyAvatar';
+import BYODDevicesCard from './BYODDevicesCard';
+import SessionSetups from './SessionSetups';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -22,7 +24,6 @@ interface SessionSetupProps {
   facultyMembers: FacultyMember[];
   instructorNames: string[];
   isFacultyLoading: boolean;
-  openPanelModal: (panel: 'left' | 'right') => void;
 }
 
 export default function SessionSetup({
@@ -30,8 +31,7 @@ export default function SessionSetup({
   resources,
   facultyMembers,
   instructorNames,
-  isFacultyLoading,
-  openPanelModal
+  isFacultyLoading
 }: SessionSetupProps) {
   // Use the provided instructor data (now handles individual instructors properly)
   const facultyMember = facultyMembers && facultyMembers.length > 0 ? facultyMembers[0] : null;
@@ -45,9 +45,11 @@ export default function SessionSetup({
 
   // State for collapsible functionality
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // BYOD handled in BYODDevicesCard
   
   return (
-    <div className="backdrop-blur-md rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-3 sm:p-6 mb-8" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}CC, ${themeHexColors[2]}AA)` }}>
+    <div className=" min-h-[600px] backdrop-blur-md rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-3 sm:p-6 mb-8" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}CC, ${themeHexColors[2]}AA)` }}>
       {/* Collapsible Header */}
       <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
         <h2 className="text-lg sm:text-xl font-semibold text-black">
@@ -126,56 +128,23 @@ export default function SessionSetup({
             </div>
           )}
 
-      {/* Two Column Layout - Attributes and Setup Options */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-        {/* Left Column - Setup Options then Attributes */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* Setup Options Group */}
+      {/* Two Column Layout - BYOD Devices and Setups */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+        {/* Left Column - BYOD Devices */}
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {instructorNames.length > 0 && facultyMember && (
-            <SetupOptions
+            <BYODDevicesCard facultyId={facultyMember.id} themeHexColors={themeHexColors as any} />
+          )}
+        </div>
+
+        {/* Right Column - Setups */}
+        <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+          {instructorNames.length > 0 && facultyMember && (
+            <SessionSetups
               event={event}
               facultyMember={facultyMember}
               primaryInstructorName={primaryInstructorName}
-              openPanelModal={openPanelModal}
             />
-          )}
-
-          {/* Attributes */}
-          {/* {instructorNames.length > 0 && facultyMember && (facultyMember.timing || facultyMember.complexity || facultyMember.temperment) && (
-            <div>
-              <FacultyStatusBars 
-                facultyMember={facultyMember} 
-                isEditable={true}
-                isUpdating={updateFacultyAttributes.isPending}
-                updateError={updateFacultyAttributes.error?.message}
-                event={event}
-                onUpdate={(updatedValues: any) => {
-                  updateFacultyAttributes.mutate({
-                    twentyfiveliveName: primaryInstructorName,
-                    attributes: {
-                      timing: updatedValues.timing,
-                      complexity: updatedValues.complexity,
-                      temperment: updatedValues.temperment,
-                      uses_mic: facultyMember.uses_mic ?? false,
-                      left_source: facultyMember.left_source ?? '',
-                      right_source: facultyMember.right_source ?? ''
-                    }
-                  });
-                }}
-              />
-            </div>
-          )} */}
-          </div>
-
-        {/* Right Column - Setup Notes */}
-        <div className="">
-          {instructorNames.length > 0 && facultyMember && (
-            <div>
-              <SetupNotesEditor
-                event={event}
-                facultyMember={facultyMember}
-              />
-            </div>
           )}
         </div>
       </div>
@@ -185,3 +154,4 @@ export default function SessionSetup({
     </div>
   );
 }
+

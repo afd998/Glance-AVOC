@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
 import FacultyStatusBars from '../../core/faculty/FacultyStatusBars';
 import SetupNotesEditor from '../../core/faculty/SetupNotesEditor';
-import SessionSetup from '../../core/faculty/SessionSetup';
+import SessionSetup from '../../core/faculty/FacultyProfile';
 
 const fetchFacultyById = async (facultyId: string) => {
   const { data, error } = await supabase
@@ -33,10 +33,7 @@ const FacultyDetailModal: React.FC = () => {
     // Add other required event properties as needed
   } as Database['public']['Tables']['events']['Row'] : null;
   
-  const handlePanelModal = (panel: 'left' | 'right') => {
-    // TODO: Implement panel modal functionality if needed
-    console.log(`Panel modal requested for ${panel} panel`);
-  };
+  // Panel modal logic moved down into SessionSetups to avoid prop drilling
 
   return (
     <div
@@ -78,7 +75,6 @@ const FacultyDetailModal: React.FC = () => {
               : []
             }
             isFacultyLoading={false}
-            openPanelModal={handlePanelModal}
           />
         ) : null}
       </div>

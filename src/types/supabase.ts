@@ -190,37 +190,101 @@ export type Database = {
         }
         Relationships: []
       }
+      faculty_byods: {
+        Row: {
+          created_at: string
+          faculty: number | null
+          id: number
+          name: string | null
+          os: string | null
+        }
+        Insert: {
+          created_at?: string
+          faculty?: number | null
+          id?: number
+          name?: string | null
+          os?: string | null
+        }
+        Update: {
+          created_at?: string
+          faculty?: number | null
+          id?: number
+          name?: string | null
+          os?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_byods_faculty_fkey"
+            columns: ["faculty"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faculty_setup: {
         Row: {
           created_at: string
-          id: number
+          faculty: number
+          id: string
+          left_device: number | null
           left_source: string | null
+          mirroring360: boolean | null
+          name: string | null
+          notes: string | null
+          right_device: number | null
           right_source: string | null
           updated_at: string | null
           uses_mic: boolean | null
         }
         Insert: {
           created_at?: string
-          id?: number
+          faculty?: number
+          id?: string
+          left_device?: number | null
           left_source?: string | null
+          mirroring360?: boolean | null
+          name?: string | null
+          notes?: string | null
+          right_device?: number | null
           right_source?: string | null
           updated_at?: string | null
           uses_mic?: boolean | null
         }
         Update: {
           created_at?: string
-          id?: number
+          faculty?: number
+          id?: string
+          left_device?: number | null
           left_source?: string | null
+          mirroring360?: boolean | null
+          name?: string | null
+          notes?: string | null
+          right_device?: number | null
           right_source?: string | null
           updated_at?: string | null
           uses_mic?: boolean | null
         }
         Relationships: [
           {
-            foreignKeyName: "faculty_setup_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
+            foreignKeyName: "faculty_setup_faculty_fkey"
+            columns: ["faculty"]
+            isOneToOne: false
             referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faculty_setup_left_device_fkey"
+            columns: ["left_device"]
+            isOneToOne: false
+            referencedRelation: "faculty_byods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faculty_setup_right_device_fkey"
+            columns: ["right_device"]
+            isOneToOne: false
+            referencedRelation: "faculty_byods"
             referencedColumns: ["id"]
           },
         ]
