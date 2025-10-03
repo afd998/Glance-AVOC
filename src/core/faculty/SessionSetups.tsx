@@ -9,13 +9,15 @@ import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { useCreateFacultySetup, useDeleteFacultySetup } from './hooks/useFacultySetup';
 import { useUpdateFacultySetupDevicesBySetupId } from './hooks/useFacultySetup';
+import { useUpdateFacultySetupNotesBySetupId } from './hooks/useFacultySetup';
 import { Plus, Trash2, Laptop, Tablet, X, ChevronUp } from 'lucide-react';
 import BYODOSSelector from './BYODOSSelector';
 import PanelModal from './PanelModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFacultyByods } from './hooks/useFacultyByods';
+import { useFacultyByods, useCreateFacultyByod } from './hooks/useFacultyByods';
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -40,6 +42,7 @@ export default function SessionSetups({
   console.log(setup);
   const updateFacultySetupAttributes = useUpdateFacultySetupAttributesBySetupId();
   const updateDevices = useUpdateFacultySetupDevicesBySetupId();
+  const updateNotes = useUpdateFacultySetupNotesBySetupId();
 
   // Local panel modal state (moved here to avoid prop drilling)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,9 +52,39 @@ export default function SessionSetups({
   const [isByodDialogOpen, setIsByodDialogOpen] = useState(false);
   const [byodTarget, setByodTarget] = useState<'left' | 'right' | null>(null);
   const { data: byods = [] } = useFacultyByods(facultyMember?.id || 0);
+  const createByod = useCreateFacultyByod(facultyMember?.id || 0);
 
   const handleSelectByod = (value: string) => {
     if (!setup?.id || !byodTarget) return;
+    if (value === 'KIS_PROVIDED') {
+      const existing = byods.find(d => (d.name || '') === 'Kis Provided Laptop');
+      const applyDevice = (deviceId: number) => {
+        updateDevices.mutate({
+          setupId: setup.id,
+          leftDeviceId: byodTarget === 'left' ? deviceId : undefined,
+          rightDeviceId: byodTarget === 'right' ? deviceId : undefined,
+          facultyId: facultyMember?.id,
+        }, {
+          onSettled: () => {
+            setIsByodDialogOpen(false);
+            setByodTarget(null);
+          }
+        });
+      };
+      if (existing) {
+        applyDevice(existing.id);
+      } else if (facultyMember?.id) {
+        createByod.mutate({ faculty: facultyMember.id, name: 'Kis Provided Laptop', os: 'PC' }, {
+          onSuccess: (created) => applyDevice(created.id),
+          onSettled: () => {
+            // ensure dialog closes even if mutation fails to chain
+            setIsByodDialogOpen(false);
+            setByodTarget(null);
+          }
+        });
+      }
+      return;
+    }
     const byodId = Number(value);
     if (Number.isNaN(byodId)) {
       setIsByodDialogOpen(false);
@@ -77,6 +110,16 @@ export default function SessionSetups({
     if (v === 'IPAD') return <Tablet className="w-3.5 h-3.5" />;
     return null;
   };
+
+  // Notes editing state
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState<string>("");
+
+  React.useEffect(() => {
+    if (setup && !isEditingNotes) {
+      setNotesDraft((setup.notes as any) ?? "");
+    }
+  }, [setup, isEditingNotes]);
 
   const panelOptions = [
     { id: 'ROOM_PC', label: 'Room PC', image: '/panel-images/ROOM_PC.png' },
@@ -297,8 +340,8 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.left_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary">
-                        {renderByodIcon(byods.find(b => b.id === setup.left_device)?.os)}
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}>
+                        {renderByodIcon('PC' /* default to laptop icon for provided */)}
                         <span>{byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}</span>
                         <button
                           type="button"
@@ -371,8 +414,8 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.right_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary">
-                        {renderByodIcon(byods.find(b => b.id === setup.right_device)?.os)}
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}>
+                        {renderByodIcon('PC' /* default to laptop icon for provided */)}
                         <span>{byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}</span>
                         <button
                           type="button"
@@ -407,8 +450,7 @@ export default function SessionSetups({
           </div>
         </div>
         
-        {/* Uses Microphone (moved below panels) */
-        }
+        {/* Uses Microphone (moved below panels) */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative m-0 p-0">
@@ -455,6 +497,35 @@ export default function SessionSetups({
           </label>
         </div>
 
+        {/* Notes */}
+        <div className="mt-6">
+          <h4 className="text-base sm:text-lg font-medium text-black mb-3">Notes</h4>
+          {!isEditingNotes ? (
+            <div className="space-y-2">
+              <div className="text-sm text-black whitespace-pre-wrap min-h-[2rem]">
+                {setup?.notes ? String(setup.notes) : <span className="text-black/60">No notes</span>}
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setIsEditingNotes(true)}>Edit</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Textarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} placeholder="Enter notes for this setup" />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => {
+                  if (!setup?.id) return;
+                  updateNotes.mutate({ setupId: setup.id, notes: notesDraft, facultyId: facultyMember?.id }, {
+                    onSuccess: () => setIsEditingNotes(false),
+                    onError: () => setIsEditingNotes(false),
+                  });
+                }} disabled={updateNotes.isPending}>Save</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setIsEditingNotes(false); setNotesDraft(String(setup?.notes ?? '')); }}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </div>
+
             </div>
           </TabsContent>
         ))}
@@ -487,8 +558,9 @@ export default function SessionSetups({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={byods.length ? 'Choose a device' : 'No BYOD devices available'} />
               </SelectTrigger>
-              {byods.length > 0 && (
+              {(
                 <SelectContent>
+                  <SelectItem value="KIS_PROVIDED">Kis Provided Laptop</SelectItem>
                   {byods.map((d) => (
                     <SelectItem key={d.id} value={String(d.id)}>
                       {(d.name || 'Unnamed Device') + (d.os ? ` (${d.os})` : '')}

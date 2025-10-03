@@ -341,6 +341,69 @@ export const useUpdateFacultySetupDevicesBySetupId = () => {
   });
 };
 
+// Update notes by setup id
+export const useUpdateFacultySetupNotesBySetupId = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ setupId, notes }: { setupId: string; notes: string | null; facultyId?: number }) => {
+      const { data, error } = await supabase
+        .from('faculty_setup')
+        .update({ notes, updated_at: new Date().toISOString() })
+        .eq('id', setupId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as FacultySetupWithOptionalName;
+    },
+    onMutate: async (variables) => {
+      const { setupId, notes, facultyId } = variables as { setupId: string; notes: string | null; facultyId?: number };
+      if (facultyId) {
+        await queryClient.cancelQueries({ queryKey: ['facultySetups', facultyId] });
+        await queryClient.cancelQueries({ queryKey: ['facultySetup', facultyId] });
+      } else {
+        await queryClient.cancelQueries({ queryKey: ['facultySetups'] });
+        await queryClient.cancelQueries({ queryKey: ['facultySetup'] });
+      }
+
+      const previousList = facultyId
+        ? queryClient.getQueryData<FacultySetupWithOptionalName[] | undefined>(['facultySetups', facultyId])
+        : undefined;
+
+      if (facultyId) {
+        queryClient.setQueryData<FacultySetupWithOptionalName[] | undefined>(['facultySetups', facultyId], (old) => {
+          if (!old) return old;
+          return old.map((s) => (s.id === setupId ? { ...s, notes, updated_at: new Date().toISOString() as any } : s));
+        });
+      } else {
+        queryClient.setQueriesData({ queryKey: ['facultySetups'] }, (old: any) => {
+          if (!old) return old;
+          if (Array.isArray(old)) {
+            return old.map((s: FacultySetupWithOptionalName) => (s.id === setupId ? { ...s, notes, updated_at: new Date().toISOString() as any } : s));
+          }
+          return old;
+        });
+      }
+
+      return { previousList, facultyId };
+    },
+    onSuccess: (updated) => {
+      const facultyId = (updated as any).faculty as number | undefined;
+      if (facultyId) {
+        queryClient.setQueryData<FacultySetupWithOptionalName[] | undefined>(
+          ['facultySetups', facultyId],
+          (old) => (old ? old.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)) : old)
+        );
+        queryClient.setQueryData<FacultySetupWithOptionalName | null | undefined>(['facultySetup', facultyId], (old) => {
+          if (old && old.id === updated.id) return { ...old, ...updated };
+          return old;
+        });
+        queryClient.invalidateQueries({ queryKey: ['facultySetups', facultyId] });
+        queryClient.invalidateQueries({ queryKey: ['facultySetup', facultyId] });
+      }
+    },
+  });
+};
+
 // Create a new setup for a faculty
 export const useCreateFacultySetup = () => {
   const queryClient = useQueryClient();
