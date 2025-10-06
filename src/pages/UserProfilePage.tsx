@@ -4,10 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import {
-  Avatar,
-  AvatarFallback,
-} from '../components/ui/avatar';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Separator } from '../components/ui/separator';
 
 const AccountPage: React.FC = () => {
@@ -71,7 +68,7 @@ const AccountPage: React.FC = () => {
             {/* User Info */}
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <Avatar className="w-16 h-16">
+                <Avatar className="w-16 h-16" size="lg" >
                   <AvatarFallback className="text-xl font-bold">
                     {user.email?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
