@@ -1,0 +1,34 @@
+{
+  "short_name": "AVOC HOME",
+  "name": "AVOC HOME Scheduler",
+  "description": "Kellogg School of Management AV Operations Center Scheduler",
+  "icons": [
+    {
+      "src": "wildcat2.png",
+      "sizes": "88x88",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "wildcat2.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "wildcat2.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1e40af",
+  "background_color": "#ffffff",
+  "categories": ["productivity", "education"],
+  "lang": "en",
+  "dir": "ltr"
+}

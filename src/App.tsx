@@ -46,7 +46,7 @@ export default function App() {
             <LeavesProvider>
               <SnowProvider>
                 <TooltipProvider>
-                  <SidebarProvider>
+                  <SidebarProvider defaultOpen={false}>
                     <HeaderProvider>
                     <Router>
                     <Layout>

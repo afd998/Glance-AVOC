@@ -18,13 +18,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "src/components/ui/dropdown-menu"
+} from "./ui/dropdown-menu"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "src/components/ui/sidebar"
+} from "./ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 

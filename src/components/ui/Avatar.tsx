@@ -2,7 +2,7 @@
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
-import { cn } from "src/lib/utils"
+import { cn } from "../../lib/utils"
 import { useUserProfile } from "../../core/User/useUserProfile"
 
 // Generate a consistent color based on user ID

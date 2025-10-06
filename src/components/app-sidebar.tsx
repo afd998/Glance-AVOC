@@ -20,9 +20,9 @@ import {
 } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 
-import { NavMain } from "src/components/nav-main"
-import { NavProjects } from "src/components/nav-projects"
-import { NavUser } from "src/components/nav-user"
+import { NavMain } from "./nav-main"
+import { NavProjects } from "./nav-projects"
+import { NavUser } from "./nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -36,7 +36,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "src/components/ui/sidebar"
+} from "./ui/sidebar"
 import DatePicker from "react-datepicker"
 import { useTheme } from "../contexts/ThemeContext"
 import { useBackground } from "../features/ThemeModal/useBackground"
