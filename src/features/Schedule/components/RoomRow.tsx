@@ -66,7 +66,7 @@ export default function RoomRow({
       onMouseLeave={() => setIsHoveringRow(false)}
     >
       <div 
-        className={`sticky bg-backgroun/80 left-0 w-16 flex flex-col items-center justify-center  transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        className={`sticky bg-backgroun/80 left-0 w-24 flex flex-col items-center justify-center  transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ 
           zIndex: 100,
           ...rowHeightStyle,
