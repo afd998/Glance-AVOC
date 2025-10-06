@@ -18,6 +18,8 @@ import EventDetail from "./EventDetail";
 import { Dialog, DialogContent } from "../components/ui/dialog";
 import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
   import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
+import { useZoom } from "../contexts/ZoomContext";
+import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { Database } from "../types/supabase";
 
 
@@ -45,7 +47,8 @@ export default function HomePage() {
     return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   })();
 
-  const pixelsPerMinute = 2;
+  const { pageZoom } = useZoom();
+  const { pixelsPerMinute, rowHeightPx } = usePixelMetrics();
   const startHour = 7;
   const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
@@ -240,14 +243,18 @@ export default function HomePage() {
         endHour={endHour}
         pixelsPerMinute={pixelsPerMinute}
          actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
+        rowHeightPx={rowHeightPx}
         isDragEnabled={isDragEnabled}
       >
         {/* Date Display positioned relative to grid */}
         {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
+        {/* Zoom wrapper to scale text and boxes like browser zoom */}
+        <div style={{ zoom: pageZoom }}>
         <div className="min-w-max rounded-lg  h-content relative shadow-2xl " style={{ 
           width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
+          transition: 'width 200ms ease-in-out',
           minHeight: '100%' // Ensure content fills the full height
         }}>
           <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
@@ -257,6 +264,7 @@ export default function HomePage() {
               endHour={endHour} 
               pixelsPerMinute={pixelsPerMinute} 
               actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length|| 0)}
+              rowHeightPx={rowHeightPx}
             />
         
          
@@ -283,6 +291,7 @@ export default function HomePage() {
                 isEvenRow={index % 2 === 0}
                 isLastRow={index === roomRows.length - 1}
                 isFloorBreak={false}
+                rowHeightPx={rowHeightPx}
               />
             );
           })}
@@ -302,10 +311,12 @@ export default function HomePage() {
                 isEvenRow={index % 2 === 0}
                 isLastRow={index === roomRows.length - 1}
                 isFloorBreak={false}
+                rowHeightPx={rowHeightPx}
               />
             );
           })}
            </div>
+        </div>
         </div>
       </DraggableGridContainer>
 
@@ -320,8 +331,8 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
       </div> {/* Close main content area div */}
+
     </div>
   );
 }
-
 

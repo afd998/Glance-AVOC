@@ -439,29 +439,41 @@ export type Database = {
         Row: {
           auto_hide: boolean
           bg: string | null
+          color: string | null
           current_filter: string | null
           id: string
           name: string | null
+          pixels_per_min: number | null
           roles: Json
-          theme: string | null
+          row_height: number | null
+          theme: string
+          zoom: number | null
         }
         Insert: {
           auto_hide?: boolean
           bg?: string | null
+          color?: string | null
           current_filter?: string | null
           id: string
           name?: string | null
+          pixels_per_min?: number | null
           roles?: Json
-          theme?: string | null
+          row_height?: number | null
+          theme?: string
+          zoom?: number | null
         }
         Update: {
           auto_hide?: boolean
           bg?: string | null
+          color?: string | null
           current_filter?: string | null
           id?: string
           name?: string | null
+          pixels_per_min?: number | null
           roles?: Json
-          theme?: string | null
+          row_height?: number | null
+          theme?: string
+          zoom?: number | null
         }
         Relationships: []
       }

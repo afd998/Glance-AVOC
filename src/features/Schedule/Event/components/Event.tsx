@@ -14,10 +14,11 @@ interface EventProps {
   startHour: number;
   pixelsPerMinute: number;
   onEventClick: (event: Event) => void;
+  rowHeightPx?: number;
 }
 
 
-export default function Event({ event, startHour, pixelsPerMinute, onEventClick }: EventProps) {
+export default function Event({ event, startHour, pixelsPerMinute, onEventClick, rowHeightPx = 96 }: EventProps) {
 
   const [isHoveringEvent, setIsHoveringEvent] = useState(false);
 
@@ -90,13 +91,12 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
   // Get original color from utility function
   const originalColor = getOriginalColorFromTailwindClass(bgColor);
 
-  // Calculate event height and positioning
-  // Adjust height for specific event types and keep centered in the 96px room row
-  const ROW_HEIGHT_PX = 96;
-  const DEFAULT_EVENT_HEIGHT_PX = 88;
-  const REDUCED_EVENT_HEIGHT_PX = 64; // Reduced height for select event types
-  const AD_HOC_EVENT_HEIGHT_PX = 48; // Even more reduced height for Ad Hoc Class Meeting events
-  const MERGED_ROOM_HEIGHT_PX = 180; // Slightly less than double row height for merged room events
+  // Calculate event height and positioning relative to row height
+  const ROW_HEIGHT_PX = rowHeightPx;
+  const DEFAULT_EVENT_HEIGHT_PX = Math.max(ROW_HEIGHT_PX - 8, 32); // default: slight vertical padding
+  const REDUCED_EVENT_HEIGHT_PX = Math.max(Math.round(ROW_HEIGHT_PX * 0.67), 32);
+  const AD_HOC_EVENT_HEIGHT_PX = Math.max(Math.round(ROW_HEIGHT_PX * 0.5), 28);
+  const MERGED_ROOM_HEIGHT_PX = Math.round(ROW_HEIGHT_PX * 1.875);
 
 
 
@@ -142,6 +142,7 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
         boxShadow: isHoveringEvent 
           ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
           : '0 2px 8px rgba(0, 0, 0, 0.15)',
+        transition: 'left 200ms ease-in-out, width 200ms ease-in-out',
        
       }}
       title={event.event_name || ''}

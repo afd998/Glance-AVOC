@@ -3,6 +3,7 @@ import Event from '../Event/components/Event';
 import { Database } from '../../../types/supabase';
 import { useRoom } from '../../../core/Rooms/useRoom';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { Badge } from '../../../components/ui/badge';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -15,6 +16,7 @@ interface RoomRowProps {
   onEventClick: (event: Event) => void;
   isEvenRow?: boolean; // Make optional with default
   isLastRow?: boolean; // Add prop for last row styling
+  rowHeightPx?: number; // Numeric height in pixels
 }
 
 export default function RoomRow({ 
@@ -26,6 +28,7 @@ export default function RoomRow({
   isLastRow,
   onEventClick, 
   isEvenRow = false, 
+  rowHeightPx = 96,
 
 }: RoomRowProps) {
   const { currentTheme, isDarkMode } = useTheme();
@@ -43,38 +46,38 @@ export default function RoomRow({
   // Use Halloween font and larger size if Halloween theme is active
   const isHalloweenTheme = currentTheme.name === 'Halloween';
   const fontFamily = isHalloweenTheme ? 'HalloweenInline' : 'Prokofiev';
-  const fontSize = isHalloweenTheme ? 'text-7xl' : (roomText.length > 4 ? 'text-xl' : 'text-3xl');
+  const fontSize = isHalloweenTheme ? 'text-3xl' : (roomText.length > 4 ? 'text-xl' : 'text-xl');
   
-  // All rows have the same height - merged events span across multiple rows naturally
-  const rowHeight = 'h-24'; // Fixed height for all room rows
+  // All rows share the provided numeric height; merged events span across rows naturally
+  const rowHeightStyle = { height: `${rowHeightPx}px` } as const;
   
 
 
   return (
     <div 
-      className={`flex ${rowHeight} overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
+      className={`flex overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
       style={{ 
+        ...rowHeightStyle,
         backgroundColor: isDarkMode
-          ? (isEvenRow ? 'rgba(28, 28, 28, 0.7)' : 'rgba(18, 18, 18, 0.75)')
+          ? (isEvenRow ? 'rgba(35, 35, 35, 0.8)' : 'rgba(25, 25, 25, 0.85)')
           : (isEvenRow ? 'rgba(240, 240, 240, 0.96)' : 'rgba(253, 253, 253, 0.87)') // more transparent
       }}
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}
     >
       <div 
-        className={`sticky left-0 w-24 ${rowHeight} bg-white/95 dark:bg-gray-900/95 flex flex-col items-center justify-center shadow-lg transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
+        className={`sticky bg-backgroun/80 left-0 w-16 flex flex-col items-center justify-center  transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
         style={{ 
           zIndex: 100,
-          backgroundColor: isHoveringRow ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-          boxShadow: isHoveringRow ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+          ...rowHeightStyle,
         }}
         data-room-label="true"
       >
-        <span 
-          className={`font-light ${fontSize}`} 
+        <Badge 
+          
+          className={``}
           style={{ 
-            fontFamily: fontFamily,
-           
+            // fontFamily: fontFamily,
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
@@ -82,11 +85,12 @@ export default function RoomRow({
           }}
         >
           {roomText}
-        </span>
+        </Badge>
         {/* Room spelling code commented out - now just showing simple room name vertically */}
       </div>
       <div 
-        className={`flex-1 ${rowHeight} relative transition-all duration-300 ease-in-out overflow-visible ${isLastRow ? 'rounded-br-md' : ''}`}
+        className={`flex-1 relative transition-all duration-300 ease-in-out overflow-visible ${isLastRow ? 'rounded-br-md' : ''}`}
+        style={{ ...rowHeightStyle }}
       >
         {roomEvents?.map((event) => (
           <Event
@@ -95,6 +99,7 @@ export default function RoomRow({
             startHour={startHour}
             pixelsPerMinute={pixelsPerMinute}
             onEventClick={onEventClick}
+            rowHeightPx={rowHeightPx}
           />
         ))}
       </div>

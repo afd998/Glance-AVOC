@@ -44,15 +44,11 @@ export default function AppHeaderVertical({
               setSelectedDate(today);
             }}
             disabled={isLoading}
-            className={`h-12 w-12 p-4 rounded-full transition-all duration-200 flex flex-col items-center justify-center backdrop-blur-sm border border-purple-400/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] ${
+            className={`h-12 w-12 p-4 rounded-full transition-all duration-200 flex flex-col items-center justify-center backdrop-blur-sm border border-purple-400/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] bg-primary ${
               isLoading
                 ? 'opacity-50 cursor-not-allowed'
                 : 'hover:scale-105 active:scale-95'
             }`}
-            style={{
-              backgroundColor: 'rgba(133, 118, 163, 1.0)',
-              borderColor: 'rgba(133, 118, 163, 0.8)'
-            }}
             aria-label="Go to today"
           >
             <span className="text-sm text-white text-center leading-tight font-medium">

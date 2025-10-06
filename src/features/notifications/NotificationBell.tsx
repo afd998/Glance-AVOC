@@ -106,7 +106,7 @@ export const NotificationBell: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        variant="ghost"
+        variant="default"
        
         title="Notifications"
       >

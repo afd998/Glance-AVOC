@@ -19,8 +19,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from '../components/ui/breadcrumb';
+import { Button } from '../components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { ZoomProvider, useZoom } from '../contexts/ZoomContext';
+import { PixelMetricsProvider, usePixelMetrics } from '../contexts/PixelMetricsContext';
+import { useProfile } from '../core/User/useProfile';
 
 interface LayoutProps {
   children: ReactNode;
@@ -37,10 +41,13 @@ const fetchFacultyById = async (facultyId: string) => {
   return data;
 };
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
   const { isRainEnabled } = useRain();
   const { isSnowEnabled } = useSnow();
+  const { pageZoom, setPageZoom } = useZoom();
+  const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx } = usePixelMetrics();
+  const { zoom, pixelsPerMin, rowHeightPx } = useProfile();
   const location = useLocation();
   const navigate = useNavigate();
   const { breadcrumbs, setBreadcrumbs } = useHeader();
@@ -174,6 +181,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       img.src = `/${currentBackground}`;
     }
   }, [currentBackground]);
+
+  // Initialize UI metrics from profile on first load
+  useEffect(() => {
+    if (typeof zoom === 'number' && zoom > 0 && zoom !== pageZoom) {
+      setPageZoom(zoom);
+    }
+    if (typeof pixelsPerMin === 'number' && pixelsPerMin > 0 && pixelsPerMin !== basePixelsPerMinute) {
+      setBasePixelsPerMinute(pixelsPerMin);
+    }
+    if (typeof rowHeightPx === 'number' && rowHeightPx > 0 && rowHeightPx !== baseRowHeightPx) {
+      setBaseRowHeightPx(rowHeightPx);
+    }
+  }, [zoom, pixelsPerMin, rowHeightPx]);
   
   // MASTER KILL SWITCH - Set to false to completely disable ALL weather effects for GPU testing
   const ENABLE_ALL_WEATHER_EFFECTS = false;
@@ -256,8 +276,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <AppSidebar />
       
-      {/* Main content area */}
-      <SidebarInset className="flex-1 min-h-screen w-full z-3 overflow-x-hidden">
+      {/* Main content area - no transform scaling to preserve layout/sticky/absolute behavior */}
+      <SidebarInset 
+        className="flex-1 min-h-screen w-full z-3 overflow-x-hidden"
+      >
         <header className="flex h-12 shrink-0 items-center transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-sidebar-border bg-background">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1 h-8 w-8" />
@@ -278,21 +300,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       ) : item.isCurrentPage && /^\d{4}-\d{2}-\d{2}$/.test(location.pathname.split('/').pop() || '') ? (
                         // Date breadcrumb with navigation buttons
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
                             onClick={goToPreviousDay}
-                            className="h-6 w-6 p-0.5 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
                             aria-label="Previous day"
                           >
-                            <ChevronLeft className="w-3 h-3 text-foreground" />
-                          </button>
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
                           <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                          <button
+                          <Button
                             onClick={goToNextDay}
-                            className="h-6 w-6 p-0.5 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
                             aria-label="Next day"
                           >
-                            <ChevronRight className="w-3 h-3 text-foreground" />
-                          </button>
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
                         </div>
                       ) : item.isCurrentPage ? (
                         <BreadcrumbPage>{item.label}</BreadcrumbPage>
@@ -323,5 +349,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 };
 
-export default Layout;
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  return (
+    <ZoomProvider>
+      <PixelMetricsProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </PixelMetricsProvider>
+    </ZoomProvider>
+  );
+};
 
+export default Layout;

@@ -10,6 +10,7 @@ interface DraggableGridContainerProps {
   actualRowCount: number;
   isDragEnabled: boolean;
   onScrollPositionChange?: (position: { left: number; top: number }) => void;
+  rowHeightPx?: number;
 }
 
 interface EdgeHighlight {
@@ -38,7 +39,8 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   pixelsPerMinute,
   actualRowCount,
   isDragEnabled,
-  onScrollPositionChange
+  onScrollPositionChange,
+  rowHeightPx = 96
 }, ref) => {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   
@@ -70,7 +72,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     
     // Calculate the actual content dimensions
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * 96) + 24; // 24px for TimeGrid (h-6 class)
+    const actualContentHeight = (actualRowCount * rowHeightPx) + 24; // 24px for TimeGrid (h-6 class)
     
     
     // Calculate maximum scroll positions with iOS-specific adjustments
@@ -85,7 +87,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       scrollLeft: Math.max(-iosBuffer, Math.min(scrollLeft, maxScrollLeft)),
       scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop))
     };
-  }, [endHour, startHour, pixelsPerMinute, actualRowCount]);
+  }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx]);
 
   // Function to check and update edge highlighting
   const updateEdgeHighlight = useCallback(() => {
@@ -104,7 +106,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     
     // Calculate the actual content dimensions
     const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * 96) + 24; // 24px for TimeGrid (h-6 class)
+    const actualContentHeight = (actualRowCount * rowHeightPx) + 24; // 24px for TimeGrid (h-6 class)
     
     // Add tolerance for edge detection
     const tolerance = 20;
@@ -129,7 +131,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       // Clear highlights immediately when not hitting any edge
       setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
-  }, [isDragging, endHour, startHour, pixelsPerMinute, actualRowCount]);
+  }, [isDragging, endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx]);
 
   // Drag-to-scroll handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

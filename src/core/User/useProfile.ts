@@ -87,6 +87,60 @@ export const useProfile = () => {
     },
   });
 
+  // Update zoom mutation
+  const updateZoomMutation = useMutation({
+    mutationFn: async (zoom: number) => {
+      if (!user) throw new Error('No user');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ zoom })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { zoom };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+    },
+  });
+
+  // Update pixels per minute mutation
+  const updatePixelsPerMinMutation = useMutation({
+    mutationFn: async (pixelsPerMin: number) => {
+      if (!user) throw new Error('No user');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ pixels_per_min: pixelsPerMin })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { pixels_per_min: pixelsPerMin };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+    },
+  });
+
+  // Update row height mutation
+  const updateRowHeightMutation = useMutation({
+    mutationFn: async (rowHeightPx: number) => {
+      if (!user) throw new Error('No user');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ row_height: rowHeightPx })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { row_height: rowHeightPx };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+    },
+  });
+
   // Convenience methods
   const updateAutoHide = (autoHide: boolean) => {
     updateAutoHideMutation.mutate(autoHide);
@@ -100,29 +154,54 @@ export const useProfile = () => {
     updateThemeMutation.mutate(theme);
   };
 
+  const updateZoom = (zoom: number) => {
+    updateZoomMutation.mutate(zoom);
+  };
+
+  const updatePixelsPerMin = (pixelsPerMin: number) => {
+    updatePixelsPerMinMutation.mutate(pixelsPerMin);
+  };
+
+  const updateRowHeight = (rowHeightPx: number) => {
+    updateRowHeightMutation.mutate(rowHeightPx);
+  };
+
   return {
     // Data
     profile,
     autoHide: profile?.auto_hide || false,
     currentFilter: profile?.current_filter,
     theme: profile?.theme || 'light', // Default to light theme
+    // New profile-driven UI preferences
+    zoom: typeof profile?.zoom === 'number' ? profile.zoom : 1,
+    pixelsPerMin: typeof profile?.pixels_per_min === 'number' ? profile.pixels_per_min : 2,
+    rowHeightPx: typeof profile?.row_height === 'number' ? profile.row_height : 96,
     
     // Loading states
     isLoading,
     isUpdatingAutoHide: updateAutoHideMutation.isPending,
     isUpdatingCurrentFilter: updateCurrentFilterMutation.isPending,
     isUpdatingTheme: updateThemeMutation.isPending,
+    isUpdatingZoom: updateZoomMutation.isPending,
+    isUpdatingPixelsPerMin: updatePixelsPerMinMutation.isPending,
+    isUpdatingRowHeight: updateRowHeightMutation.isPending,
     
     // Errors
     error,
     autoHideError: updateAutoHideMutation.error,
     currentFilterError: updateCurrentFilterMutation.error,
     themeError: updateThemeMutation.error,
+    zoomError: updateZoomMutation.error,
+    pixelsPerMinError: updatePixelsPerMinMutation.error,
+    rowHeightError: updateRowHeightMutation.error,
     
     // Actions
     updateAutoHide,
     updateCurrentFilter,
     updateTheme,
+    updateZoom,
+    updatePixelsPerMin,
+    updateRowHeight,
     refetch,
   };
 }; 

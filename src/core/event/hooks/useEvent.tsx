@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabase';
 import { Database } from '../../../types/supabase';
 import { type ResourceFlags, type ResourceItem  } from '../../../utils/eventUtils';
 import { Monitor, CircleDot, Mic, FileText, Laptop, User, Smartphone } from 'lucide-react';
-import { BiSolidVideoRecording } from "react-icons/bi";
 import { FaPoll } from "react-icons/fa";
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -152,7 +151,7 @@ export const getAVResourceAvatar = (itemName: string): React.ReactElement => {
 
   // Video-related resources
   if (name.includes('video-recording') || name.includes('recording')) {
-    return <BiSolidVideoRecording className="text-red-500 size-4" />;
+    return <img src="/icons8-record-50.png" alt="Recording" className="size-4" />;
   }
 
   // Audio-related resources
