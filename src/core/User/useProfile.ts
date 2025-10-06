@@ -92,17 +92,35 @@ export const useProfile = () => {
     mutationFn: async (zoom: number) => {
       if (!user) throw new Error('No user');
 
+      // First try to store as decimal. If the column is bigint, retry with scaled int.
       const { error } = await supabase
         .from('profiles')
         .update({ zoom })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        // 22P02: invalid input syntax (likely bigint column)
+        // Fallback: store as integer scaled by 100
+        if ((error as any).code === '22P02') {
+          const scaled = Math.round(zoom * 100);
+          const { error: retryError } = await supabase
+            .from('profiles')
+            .update({ zoom: scaled })
+            .eq('id', user.id);
+          if (retryError) throw retryError;
+          return { zoom: scaled } as any;
+        }
+        throw error;
+      }
       return { zoom };
     },
     onSuccess: () => {
+      console.log('[useProfile] zoom updated successfully');
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
     },
+    onError: (err) => {
+      console.error('[useProfile] zoom update failed', err);
+    }
   });
 
   // Update pixels per minute mutation
@@ -119,8 +137,12 @@ export const useProfile = () => {
       return { pixels_per_min: pixelsPerMin };
     },
     onSuccess: () => {
+      console.log('[useProfile] pixels_per_min updated successfully');
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
     },
+    onError: (err) => {
+      console.error('[useProfile] pixels_per_min update failed', err);
+    }
   });
 
   // Update row height mutation
@@ -137,8 +159,12 @@ export const useProfile = () => {
       return { row_height: rowHeightPx };
     },
     onSuccess: () => {
+      console.log('[useProfile] row_height updated successfully');
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
     },
+    onError: (err) => {
+      console.error('[useProfile] row_height update failed', err);
+    }
   });
 
   // Convenience methods
@@ -166,6 +192,14 @@ export const useProfile = () => {
     updateRowHeightMutation.mutate(rowHeightPx);
   };
 
+  // Normalize zoom to 0.5-2 range if DB stores scaled bigint (50-200)
+  const normalizedZoom = (() => {
+    const raw = profile?.zoom;
+    if (typeof raw !== 'number') return 1;
+    if (raw > 2 && raw <= 400) return raw / 100; // treat as scaled int
+    return raw; // decimal already
+  })();
+
   return {
     // Data
     profile,
@@ -173,7 +207,7 @@ export const useProfile = () => {
     currentFilter: profile?.current_filter,
     theme: profile?.theme || 'light', // Default to light theme
     // New profile-driven UI preferences
-    zoom: typeof profile?.zoom === 'number' ? profile.zoom : 1,
+    zoom: normalizedZoom,
     pixelsPerMin: typeof profile?.pixels_per_min === 'number' ? profile.pixels_per_min : 2,
     rowHeightPx: typeof profile?.row_height === 'number' ? profile.row_height : 96,
     

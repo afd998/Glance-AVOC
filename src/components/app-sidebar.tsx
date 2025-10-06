@@ -251,13 +251,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
-          {/* Zoom Control */}
+          {/* View Controls */}
           <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               View
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-3">
               <div className="space-y-4">
+                {/* Filter Rooms Button */}
+                <div className="space-y-2">
+                  <SidebarMenuButton 
+                    onClick={openFilterRoomsModal}
+                    className="w-full justify-start"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Filter Rooms</span>
+                  </SidebarMenuButton>
+                </div>
                 {/* Page Zoom */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -272,6 +282,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setPageZoom(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
+                      console.log('[Sidebar] onValueCommit zoom ->', val);
                       // optimistic update: update cache's zoom
                       queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, zoom: val } : old);
                       updateZoom(val);
@@ -300,6 +311,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setBasePixelsPerMinute(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
+                      console.log('[Sidebar] onValueCommit pixels_per_min ->', val);
                       queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, pixels_per_min: val } : old);
                       updatePixelsPerMin(val);
                     }}
@@ -326,6 +338,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setBaseRowHeightPx(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
+                      console.log('[Sidebar] onValueCommit row_height ->', val);
                       queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, row_height: val } : old);
                       updateRowHeight(val);
                     }}
@@ -376,15 +389,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   >
                     <Palette className="h-4 w-4" />
                     <span>Backgrounds</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={openFilterRoomsModal}
-                    className="w-full justify-start"
-                  >
-                    <Filter className="h-4 w-4" />
-                    <span>Filter Rooms</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
