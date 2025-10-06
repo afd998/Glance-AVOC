@@ -1,15 +1,16 @@
 import React from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
+import { Monitor, CircleDot, Mic, FileText, Laptop, User, Smartphone } from 'lucide-react';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
-interface ResourceItem {
+export interface ResourceItem {
   itemName: string;
   [key: string]: any;
 }
 
-interface ResourceFlags {
+export interface ResourceFlags {
   resources: ResourceItem[];
   hasVideoRecording: boolean;
   hasStaffAssistance: boolean;
@@ -43,136 +44,7 @@ interface EventPosition {
  * @param event - The event object with resources stored in event.resources
  * @returns Object containing boolean flags and resource list
  */
-export const parseEventResources = (event: Event): ResourceFlags => {
-  const resources = (event.resources as ResourceItem[]) || [];
 
-  // Add icon and displayName properties to each resource item
-  const resourcesWithIcons = resources.map(item => ({
-    ...item,
-    icon: getAVResourceIcon(item.itemName),
-    displayName: getResourceDisplayName(item.itemName)
-  }));
-
-  // Single pass through resources to compute all flags
-  let hasVideoRecording = false;
-  let hasStaffAssistance = false;
-  let hasHandheldMic = false;
-  let hasWebConference = false;
-  let hasClickers = false;
-  let hasAVNotes = false;
-  let hasNeatBoard = false;
-  
-  for (const item of resourcesWithIcons) {
-    const displayName = item.displayName;
-    if (!displayName) continue;
-    
-    if (displayName.includes('Recording')) hasVideoRecording = true;
-    if (displayName === 'Staff Assistance') hasStaffAssistance = true;
-    if (displayName === 'Handheld Microphone') hasHandheldMic = true;
-    if (displayName === 'Web Conference') hasWebConference = true;
-    if (displayName === 'Clickers (Polling)') hasClickers = true;
-    if (displayName === 'AV Setup Notes') hasAVNotes = true;
-    if (displayName === 'Neat Board') hasNeatBoard = true;
-  }
-
-  return {
-    resources: resourcesWithIcons,
-    // Computed boolean flags
-    hasVideoRecording,
-    hasStaffAssistance,
-    hasHandheldMic,
-    hasWebConference,
-    hasClickers,
-    hasAVNotes,
-    hasNeatBoard,
-  };
-};
-
-
-/**
- * Get specific icon for AV resources (similar to EventHeader style)
- */
-export const getAVResourceIcon = (itemName: string): string => {
-  const name = itemName?.toLowerCase() || '';
-
-  // Special case for web conferencing - should use Zoom icon image
-  if (name.includes('video-conferencing') || name.includes('web conference') || name.includes('zoom')) {
-    return 'ZOOM_ICON'; // Special marker for zoom icon image
-  }
-
-  // Special case for Surface Hub - should use TV icon
-  if (name.includes('surface hub') || name.includes('ksm-kgh-av-surface hub')) {
-    return 'TV_ICON'; // Special marker for TV icon
-  }
-
-  // Video-related resources
-  if (name.includes('video-recording') || name.includes('recording')) return '🔴';
-
-  // Audio-related resources
-  if (name.includes('microphone') || name.includes('mic')) return '🎤';
-
-  // Notes/assistance
-  if (name.includes('staff') || name.includes('assistance')) return '🚶';
-  if (name.includes('notes') || name.includes('kis')) return '📝';
-
-  // Computer/laptop resources
-  if (name.includes('laptop') || name.includes('computer')) return '💻';
-
-  return '📱'; // Default icon
-};
-
-
-/**
- * Get display name for a resource item (optimized version)
- */
-const getResourceDisplayNameFast = (itemName: string, lowerName: string): string => {
-  if (!itemName) return itemName;
-  
-  // Use faster string operations and avoid regex where possible
-  if (lowerName.startsWith('laptop') || lowerName.startsWith('computer')) {
-    return 'Laptop ' + itemName.substring(itemName.indexOf(' ') + 1);
-  }
-  if (lowerName.startsWith('camera') || lowerName.startsWith('doc cam')) {
-    return 'Camera ' + itemName.substring(itemName.indexOf(' ') + 1);
-  }
-  if (lowerName.includes('zoom')) {
-    return itemName.replace(/zoom/i, 'Zoom');
-  }
-  if (lowerName.endsWith('staff assistance')) {
-    return 'Staff Assistance';
-  }
-  if (lowerName.endsWith('web conference')) {
-    return 'Web Conference';
-  }
-  if (lowerName === 'ksm-kgh-video-conferencing') {
-    return 'Web Conference';
-  }
-  if (lowerName.startsWith('ksm-kgh-video-recording')) {
-    return 'Video Recording';
-  }
-  if (lowerName.endsWith('handheld microphone')) {
-    return 'Handheld Microphone';
-  }
-  if (lowerName.includes('clickers') && lowerName.includes('polling')) {
-    return 'Clickers (Polling)';
-  }
-  if (lowerName === 'ksm-kgh-av-kis notes') {
-    return 'AV Setup Notes';
-  }
-  if (lowerName === 'ksm-kgh-av-surface hub') {
-    return 'Neat Board';
-  }
-  
-  return itemName;
-};
-
-/**
- * Get display name for a resource item (legacy version)
- */
-export const getResourceDisplayName = (itemName: string): string => {
-  const lowerName = itemName?.toLowerCase() || '';
-  return getResourceDisplayNameFast(itemName, lowerName);
-};
 
 /**
  * Determine event type information including colors

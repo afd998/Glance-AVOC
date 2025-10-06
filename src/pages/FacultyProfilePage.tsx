@@ -9,7 +9,6 @@ import SessionSetup from '../core/faculty/FacultyProfile';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { ArrowLeft } from 'lucide-react';
-import { useHeader } from '../contexts/HeaderContext';
 
 const fetchFacultyById = async (facultyId: string) => {
   const { data, error } = await supabase
@@ -24,38 +23,12 @@ const fetchFacultyById = async (facultyId: string) => {
 const FacultyProfilePage: React.FC = () => {
   const { facultyId } = useParams();
   const navigate = useNavigate();
-  const { setHeaderContent } = useHeader();
   const { data: facultyMember, isLoading, error } = useQuery({
     queryKey: ['faculty', facultyId],
     queryFn: () => fetchFacultyById(facultyId!),
     enabled: !!facultyId,
   });
 
-  // Set header content when faculty data is loaded
-  useEffect(() => {
-    if (facultyMember) {
-      const facultyName = facultyMember.kelloggdirectory_name || facultyMember.twentyfivelive_name || `Faculty ${facultyId}`;
-      setHeaderContent(
-        <h1 className="text-lg font-semibold text-foreground">
-          <span>
-            <button 
-              onClick={() => navigate('/faculty')}
-              className="text-primary hover:text-primary/80 underline cursor-pointer"
-            >
-              Faculty List
-            </button>
-            {' > '}
-            {facultyName}
-          </span>
-        </h1>
-      );
-    } else {
-      setHeaderContent(null);
-    }
-
-    // Cleanup when component unmounts
-    return () => setHeaderContent(null);
-  }, [facultyMember, facultyId, navigate, setHeaderContent]);
   
   
   // Create a mock event object for the SessionSetup component

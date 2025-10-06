@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Database } from '../../types/supabase';
-import { getAVResourceIcon, getResourceDisplayName, getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
+import { getEventThemeColors, getEventThemeHexColors } from '../../utils/eventUtils';
 // import FacultyStatusBars from './FacultyStatusBars';
 import { FacultyAvatar } from './FacultyAvatar';
 import BYODDevicesCard from './BYODDevicesCard';
@@ -21,7 +21,7 @@ interface ResourceItem {
 
 interface SessionSetupProps {
   event: Event;
-  resources: ResourceItem[];
+
   facultyMembers: FacultyMember[];
   instructorNames: string[];
   isFacultyLoading: boolean;
@@ -29,7 +29,7 @@ interface SessionSetupProps {
 
 export default function SessionSetup({
   event,
-  resources,
+
   facultyMembers,
   instructorNames,
   isFacultyLoading

@@ -5,7 +5,7 @@ import { useUpdateFacultySetupAttributes, useFacultySetup } from '../core/facult
 import { useEvents } from '../features/Schedule/hooks/useEvents';
 import { useEventOwnership } from '../core/event/hooks/useCalculateOwners';
 import { getEventThemeColors, getEventThemeHexColors } from '../utils/eventUtils';
-import { useEventResources } from '../features/Schedule/hooks/useEvents';
+import { useEventResources } from '../core/event/hooks/useEvent';
 import EventDetailHeader from '../features/EventDetails/EventDetailHeader';
 import SessionSetup from '../core/faculty/FacultyProfile';
 import Panopto from '../features/PanoptoChecks/Panopto';
@@ -87,7 +87,7 @@ export default function EventDetail() {
   const resources = event && resourcesData ? resourcesData.resources : [];
   
   // Check if this event has recording resources
-  const hasRecordingResource = resources.some(resource => 
+  const hasRecordingResource = resources.some((resource: any) => 
     resource.itemName?.toLowerCase().includes('panopto') ||
     resource.itemName?.toLowerCase().includes('recording')
   );
@@ -174,7 +174,7 @@ export default function EventDetail() {
                     {!isCollapsed && (
                       <SessionSetup
                         event={event}
-                        resources={resources}
+                  
                         facultyMembers={facultyMember ? [facultyMember] : []}
                         instructorNames={[instructorName]}
                         isFacultyLoading={isFacultyLoading}

@@ -17,6 +17,7 @@ import {
   Bell,
   Palette,
   Filter,
+  Calendar,
 } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 
@@ -110,6 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { currentBackground } = useBackground();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
   const { user } = useAuth();
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
   
   // Selected date is driven by the URL param when present
   const selectedDate = React.useMemo(() => {
@@ -163,7 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <>
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <div className="flex items-center justify-center p-2">
+          <div className="flex flex-col items-center justify-center p-2 gap-2">
             <button
               onClick={() => navigate('/')}
               className="h-12 w-12 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 p-4 group-data-[collapsible=icon]:p-2 rounded-full transition-all duration-200 flex flex-col items-center justify-center backdrop-blur-sm border border-purple-400/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] hover:scale-105 active:scale-95"
@@ -179,6 +181,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <span className="text-[10px] group-data-[collapsible=icon]:text-[6px] text-white text-center leading-tight font-medium">
                 HOME
               </span>
+            </button>
+            
+            {/* Calendar icon - only visible when collapsed */}
+            <button
+              onClick={() => {
+                // Trigger sidebar expansion by removing the collapsed state
+                const sidebarElement = document.querySelector('[data-sidebar="sidebar"]');
+                if (sidebarElement) {
+                  sidebarElement.removeAttribute('data-state');
+                  // Also trigger the sidebar toggle if there's a toggle button
+                  const toggleButton = document.querySelector('[data-sidebar="trigger"]');
+                  if (toggleButton) {
+                    (toggleButton as HTMLElement).click();
+                  }
+                }
+              }}
+              className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
+              aria-label="Open calendar"
+            >
+              <Calendar className="h-4 w-4" />
             </button>
           </div>
         </SidebarHeader>
@@ -232,7 +254,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={openFilterRoomsModal}>
                   <Filter />
-                  <span>Room Filter</span>
+                  <span>Filter Events</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

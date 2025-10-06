@@ -3,6 +3,12 @@ import { UserAvatar } from '../../../../components/ui/avatar';
 import { useUserProfile } from '../../../../core/User/useUserProfile';
 import { useRooms } from '../../../../core/Rooms/useRooms';
 import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
+import { Card, CardContent } from '../../../../components/ui/card';
+import { Item, ItemMedia, ItemContent, ItemTitle, ItemGroup } from '../../../../components/ui/item';
+import { Badge } from '../../../../components/ui/badge';
+import { Button } from '../../../../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '../../../../components/ui/context-menu';
 
 
 function formatTimeLabel(time: string | null): string {
@@ -101,9 +107,10 @@ function RoomBadge({
   };
 
   return (
-    <span
+    <Badge
+      
       onClick={handleClick}
-      className={`inline-block px-2 py-1 text-xs rounded-lg cursor-pointer transition-all duration-200 backdrop-blur-sm shadow-sm select-none ${
+      className={`cursor-pointer rounded-lg transition-all duration-200 m-0.5  select-none ${
         getRoomBadgeColor(room)
       } ${
         isSelected
@@ -112,7 +119,7 @@ function RoomBadge({
       }`}
     >
       {displayRoomName(room)}
-    </span>
+    </Badge>
   );
 }
 
@@ -122,7 +129,8 @@ function UserNameDisplay({ userId }: { userId: string }) {
   return <span className="select-none">{profile?.name || userId}</span>;
 }
 
-// Bulk move button component
+// Bulk move button component - commented out since we now use context menu
+/*
 function BulkMoveButton({ 
   selectedCount, 
   onMoveToUser, 
@@ -139,45 +147,30 @@ function BulkMoveButton({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setShowDropdown(!showDropdown)}
-        className="px-3 py-1 bg-blue-600/90 text-white text-xs rounded-lg hover:bg-blue-700/90 transition-all duration-200 backdrop-blur-sm border border-blue-500/50 shadow-md select-none"
-      >
-        Move {selectedCount} selected
-      </button>
-      
-      {showDropdown && (
-        <div className="absolute top-full left-0 mt-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-xl z-50 min-w-[150px] select-none">
-          <div className="p-2 border-b border-gray-200/50 dark:border-gray-700/50">
-            <button
-              onClick={() => {
-                onMoveToRooms();
-                setShowDropdown(false);
-              }}
-              className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm select-none"
-            >
-              Move to Unassigned
-            </button>
-          </div>
-          {availableUsers.map(userId => (
-            <div key={userId} className="p-2">
-              <button
-                onClick={() => {
-                  onMoveToUser(userId);
-                  setShowDropdown(false);
-                }}
-                className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded transition-all duration-200 backdrop-blur-sm select-none"
-              >
-                Move to <UserNameDisplay userId={userId} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Select onValueChange={(value) => {
+      if (value === 'unassigned') {
+        onMoveToRooms();
+      } else {
+        onMoveToUser(value);
+      }
+    }}>
+      <SelectTrigger className="w-auto text-xs select-none">
+        <SelectValue placeholder={` ${selectedCount} selected`} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="unassigned">
+          Move to Unassigned
+        </SelectItem>
+        {availableUsers.map(userId => (
+          <SelectItem key={userId} value={userId}>
+            Move to <UserNameDisplay userId={userId} />
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
+*/
 
 // Shift block assignment component (user section)
 function ShiftBlockAssignment({
@@ -201,40 +194,44 @@ function ShiftBlockAssignment({
   }
 
   return (
-    <div
-      className={`flex flex-col p-3 rounded-lg border-2 transition-all duration-200 backdrop-blur-sm select-none ${
+    <Item
+      variant={hasAllRooms ? "muted" : "outline"}
+      size="sm"
+      className={`transition-all duration-200 bselect-none ${
         hasAllRooms
           ? 'border-green-300 bg-green-50/70 dark:bg-green-900/30'
           : 'border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70'
       }`}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <UserAvatar userId={userId} size="sm" />
-        <span className="font-medium text-gray-900 dark:text-white select-none">
-          {profile?.name || userId}
-        </span>
-        {hasAllRooms && (
-          <span className="px-1 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 rounded select-none">
-            All Rooms
+      <ItemContent>
+        <ItemTitle className="flex items-center gap-2">
+          <UserAvatar userId={userId} size="sm" />
+          <span className="font-medium text-gray-900 dark:text-white select-none">
+            {profile?.name || userId}
           </span>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {rooms.map((room) => {
-          const name = getRoomName(room as any);
-          if (!name) return null;
-          return (
-            <RoomBadge
-              key={name}
-              room={name}
-              isSelected={selectionContext.isSelected(name)}
-              selectionContext={selectionContext}
-              isInSelectionMode={isInSelectionMode}
-            />
-          );
-        })}
-      </div>
-    </div>
+          {hasAllRooms && (
+            <span className="px-1 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 rounded select-none">
+              All Rooms
+            </span>
+          )}
+        </ItemTitle>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {rooms.map((room) => {
+            const name = getRoomName(room as any);
+            if (!name) return null;
+            return (
+              <RoomBadge
+                key={name}
+                room={name}
+                isSelected={selectionContext.isSelected(name)}
+                selectionContext={selectionContext}
+                isInSelectionMode={isInSelectionMode}
+              />
+            );
+          })}
+        </div>
+      </ItemContent>
+    </Item>
   );
 }
 
@@ -249,30 +246,34 @@ function RoomsSection({
   isInSelectionMode: boolean;
 }) {
   return (
-    <div
-      className="p-3 rounded-lg border-2 transition-all duration-200 min-h-[60px] backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 select-none"
+    <Item
+      variant="outline"
+      size="sm"
+      className="transition-all duration-200 min-h-[60px] backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 select-none"
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="font-medium text-gray-900 dark:text-white select-none">
-          Rooms:
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {rooms.map((room) => {
-          const name = getRoomName(room as any);
-          if (!name) return null;
-          return (
-            <RoomBadge
-              key={name}
-              room={name}
-              isSelected={selectionContext.isSelected(name)}
-              selectionContext={selectionContext}
-              isInSelectionMode={isInSelectionMode}
-            />
-          );
-        })}
-      </div>
-    </div>
+      <ItemContent>
+        <ItemTitle>
+          <span className="font-medium text-gray-900 dark:text-white select-none">
+            Rooms:
+          </span>
+        </ItemTitle>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {rooms.map((room) => {
+            const name = getRoomName(room as any);
+            if (!name) return null;
+            return (
+              <RoomBadge
+                key={name}
+                room={name}
+                isSelected={selectionContext.isSelected(name)}
+                selectionContext={selectionContext}
+                isInSelectionMode={isInSelectionMode}
+              />
+            );
+          })}
+        </div>
+      </ItemContent>
+    </Item>
   );
 }
 
@@ -524,20 +525,23 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
   };
 
   return (
-    <div 
-      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 select-none max-w-[300px] w-full ${
-        isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
-      }`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseDown={handleBackgroundMouseDown}
-      onClick={(event) => {
-        // Clear selection when clicking outside room badges
-        if (event.target === event.currentTarget) {
-          clearSelection();
-        }
-      }}
-    >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <Card 
+          className={`max-w-[300px] w-full transition-all duration-200 select-none ${
+            isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseDown={handleBackgroundMouseDown}
+          onClick={(event) => {
+            // Clear selection when clicking outside room badges
+            if (event.target === event.currentTarget) {
+              clearSelection();
+            }
+          }}
+        >
+      <CardContent className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h5 
           className={`font-medium text-gray-900 dark:text-white transition-all duration-200 select-none ${
@@ -547,6 +551,8 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
         >
           {formatTimeLabel(block.start_time)} - {formatTimeLabel(block.end_time)}
         </h5>
+        {/* BulkMoveButton commented out - now using context menu for moving selected rooms */}
+        {/*
         <div className="flex items-center gap-2">
           <BulkMoveButton
             selectedCount={selectedRooms.size}
@@ -555,9 +561,10 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
             availableUsers={availableUserIds}
           />
         </div>
+        */}
       </div>
       
-      <div className="space-y-3">
+      <ItemGroup className="gap-3">
         {/* User assignments */}
         {assignments.map((assignment: Assignment, idx: number) => (
           <ShiftBlockAssignment
@@ -576,8 +583,30 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
           selectionContext={selectionContext}
           isInSelectionMode={isInSelectionMode}
         />
-      </div>
-    </div>
+      </ItemGroup>
+      </CardContent>
+        </Card>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {selectedRooms.size > 0 && (
+          <>
+            <ContextMenuItem onClick={() => moveSelectedRooms(null)}>
+              Move {selectedRooms.size} selected to Unassigned
+            </ContextMenuItem>
+            {availableUserIds.map(userId => (
+              <ContextMenuItem key={userId} onClick={() => moveSelectedRooms(userId)}>
+                Move {selectedRooms.size} selected to <UserNameDisplay userId={userId} />
+              </ContextMenuItem>
+            ))}
+          </>
+        )}
+        {selectedRooms.size === 0 && (
+          <ContextMenuItem disabled>
+            No rooms selected
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 

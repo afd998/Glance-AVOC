@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./features/Layout";
+import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "react-datepicker/dist/react-datepicker.css";
@@ -50,6 +51,7 @@ export default function App() {
                     <HeaderProvider>
                     <Router>
                     <Layout>
+                    <Toaster richColors position="top-right" />
                     <Routes>
                     <Route path="/auth" element={<LandingPage />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />

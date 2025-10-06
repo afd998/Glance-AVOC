@@ -4,12 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
 import { formatTime, formatDate } from '../../utils/timeUtils';
-import {
-  getAVResourceIcon,
-  getResourceDisplayName,
 
-} from '../../utils/eventUtils';
-import { useEventResources } from '../Schedule/hooks/useEvents';
+import { useEventResources } from '../../core/event/hooks/useEvent';
 import { useOccurrences } from '../../hooks/useOccurrences';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
 import { ItemGroup, Item, ItemMedia, ItemContent, ItemActions, ItemTitle, ItemDescription } from '@/components/ui/item';
@@ -132,10 +128,10 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
                   {resources.map((resItem: any, resourceIndex: number) => (
                     <Item key={`${event.id}-resource-${resourceIndex}`} size="sm">
                       <ItemMedia variant="icon">
-                        {getAVResourceIcon(resItem.itemName)}
+                        {resItem.icon}
                       </ItemMedia>
                       <ItemContent>
-                        <ItemTitle>{getResourceDisplayName(resItem.itemName)}</ItemTitle>
+                        <ItemTitle>{resItem.displayName}</ItemTitle>
                         {resItem.instruction && (
                           <ItemDescription title={resItem.instruction}>{resItem.instruction}</ItemDescription>
                         )}

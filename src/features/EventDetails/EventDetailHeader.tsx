@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
-import { getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
+import {truncateEventName } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
 import { UserAvatar } from '../../components/ui/avatar';
 import { useUserProfile } from '../../core/User/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
-import { Monitor, CircleDot, Mic, FileText, Laptop, Smartphone, User, ChevronUp, ChevronDown, MapPin } from 'lucide-react';
+import { ChevronUp, ChevronDown, MapPin } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { ItemGroup, Item, ItemMedia, ItemContent, ItemActions, ItemTitle, ItemDescription } from '../../components/ui/item';
 import { Badge } from '../../components/ui/badge';
@@ -16,39 +16,7 @@ import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { OccurrencesDialogContent } from './OccurrencesModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-// Helper function to extract hex color from Tailwind bg class
-const extractHexFromBgClass = (bgClass: string): string => {
-  // Extract hex color from classes like 'bg-[#f0e8f5]' or 'bg-gray-50'
-  const hexMatch = bgClass.match(/bg-\[#([a-fA-F0-9]{6})\]/);
-  if (hexMatch) return `#${hexMatch[1]}`;
 
-  // Handle standard Tailwind colors
-  const colorMap: { [key: string]: string } = {
-    'bg-white': '#ffffff',
-    'bg-gray-50': '#f9fafb',
-    'bg-gray-100': '#f3f4f6',
-    'bg-gray-200': '#e5e7eb',
-    'bg-gray-300': '#d1d5db',
-    'bg-gray-400': '#9ca3af',
-    'bg-gray-500': '#6b7280',
-    'bg-gray-600': '#4b5563',
-    'bg-gray-700': '#374151',
-    'bg-gray-800': '#1f2937',
-    'bg-gray-900': '#111827',
-    'bg-red-50': '#fef2f2',
-    'bg-red-100': '#fee2e2',
-    'bg-red-200': '#fecaca',
-    'bg-red-300': '#fca5a5',
-    'bg-red-400': '#f87171',
-    'bg-red-500': '#ef4444',
-    'bg-red-600': '#dc2626',
-    'bg-red-700': '#b91c1c',
-    'bg-red-800': '#991b1b',
-    'bg-red-900': '#7f1d1d'
-  };
-
-  return colorMap[bgClass] || '#ffffff'; // Default to white if not found
-};
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -108,13 +76,7 @@ export default function EventDetailHeader({
   handOffTime,
   isHandOffTimeLoading
 }: EventDetailHeaderProps) {
-  const navigate = useNavigate();
-  const { date } = useParams<{ date: string }>();
-  const { data: ownerProfile, isLoading: isOwnerLoading } = useUserProfile(event.man_owner || '');
 
-  // Get theme colors based on event type
-  const themeColors = getEventThemeColors(event);
-  const themeHexColors = getEventThemeHexColors(event);
   
   // State for faculty photo hover effects
   const [isFacultyHovering, setIsFacultyHovering] = useState(false);
@@ -124,33 +86,8 @@ export default function EventDetailHeader({
   };
   const [occurrencesOpen, setOccurrencesOpen] = useState(false);
   // Extract hex color from theme colors for gradient
-  const bgHexColor = extractHexFromBgClass(themeColors[6]);
+ 
 
-  const renderResourceIcon = (itemName: string) => {
-    const key = getAVResourceIcon(itemName);
-    if (key === 'ZOOM_ICON') {
-      return <img src="/zoomicon.png" alt="Zoom" />;
-    }
-    if (key === 'TV_ICON') {
-      return <Monitor className="size-4" strokeWidth={2.5} />;
-    }
-    if (key === '🔴') {
-      return <CircleDot className="size-4" />;
-    }
-    if (key === '🎤') {
-      return <Mic className="size-4" />;
-    }
-    if (key === '🚶') {
-      return <User className="size-4" />;
-    }
-    if (key === '📝') {
-      return <FileText className="size-4" />;
-    }
-    if (key === '💻') {
-      return <Laptop className="size-4" />;
-    }
-    return <Smartphone className="size-4" />;
-  };
 
   return (
     <div className="  bg-background rounded-xl  p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between"  >
@@ -379,35 +316,29 @@ export default function EventDetailHeader({
                 </div>
               </CardHeader>
               {(() => {
-                const ksmResources = resources.filter(item =>
-                  item.itemName?.toLowerCase().startsWith('ksm-kgh-video') ||
-                  item.itemName?.toLowerCase().startsWith('ksm-kgh-av')
-                );
-                const otherResources = resources.filter(item =>
-                  !item.itemName?.toLowerCase().startsWith('ksm-kgh-video') &&
-                  !item.itemName?.toLowerCase().startsWith('ksm-kgh-av')
-                );
-
+                const avResources = resources.filter(item => item.isAVResource);
+                const otherResources = resources.filter(item => !item.isAVResource);
+                
                 return (
                   <CardContent className="pt-0">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                       <div>
-                        {(ksmResources.length > 0 || otherResources.length === 0) && (
+                        {(avResources.length > 0 || otherResources.length === 0) && (
                           <>
                             <div className="flex items-center justify-between px-1 pb-1">
                               <div className="text-xs font-medium">AV Resources</div>
                               <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
-                                {ksmResources.length}
+                                {avResources.length}
                               </Badge>
                             </div>
                             <ItemGroup>
-                              {ksmResources.map((item, index) => (
-                                <Item key={`ksm-${index}`} size="sm">
-                                  <ItemMedia variant="icon">
-                                    {renderResourceIcon(item.itemName)}
+                              {avResources.map((item, index) => (
+                                <Item key={`av-${index}`} size="sm">
+                                  <ItemMedia>
+                                    {item.icon}
                                   </ItemMedia>
                                   <ItemContent>
-                                    <ItemTitle>{getResourceDisplayName(item.itemName)}</ItemTitle>
+                                    <ItemTitle>{item.displayName}</ItemTitle>
                                     {item.instruction && (
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -444,8 +375,11 @@ export default function EventDetailHeader({
                             <ItemGroup>
                               {otherResources.map((item, index) => (
                                 <Item key={`other-${index}`} size="sm">
+                                  <ItemMedia>
+                                    {item.icon}
+                                  </ItemMedia>
                                   <ItemContent>
-                                    <ItemTitle>{item.itemName}</ItemTitle>
+                                    <ItemTitle>{item.displayName}</ItemTitle>
                                     {item.instruction && (
                                       <Tooltip>
                                         <TooltipTrigger asChild>

@@ -75,9 +75,10 @@ export default function UserAvatar({ userId, size = 'md', className = '' }: User
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
       <AvatarFallback 
-        className="text-white font-medium flex items-center justify-center bg-transparent" 
+        className="font-medium flex items-center justify-center" 
         style={{ 
-          backgroundColor: userColor,
+          backgroundColor: `${userColor}10`,
+          color: userColor,
           fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px' 
         }}
       >

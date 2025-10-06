@@ -56,7 +56,7 @@ export default function RoomRow({
       style={{ 
         backgroundColor: isDarkMode
           ? (isEvenRow ? 'rgba(28, 28, 28, 0.7)' : 'rgba(18, 18, 18, 0.75)')
-          : (isEvenRow ? 'rgba(200, 200, 200, 0.5)' : 'rgba(220, 220, 220, 0.55)') // more transparent
+          : (isEvenRow ? 'rgba(240, 240, 240, 0.96)' : 'rgba(253, 253, 253, 0.87)') // more transparent
       }}
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}

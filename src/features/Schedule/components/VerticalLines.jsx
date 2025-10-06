@@ -14,7 +14,7 @@ export default function VerticalLines({ startHour, endHour, pixelsPerMinute, act
     return (
       <div 
         key={i}
-        className="absolute top-0 w-px bg-gray-300/40 dark:bg-gray-600/70"
+        className="absolute top-0 w-px bg-gray-300/40 dark:bg-gray-800/70"
         style={{ 
           left: `${left}px`,
           height: `${actualContentHeight}px`,

@@ -12,12 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Button } from '../../components/ui/button';
+import { Copy, Loader2 } from 'lucide-react';
 
 interface SessionAssignmentScheduleProps {
   dates: string[]; // Array of date strings in YYYY-MM-DD format
   selectedDate?: string; // Currently selected date for highlighting
   onDateSelect?: (date: string) => void; // Callback when a date is selected
   className?: string; // Additional CSS classes
+  onCopyShiftBlocks?: () => void; // Callback for copying shift blocks
+  isCopyingShiftBlocks?: boolean; // Loading state for copy operation
 }
 
 // Helper function to format time labels
@@ -50,7 +56,9 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
   dates,
   selectedDate,
   onDateSelect,
-  className = ''
+  className = '',
+  onCopyShiftBlocks,
+  isCopyingShiftBlocks = false
 }) => {
   const { isDarkMode } = useTheme();
   const { profiles, isLoading: profilesLoading, error: profilesError } = useUserProfiles();
@@ -154,7 +162,7 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
     <div className={`${className} max-w-full`}>
       {/* Schedule Table */}
       <div className="w-full max-w-full overflow-x-auto">
-        <Table className="w-full min-w-max max-w-full">
+        <Table  className=" max-w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="">
@@ -171,8 +179,41 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
                   onClick={() => onDateSelect?.(date)}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="font-semibold">{formatShortDay(date)}</span>
-                    <span className="text-xs">{formatShortDate(date)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center">
+                        <span className="font-semibold">{formatShortDay(date)}</span>
+                        <span className="text-xs">{formatShortDate(date)}</span>
+                      </div>
+                      {selectedDate === date && onCopyShiftBlocks && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCopyShiftBlocks();
+                          }}
+                          disabled={isCopyingShiftBlocks}
+                          className="text-xs px-2 py-1 h-auto min-h-[2.5rem]"
+                        >
+                          {isCopyingShiftBlocks ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              <span className="text-center">
+                                <div>Copying...</div>
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3 w-3 mr-1" />
+                              <span className="text-center">
+                                <div>Copy shift blocks to other </div>
+                                <div>days with same schedule</div>
+                              </span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </TableHead>
               ))}
@@ -181,7 +222,7 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
           <TableBody>
             {technicianProfiles.map(profile => (
               <TableRow key={profile.id}>
-                <TableCell className="w-32 min-w-32 font-medium">
+                <TableCell className="w-8 font-medium">
                   {profile.name || profile.id}
                 </TableCell>
                 {dates.map((date) => {
@@ -189,7 +230,7 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
                   return (
                     <TableCell
                       key={date}
-                      className={`w-20 min-w-20 text-center cursor-pointer hover:bg-purple-100/30 dark:hover:bg-purple-900/15 transition-all duration-200 backdrop-blur-sm ${
+                      className={`max-w-8  text-center cursor-pointer hover:bg-purple-100/30 dark:hover:bg-purple-900/15 transition-all duration-200 backdrop-blur-sm ${
                         selectedDate === date 
                           ? 'bg-purple-100/30 dark:bg-purple-900/15' 
                           : 'bg-white/5 dark:bg-gray-800/5'
@@ -213,90 +254,92 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
         </Table>
       </div>
 
-      {/* Time Range Picker Modal */}
-      {editingCell && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10000" onClick={closeCellModal}>
-          <div className={`bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-300/50 dark:border-gray-700/50 rounded-xl shadow-2xl p-8 w-full max-w-xs mx-4`} onClick={e => e.stopPropagation()}>
-            <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Set Time Range
-            </h4>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                Start Time
-              </label>
-              <select
-                className="w-full p-2 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                value={modalStart}
-                onChange={e => setModalStart(e.target.value)}
-                disabled={updateShift.isPending}
-              >
-                {timeOptions.map(opt => (
-                  <option key={opt} value={opt}>{formatTimeLabel(opt)}</option>
+      {/* Time Range Picker Dialog */}
+      <Dialog open={!!editingCell} onOpenChange={(open) => { if (!open) closeCellModal(); }}>
+        <DialogContent className="w-full max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Set Time Range</DialogTitle>
+          </DialogHeader>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              Start Time
+            </label>
+            <Select value={modalStart} onValueChange={(v) => setModalStart(v)} disabled={updateShift.isPending}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select start time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{formatTimeLabel(opt)}</SelectItem>
                 ))}
-              </select>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                End Time
-              </label>
-              <select
-                className="w-full p-2 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                value={modalEnd}
-                onChange={e => setModalEnd(e.target.value)}
-                disabled={updateShift.isPending}
-              >
-                {timeOptions.map(opt => (
-                  <option key={opt} value={opt}>{formatTimeLabel(opt)}</option>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              End Time
+            </label>
+            <Select value={modalEnd} onValueChange={(v) => setModalEnd(v)} disabled={updateShift.isPending}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select end time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{formatTimeLabel(opt)}</SelectItem>
                 ))}
-              </select>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {updateShift.isError && (
+            <div className="mb-2 text-red-600 text-sm">
+              Error saving shift. Please try again.
             </div>
-            
-            {updateShift.isError && (
-              <div className="mb-2 text-red-600 text-sm">
-                Error saving shift. Please try again.
-              </div>
-            )}
-            
-            {(updateShift.isPending) && (
-              <div className="mt-2 text-purple-600 text-sm flex items-center">
-                <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Saving shift...
-              </div>
-            )}
-            
-            <div className="flex justify-between">
-              <button
+          )}
+
+          {updateShift.isPending && (
+            <div className="mt-2 text-purple-600 text-sm flex items-center">
+              <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Saving shift...
+            </div>
+          )}
+
+          <DialogFooter>
+            <div className="flex justify-between w-full">
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={handleClear}
-                className="px-4 py-2 text-sm font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-100/80 dark:bg-red-900/30 backdrop-blur-sm hover:bg-red-200/80 dark:hover:bg-red-900/50 transition-all duration-200 border border-red-300/50 dark:border-red-700/50"
                 disabled={updateShift.isPending}
               >
                 Clear
-              </button>
+              </Button>
               <div className="flex space-x-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={closeCellModal}
-                  className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 bg-gray-200/80 dark:bg-gray-700/80 backdrop-blur-sm hover:bg-gray-300/80 dark:hover:bg-gray-600/80 transition-all duration-200 border border-gray-300/50 dark:border-gray-600/50"
                   disabled={updateShift.isPending}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="sm"
                   onClick={handleSave}
-                  className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-purple-600/90 backdrop-blur-sm hover:bg-purple-700/90 disabled:opacity-60 transition-all duration-200 border border-purple-500/50"
                   disabled={updateShift.isPending}
                 >
                   {updateShift.isPending ? 'Saving...' : 'Save'}
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

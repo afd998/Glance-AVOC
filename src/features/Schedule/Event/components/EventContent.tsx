@@ -4,6 +4,12 @@ import { getEventTypeInfo, getEventThemeColors } from '../../../../utils/eventUt
 import { useEventDurationHours } from '../../hooks/useEvents';
 import { FacultyAvatar, MultipleFacultyAvatars } from '../../../../core/faculty/FacultyAvatar';
 import { useMultipleFacultyMembers } from '../../../../core/faculty/hooks/useFaculty';
+import { useOrganization } from '../../../../hooks/useOrganization';
+import { Item, ItemContent, ItemMedia, ItemTitle } from '../../../../components/ui/item';
+import { Card, CardContent } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../../components/ui/avatar';
+import { cn } from '../../../../lib/utils';
 
 
 // Helper function to parse instructor names from JSON
@@ -40,10 +46,11 @@ interface EventContentProps {
   isMergedRoomEvent?: boolean;
   hasOverduePanoptoChecks?: boolean;
   isOverdueChecksLoading?: boolean;
+  organization?: any;
 }
 
 // Lecture Event Component
-function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading, organization }: EventContentProps) {
   // Parse instructor names from JSON field
   const instructorNames = parseInstructorNames(event.instructor_names);
   
@@ -98,7 +105,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
       {instructorNames.length > 0 && (
                  <div
            className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative shrink-0 -mt-1`}
-           style={{ transform: `rotate(${avatarTilt}deg)` }}
+           style={{ transform: `otate(${avatarTilt}deg)` }}
          >
                     {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
             <FacultyAvatar
@@ -216,7 +223,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
 
 
 // KEC Executive Luxury Event Component
-function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading, organization }: EventContentProps) {
   const { truncatedEventName: eventName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
 
@@ -226,14 +233,24 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
   };
 
   return (
-    <div className={`relative ${getEventHeight()} ${isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'}`}>
-      
-      <div className={`relative z-10 flex flex-col items-center justify-center h-full px-4 ${isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'} gap-1`}>
+    <Card 
+      className={cn(
+        "relative border-0 shadow-none bg-transparent",
+        getEventHeight(),
+        isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'
+      )}
+    >
+      <CardContent className={cn(
+        "relative z-10 flex flex-col items-center justify-center h-full px-4 gap-1 p-0",
+        isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'
+      )}>
         {/* Main title with luxury gradient */}
-        <span
-          className="font-bold transition-all duration-400 ease-out block text-center"
+        <div
+          className={cn(
+            "font-bold transition-all duration-400 ease-out block text-center",
+            isHovering ? 'scale-105 -translate-y-px' : 'scale-100'
+          )}
           style={{
-            transform: isHovering ? 'scale(1.05) translateY(-1px)' : 'scale(1)',
             transformOrigin: 'center',
             fontFamily: "'Morrison', sans-serif",
             fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
@@ -250,39 +267,44 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
           title={eventName}
         >
           {eventName}
-        </span>
+        </div>
         
         {/* Luxury subtitle */}
-        <span 
-          className="transition-all duration-300 ease-out text-center"
+        <Badge 
+          variant="secondary"
+          className={cn(
+            "transition-all duration-300 ease-out text-center bg-transparent border-0 p-0 h-auto",
+            isHovering ? 'scale-102' : 'scale-100'
+          )}
           style={{
             color: '#ffe0a6',
             fontSize: '0.6rem',
             letterSpacing: '0.1rem',
             opacity: 0.8,
-            transform: isHovering ? 'scale(1.02)' : 'scale(1)'
           }}
         >
           EXECUTIVE EDUCATION
-        </span>
+        </Badge>
         
         {/* Animated underline */}
         <div 
-          className="bg-linear-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out"
+          className={cn(
+            "bg-gradient-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out",
+            isHovering ? 'w-[90%]' : 'w-[70%]'
+          )}
           style={{
             height: '1px',
-            width: isHovering ? '90%' : '70%',
             filter: 'drop-shadow(0 0 4px rgba(255, 224, 166, 0.6))',
             animation: isHovering ? 'gentle-glow 1.5s ease-in-out infinite alternate' : 'none'
           }}
-        ></div>
-      </div>
-    </div>
+        />
+      </CardContent>
+    </Card>
   );
 }
 
 // Default Event Component
-function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading }: EventContentProps) {
+function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading, organization }: EventContentProps) {
   // Parse instructor names from JSON field
   const instructorNames = parseInstructorNames(event.instructor_names);
   
@@ -311,39 +333,53 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   };
 
   return (
-    <div className={`${event.event_type === 'Lecture' ? 'bg-black/30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${getEventHeight()} ${
-      event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : ''
-    } ${isMergedRoomEvent ? 'flex items-center justify-center' : ''}`}>
-      <div className={`flex items-start justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${
-        event.event_type === 'Ad Hoc Class Meeting' ? 'py-0' : isMergedRoomEvent ? 'py-2' : 'py-1'
-      }`}>
-        <span
-          className={`text-sm font-medium transition-all duration-200 ease-in-out w-full leading-relaxed ${
-            event.event_type === 'Ad Hoc Class Meeting' 
-              ? (isHovering ? 'text-gray-900' : 'text-gray-700')
-              : event.event_type === 'Lecture'
-                ? 'text-white'
-                : 'text-gray-900'
-          }`}
-          style={{
-            transform: isHovering ? 'scale(1.02)' : 'scale(1)',
-            transformOrigin: 'left top',
-            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
-            lineHeight: '1.4',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}
-          title={eventName}
-        >
-          {eventName}
-        </span>
-      </div>
-      
-    </div>
+    <Card 
+      className={cn(
+        "border-0 shadow-none bg-transparent text-foreground rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative p-0",
+        getEventHeight(),
+        event.event_type === 'Lecture' ? 'bg-black/30' : '',
+        event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : '',
+        isMergedRoomEvent ? 'flex items-center justify-center' : ''
+      )}
+    >
+      <CardContent className="flex items-center gap-2 p-2 h-full">
+        {organization?.logo && (
+          <Avatar className="w-6 h-6 flex-shrink-0">
+            <AvatarImage 
+              src={organization.logo} 
+              alt={organization.name}
+              className="object-cover"
+            />
+            <AvatarFallback className="text-xs">
+              {organization.name?.charAt(0) || 'O'}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        <div className="flex-1 min-w-0">
+          <div
+            className={cn(
+              "text-xs font-medium transition-all duration-200 ease-in-out w-full leading-tight",
+              event.event_type === 'Lecture' ? 'text-white' : 'text-foreground',
+              isHovering ? 'scale-102' : 'scale-100'
+            )}
+            style={{
+              transformOrigin: 'left top',
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              lineHeight: '1.2',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}
+            title={eventName}
+          >
+            {eventName}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -354,14 +390,18 @@ export default function EventContent({
   hasOverduePanoptoChecks,
   isOverdueChecksLoading
 }: EventContentProps) {
+  // Fetch organization data if the event organization is "JAPAN CLUB", "KELLOGG MARKETING CLUB", "KELLOGG KIDS", "ASIAN MANAGEMENT ASSOCIATION", "KELLOGG VETERANS ASSOCIATION", or "Entrepreneurship Acquisition Club"
+  const shouldFetchOrg = event.organization === "JAPAN CLUB" || event.organization === "KELLOGG MARKETING CLUB" || event.organization === "KELLOGG KIDS" || event.organization === "ASIAN MANAGEMENT ASSOCIATION" || event.organization === "KELLOGG VETERANS ASSOCIATION" || event.organization === "Entrepreneurship Acquisition Club";
+  const { data: organization } = useOrganization(shouldFetchOrg ? (event.organization || "") : "");
+
   return (
     <div className={`flex gap-2 relative transition-all duration-200 ease-in-out flex-1 ${event.event_type === 'KEC' ? 'w-full justify-center' : 'min-w-0'} ${isMergedRoomEvent ? 'h-full pt-6' : ''}`}>
       {event.event_type === 'Lecture' ? (
-        <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+        <LectureEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} organization={organization} />
       ) : event.event_type === 'KEC' ? (
-        <KECEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+        <KECEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} organization={organization} />
       ) : (
-        <DefaultEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} />
+        <DefaultEvent event={event} isHovering={isHovering} isMergedRoomEvent={isMergedRoomEvent} hasOverduePanoptoChecks={hasOverduePanoptoChecks} isOverdueChecksLoading={isOverdueChecksLoading} organization={organization} />
       )}
     </div>
   );

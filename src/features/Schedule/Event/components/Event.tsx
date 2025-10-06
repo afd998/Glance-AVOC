@@ -4,8 +4,8 @@ import EventContent from "./EventContent";
 import { getEventTypeInfo, calculateEventPosition, getEventThemeColors, getEventGradientClass, getOriginalColorFromTailwindClass } from "../../../../utils/eventUtils";
 import { useEventDurationHours } from "../../hooks/useEvents";
 import { useEventOverduePanoptoChecks } from "../hooks/useOverduePanoptoChecks";
-import { useOrganization } from "../../../../hooks/useOrganization";
 import { Database } from '../../../../types/supabase';
+import { Card, CardContent } from "../../../../components/ui/card";
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -26,9 +26,6 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
   const { hasOverdueChecks, isLoading: isOverdueChecksLoading } = useEventOverduePanoptoChecks(event);
   const hasOverduePanoptoChecks = hasOverdueChecks;
   
-  // Fetch organization data if the event organization is "JAPAN CLUB", "KELLOGG MARKETING CLUB", "KELLOGG KIDS", "ASIAN MANAGEMENT ASSOCIATION", "KELLOGG VETERANS ASSOCIATION", or "Entrepreneurship Acquisition Club"
-  const shouldFetchOrg = event.organization === "JAPAN CLUB" || event.organization === "KELLOGG MARKETING CLUB" || event.organization === "KELLOGG KIDS" || event.organization === "ASIAN MANAGEMENT ASSOCIATION" || event.organization === "KELLOGG VETERANS ASSOCIATION" || event.organization === "Entrepreneurship Acquisition Club";
-  const { data: organization } = useOrganization(shouldFetchOrg ? (event.organization || "") : "");
   
 
 
@@ -125,8 +122,11 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
   }
 
   return (
-    <div
-      className={`absolute transition-all duration-200 ease-in-out cursor-pointer group`}
+    <Card
+      className={`absolute transition-all duration-200 ease-in-out cursor-pointer group rounded-md ${
+         // Don't apply gradient class when we have an organization logo
+           gradientClass
+      } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm ${isShortLecture ? 'px-1' : 'px-2'} ${isMergedRoomEvent ? 'pt-2 pb-2' : 'pt-5 pb-1'}`}
       style={{
         top: eventTopPx,
         left: left,
@@ -137,7 +137,12 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
         textOverflow: 'ellipsis',
         whiteSpace: event.event_type === 'Lecture' ? 'nowrap' : 'normal',
         zIndex: isHoveringEvent ? (isMergedRoomEvent ? 70 : 60) : (isMergedRoomEvent ? 52 : 49),
-        // No transform/boxShadow here so continuation lines don't scale
+        transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
+        transformOrigin: 'center center',
+        boxShadow: isHoveringEvent 
+          ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+          : '0 2px 8px rgba(0, 0, 0, 0.15)',
+       
       }}
       title={event.event_name || ''}
       onMouseEnter={handleMouseEnter}
@@ -145,27 +150,7 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
       onClick={() => onEventClick && onEventClick(event)}
       data-event="true"
     >
-      <div
-        className={`flex flex-col h-full transition-all duration-200 ease-in-out relative ${
-          organization?.logo
-            ? '' // Don't apply gradient class when we have an organization logo
-            : gradientClass
-        } ${event.event_type === 'Lecture' ? 'text-white' : 'text-gray-900'} text-sm rounded-sm ${isShortLecture ? 'px-1' : 'px-2'} ${isMergedRoomEvent ? 'pt-2 pb-2' : 'pt-5 pb-1'}`}
-        style={{
-          transform: isHoveringEvent ? 'scale(1.05)' : 'scale(1)',
-          transformOrigin: 'center center',
-          boxShadow: isHoveringEvent 
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
-            : '0 2px 8px rgba(0, 0, 0, 0.15)',
-          ...(organization?.logo && {
-            backgroundColor: 'white',
-            backgroundImage: `url(${organization.logo})`,
-            backgroundSize: organization?.name === "KELLOGG VETERANS ASSOCIATION" ? 'cover' : `auto ${eventHeightPx * 0.7}px`,
-            backgroundPosition: organization?.name === "KELLOGG VETERANS ASSOCIATION" ? 'center' : '10% center',
-            backgroundRepeat: 'no-repeat'
-          })
-        }}
-      >
+      <CardContent className="flex flex-col h-full p-0">
         <EventHeader 
           eventId={event.id}
           date={event.date || undefined}
@@ -189,7 +174,7 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
             }}
           />
         )}
-      </div>
+      </CardContent>
       {isClamped && continuationWidth > 0 && (
         <div
           aria-hidden
@@ -217,6 +202,6 @@ export default function Event({ event, startHour, pixelsPerMinute, onEventClick 
           }}
         />
       )}
-    </div>
+    </Card>
   );
 } 

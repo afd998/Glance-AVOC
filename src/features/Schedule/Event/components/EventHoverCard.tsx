@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAVResourceIcon, getResourceDisplayName } from '../../../../utils/eventUtils';
+import { getAVResourceAvatar, getResourceDisplayName } from '../../../../utils/eventUtils';
 import { useEventResources } from '../../hooks/useEvents';
 import { formatTime, formatDate } from '../../../../utils/timeUtils';
 import { Database } from '../../../../types/supabase';
@@ -56,7 +56,7 @@ export default function EventHoverCard({ event, facultyMembers, instructorNames,
               {resources.map((item, index) => (
                 <li key={index} className="flex items-center gap-1">
                   <span className="shrink-0">
-                    {getAVResourceIcon(item.itemName)}
+                    {getAVResourceAvatar(item.itemName)}
                   </span>
                   <span className="truncate">{getResourceDisplayName(item.itemName)}</span>
                 </li>

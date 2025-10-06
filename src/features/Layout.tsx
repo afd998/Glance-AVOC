@@ -3,17 +3,39 @@ import { useBackground } from './ThemeModal/useBackground';
 import { useRain } from '../contexts/RainContext';
 import { useSnow } from '../contexts/SnowContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useHeader } from '../contexts/HeaderContext';
+import { useHeader, BreadcrumbItem } from '../contexts/HeaderContext';
 import RainOverlay from './ThemeModal/components/RainOverlay';
 import LeavesOverlay from './ThemeModal/components/LeavesOverlay';
 import SnowOverlay from './ThemeModal/components/SnowOverlay';
 import { AppSidebar } from '../components/app-sidebar';
 import { SidebarInset, SidebarTrigger } from '../components/ui/sidebar';
 import { NotificationBell } from './notifications/NotificationBell';
+import { Home, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem as BreadcrumbItemComponent,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from '../components/ui/breadcrumb';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
 
 interface LayoutProps {
   children: ReactNode;
 }
+
+// Function to fetch faculty by ID
+const fetchFacultyById = async (facultyId: string) => {
+  const { data, error } = await supabase
+    .from('faculty')
+    .select('*')
+    .eq('id', Number(facultyId))
+    .single();
+  if (error) throw error;
+  return data;
+};
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
@@ -21,18 +43,82 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isSnowEnabled } = useSnow();
   const location = useLocation();
   const navigate = useNavigate();
-  const { headerContent } = useHeader();
+  const { breadcrumbs, setBreadcrumbs } = useHeader();
   // Extract date from pathname (format: /YYYY-MM-DD)
   const dateMatch = location.pathname.match(/^\/(\d{4}-\d{2}-\d{2})/);
   const date = dateMatch ? dateMatch[1] : null;
-  
-  // Get page title based on current route
-  const getPageTitle = () => {
-    if (location.pathname === '/faculty') {
-      return 'Faculty List';
+
+  // Check if we're on a faculty profile page and get faculty data
+  const facultyId = location.pathname.match(/^\/faculty\/(\d+)$/)?.[1];
+  const { data: facultyMember } = useQuery({
+    queryKey: ['faculty', facultyId],
+    queryFn: () => fetchFacultyById(facultyId!),
+    enabled: !!facultyId,
+  });
+
+  // Generate breadcrumbs based on current route
+  const generateBreadcrumbs = (): BreadcrumbItem[] => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const breadcrumbItems: BreadcrumbItem[] = [
+      { label: 'Home', href: '/' }
+    ];
+
+    if (pathSegments.length === 0) {
+      return [{ label: 'Home', isCurrentPage: true }];
     }
-    return '';
+
+    let currentPath = '';
+    pathSegments.forEach((segment, index) => {
+      currentPath += `/${segment}`;
+      const isLast = index === pathSegments.length - 1;
+      
+      let label = segment;
+      
+      // Customize labels for known routes
+      if (segment === 'faculty') {
+        label = 'Faculty List';
+      } else if (segment === 'session-assignments') {
+        label = 'Session Assignments';
+      } else if (segment === 'user-profile') {
+        label = 'User Profile';
+      } else if (segment === 'about') {
+        label = 'About';
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(segment)) {
+        // Format date segments with navigation buttons
+        const [year, month, day] = segment.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dateLabel = date.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        
+        // Create custom content with date and navigation buttons
+        label = dateLabel;
+      } else if (/^\d+$/.test(segment) && pathSegments[index - 1] === 'faculty') {
+        // This is a faculty ID - use the faculty name if available
+        if (facultyMember) {
+          label = facultyMember.kelloggdirectory_name || facultyMember.twentyfivelive_name || `Faculty ${segment}`;
+        } else {
+          label = `Faculty ${segment}`;
+        }
+      }
+
+      breadcrumbItems.push({
+        label,
+        href: isLast ? undefined : currentPath,
+        isCurrentPage: isLast
+      });
+    });
+
+    return breadcrumbItems;
   };
+
+  // Update breadcrumbs when route changes or faculty data loads
+  useEffect(() => {
+    const newBreadcrumbs = generateBreadcrumbs();
+    setBreadcrumbs(newBreadcrumbs);
+  }, [location.pathname, setBreadcrumbs, facultyMember]);
 
   // Format the selected date for display
   const formatSelectedDate = (): string => {
@@ -76,8 +162,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Debug: Log route and header info
   console.log('Layout Debug:', {
     pathname: location.pathname,
-    headerContent: !!headerContent,
-    getPageTitle: getPageTitle()
+    breadcrumbs: breadcrumbs.length
   });
   
   // Debug: Test if image loads
@@ -176,37 +261,54 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <header className="flex h-12 shrink-0 items-center transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-sidebar-border bg-background">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1 h-8 w-8" />
-            {headerContent || (getPageTitle() && (
-              <h1 className="text-lg font-semibold text-foreground">
-                {getPageTitle()}
-              </h1>
-            ))}
-            {/* Date Navigation - only show when date param exists */}
-            {date && (
-              <div className="flex items-center gap-2 ml-4">
-                <button
-                  onClick={goToPreviousDay}
-                  className="h-8 w-8 p-1 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
-                  aria-label="Previous day"
-                >
-                  <svg className="w-4 h-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <h1 className="text-lg font-semibold text-foreground min-w-[100px] text-center">
-                  {formatSelectedDate()}
-                </h1>
-                <button
-                  onClick={goToNextDay}
-                  className="h-8 w-8 p-1 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
-                  aria-label="Next day"
-                >
-                  <svg className="w-4 h-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
+            <Breadcrumb>
+              <BreadcrumbList className="h-8 gap-2 rounded-md border px-3 text-sm">
+                {breadcrumbs.map((item, index) => (
+                  <React.Fragment key={index}>
+                    {index > 0 && <BreadcrumbSeparator />}
+                    <BreadcrumbItemComponent>
+                      {index === 0 && item.label === 'Home' ? (
+                        <BreadcrumbLink 
+                          onClick={() => navigate(item.href || '/')}
+                          className="cursor-pointer"
+                        >
+                          <Home className="size-4" />
+                          <span className="sr-only">Home</span>
+                        </BreadcrumbLink>
+                      ) : item.isCurrentPage && /^\d{4}-\d{2}-\d{2}$/.test(location.pathname.split('/').pop() || '') ? (
+                        // Date breadcrumb with navigation buttons
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={goToPreviousDay}
+                            className="h-6 w-6 p-0.5 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
+                            aria-label="Previous day"
+                          >
+                            <ChevronLeft className="w-3 h-3 text-foreground" />
+                          </button>
+                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                          <button
+                            onClick={goToNextDay}
+                            className="h-6 w-6 p-0.5 rounded-md transition-all duration-200 flex items-center justify-center bg-muted hover:bg-muted/80 border border-border shadow-sm hover:shadow-md"
+                            aria-label="Next day"
+                          >
+                            <ChevronRight className="w-3 h-3 text-foreground" />
+                          </button>
+                        </div>
+                      ) : item.isCurrentPage ? (
+                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink 
+                          onClick={() => navigate(item.href || '#')}
+                          className="cursor-pointer"
+                        >
+                          {item.label}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItemComponent>
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-2 px-4">

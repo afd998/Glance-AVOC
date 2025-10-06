@@ -3,11 +3,20 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/supabase';
 import { isUserEventOwner } from '../../utils/eventUtils';
-import { useEventResources } from '../Schedule/hooks/useEvents';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useShiftBlocks } from '../SessionAssignments/hooks/useShiftBlocks';
 import NotificationSettings from './NotificationSettings';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { Loader2, Bell, AlertTriangle, Clock } from 'lucide-react';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -187,70 +196,51 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
     
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
     
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div 
-      className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-9999"
-      onClick={onClose}
-    >
-      <div 
-        className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-lg shadow-xl ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'
-        }`}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-                      <div>
-              <h2 className="text-2xl font-semibold">Scheduled Notifications</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Notifications for events with staff assistance (10 minutes before event)
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Only showing events assigned to you from notification-enabled rooms
-              </p>
-            </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Scheduled Notifications
+          </DialogTitle>
+          <DialogDescription>
+            Notifications for events with staff assistance (10 minutes before event)
+            <br />
+            <span className="text-xs text-muted-foreground">
+              Only showing events assigned to you from notification-enabled rooms
+            </span>
+          </DialogDescription>
+        </DialogHeader>
         
         {/* Notification Settings Section */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Notification Settings</h3>
+        <div className="border-b pb-4">
+          <h3 className="text-lg font-medium mb-3">Notification Settings</h3>
           <NotificationSettings />
         </div>
         
         {/* Content */}
-        <div className="p-6">
+        <div className="space-y-4">
           {isLoading && (
             <div className="flex items-center justify-center py-8">
-              <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-3 text-lg">Loading notifications...</span>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 mb-4">
-              <p className="text-red-700 dark:text-red-300">{error}</p>
+            <div className="bg-destructive/15 border border-destructive/20 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <p className="text-destructive">{error}</p>
+              </div>
             </div>
           )}
 
@@ -258,11 +248,9 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
             <>
               {scheduledNotifications.length === 0 ? (
                 <div className="text-center py-8">
-                  <svg className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM9 7H4a2 2 0 00-2 2v9a2 2 0 002 2h5l5-5V9a2 2 0 00-2-2z" />
-                  </svg>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Scheduled Notifications</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <Bell className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Scheduled Notifications</h3>
+                  <p className="text-muted-foreground">
                     No upcoming events with staff assistance assigned to you for the next 7 days.
                   </p>
                 </div>
@@ -273,53 +261,54 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
                       key={`${notification.event.id}-${notification.notificationTime.getTime()}`}
                       className={`border rounded-lg p-4 transition-colors ${
                         notification.timeUntilNotification < 0 
-                          ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
+                          ? 'border-destructive/20 bg-destructive/5'
                           : notification.timeUntilNotification < 30
-                          ? 'border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20'
-                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+                          ? 'border-yellow-500/20 bg-yellow-500/5'
+                          : 'border-border bg-card'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <h3 className="font-semibold">
                               {notification.event.event_name}
                             </h3>
-                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">
+                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
                               Staff Assistance
                             </span>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
-                              <span className="font-medium text-gray-700 dark:text-gray-300">Event Time:</span>
-                              <div className="text-gray-900 dark:text-white">
+                              <span className="font-medium text-muted-foreground">Event Time:</span>
+                              <div className="font-medium">
                                 {formatTime(notification.eventStartTime)} - {formatTime(new Date(`${notification.event.date}T${notification.event.end_time}`))}
                               </div>
-                              <div className="text-gray-600 dark:text-gray-400">
+                              <div className="text-muted-foreground">
                                 {formatDate(notification.eventStartTime)}
                               </div>
                             </div>
                             
                             <div>
-                              <span className="font-medium text-gray-700 dark:text-gray-300">Room:</span>
-                              <div className="text-gray-900 dark:text-white">
+                              <span className="font-medium text-muted-foreground">Room:</span>
+                              <div className="font-medium">
                                 {notification.event.room_name}
                               </div>
                             </div>
                             
                             <div>
-                              <span className="font-medium text-gray-700 dark:text-gray-300">Notification:</span>
-                              <div className="text-gray-900 dark:text-white">
+                              <span className="font-medium text-muted-foreground">Notification:</span>
+                              <div className="font-medium">
                                 {formatTime(notification.notificationTime)}
                               </div>
-                              <div className={`font-medium ${
+                              <div className={`font-medium flex items-center gap-1 ${
                                 notification.timeUntilNotification < 0 
-                                  ? 'text-red-600 dark:text-red-400'
+                                  ? 'text-destructive'
                                   : notification.timeUntilNotification < 30
                                   ? 'text-yellow-600 dark:text-yellow-400'
                                   : 'text-green-600 dark:text-green-400'
                               }`}>
+                                <Clock className="h-3 w-3" />
                                 {getTimeUntilNotification(notification.timeUntilNotification)}
                               </div>
                             </div>
@@ -327,10 +316,10 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
                           
                           {notification.event.instructor_names && Array.isArray(notification.event.instructor_names) && notification.event.instructor_names.length > 0 && (
                             <div className="mt-2 text-sm">
-                              <span className="font-medium text-gray-700 dark:text-gray-300">
+                              <span className="font-medium text-muted-foreground">
                                 Instructor{notification.event.instructor_names.length > 1 ? 's' : ''}:
                               </span>
-                              <span className="text-gray-900 dark:text-white ml-1">
+                              <span className="ml-1">
                                 {notification.event.instructor_names.length === 1
                                   ? String(notification.event.instructor_names[0])
                                   : `${notification.event.instructor_names.length} instructors`
@@ -342,12 +331,14 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
                         
                         <div className="flex items-center gap-2">
                           {notification.timeUntilNotification < 0 && (
-                            <span className="text-red-600 dark:text-red-400 text-sm font-medium">
+                            <span className="text-destructive text-sm font-medium flex items-center gap-1">
+                              <AlertTriangle className="h-3 w-3" />
                               Overdue
                             </span>
                           )}
                           {notification.timeUntilNotification >= 0 && notification.timeUntilNotification < 30 && (
-                            <span className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">
+                            <span className="text-yellow-600 dark:text-yellow-400 text-sm font-medium flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
                               Soon
                             </span>
                           )}
@@ -361,42 +352,39 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, onClose
           )}
         </div>
         
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-          {/* Notification explanation text */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
+        <DialogFooter className="flex-col sm:flex-row sm:justify-between">
+          <div className="text-sm text-muted-foreground text-center sm:text-left mb-4 sm:mb-0">
             <p>Event notifications appear 15 minutes before events with staff assistance or web conferencing.</p>
             <p className="mt-1">Only events in selected notification rooms will trigger alerts.</p>
+            {scheduledNotifications.length > 0 && (
+              <p className="mt-2 font-medium">
+                {scheduledNotifications.length} notification{scheduledNotifications.length !== 1 ? 's' : ''} scheduled
+              </p>
+            )}
           </div>
-          
-          {/* Action buttons and count */}
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {scheduledNotifications.length > 0 && (
-                <span>
-                  {scheduledNotifications.length} notification{scheduledNotifications.length !== 1 ? 's' : ''} scheduled
-                </span>
+          <div className="flex gap-2">
+            <Button
+              onClick={fetchScheduledNotifications}
+              disabled={isLoading}
+              variant="outline"
+              size="sm"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Refreshing...
+                </>
+              ) : (
+                'Refresh'
               )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={fetchScheduledNotifications}
-                disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium rounded-md text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                Close
-              </button>
-            </div>
+            </Button>
+            <Button onClick={onClose} variant="outline" size="sm">
+              Close
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

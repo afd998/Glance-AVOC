@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { Database } from '../../../types/supabase';
-import { parseEventResources, isUserEventOwner } from '../../../utils/eventUtils';
+import { isUserEventOwner } from '../../../utils/eventUtils';
 import { useProfile } from '../../../core/User/useProfile';
 import { useFilters } from './useFilters';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -165,34 +165,6 @@ return {
 };
 }
 
-
-// Hook to get cached parsed event resources with computed flags
-export function useEventResources(eventId: number) {
-  const { data: event, isLoading, error } = useEvent(eventId);
-
-  return useQuery({
-    queryKey: ['eventResources', eventId],
-    queryFn: () => {
-      // Don't make queries for invalid event IDs
-      if (!eventId || eventId <= 0) {
-        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false, hasNeatBoard: false };
-      }
-      
-      if (!event) {
-        return { resources: [], hasVideoRecording: false, hasStaffAssistance: false, hasHandheldMic: false, hasWebConference: false, hasClickers: false, hasAVNotes: false, hasNeatBoard: false };
-      }
-      
-      // Parse resources and compute flags in one go
-      return parseEventResources(event);
-    },
-    enabled: !!eventId && eventId > 0 && !!event, // Only run when we have valid event ID and event data
-    staleTime: Infinity, // Data never becomes stale - only invalidated on page refresh
-    gcTime: Infinity, // Keep in cache indefinitely
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-}
 
 
 // Hook to get cached event duration in hours

@@ -1,8 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  isCurrentPage?: boolean;
+}
 
 interface HeaderContextType {
-  headerContent: ReactNode | null;
-  setHeaderContent: (content: ReactNode | null) => void;
+  breadcrumbs: BreadcrumbItem[];
+  setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
 }
 
 const HeaderContext = createContext<HeaderContextType | undefined>(undefined);
@@ -16,14 +22,14 @@ export const useHeader = () => {
 };
 
 interface HeaderProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const HeaderProvider: React.FC<HeaderProviderProps> = ({ children }) => {
-  const [headerContent, setHeaderContent] = useState<ReactNode | null>(null);
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
 
   return (
-    <HeaderContext.Provider value={{ headerContent, setHeaderContent }}>
+    <HeaderContext.Provider value={{ breadcrumbs, setBreadcrumbs }}>
       {children}
     </HeaderContext.Provider>
   );

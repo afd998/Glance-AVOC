@@ -7,9 +7,11 @@ import { useUserProfile } from '../../../../core/User/useUserProfile';
 import { useEventOwnership } from '../../../../core/event/hooks/useCalculateOwners';
 import { useEventChecksComplete } from '../hooks/useEventChecksComplete';
 import { useEvent } from '../../../../core/event/hooks/useEvent';
-import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
+import { useEventResources } from '../../../../core/event/hooks/useEvent';
+import { useEventDurationHours } from '../../hooks/useEvents';
 import { UserAvatar } from '../../../../components/ui/avatar';
 import { Monitor } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/ui/tooltip';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -77,9 +79,6 @@ export default function EventHeader({
 
   
   
-  // State for fisheye effect
-  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
-  const iconOrder = ['firstSession', 'videoRecording', 'staffAssistance', 'handheldMic', 'webConference', 'clickers', 'avNotes', 'neatBoard'];
   
   // Format start and end times from HH:MM:SS format (memoized)
   const formatTimeFromISO = useCallback((timeString: string | null) => {
@@ -118,36 +117,20 @@ export default function EventHeader({
   const { data: eventDurationHours = 0 } = useEventDurationHours(currentEvent.id);
   const isShortLecture = currentEvent.event_type === 'Lecture' && eventDurationHours < 2;
 
-  // Calculate fisheye scale based on proximity to hovered icon
-  // DISABLED FOR GPU TESTING - fisheye scaling causes massive GPU usage
-  const getFisheyeScale = useCallback((iconKey: string) => {
-    // Always return 1 to disable all scaling effects that cause 95% GPU usage
-    return 1;
-  }, [hoveredIcon, iconOrder]);
-
-  // Hover handlers for fisheye effect
-  const handleIconHover = useCallback((iconKey: string) => {
-    setHoveredIcon(iconKey);
-  }, []);
-
-  const handleIconLeave = useCallback(() => {
-    setHoveredIcon(null);
-  }, []);
 
 
 
   
 
   return (
-    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-1 right-0 z-100`}>
+    <div className={`flex  text-foreground justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-1 right-0 z-100`}>
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
             currentEvent.event_type === 'Ad Hoc Class Meeting' 
               ? (isHovering ? 'text-white' : 'text-gray-600')
               : currentEvent.event_type === 'Lecture'
-                ? 'text-black'
-                : 'text-white'
+                ? 'text-black' : 'text-foreground'
           }`}
           title={timeDisplay}
           style={{
@@ -159,213 +142,52 @@ export default function EventHeader({
         </span>
       </div>
       {/* Only show the container if there are resources or assignees */}
-      {((isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes || hasNeatBoard) || timeline.length > 0) && (
+      {((isFirstSession || resources.length > 0) || timeline.length > 0) && (
         <div className={`flex items-center gap-1 shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black/25  rounded-md px-2 py-1 mt-2`}>
         {isFirstSession && (
           <span
             className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-250 ease-in-out cursor-pointer relative"
             title="First Session"
-            style={{
-              transform: `scale(${getFisheyeScale('firstSession') * 0.8})`,
-              fontSize: `${getFisheyeScale('firstSession') * 0.8}em`
-            }}
-            onMouseEnter={() => handleIconHover('firstSession')}
-            onMouseLeave={handleIconLeave}
           >
             !
-            {hoveredIcon === 'firstSession' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none" style={{ fontSize: '12px' }}>
-                First Session
-              </span>
-            )}
           </span>
         )}
-        {hasVideoRecording && (
-          <div
-            className="relative rounded-full bg-red-500 transition-all duration-250 ease-in-out cursor-pointer"
-            title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
-            style={{
-              // DISABLED FOR GPU TESTING - fisheye scaling causes continuous GPU calculations
-              width: `12px`, // Fixed size instead of: ${12 * getFisheyeScale('videoRecording')}px
-              height: `12px`, // Fixed size instead of: ${12 * getFisheyeScale('videoRecording')}px
-              // DISABLED FOR GPU TESTING - pulsing animation causes high GPU usage
-              // animation: allChecksComplete ? 'none' : 'pulse 2s infinite'
-            }}
-            onMouseEnter={() => handleIconHover('videoRecording')}
-            onMouseLeave={handleIconLeave}
-          >
-            {allChecksComplete && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg
-                  className="text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 20 20"
-                  style={{
-                    // DISABLED FOR GPU TESTING - fisheye scaling causes continuous GPU calculations
-                    width: `8px`, // Fixed size instead of: ${8 * getFisheyeScale('videoRecording')}px
-                    height: `8px` // Fixed size instead of: ${8 * getFisheyeScale('videoRecording')}px
-                  }}
-                >
-                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                </svg>
+       {resources.filter(resource => resource.isAVResource).filter(resource => resource.itemName !== 'KSM-KGH-AV-Lapel Microphone' && resource.itemName !== 'KSM-KGH-AV-Display Adapter' && resource.itemName !== 'KSM-KGH-AV-Presentation Clicker').map((resource, index) => (
+          <Tooltip key={`resource-${index}`}>
+            <TooltipTrigger asChild>
+              <div className="transition-all duration-250 ease-in-out cursor-pointer relative">
+                <div className="relative">
+                  {resource.icon}
+                  {resource.displayName === 'Video Recording' && allChecksComplete && (
+                    <div className="absolute top-0 right-0">
+                      <svg
+                        className="text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 20 20"
+                        style={{
+                          width: '8px',
+                          height: '8px'
+                        }}
+                      >
+                        <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-            {hoveredIcon === 'videoRecording' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                {allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
-              </span>
-            )}
-          </div>
-        )}
-        {hasStaffAssistance && (
-          <div
-            className="flex items-center justify-center rounded-full bg-green-500/90 transition-all duration-250 ease-in-out cursor-pointer relative"
-            title="Staff Assistance"
-            style={{
-              width: `${13 * getFisheyeScale('staffAssistance')}px`,
-              height: `${13 * getFisheyeScale('staffAssistance')}px`
-            }}
-            onMouseEnter={() => handleIconHover('staffAssistance')}
-            onMouseLeave={handleIconLeave}
-          >
-            <span
-              className="text-white transition-all duration-250 ease-in-out"
-              style={{
-                fontSize: `${10 * getFisheyeScale('staffAssistance')}px`
-              }}
-            >
-              🚶
-            </span>
-            {hoveredIcon === 'staffAssistance' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                Staff Assistance
-              </span>
-            )}
-          </div>
-        )}
-        {hasHandheldMic && (
-          <span
-            className="transition-all duration-250 ease-in-out cursor-pointer relative"
-            title="Handheld Microphone"
-            style={{
-              fontSize: `${getFisheyeScale('handheldMic') * 0.8}em`
-            }}
-            onMouseEnter={() => handleIconHover('handheldMic')}
-            onMouseLeave={handleIconLeave}
-          >
-            🎤
-            {hoveredIcon === 'handheldMic' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                Handheld Microphone
-              </span>
-            )}
-          </span>
-        )}
-        {hasWebConference && (
-          <div className="relative">
-            <img
-              src="/zoomicon.png"
-              alt="Web Conference"
-              className="object-contain dark:invert transition-all duration-250 ease-in-out cursor-pointer"
-              title="Web Conference"
-              style={{
-                width: `${12 * getFisheyeScale('webConference')}px`,
-                height: `${12 * getFisheyeScale('webConference')}px`
-              }}
-              onMouseEnter={() => handleIconHover('webConference')}
-              onMouseLeave={handleIconLeave}
-            />
-            {hoveredIcon === 'webConference' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                Web Conference
-              </span>
-            )}
-          </div>
-        )}
-        {hasClickers && (
-          <div className="relative overflow-visible">
-            <div
-              className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-250 ease-in-out cursor-pointer relative"
-              style={{
-                width: `${16 * getFisheyeScale('clickers')}px`,
-                height: `${16 * getFisheyeScale('clickers')}px`
-              }}
-              onMouseEnter={() => handleIconHover('clickers')}
-              onMouseLeave={handleIconLeave}
-            >
-              <img
-                src="/tp.png"
-                alt="Clickers"
-                className="object-contain dark:invert transition-all duration-250 ease-in-out"
-                style={{
-                  width: `${14 * getFisheyeScale('clickers')}px`,
-                  height: `${14 * getFisheyeScale('clickers')}px`
-                }}
-                title="Clickers (Polling)"
-              />
-              {hoveredIcon === 'clickers' && (
-                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                  Clickers (Polling)
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-        {hasAVNotes && (
-          <span
-            className="text-xs transition-all duration-250 ease-in-out cursor-pointer relative"
-            title="AV Setup Notes"
-            style={{
-              fontSize: `${getFisheyeScale('avNotes') * 0.8}em`
-            }}
-            onMouseEnter={() => handleIconHover('avNotes')}
-            onMouseLeave={handleIconLeave}
-          >
-            📝
-            {hoveredIcon === 'avNotes' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                AV Setup Notes
-              </span>
-            )}
-          </span>
-        )}
-        {hasNeatBoard && (
-          <div 
-            className="relative"
-            title="Neat Board"
-            onMouseEnter={() => handleIconHover('neatBoard')}
-            onMouseLeave={handleIconLeave}
-          >
-            <div 
-              className="bg-white rounded-full flex items-center justify-center transition-all duration-250 ease-in-out cursor-pointer"
-              style={{
-                width: `${16 * getFisheyeScale('neatBoard')}px`,
-                height: `${16 * getFisheyeScale('neatBoard')}px`
-              }}
-            >
-              <Monitor
-                className="text-purple-600"
-                strokeWidth={2.5}
-                style={{
-                  width: `${12 * getFisheyeScale('neatBoard')}px`,
-                  height: `${12 * getFisheyeScale('neatBoard')}px`
-                }}
-              />
-            </div>
-            {hoveredIcon === 'neatBoard' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
-                Neat Board
-              </span>
-            )}
-          </div>
-        )}
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{resource.displayName === 'Video Recording' && allChecksComplete ? 'Video Recording - All Checks Complete' : resource.displayName}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
         
         {/* Separator bar between resource icons and owner icons */}
-        {(isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes || hasNeatBoard) && timeline.length > 0 && (
+        {(isFirstSession || resources.length > 0) && timeline.length > 0 && (
           <div className="w-0.5 h-4 bg-white dark:bg-gray-800 mx-0.5 opacity-20"></div>
         )}
         
