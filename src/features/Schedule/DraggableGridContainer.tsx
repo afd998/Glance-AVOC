@@ -11,6 +11,7 @@ interface DraggableGridContainerProps {
   isDragEnabled: boolean;
   onScrollPositionChange?: (position: { left: number; top: number }) => void;
   rowHeightPx?: number;
+  scale?: number;
 }
 
 interface EdgeHighlight {
@@ -40,7 +41,8 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   actualRowCount,
   isDragEnabled,
   onScrollPositionChange,
-  rowHeightPx = 96
+  rowHeightPx = 96,
+  scale = 1
 }, ref) => {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   
@@ -70,9 +72,10 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const container = containerRef.current;
     const { clientWidth, clientHeight } = container;
     
-    // Calculate the actual content dimensions
-    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * rowHeightPx) + 24; // 24px for TimeGrid (h-6 class)
+    // Calculate the actual content dimensions (header is rendered outside scaled content)
+    const scaleFactor = scale || 1;
+    const actualContentWidth = ((endHour - startHour) * 60 * pixelsPerMinute) * scaleFactor;
+    const actualContentHeight = ((actualRowCount * rowHeightPx)) * scaleFactor;
     
     
     // Calculate maximum scroll positions with iOS-specific adjustments
@@ -87,7 +90,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       scrollLeft: Math.max(-iosBuffer, Math.min(scrollLeft, maxScrollLeft)),
       scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop))
     };
-  }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx]);
+  }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, scale]);
 
   // Function to check and update edge highlighting
   const updateEdgeHighlight = useCallback(() => {
@@ -104,9 +107,10 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const container = containerRef.current;
     const { scrollLeft, scrollTop, clientWidth, clientHeight } = container;
     
-    // Calculate the actual content dimensions
-    const actualContentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
-    const actualContentHeight = (actualRowCount * rowHeightPx) + 24; // 24px for TimeGrid (h-6 class)
+    // Calculate the actual content dimensions (header is rendered outside scaled content)
+    const scaleFactor = scale || 1;
+    const actualContentWidth = ((endHour - startHour) * 60 * pixelsPerMinute) * scaleFactor;
+    const actualContentHeight = ((actualRowCount * rowHeightPx)) * scaleFactor;
     
     // Add tolerance for edge detection
     const tolerance = 20;
@@ -131,7 +135,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       // Clear highlights immediately when not hitting any edge
       setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
     }
-  }, [isDragging, endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx]);
+  }, [isDragging, endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, scale]);
 
   // Drag-to-scroll handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import TimeGrid from "../features/Schedule/components/TimeGrid";
 import CurrentTimeIndicator from "../features/Schedule/components/CurrentTimeIndicator";
@@ -20,6 +20,8 @@ import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
   import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
+import { useTheme } from "../contexts/ThemeContext";
+import { Badge } from "../components/ui/badge";
 import { Database } from "../types/supabase";
 
 
@@ -49,6 +51,9 @@ export default function HomePage() {
 
   const { pageZoom } = useZoom();
   const { pixelsPerMinute, rowHeightPx } = usePixelMetrics();
+  const { currentTheme, isDarkMode } = useTheme();
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
   const startHour = 7;
   const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
@@ -56,6 +61,12 @@ export default function HomePage() {
   const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
   const { data: filteredLCEvents, isLoading: filteredLCEventsLoading } = useFilteredLCEvents(selectedDate);
  
+  const actualRowCount = (roomRows?.length || 0) + (filteredLCEvents?.length || 0);
+  const contentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
+  const headerHeightPx = 24;
+  const leftLabelBaseWidth = 96;
+  const contentHeight = (actualRowCount * rowHeightPx);
+
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
   useEventsPrefetch(selectedDate);
@@ -168,8 +179,16 @@ export default function HomePage() {
       {/* Menu Panel and Notification Bell - moved to Layout */}
 
       {/* Main content area */}
-      <div className="flex-1 w-full overflow-hidden" style={{ zIndex: 3 }}>
-            
+      <div className="flex-1 w-full overflow-hidden" style={{ zIndex: 3, position: 'relative' }}>
+             
+      {/* Sticky time header overlay (outside grid), full content width */}
+      <div className="sticky top-0 z-50 overflow-hidden" style={{ height: `${headerHeightPx * pageZoom}px` }}>
+        <div style={{ width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx * pageZoom}px`, transform: `translateX(-${scrollLeft}px)` }}>
+          <div style={{ transform: `scaleY(${pageZoom})`, transformOrigin: 'top left', width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx}px` }}>
+            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute * pageZoom} sticky={false} />
+          </div>
+        </div>
+      </div>
 
       {/* AVOC HOME text in bottom right corner */}
       {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
@@ -242,28 +261,35 @@ export default function HomePage() {
         startHour={startHour}
         endHour={endHour}
         pixelsPerMinute={pixelsPerMinute}
-         actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
+         actualRowCount={actualRowCount}
         rowHeightPx={rowHeightPx}
         isDragEnabled={isDragEnabled}
+        scale={pageZoom}
+        onScrollPositionChange={(pos) => {
+          setScrollLeft(pos.left);
+          setScrollTop(pos.top);
+        }}
       >
         {/* Date Display positioned relative to grid */}
         {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
-        {/* Zoom wrapper to scale text and boxes like browser zoom */}
-        <div style={{ zoom: pageZoom }}>
+        {/* Zoom wrapper: layout-sized outer, transformed inner for scroll + visuals */}
+        <div style={{ width: `${contentWidth * pageZoom}px`, minHeight: `${contentHeight * pageZoom}px` }}>
+        <div style={{ transform: `scale(${pageZoom})`, transformOrigin: 'top left' }}>
         <div className="min-w-max rounded-lg  h-content relative shadow-2xl " style={{ 
-          width: `${(endHour - startHour) * 60 * pixelsPerMinute}px`,
+          width: `${contentWidth}px`,
           transition: 'width 200ms ease-in-out',
-          minHeight: '100%' // Ensure content fills the full height
+          minHeight: '100%'
         }}>
-          <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute} />
-         
+          {/* Left labels overlay track placeholder */}
+          <div className="absolute inset-y-0 left-0 z-40 pointer-events-none" style={{ width: '96px' }} />
+          
             <VerticalLines 
               startHour={startHour} 
               endHour={endHour} 
               pixelsPerMinute={pixelsPerMinute} 
-              actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length|| 0)}
+            actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length|| 0)}
               rowHeightPx={rowHeightPx}
             />
         
@@ -292,6 +318,7 @@ export default function HomePage() {
                 isLastRow={index === roomRows.length - 1}
                 isFloorBreak={false}
                 rowHeightPx={rowHeightPx}
+                hideLabel={true}
               />
             );
           })}
@@ -312,13 +339,58 @@ export default function HomePage() {
                 isLastRow={index === roomRows.length - 1}
                 isFloorBreak={false}
                 rowHeightPx={rowHeightPx}
+                hideLabel={true}
               />
             );
           })}
            </div>
         </div>
         </div>
+        {/* left labels overlay removed from inside; moved outside below */}
+        </div>
       </DraggableGridContainer>
+
+      {/* Sticky left labels overlay (outside grid); translate Y with scroll and scale */}
+      <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
+        <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
+          <div style={{ position: 'relative' }}>
+            {roomRows.map((room: any) => (
+              <div key={`label-${room.name}`} style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
+                <div className="pointer-events-auto">
+                  <Badge 
+                    className=""
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                  >
+                    {room.name.replace(/^GH\s+/, '')}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+            {filteredLCEvents?.map((roomData: any) => (
+              <div key={`label-${roomData.room_name}`} style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
+                <div className="pointer-events-auto">
+                  <Badge 
+                    className=""
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                  >
+                    {roomData.room_name}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Absolutely positioned no-events message */}
       {(!filteredEvents || filteredEvents.length === 0) && !isLoading && (

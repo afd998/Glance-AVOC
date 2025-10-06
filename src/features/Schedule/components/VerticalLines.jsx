@@ -1,8 +1,8 @@
 import React from 'react';
 
 export default function VerticalLines({ startHour, endHour, pixelsPerMinute, actualRowCount = 0, rowHeightPx = 96 }) {
-  // Calculate the actual content height based on row count
-  const actualContentHeight = (actualRowCount * rowHeightPx) + 24; // 24px for TimeGrid (h-6 class)
+  // Calculate the actual content height based on row count (header is outside)
+  const actualContentHeight = (actualRowCount * rowHeightPx);
   
   const verticalLines = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
     // Skip first and last lines

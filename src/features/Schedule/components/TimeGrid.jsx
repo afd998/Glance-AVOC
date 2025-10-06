@@ -1,6 +1,7 @@
 import React from 'react';
+import { Separator } from '../../../components/ui/separator';
 
-export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
+export default function TimeGrid({ startHour, endHour, pixelsPerMinute, sticky = true }) {
   
   const hours = Array.from(
     { length: endHour - startHour + 1 },
@@ -44,9 +45,10 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     
     const left = i * 60 * pixelsPerMinute;
     return (
-      <div 
+      <Separator 
         key={i}
-        className="absolute top-1 w-px h-4 bg-foreground transition-all duration-200 ease-in-out"
+        orientation="vertical"
+        className="absolute top-1 h-4 transition-all duration-200 ease-in-out"
         style={{ 
           left: `${left}px`,
           zIndex: 70
@@ -55,11 +57,13 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     );
   }).filter(Boolean);
 
+  const baseProps = {
+    className: `${sticky ? 'sticky top-0' : ''} w-full h-6 bg-white/90 dark:bg-gray-900/90 z-50 flex items-center relative overflow-hidden`,
+    style: { zIndex: 60, opacity: 1.0 }
+  };
+
   return (
-    <div className="sticky top-0 w-full h-6 bg-white/90 dark:bg-gray-900/90 z-50 flex items-center relative overflow-hidden" style={{ 
-      zIndex: 60, 
-      opacity: 1.0
-    }}>
+    <div {...baseProps}>
       {hourLabels}
       {shortVerticalLines}
     </div>

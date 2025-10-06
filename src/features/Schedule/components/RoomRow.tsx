@@ -17,6 +17,7 @@ interface RoomRowProps {
   isEvenRow?: boolean; // Make optional with default
   isLastRow?: boolean; // Add prop for last row styling
   rowHeightPx?: number; // Numeric height in pixels
+  hideLabel?: boolean; // When true, do not render left sticky label
 }
 
 export default function RoomRow({ 
@@ -29,6 +30,7 @@ export default function RoomRow({
   onEventClick, 
   isEvenRow = false, 
   rowHeightPx = 96,
+  hideLabel = false,
 
 }: RoomRowProps) {
   const { currentTheme, isDarkMode } = useTheme();
@@ -55,7 +57,7 @@ export default function RoomRow({
 
   return (
     <div 
-      className={`flex overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
+      className={`pl-24 flex overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
       style={{ 
         ...rowHeightStyle,
         backgroundColor: isDarkMode
@@ -65,29 +67,31 @@ export default function RoomRow({
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}
     >
-      <div 
-        className={`sticky bg-backgroun/80 left-0 w-24 flex flex-col items-center justify-center  transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
-        style={{ 
-          zIndex: 100,
-          ...rowHeightStyle,
-        }}
-        data-room-label="true"
-      >
-        <Badge 
-          
-          className={``}
+      {!hideLabel && (
+        <div 
+          className={`sticky bg-backgroun/80 left-0 w-24 flex flex-col items-center justify-center  transition-all duration-300 ease-in-out cursor-pointer event-no-select ${isLastRow ? 'rounded-bl-md' : ''}`} 
           style={{ 
-            // fontFamily: fontFamily,
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none'
+            zIndex: 100,
+            ...rowHeightStyle,
           }}
+          data-room-label="true"
         >
-          {roomText}
-        </Badge>
-        {/* Room spelling code commented out - now just showing simple room name vertically */}
-      </div>
+          <Badge 
+            
+            className={``}
+            style={{ 
+              // fontFamily: fontFamily,
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
+          >
+            {roomText}
+          </Badge>
+          {/* Room spelling code commented out - now just showing simple room name vertically */}
+        </div>
+      )}
       <div 
         className={`flex-1 relative transition-all duration-300 ease-in-out overflow-visible ${isLastRow ? 'rounded-br-md' : ''}`}
         style={{ ...rowHeightStyle }}
