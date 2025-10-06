@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { UserAvatar } from '../components/ui/avatar';
 import { Separator } from '../components/ui/separator';
 
 const AccountPage: React.FC = () => {
@@ -68,11 +68,11 @@ const AccountPage: React.FC = () => {
             {/* User Info */}
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <Avatar className="w-16 h-16" size="lg" >
-                  <AvatarFallback className="text-xl font-bold">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar 
+                  userId={user.id || user.email || 'unknown'} 
+                  size="lg" 
+                  className="w-16 h-16"
+                />
                 <div>
                   <h3 className="text-lg font-medium">{user.email}</h3>
                   <p className="text-sm text-muted-foreground">
