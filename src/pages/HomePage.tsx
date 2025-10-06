@@ -6,8 +6,6 @@ import RoomRow from "../features/Schedule/components/RoomRow";
 import VerticalLines from "../features/Schedule/components/VerticalLines";
 import AppHeader from "../components/AppHeader";
 import AppHeaderVertical from "../components/AppHeaderVertical";
-import { NotificationBell } from "../features/notifications/NotificationBell";
-import MenuPanel from "../components/MenuPanel";
 import DraggableGridContainer from "../features/Schedule/DraggableGridContainer";
 import DateDisplay from "../features/Schedule/components/DateDisplay";
 import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows} from "../features/Schedule/hooks/useEvents";
@@ -17,8 +15,7 @@ import { useProfile } from "../core/User/useProfile";
 import { useRooms } from "../core/Rooms/useRooms";
 import { usePanoptoNotifications } from "../hooks/usePanoptoNotifications";
 import EventDetail from "./EventDetail";
-import FacultyListModal from "../features/Faculty/FacultyListModal";
-import FacultyDetailModal from "../features/Faculty/FacultyDetailModal";
+import { Dialog, DialogContent } from "../components/ui/dialog";
 import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
   import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
 import { Database } from "../types/supabase";
@@ -87,8 +84,6 @@ export default function HomePage() {
   };
 
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
-  const isFacultyModalRoute = location.pathname.endsWith('/faculty');
-  const isFacultyDetailModalRoute = location.pathname.match(/\/faculty\/[0-9]+$/);
 
  
 
@@ -129,26 +124,25 @@ export default function HomePage() {
 
 
   if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
+    return <div className="flex items-center justify-centertext-red-500">Error: {error.message}</div>;
   }
 
     return (
-    <div className="flex  justify-center p-1 min-h-screen  gpu-optimized">
-     <div className="flex flex-col items-center justifty-between h-full w-full- ">
-      {/* Vertical Header - positioned to the left */}
-      <AppHeaderVertical
+    <div className="flex flex-col items-center justify-center w-full h-full gpu-optimized">
+      {/* Vertical Header - positioned to the left - HIDDEN */}
+      {/* <AppHeaderVertical
         selectedDate={selectedDate}
         setSelectedDate={handleDateChange}
         isLoading={isLoading}
         events={filteredEvents || []}
 
-      />
+      /> */}
            
-      {/* Kellogg Logo - shown on all screens */}
-      <div className="z-50 pointer-events-none relative h-auto 2xl:pt-10 lg:pt-0 pt-2" >
+      {/* Kellogg Logo - shown on all screens - HIDDEN */}
+      {/* <div className="z-50 pointer-events-none relative h-auto 2xl:pt-10 lg:pt-0 pt-2" >
        
           {/* Light effect behind logo */}
-          <div 
+          {/* <div 
             className="absolute rounded-full blur-2xl opacity-100"
             style={{
               background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 15%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0.2) 85%, transparent 100%)',
@@ -166,24 +160,12 @@ export default function HomePage() {
             className="3xl:h-64 2xl:h-64 xl:h-24 lg:h-20 h-10
             object-contain opacity-90 relative z-10"
           />
-        </div>
+        </div> */}
       
-      </div>
-      {/* Menu Panel and Notification Bell - shown on all screens */}
-      <div 
-        className="flex fixed top-4 right-4 z-[9998] gap-2"
-    
-      >
-      
-          <NotificationBell />
-       
-       
-          <MenuPanel selectedDate={selectedDate} events={filteredEvents || []} />
-     
-      </div>
+      {/* Menu Panel and Notification Bell - moved to Layout */}
 
-      {/* Main content area - offset to account for vertical header on all screens */}
-      <div className="flex-1 2xl:pr-16 pr-4 overflow-hidden">
+      {/* Main content area */}
+      <div className="flex-1 w-full overflow-hidden" style={{ zIndex: 3 }}>
             
 
       {/* AVOC HOME text in bottom right corner */}
@@ -215,7 +197,7 @@ export default function HomePage() {
           handleDateChange(newDate);
         }}
         disabled={isLoading}
-        className={`!hidden xl:!flex fixed left-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
+        className={`!hidden xl:flex! fixed left-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
           isLoading
             ? 'opacity-20 cursor-not-allowed'
             : 'hover:opacity-60  hover:scale-150 active:scale-95'
@@ -227,8 +209,8 @@ export default function HomePage() {
         </svg>
       </button> */}
 
-      {/* Next Day Button - Right Side */}
-      <button
+      {/* Next Day Button - Right Side - HIDDEN */}
+      {/* <button
         onClick={() => {
           const newDate = new Date(selectedDate);
           newDate.setDate(newDate.getDate() + 1);
@@ -236,7 +218,7 @@ export default function HomePage() {
           handleDateChange(newDate);
         }}
         disabled={isLoading}
-        className={`!hidden xl:!flex fixed right-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
+        className={`!hidden xl:flex! fixed right-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
           isLoading
             ? 'opacity-20 cursor-not-allowed'
             : 'hover:opacity-60 h hover:scale-150 active:scale-95'
@@ -246,11 +228,11 @@ export default function HomePage() {
         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
-      </button>
+      </button> */}
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container  h-[calc(100vh-1rem)] rounded-lg relative overflow-hidden"
+          className="grid-container  h-[calc(100vh-5rem)] rounded-lg relative overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
@@ -331,38 +313,12 @@ export default function HomePage() {
       {(!filteredEvents || filteredEvents.length === 0) && !isLoading && (
         <NoEventsMessage />
       )}
-      {/* Event Detail Modal Overlay */}
-      {isEventDetailRoute && eventId && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
-          onClick={() => navigate(`/${date}`)}
-        >
-                     <div
-             className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg"
-             onClick={(e) => e.stopPropagation()}
-           >
-            <EventDetail />
-          </div>
-        </div>
-      )}
-      {/* Faculty Modal Overlay */}
-      {isFacultyModalRoute && !isFacultyDetailModalRoute && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
-          onClick={() => navigate(`/${date}`)}
-        >
-          <div
-            className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg shadow-xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <FacultyListModal isOpen={true} onClose={() => navigate(`/${date}`)} />
-          </div>
-        </div>
-      )}
-      {/* Faculty Detail Modal Overlay */}
-      {isFacultyDetailModalRoute && (
-        <FacultyDetailModal />
-      )}
+      {/* Event Detail Modal as shadcn Dialog */}
+      <Dialog open={Boolean(isEventDetailRoute && eventId)} onOpenChange={(open) => { if (!open) navigate(`/${date}`) }}>
+        <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg bg-transparent border-0 shadow-none p-0">
+          <EventDetail />
+        </DialogContent>
+      </Dialog>
       </div> {/* Close main content area div */}
     </div>
   );

@@ -10,7 +10,7 @@ export const useProfile = () => {
   const profileQueryKey = ['profile', user?.id];
 
   // Fetch profile data
-  const { data: profile, isLoading, error } = useQuery({
+  const { data: profile, isLoading, error, refetch } = useQuery({
     queryKey: profileQueryKey,
     queryFn: async () => {
       if (!user) throw new Error('No user');
@@ -25,6 +25,11 @@ export const useProfile = () => {
       return data;
     },
     enabled: !!user,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
   // Update auto-hide mutation
@@ -64,6 +69,24 @@ export const useProfile = () => {
     },
   });
 
+  // Update theme mutation
+  const updateThemeMutation = useMutation({
+    mutationFn: async (theme: string) => {
+      if (!user) throw new Error('No user');
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ theme })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { theme };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+    },
+  });
+
   // Convenience methods
   const updateAutoHide = (autoHide: boolean) => {
     updateAutoHideMutation.mutate(autoHide);
@@ -73,24 +96,33 @@ export const useProfile = () => {
     updateCurrentFilterMutation.mutate(filterName);
   };
 
+  const updateTheme = (theme: string) => {
+    updateThemeMutation.mutate(theme);
+  };
+
   return {
     // Data
     profile,
     autoHide: profile?.auto_hide || false,
     currentFilter: profile?.current_filter,
+    theme: profile?.theme || 'light', // Default to light theme
     
     // Loading states
     isLoading,
     isUpdatingAutoHide: updateAutoHideMutation.isPending,
     isUpdatingCurrentFilter: updateCurrentFilterMutation.isPending,
+    isUpdatingTheme: updateThemeMutation.isPending,
     
     // Errors
     error,
     autoHideError: updateAutoHideMutation.error,
     currentFilterError: updateCurrentFilterMutation.error,
+    themeError: updateThemeMutation.error,
     
     // Actions
     updateAutoHide,
     updateCurrentFilter,
+    updateTheme,
+    refetch,
   };
 }; 

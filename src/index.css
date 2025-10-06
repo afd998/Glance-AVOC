@@ -1,54 +1,163 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin "tailwindcss-animate";
+@import 'react-day-picker/dist/style.css';
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-  }
+@custom-variant dark (&:is(.dark *));
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.9777 0.0041 301.4256);
+  --foreground: oklch(0.3651 0.0325 287.0807);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.3651 0.0325 287.0807);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.3651 0.0325 287.0807);
+  --primary: oklch(0.6104 0.0767 299.7335);
+  --primary-foreground: oklch(0.9777 0.0041 301.4256);
+  --secondary: oklch(0.8957 0.0265 300.2416);
+  --secondary-foreground: oklch(0.3651 0.0325 287.0807);
+  --muted: oklch(0.8906 0.0139 299.7754);
+  --muted-foreground: oklch(0.5288 0.0375 290.7895);
+  --accent: oklch(0.7494 0.0726 307.3836);
+  --accent-foreground: oklch(0.3394 0.0441 1.7583);
+  --destructive: oklch(0.6332 0.1578 22.6734);
+  --border: oklch(0.8447 0.0226 300.1421);
+  --input: oklch(0.9329 0.0124 301.2783);
+  --ring: oklch(0.6104 0.0767 299.7335);
+  --chart-1: oklch(0.6104 0.0767 299.7335);
+  --chart-2: oklch(0.7889 0.0802 359.9375);
+  --chart-3: oklch(0.7321 0.0749 169.8670);
+  --chart-4: oklch(0.8540 0.0882 76.8292);
+  --chart-5: oklch(0.7857 0.0645 258.0839);
+  --sidebar: oklch(0.9554 0.0082 301.3541);
+  --sidebar-foreground: oklch(0.3651 0.0325 287.0807);
+  --sidebar-primary: oklch(0.6104 0.0767 299.7335);
+  --sidebar-primary-foreground: oklch(0.9777 0.0041 301.4256);
+  --sidebar-accent: oklch(0.7889 0.0802 359.9375);
+  --sidebar-accent-foreground: oklch(0.3394 0.0441 1.7583);
+  --sidebar-border: oklch(0.8719 0.0198 302.1690);
+  --sidebar-ring: oklch(0.6104 0.0767 299.7335);
+  --destructive-foreground: oklch(0.9777 0.0041 301.4256);
+  --font-sans: Geist, sans-serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-mono: "Fira Code", "Courier New", monospace;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-opacity: 0.06;
+  --shadow-blur: 5px;
+  --shadow-spread: 1px;
+  --shadow-offset-x: 1px;
+  --shadow-offset-y: 2px;
+  --letter-spacing: 0em;
+  --spacing: 0.25rem;
+  --shadow-2xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
+  --shadow-xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
+  --shadow-sm: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+  --shadow: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+  --shadow-md: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 2px 4px 0px hsl(0 0% 0% / 0.06);
+  --shadow-lg: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 4px 6px 0px hsl(0 0% 0% / 0.06);
+  --shadow-xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 8px 10px 0px hsl(0 0% 0% / 0.06);
+  --shadow-2xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.15);
+  --tracking-normal: 0em;
+}
+
+.dark {
+  --background: oklch(0.2166 0.0215 292.8474);
+  --foreground: oklch(0.9053 0.0245 293.5570);
+  --card: oklch(0.2544 0.0301 292.7315);
+  --card-foreground: oklch(0.9053 0.0245 293.5570);
+  --popover: oklch(0.2544 0.0301 292.7315);
+  --popover-foreground: oklch(0.9053 0.0245 293.5570);
+  --primary: oklch(0.7058 0.0777 302.0489);
+  --primary-foreground: oklch(0.2166 0.0215 292.8474);
+  --secondary: oklch(0.4604 0.0472 295.5578);
+  --secondary-foreground: oklch(0.9053 0.0245 293.5570);
+  --muted: oklch(0.2560 0.0320 294.8380);
+  --muted-foreground: oklch(0.6974 0.0282 300.0614);
+  --accent: oklch(0.3181 0.0321 308.6149);
+  --accent-foreground: oklch(0.8391 0.0692 2.6681);
+  --destructive: oklch(0.6875 0.1420 21.4566);
+  --border: oklch(0.3063 0.0359 293.3367);
+  --input: oklch(0.2847 0.0346 291.2726);
+  --ring: oklch(0.7058 0.0777 302.0489);
+  --chart-1: oklch(0.7058 0.0777 302.0489);
+  --chart-2: oklch(0.8391 0.0692 2.6681);
+  --chart-3: oklch(0.7321 0.0749 169.8670);
+  --chart-4: oklch(0.8540 0.0882 76.8292);
+  --chart-5: oklch(0.7857 0.0645 258.0839);
+  --sidebar: oklch(0.1985 0.0200 293.6639);
+  --sidebar-foreground: oklch(0.9053 0.0245 293.5570);
+  --sidebar-primary: oklch(0.7058 0.0777 302.0489);
+  --sidebar-primary-foreground: oklch(0.2166 0.0215 292.8474);
+  --sidebar-accent: oklch(0.3181 0.0321 308.6149);
+  --sidebar-accent-foreground: oklch(0.8391 0.0692 2.6681);
+  --sidebar-border: oklch(0.2847 0.0346 291.2726);
+  --sidebar-ring: oklch(0.7058 0.0777 302.0489);
+  --destructive-foreground: oklch(0.2166 0.0215 292.8474);
+  --radius: 0.5rem;
+  --font-sans: Geist, sans-serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-mono: "Fira Code", "Courier New", monospace;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-opacity: 0.06;
+  --shadow-blur: 5px;
+  --shadow-spread: 1px;
+  --shadow-offset-x: 1px;
+  --shadow-offset-y: 2px;
+  --letter-spacing: 0em;
+  --spacing: 0.25rem;
+  --shadow-2xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
+  --shadow-xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
+  --shadow-sm: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+  --shadow: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+  --shadow-md: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 2px 4px 0px hsl(0 0% 0% / 0.06);
+  --shadow-lg: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 4px 6px 0px hsl(0 0% 0% / 0.06);
+  --shadow-xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 8px 10px 0px hsl(0 0% 0% / 0.06);
+  --shadow-2xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.15);
+}
+
+/* Prevent system theme inheritance - ensure we control the theme */
+html {
+  /* Force light mode by default until our theme system takes over */
+  color-scheme: light;
+}
+
+/* Ensure modal backdrops work properly with Tailwind v4 */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Ensure base background follows theme variables (light/dark) when no image is used */
+html, body {
+  background-color: var(--background);
+}
+
+/* Ensure the root element has proper background - but allow background images to show */
+#root {
+  background-color: transparent;
+  min-height: 100vh;
+}
+
+/* Only apply dark mode when explicitly controlled by our theme system */
+html[data-theme-controlled="true"].dark {
+  color-scheme: dark;
+}
+
+/* Prevent any system theme media queries from affecting our app */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme-controlled="true"]) {
+    /* This ensures system dark mode doesn't affect us */
+    color-scheme: light !important;
   }
 }
 
+@media (prefers-color-scheme: light) {
+  html:not([data-theme-controlled="true"]) {
+    /* This ensures system light mode doesn't affect us */
+    color-scheme: light !important;
+  }
+}
 
 /* Custom Font Declarations */
 @font-face {
@@ -171,7 +280,6 @@
   font-style: normal;
   font-display: swap;
 }
-
 
 /* Remove polygon clip path on 2xl+ screens */
 @media (min-width: 1536px) {
@@ -321,8 +429,8 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
 
-  /* Force white background */
-  background-color: #ffffff !important;
+  /* Use theme background to support dark mode when no image is selected */
+  background-color: var(--background) !important;
 }
 
 /* Dark mode body background - removed to allow background image to show */
@@ -436,667 +544,8 @@ code {
   animation: edge-pulse 1.0s ease-in-out infinite;
 }
 
-/* Enhanced DatePicker Glassmorphism Styles */
-.react-datepicker-glassmorphism {
-  backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
-  border-radius: 1.5rem !important;
-  box-shadow: 
-    0 32px 64px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.15) 0%, 
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.05) 100%) !important;
-  animation: glassmorphism-float 6s ease-in-out infinite !important;
-  transform: scale(1.4) !important;
-  transform-origin: center center !important;
-}
-
-@keyframes glassmorphism-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-2px) rotate(0.5deg); }
-}
-
-/* Enhanced DatePicker Dark Mode Glassmorphism Styles */
-.react-datepicker-dark {
-  background: linear-gradient(135deg, 
-    rgba(31, 41, 55, 0.4) 0%, 
-    rgba(17, 24, 39, 0.25) 50%,
-    rgba(15, 23, 42, 0.15) 100%) !important;
-  border: 1px solid rgba(75, 85, 99, 0.4) !important;
-  color: #f9fafb !important;
-  border-radius: 1.5rem !important;
-  box-shadow: 
-    0 32px 64px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(8px) saturate(150%) brightness(0.95) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(0.95) !important;
-  animation: glassmorphism-float-dark 6s ease-in-out infinite !important;
-  transform: scale(1.4) !important;
-  transform-origin: center center !important;
-}
-
-@keyframes glassmorphism-float-dark {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-2px) rotate(-0.5deg); }
-}
-
-.react-datepicker-dark .react-datepicker__header {
-  background: linear-gradient(135deg, 
-    rgba(17, 24, 39, 0.4) 0%, 
-    rgba(31, 41, 55, 0.2) 100%) !important;
-  border: none !important;
-  color: #f9fafb !important;
-  border-top-left-radius: 1.5rem !important;
-  border-top-right-radius: 1.5rem !important;
-  backdrop-filter: blur(12px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-.react-datepicker-dark .react-datepicker__current-month {
-  color: #f9fafb !important;
-  font-weight: 600 !important;
-  font-size: 1.4rem !important;
-}
-
-.react-datepicker-dark .react-datepicker__day-name {
-  color: #d1d5db !important;
-  font-weight: 500 !important;
-  font-size: 1.2rem !important;
-}
-
-.react-datepicker-dark .react-datepicker__day {
-  color: #ffffff !important;
-  border-radius: 0.75rem !important;
-  transition: all 0.2s ease-in-out !important;
-  font-size: 1.3rem !important;
-  width: 3rem !important;
-  height: 3rem !important;
-  line-height: 3rem !important;
-}
-
-.react-datepicker-dark .react-datepicker__day:hover {
-  background: linear-gradient(135deg, 
-    rgba(75, 85, 99, 0.7) 0%, 
-    rgba(55, 65, 81, 0.5) 100%) !important;
-  color: #ffffff !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  transform: scale(1.08) translateY(-1px) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-.react-datepicker-dark .react-datepicker__day--selected {
-  background: linear-gradient(135deg, 
-    rgba(147, 51, 234, 0.9) 0%, 
-    rgba(124, 58, 237, 0.8) 100%) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  backdrop-filter: blur(8px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
-  box-shadow: 
-    0 0 25px rgba(147, 51, 234, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.05) !important;
-  animation: selected-pulse-purple 2s ease-in-out infinite !important;
-}
-
-@keyframes selected-pulse-purple {
-  0%, 100% { box-shadow: 0 0 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
-  50% { box-shadow: 0 0 35px rgba(147, 51, 234, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
-}
-
-.react-datepicker-dark .react-datepicker__day--keyboard-selected {
-  background-color: #7c3aed !important;
-  color: #ffffff !important;
-}
-
-.react-datepicker-dark .react-datepicker__day--today {
-  background-color: transparent !important;
-  color: #ffffff !important;
-  font-weight: normal !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-.react-datepicker-dark .react-datepicker__day--today:hover {
-  background-color: rgba(75, 85, 99, 0.7) !important;
-  color: #ffffff !important;
-}
-
-/* Keep actual current date styling normal */
-.react-datepicker-dark .react-datepicker__day--today.react-datepicker__day--selected {
-  background: transparent !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Remove highlighting from same day number across different months */
-.react-datepicker-dark .react-datepicker__day--in-selecting-range,
-.react-datepicker-dark .react-datepicker__day--in-range,
-.react-datepicker-dark .react-datepicker__day--range-start,
-.react-datepicker-dark .react-datepicker__day--range-end,
-.react-datepicker-dark .react-datepicker__day--selecting-range-start,
-.react-datepicker-dark .react-datepicker__day--selecting-range-end {
-  background: transparent !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Override any day that's not the actual selected date - but keep current month days normal color */
-.react-datepicker-dark .react-datepicker__day:not(.react-datepicker__day--selected):not(.react-datepicker__day--today):not(.react-datepicker__day--outside-month) {
-  background: transparent !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Force remove any highlighting from days that aren't the exact selected date */
-.react-datepicker-dark .react-datepicker__day[data-day]:not(.react-datepicker__day--selected) {
-  background: transparent !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.react-datepicker-dark .react-datepicker__navigation {
-  color: #f9fafb !important;
-  border-radius: 0.375rem !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-.react-datepicker-dark .react-datepicker__navigation:hover {
-  background: linear-gradient(135deg, 
-    rgba(75, 85, 99, 0.7) 0%, 
-    rgba(55, 65, 81, 0.5) 100%) !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  transform: scale(1.1) !important;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Rain Overlay Styles */
-.rain {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -5;
-}
-
-.rain.back-row {
-  display: none;
-  z-index: -6;
-  bottom: 60px;
-  opacity: 0.5;
-}
-
-.rain.back-row.show-back-row {
-  display: block;
-}
-
-.drop {
-  position: absolute;
-  bottom: 100%;
-  width: 15px;
-  height: 120px;
-  pointer-events: none;
-  animation: drop 0.5s linear infinite;
-}
-
-
-
-@keyframes drop {
-  0% {
-    transform: translateY(0vh);
-  }
-  75% {
-    transform: translateY(90vh);
-  }
-  100% {
-    transform: translateY(90vh);
-  }
-}
-
-.stem {
-  width: 1px;
-  height: 60%;
-  margin-left: 7px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.25));
-  animation: stem 0.5s linear infinite;
-}
-
-@keyframes stem {
-  0% {
-    opacity: 1;
-  }
-  65% {
-    opacity: 1;
-  }
-  75% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-
-
-
-.react-datepicker-dark .react-datepicker__month-container {
-  background-color: rgba(31, 41, 55, 0.6) !important;
-  border-radius: 1rem !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
-.react-datepicker-dark .react-datepicker__triangle {
-  border-bottom-color: #1f2937 !important;
-}
-
-.react-datepicker-dark .react-datepicker__triangle::before {
-  border-bottom-color: #374151 !important;
-}
-
-.react-datepicker-dark .react-datepicker__day--outside-month {
-  color: #6b7280 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-.react-datepicker-dark .react-datepicker__day--disabled {
-  color: #4b5563 !important;
-  cursor: not-allowed !important;
-}
-
-/* Enhanced Light mode glassmorphism */
-.react-datepicker {
-  border-radius: 1.5rem !important;
-  box-shadow: 
-    0 32px 64px -12px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(229, 231, 235, 0.5) !important;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.25) 0%, 
-    rgba(248, 250, 252, 0.15) 50%,
-    rgba(255, 255, 255, 0.08) 100%) !important;
-  backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(1.05) !important;
-  animation: glassmorphism-float 6s ease-in-out infinite !important;
-  transform: scale(1.4) !important;
-  transform-origin: center center !important;
-}
-
-.react-datepicker__header {
-  border-top-left-radius: 1.5rem !important;
-  border-top-right-radius: 1.5rem !important;
-  background: linear-gradient(135deg, 
-    rgba(249, 250, 251, 0.5) 0%, 
-    rgba(243, 244, 246, 0.3) 100%) !important;
-  backdrop-filter: blur(12px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  border: none !important;
-}
-
-.react-datepicker__day {
-  border-radius: 0.75rem !important;
-  transition: all 0.2s ease-in-out !important;
-  font-size: 1.3rem !important;
-  width: 3rem !important;
-  height: 3rem !important;
-  line-height: 3rem !important;
-}
-
-.react-datepicker__day:hover {
-  background: linear-gradient(135deg, 
-    rgba(243, 244, 246, 0.8) 0%, 
-    rgba(229, 231, 235, 0.6) 100%) !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  transform: scale(1.08) translateY(-1px) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-}
-
-.react-datepicker__day--selected {
-  background: linear-gradient(135deg, 
-    rgba(147, 51, 234, 0.9) 0%, 
-    rgba(124, 58, 237, 0.8) 100%) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  backdrop-filter: blur(8px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(150%) !important;
-  box-shadow: 
-    0 0 25px rgba(147, 51, 234, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-  transform: scale(1.05) !important;
-  animation: selected-pulse-light-purple 2s ease-in-out infinite !important;
-}
-
-@keyframes selected-pulse-light-purple {
-  0%, 100% { box-shadow: 0 0 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
-  50% { box-shadow: 0 0 35px rgba(147, 51, 234, 0.6), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
-}
-
-.react-datepicker__day--keyboard-selected {
-  background-color: #7c3aed !important;
-  color: #ffffff !important;
-}
-
-.react-datepicker__day--today {
-  background-color: transparent !important;
-  color: #374151 !important;
-  font-weight: normal !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-.react-datepicker__day--today:hover {
-  background-color: rgba(243, 244, 246, 0.8) !important;
-  color: #374151 !important;
-}
-
-/* Keep actual current date styling normal */
-.react-datepicker__day--today.react-datepicker__day--selected {
-  background: transparent !important;
-  color: #374151 !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Remove highlighting from same day number across different months */
-.react-datepicker__day--in-selecting-range,
-.react-datepicker__day--in-range,
-.react-datepicker__day--range-start,
-.react-datepicker__day--range-end,
-.react-datepicker__day--selecting-range-start,
-.react-datepicker__day--selecting-range-end {
-  background: transparent !important;
-  color: #374151 !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Override any day that's not the actual selected date - but keep current month days normal color */
-.react-datepicker__day:not(.react-datepicker__day--selected):not(.react-datepicker__day--today):not(.react-datepicker__day--outside-month) {
-  background: transparent !important;
-  color: #374151 !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Force remove any highlighting from days that aren't the exact selected date */
-.react-datepicker__day[data-day]:not(.react-datepicker__day--selected) {
-  background: transparent !important;
-  color: #374151 !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-.react-datepicker__navigation {
-  border-radius: 0.375rem !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-.react-datepicker__navigation:hover {
-  background: linear-gradient(135deg, 
-    rgba(243, 244, 246, 0.8) 0%, 
-    rgba(229, 231, 235, 0.6) 100%) !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  transform: scale(1.1) !important;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* Dark mode custom input styling */
-.dark .react-datepicker__input-container input,
-.dark .react-datepicker__input-container button {
-  background: linear-gradient(135deg, 
-    rgba(31, 41, 55, 0.4) 0%, 
-    rgba(17, 24, 39, 0.2) 100%) !important;
-  border: 1px solid rgba(75, 85, 99, 0.3) !important;
-  color: #f9fafb !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-.dark .react-datepicker__input-container input:hover,
-.dark .react-datepicker__input-container button:hover {
-  background: linear-gradient(135deg, 
-    rgba(55, 65, 81, 0.5) 0%, 
-    rgba(31, 41, 55, 0.3) 100%) !important;
-  border: 1px solid rgba(107, 114, 128, 0.4) !important;
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-.react-datepicker__month-container {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.2) 0%, 
-    rgba(248, 250, 252, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 100%) !important;
-  border-radius: 1.5rem !important;
-  backdrop-filter: blur(6px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(130%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-}
-
-.react-datepicker__triangle {
-  border-bottom-color: rgba(255, 255, 255, 0.8) !important;
-  filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.1)) !important;
-}
-
-.react-datepicker__triangle::before {
-  border-bottom-color: rgba(229, 231, 235, 0.4) !important;
-}
-
-.react-datepicker__day--outside-month {
-  color: #9ca3af !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-.react-datepicker__day--disabled {
-  color: #d1d5db !important;
-  cursor: not-allowed !important;
-}
-
-/* Academic Calendar Info Icon Styles */
-.react-datepicker__day .academic-info-icon {
-  position: absolute !important;
-  top: 4px !important;
-  right: 4px !important;
-  z-index: 10 !important;
-  color: #8b5cf6 !important;
-  transition: all 0.2s ease-in-out !important;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
-  pointer-events: auto !important;
-}
-
-.react-datepicker__day .academic-info-icon:hover {
-  color: #7c3aed !important;
-  transform: scale(1.1) !important;
-  filter: drop-shadow(0 2px 4px rgba(139, 92, 246, 0.4)) !important;
-}
-
-/* Dark mode academic info icon */
-.react-datepicker-dark .react-datepicker__day .academic-info-icon {
-  color: #a78bfa !important;
-}
-
-.react-datepicker-dark .react-datepicker__day .academic-info-icon:hover {
-  color: #8b5cf6 !important;
-  filter: drop-shadow(0 2px 4px rgba(167, 139, 250, 0.4)) !important;
-}
-
-/* Force white color for all current month days in dark mode */
-.react-datepicker-dark .react-datepicker__day:not(.react-datepicker__day--outside-month) {
-  color: #ffffff !important;
-}
-
-/* Even more aggressive white color rule */
-.react-datepicker-dark .react-datepicker__day {
-  color: #ffffff !important;
-}
-
-/* Force white on all day elements */
-.react-datepicker-dark .react-datepicker__day * {
-  color: #ffffff !important;
-}
-
-/* Force white color on all day numbers in dark mode */
-.react-datepicker-dark .react-datepicker__day {
-  color: #ffffff !important;
-}
-
-/* Force white on day numbers that don't have custom rendering */
-.react-datepicker-dark .react-datepicker__day:not([style*="color"]) {
-  color: #ffffff !important;
-}
-
-/* Nuclear option - force white on everything in datepicker */
-.react-datepicker-dark .react-datepicker__day,
-.react-datepicker-dark .react-datepicker__day span,
-.react-datepicker-dark .react-datepicker__day div {
-  color: #ffffff !important;
-}
-
-/* Force white on all text content */
-.react-datepicker-dark .react-datepicker__day {
-  color: #ffffff !important;
-}
-
-.react-datepicker-dark .react-datepicker__day * {
-  color: #ffffff !important;
-}
-
-/* Academic Calendar Tooltip Styles */
-.academic-tooltip {
-  backdrop-filter: blur(6px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(130%) !important;
-  border-radius: 0.75rem !important;
-  box-shadow: 
-    0 20px 40px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  animation: tooltip-fade-in 0.2s ease-out !important;
-  z-index: 99999 !important;
-}
-
-@keyframes tooltip-fade-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-/* Maximum specificity override for day colors */
-.react-datepicker.react-datepicker-dark .react-datepicker__day {
-  color: #ffffff !important;
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-.react-datepicker.react-datepicker-dark .react-datepicker__day * {
-  color: #ffffff !important;
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-/* Apply Prokofievc font to all day numbers */
-.react-datepicker__day {
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-.react-datepicker__day * {
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-/* Apply Prokofievc font to weekday labels */
-.react-datepicker__day-name {
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-.react-datepicker-dark .react-datepicker__day-name {
-  font-family: 'Prokofievc', sans-serif !important;
-}
-
-/* Apply BebasNeue font to month/year heading */
-.react-datepicker__current-month {
-  font-family: 'BebasNeue', sans-serif !important;
-  color: #000000 !important;
-  text-shadow: none !important;
-  text-transform: uppercase !important;
-  font-weight: normal !important;
-}
-
-.react-datepicker-dark .react-datepicker__current-month {
-  font-family: 'BebasNeue', sans-serif !important;
-  color: #000000 !important;
-  text-shadow: none !important;
-  text-transform: uppercase !important;
-  font-weight: normal !important;
-}
-
-/* Make DatePicker backdrop less dark */
-.react-datepicker__portal {
-  background-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-.react-datepicker__backdrop {
-  background-color: rgba(0, 0, 0, 0.1) !important;
-}
-
 /* Alternative backdrop selectors */
 [data-portal] {
-  background-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Make any modal backdrop lighter */
-.react-datepicker__portal::before {
   background-color: rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -1302,7 +751,7 @@ code {
 /* KEC subdued luxury card design */
 .kec-gradient {
   border: 1px solid rgba(255, 224, 166, 0.4) !important;
-  border-radius: 1rem !important;
+  border-radius: 0.25rem !important;
   background: 
     linear-gradient(135deg, 
       rgba(255, 224, 166, 0.15) 0%, 
@@ -1619,17 +1068,17 @@ code {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
-  
+
   /* Early 2000s washed-out TN panel colors */
   filter: 
     contrast(0.85) 
     brightness(0.9) 
     saturate(0.7) 
     hue-rotate(5deg);
-  
+
   /* Simulate low refresh rate blur */
   animation: retro-flicker 0.1s ease-in-out infinite alternate;
-  
+
   /* Add subtle scan lines */
   background-image: 
     repeating-linear-gradient(
@@ -1801,5 +1250,179 @@ code {
   color: inherit !important;
 }
 
+@theme inline {
+  --font-sans: Geist, sans-serif;
+  --font-mono: "Fira Code", "Courier New", monospace;
+  --font-serif: "Lora", Georgia, serif;
+  --radius: 0.5rem;
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  --tracking-normal: var(--tracking-normal);
+  --shadow-2xl: var(--shadow-2xl);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-md: var(--shadow-md);
+  --shadow: var(--shadow);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-2xs: var(--shadow-2xs);
+  --spacing: var(--spacing);
+  --letter-spacing: var(--letter-spacing);
+  --shadow-offset-y: var(--shadow-offset-y);
+  --shadow-offset-x: var(--shadow-offset-x);
+  --shadow-spread: var(--shadow-spread);
+  --shadow-blur: var(--shadow-blur);
+  --shadow-opacity: var(--shadow-opacity);
+  --color-shadow-color: var(--shadow-color);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
 
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
+  }
+}
 
+/* Clean React DatePicker Styling */
+.react-datepicker {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  padding: 16px 8px 8px 8px !important;
+  margin: 0 auto !important;
+  display: block !important;
+  width: fit-content !important;
+  min-height: 200px !important;
+  overflow: visible !important;
+}
+
+.react-datepicker * {
+
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  font-family: inherit !important;
+  font-weight: normal !important;
+}
+
+/* Light mode colors */
+.react-datepicker * {
+  color: black !important;
+}
+
+/* Dark mode colors */
+.dark .react-datepicker * {
+  color: white !important;
+}
+
+.react-datepicker__header {
+  background: transparent !important;
+  border: none !important;
+  padding: 4px !important;
+}
+
+.react-datepicker__current-month {
+  font-weight: normal !important;
+  margin: 0 !important;
+}
+
+.react-datepicker__navigation {
+  top: 8px !important;
+}
+
+.react-datepicker__day {
+  background: transparent ;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.react-datepicker__day:hover {
+  background: gray !important;
+  color: white !important;
+}
+
+.react-datepicker__day--selected {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Override any other selected states to be transparent */
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+
+  color: inherit !important;
+}
+
+/* Only the actual selected date (from URL) gets primary color */
+.react-datepicker__day--selected:not(.react-datepicker__day--keyboard-selected):not(.react-datepicker__day--in-selecting-range):not(.react-datepicker__day--in-range) {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Explicit class for URL-selected day */
+.rdp-current-url-day {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Today (now) text color only */
+.rdp-today-text {
+  color: hsl(var(--primary)) !important;
+}
+
+.react-datepicker__day-name {
+  font-weight: normal !important;
+}
+
+.react-datepicker__day--outside-month {
+  color: gray !important;
+}

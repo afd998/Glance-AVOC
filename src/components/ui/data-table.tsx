@@ -29,6 +29,11 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    // Ensure stable row IDs to prevent input remount/focus loss during edits
+    getRowId: (row: any, index: number) => {
+      const id = row?.id ?? row?.ID ?? row?.uuid ?? row?.uid
+      return (id !== undefined && id !== null) ? String(id) : String(index)
+    },
   })
 
   return (

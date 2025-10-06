@@ -242,7 +242,7 @@ export function MultipleFacultyAvatars({
       {displayNames.map((name, index) => (
         <div
           key={`${name}-${index}`}
-          className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-white font-medium shadow-sm transition-all duration-200 ${
+          className={`${sizeClasses[size]} rounded-full bg-linear-to-br from-blue-400 to-purple-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-white font-medium shadow-sm transition-all duration-200 ${
             isHovering ? 'scale-110 shadow-md' : ''
           }`}
           title={name}

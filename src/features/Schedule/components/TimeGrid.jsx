@@ -24,7 +24,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     return (
              <div
          key={hour}
-         className="absolute text-center text-xs text-gray-700 font-bold px-2 py-1"
+         className="absolute text-foreground text-center text-xs  font-bold px-2 py-1"
          style={{ 
            left: `${left}px`,
            top: '0px',
@@ -46,7 +46,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute }) {
     return (
       <div 
         key={i}
-        className="absolute top-1 w-px h-4 bg-gray-700"
+        className="absolute top-1 w-px h-4 bg-foreground"
         style={{ 
           left: `${left}px`,
           zIndex: 70

@@ -50,10 +50,10 @@ const AcademicCalendarInfo: React.FC = () => {
         }`}
       >
         {/* Glassmorphic shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-lg"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-lg"></div>
         <div className="relative z-10 flex flex-col items-center gap-1">
         {/* Graduation cap icon */}
-        <GraduationCap className="w-4 h-4 flex-shrink-0" />
+        <GraduationCap className="w-4 h-4 shrink-0" />
 
         {/* Hover indicator */}
         <span className="font-medium opacity-75 text-center">
@@ -63,7 +63,7 @@ const AcademicCalendarInfo: React.FC = () => {
       </div>
 
       {/* Expanded content on hover - slides out to the right */}
-      <div className="absolute left-full top-0 ml-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out transform translate-x-0 group-hover:translate-x-0 z-[100]">
+      <div className="absolute left-full top-0 ml-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out transform translate-x-0 group-hover:translate-x-0 z-100">
         <div className={`flex items-center gap-2 p-3 rounded-lg border backdrop-blur-sm shadow-xl ${
           isDarkMode
             ? 'bg-gray-800/95 border-gray-600/50 text-gray-200'

@@ -8,8 +8,14 @@ import Avatar from '../../components/ui/Avatar';
 import { useUserProfile } from '../../core/User/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
-import { Monitor } from 'lucide-react';
-
+import { Monitor, CircleDot, Mic, FileText, Laptop, Smartphone, User, ChevronUp, ChevronDown, MapPin } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
+import { ItemGroup, Item, ItemMedia, ItemContent, ItemActions, ItemTitle, ItemDescription } from '../../components/ui/item';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { OccurrencesDialogContent } from './OccurrencesModal';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 // Helper function to extract hex color from Tailwind bg class
 const extractHexFromBgClass = (bgClass: string): string => {
   // Extract hex color from classes like 'bg-[#f0e8f5]' or 'bg-gray-50'
@@ -114,27 +120,55 @@ export default function EventDetailHeader({
   const [isFacultyHovering, setIsFacultyHovering] = useState(false);
 
   const handleOccurrencesClick = () => {
-    navigate(`/${date}/${event.id}/occurrences`);
+    setOccurrencesOpen(true);
   };
+  const [occurrencesOpen, setOccurrencesOpen] = useState(false);
   // Extract hex color from theme colors for gradient
   const bgHexColor = extractHexFromBgClass(themeColors[6]);
 
+  const renderResourceIcon = (itemName: string) => {
+    const key = getAVResourceIcon(itemName);
+    if (key === 'ZOOM_ICON') {
+      return <img src="/zoomicon.png" alt="Zoom" />;
+    }
+    if (key === 'TV_ICON') {
+      return <Monitor className="size-4" strokeWidth={2.5} />;
+    }
+    if (key === '🔴') {
+      return <CircleDot className="size-4" />;
+    }
+    if (key === '🎤') {
+      return <Mic className="size-4" />;
+    }
+    if (key === '🚶') {
+      return <User className="size-4" />;
+    }
+    if (key === '📝') {
+      return <FileText className="size-4" />;
+    }
+    if (key === '💻') {
+      return <Laptop className="size-4" />;
+    }
+    return <Smartphone className="size-4" />;
+  };
+
   return (
-    <div className=" rounded-xl shadow-2xl border border-white/20 dark:border-white/10 p-4 sm:p-6 mb-4 sm:mb-6" style={{ background: `linear-gradient(135deg, ${bgHexColor}, ${bgHexColor}dd)` }}>
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+    <div className="  bg-background rounded-xl  p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between"  >
+    
         {/* Left Side - Event Info */}
-        <div className="flex-1 lg:w-1/2 mb-4 lg:mb-0">
+        <div className="flex-1 lg:w-1/2 space-y-4 ">
           {/* Background container for the first 3 elements with faculty photo */}
-          <div className="backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10 dark:border-white/5 shadow-lg" style={{ backgroundColor: `${bgHexColor}40` }}>
-            <div className="flex items-center gap-4">
+          <Card  className=" " >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
               {/* Left side - Faculty photos */}
               {instructorNames.length > 0 && (
-                <div className="flex-shrink-0 relative">
+                <div className="shrink-0 relative">
                   <div className="flex flex-col items-center mb-4">
                     <div
                       onMouseEnter={() => setIsFacultyHovering(true)}
                       onMouseLeave={() => setIsFacultyHovering(false)}
-                      className="backdrop-blur-sm bg-gradient-to-br from-purple-900/20 to-blue-900/20 p-2 rounded-lg flex items-center justify-center z-20 relative border border-purple-300/20 shadow-lg"
+                      className="backdrop-blur-sm bg-linear-to-br from-purple-900/20 to-blue-900/20 p-2 rounded-lg flex items-center justify-center z-20 relative border border-purple-300/20 shadow-lg"
                     >
                       {instructorNames.length === 1 ? (
                         (() => {
@@ -149,7 +183,7 @@ export default function EventDetailHeader({
                               className="h-20 w-20"
                             />
                           ) : (
-                            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-medium text-lg">
+                            <div className="h-20 w-20 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-medium text-lg">
                               {instructorNames[0].charAt(0).toUpperCase()}
                             </div>
                           );
@@ -174,7 +208,7 @@ export default function EventDetailHeader({
                             ) : (
                               <div
                                 key={`${instructorName}-${index}`}
-                                className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white flex items-center justify-center text-white font-medium"
+                                className="h-12 w-12 rounded-full bg-linear-to-br from-blue-400 to-purple-500 border-2 border-white flex items-center justify-center text-white font-medium"
                                 title={instructorName}
                               >
                                 {instructorName.charAt(0).toUpperCase()}
@@ -230,58 +264,62 @@ export default function EventDetailHeader({
               <div className="flex-1">
                 {/* Course Code - Beginning part in bold */}
                 {event.event_name && (
-                  <h1 className="text-2xl sm:text-4xl font-bold text-black mb-0.5 uppercase" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
+                  <h1 className="text-2xl sm:text-4xl font-bold  mb-0.5 uppercase" style={{ fontFamily: "'Olympus Mount', sans-serif" }}>
                     {truncateEventName(event)}
                   </h1>
                 )}
                 
                 {/* Lecture Title */}
                 {event.lecture_title && (
-                  <h2 className="text-lg sm:text-2xl font-medium text-black mb-2 ml-4 break-words" style={{ fontFamily: "'GoudyBookletter1911', serif" }}>
+                  <h2 className="text-lg sm:text-2xl font-medium  mb-2 ml-4 break-words" style={{ fontFamily: "'GoudyBookletter1911', serif" }}>
                     {event.lecture_title}
                   </h2>
                 )}
                 
                 {/* Session Code */}
-                <p className="text-xs sm:text-sm text-gray-600 mb-0" style={{ fontFamily: "'Pixellari', sans-serif" }}>
+                <p className="text-xs sm:text-sm  mb-0" >
                   {event.event_name}
                 </p>
               </div>
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
           
           {/* Room and Occurrences Row */}
           <div className="flex items-start gap-3 mb-3 sm:mb-4">
-            {/* Room Section */}
-            <div className="backdrop-blur-sm rounded-lg p-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}60, ${bgHexColor}80)` }}>
-              <span className={`text-xs font-medium text-black mb-3 block`}>Room</span>
-              <div className="backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30 dark:border-white/20 shadow-lg" style={{ background: `linear-gradient(135deg, ${themeHexColors[3]}, ${themeHexColors[4]})` }}>
-                <span className={`text-lg font-medium text-black`} style={{ fontFamily: "'Pixellari', sans-serif" }}>
+            {/* Room as shadcn Item */}
+            <Item variant="outline">
+              <ItemMedia variant="icon">
+                <MapPin className="size-4" />
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>Room</ItemTitle>
+                <ItemDescription >
                   {(event.room_name || 'Unknown').replace(/^GH\s+/i, '')}
-                </span>
-              </div>
-            </div>
+                </ItemDescription>
+              </ItemContent>
+            </Item>
 
-            {/* Occurrences Section with Date, Time, and Button */}
-            <div className="backdrop-blur-sm rounded-lg p-2 z-20 relative border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}30, ${bgHexColor}50)` }}>
-              <span className={`text-xs font-medium text-black mb-1 block`}>Occurrences</span>
-              <div className={`flex items-center gap-2 transition-all duration-200 hover:${themeColors[4]} cursor-pointer rounded-lg p-1 border-2 border-transparent hover:${themeColors[3]} hover:${themeColors[4]}`} onClick={handleOccurrencesClick}>
-                <div className="flex flex-col items-center justify-center p-1 rounded-lg">
-                  <svg className={`w-5 h-5 text-black mb-1`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                  </svg>
-                  <svg className={`w-5 h-5 text-black`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+            {/* Occurrences as shadcn Item with Dialog */}
+            <Item variant="outline" className="cursor-pointer" onClick={handleOccurrencesClick}>
+              <ItemMedia variant="icon">
+                <div className="flex flex-col items-center justify-center">
+                  <ChevronUp className="w-4 h-4" />
+                  <ChevronDown className="w-4 h-4" />
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-xs sm:text-sm text-black mb-0">{formatDate(event.date || '')}</p>
-                  <p className="text-xs sm:text-sm text-black">
-                    {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} <span className="text-xs text-gray-500">CST</span>
-                  </p>
-                </div>
-              </div>
-            </div>
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>Occurrences</ItemTitle>
+                <ItemDescription>
+                  {formatDate(event.date || '')} · {formatTimeFromISO(event.start_time)} - {formatTimeFromISO(event.end_time)} <span className="text-xs text-gray-500">CST</span>
+                </ItemDescription>
+              </ItemContent>
+            </Item>
+            <Dialog open={occurrencesOpen} onOpenChange={setOccurrencesOpen}>
+              <DialogContent className="max-w-3xl">
+                <OccurrencesDialogContent currentEvent={event as any} />
+              </DialogContent>
+            </Dialog>
           </div>
           
           {/* Owner Display - Show for any event */}
@@ -292,50 +330,54 @@ export default function EventDetailHeader({
         </div>
 
         {/* Right Side - Event Type/Room and Instructor Info */}
+       
         <div className="flex-1 lg:w-1/2 lg:pl-8">
-          {/* Event Details Card */}
-          <div className="backdrop-blur-sm rounded-lg p-2 mb-3 border border-white/10 dark:border-white/5 shadow-lg" style={{ background: `linear-gradient(135deg, ${bgHexColor}90, ${bgHexColor}aa)` }}>
-            <h3 className={`text-xs font-semibold text-black mb-1 uppercase tracking-wide`}>
-              Event Details
-            </h3>
-
-            <div className="grid grid-cols-2 gap-2">
-              {/* Department Name/Event Name */}
-              <div>
-                <span className={`text-xs font-medium text-black mb-0.5 block`}>Event</span>
-                <span className={`px-1.5 py-0.5 text-xs font-medium rounded inline-flex items-center justify-center ${themeColors[7]} text-black`}>
-                  {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ?
-                    getDepartmentName(event.event_name.substring(0, 4)) :
-                    (event.event_name || 'Unknown')}
-                </span>
-              </div>
-
-              {/* Event Type */}
-              <div>
-                <span className={`text-xs font-medium text-black mb-0.5 block`}>Type</span>
-                <span className={`px-1.5 py-0.5 text-xs font-medium rounded inline-flex items-center justify-center ${themeColors[7]} text-black`}>
-                  {event.event_type || 'Unknown'}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Event Details Card as shadcn Card with ItemGroup */}
+      
+          <Card className="mb-3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Event Details</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ItemGroup>
+                <Item size="sm">
+                  <ItemContent>
+                    <ItemTitle>Event</ItemTitle>
+                  </ItemContent>
+                  <ItemActions>
+                    <Badge >
+                      {event.event_type === "Lecture" && event.event_name && event.event_name.length >= 4 ?
+                        getDepartmentName(event.event_name.substring(0, 4)) :
+                        (event.event_name || 'Unknown')}
+                    </Badge>
+                  </ItemActions>
+                </Item>
+                <Item size="sm">
+                  <ItemContent>
+                    <ItemTitle>Type</ItemTitle>
+                  </ItemContent>
+                  <ItemActions>
+                    <Badge >
+                      {event.event_type || 'Unknown'}
+                    </Badge>
+                  </ItemActions>
+                </Item>
+              </ItemGroup>
+            </CardContent>
+          </Card>
+       
 
           {/* Resources Card */}
           {resources.length > 0 && (
-            <div className="backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 dark:border-white/10 overflow-visible" style={{ background: `linear-gradient(135deg, ${themeHexColors[3]}, ${themeHexColors[4]})` }}>
-              {/* Header */}
-              <div className="backdrop-blur-sm px-4 py-2 border-b border-white/10 dark:border-white/5" style={{ background: `linear-gradient(to right, ${themeHexColors[2]}, ${themeHexColors[3]})` }}>
+            <Card className="mb-3">
+              <CardHeader className="">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white tracking-tight">
-                    Resources
-                  </h3>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${themeColors[8]} text-white`}>
+                  <CardTitle className="text-base">Resources</CardTitle>
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
                     {resources.length} total
-                  </span>
+                  </Badge>
                 </div>
-              </div>
-
-              {/* Split resources into two groups */}
+              </CardHeader>
               {(() => {
                 const ksmResources = resources.filter(item =>
                   item.itemName?.toLowerCase().startsWith('ksm-kgh-video') ||
@@ -347,144 +389,96 @@ export default function EventDetailHeader({
                 );
 
                 return (
-                  <div className="p-3">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {/* Left Column - AV Resources */}
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                       <div>
                         {(ksmResources.length > 0 || otherResources.length === 0) && (
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`h-6 w-1 bg-gradient-to-b ${themeColors[10]} ${themeColors[9]} rounded-full`}></div>
-                              <h4 className="text-base font-bold text-white">
-                                AV Resources
-                              </h4>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${themeColors[7]} text-white`}>
+                          <>
+                            <div className="flex items-center justify-between px-1 pb-1">
+                              <div className="text-xs font-medium">AV Resources</div>
+                              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
                                 {ksmResources.length}
-                              </span>
+                              </Badge>
                             </div>
-
-                            <div className="space-y-2">
+                            <ItemGroup>
                               {ksmResources.map((item, index) => (
-                                <div
-                                  key={`ksm-${index}`}
-                                  className="group backdrop-blur-sm rounded-lg p-3 border border-white/20 dark:border-white/10 hover:border-white/30 dark:hover:border-white/20 hover:shadow-lg transition-all duration-300" style={{ background: `linear-gradient(135deg, ${themeHexColors[5]}CC, ${themeHexColors[6]}AA)` }}>
-                                  <div className="flex items-start gap-3">
-                                    {/* Icon */}
-                                    <div className={`flex-shrink-0 w-8 h-8 bg-gradient-to-br ${themeColors[9]} ${themeColors[10]} rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
-                                      {getAVResourceIcon(item.itemName) === 'ZOOM_ICON' ? (
-                                        <img
-                                          src="/zoomicon.png"
-                                          alt="Zoom"
-                                          className="w-5 h-5 object-contain"
-                                        />
-                                      ) : getAVResourceIcon(item.itemName) === 'TV_ICON' ? (
-                                        <div className="bg-white rounded-full flex items-center justify-center w-6 h-6">
-                                          <Monitor className="w-4 h-4 text-purple-600" strokeWidth={2.5} />
-                                        </div>
-                                      ) : (
-                                        <span className="text-sm text-white font-bold">
-                                          {getAVResourceIcon(item.itemName)}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1 min-w-0">
-                                          {/* Display Name */}
-                                          <h5 className="text-base font-semibold text-white mb-1 leading-tight">
-                                            {getResourceDisplayName(item.itemName)}
-                                          </h5>
-
-                                          {/* Raw Name */}
-                                          <p className="text-xs text-gray-400 font-normal mb-1 truncate">
-                                            {item.itemName}
-                                          </p>
-
-                                          {/* Instructions */}
-                                          {item.instruction && (
-                                            <p className="text-xs text-white leading-snug">
-                                              {item.instruction}
-                                            </p>
-                                          )}
-                                        </div>
-
-                                        {/* Quantity Badge */}
-                                        {item.quantity && item.quantity > 1 && (
-                                          <div className="flex-shrink-0">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${themeColors[9]} ${themeColors[10]} text-white shadow-sm`}>
-                                              {item.quantity}x
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                                <Item key={`ksm-${index}`} size="sm">
+                                  <ItemMedia variant="icon">
+                                    {renderResourceIcon(item.itemName)}
+                                  </ItemMedia>
+                                  <ItemContent>
+                                    <ItemTitle>{getResourceDisplayName(item.itemName)}</ItemTitle>
+                                    {item.instruction && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <ItemDescription title={item.instruction}>{item.instruction}</ItemDescription>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="start" className="max-w-xs whitespace-pre-wrap">
+                                          {item.instruction}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </ItemContent>
+                                  {item.quantity && item.quantity > 1 && (
+                                    <ItemActions>
+                                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                                        x{item.quantity}
+                                      </Badge>
+                                    </ItemActions>
+                                  )}
+                                </Item>
                               ))}
-                            </div>
-                          </div>
+                            </ItemGroup>
+                          </>
                         )}
                       </div>
-
-                      {/* Right Column - Other Resources */}
                       <div>
                         {otherResources.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`h-6 w-1 bg-gradient-to-b ${themeColors[10]} ${themeColors[9]} rounded-full`}></div>
-                              <h4 className="text-base font-bold text-white">
-                                General Resources
-                              </h4>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${themeColors[7]} text-white`}>
+                          <>
+                            <div className="flex items-center justify-between px-1 pb-1">
+                              <div className="text-xs font-medium">General Resources</div>
+                              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
                                 {otherResources.length}
-                              </span>
+                              </Badge>
                             </div>
-
-                            <div className="space-y-1">
+                            <ItemGroup>
                               {otherResources.map((item, index) => (
-                                <div
-                                  key={`other-${index}`}
-                                  className="group backdrop-blur-sm rounded-lg p-3 border border-white/20 dark:border-white/10 hover:border-white/30 dark:hover:border-white/20 hover:shadow-lg transition-all duration-200" style={{ background: `linear-gradient(135deg, ${themeHexColors[6]}CC, ${themeHexColors[7]}AA)` }}>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                      {/* Raw Name Only */}
-                                      <p className="text-xs text-gray-300 font-normal">
-                                        {item.itemName}
-                                      </p>
-
-                                      {/* Instructions */}
-                                      {item.instruction && (
-                                        <p className="text-xs text-white leading-snug mt-1">
+                                <Item key={`other-${index}`} size="sm">
+                                  <ItemContent>
+                                    <ItemTitle>{item.itemName}</ItemTitle>
+                                    {item.instruction && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <ItemDescription title={item.instruction}>{item.instruction}</ItemDescription>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="start" className="max-w-xs whitespace-pre-wrap">
                                           {item.instruction}
-                                        </p>
-                                      )}
-                                    </div>
-
-                                    {/* Quantity Badge */}
-                                    {item.quantity && item.quantity > 1 && (
-                                      <div className="flex-shrink-0 ml-3">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${themeColors[8]} text-white`}>
-                                          {item.quantity}x
-                                        </span>
-                                      </div>
+                                        </TooltipContent>
+                                      </Tooltip>
                                     )}
-                                  </div>
-                                </div>
+                                  </ItemContent>
+                                  {item.quantity && item.quantity > 1 && (
+                                    <ItemActions>
+                                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                                        x{item.quantity}
+                                      </Badge>
+                                    </ItemActions>
+                                  )}
+                                </Item>
                               ))}
-                            </div>
-                          </div>
+                            </ItemGroup>
+                          </>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </CardContent>
                 );
               })()}
-            </div>
+            </Card>
           )}
         </div>
+
       </div>
-    </div>
+
   );
 } 

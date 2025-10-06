@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import Avatar from '../../../../components/ui/Avatar';
+import UserAvatar from '../../../../components/UserAvatar';
 import { useUserProfile } from '../../../../core/User/useUserProfile';
 import { useRooms } from '../../../../core/Rooms/useRooms';
 import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
@@ -209,7 +209,7 @@ function ShiftBlockAssignment({
       }`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <Avatar userId={userId} size="sm" />
+        <UserAvatar userId={userId} size="sm" />
         <span className="font-medium text-gray-900 dark:text-white select-none">
           {profile?.name || userId}
         </span>
@@ -525,7 +525,7 @@ const ShiftBlock: React.FC<ShiftBlockProps> = ({ block, allBlocks, onHeaderDrag 
 
   return (
     <div 
-      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 select-none ${
+      className={`p-4 bg-gray-50/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200 select-none max-w-[300px] w-full ${
         isBackgroundDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       onMouseEnter={handleMouseEnter}

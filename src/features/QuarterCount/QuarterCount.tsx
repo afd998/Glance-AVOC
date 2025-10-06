@@ -104,7 +104,7 @@ const QuarterCount: React.FC = () => {
         }`}
       >
         {/* Glassmorphic shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
         <div className="relative z-10 font-medium opacity-75">
           Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
         </div>

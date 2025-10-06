@@ -4,6 +4,14 @@ import { useUserProfiles } from '../../core/User/useUserProfiles';
 import { useShifts, Shift } from './hooks/useShifts';
 import { useUpdateShift } from './hooks/useUpdateShift';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 
 interface SessionAssignmentScheduleProps {
   dates: string[]; // Array of date strings in YYYY-MM-DD format
@@ -143,21 +151,21 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
   ) || [];
 
   return (
-    <div className={className}>
+    <div className={`${className} max-w-full`}>
       {/* Schedule Table */}
-      <div className="overflow-x-auto w-full">
-        <table className={`min-w-full border border-gray-400/30 dark:border-gray-600/30 rounded-xl overflow-hidden table-fixed backdrop-blur-sm bg-white/5 dark:bg-gray-800/5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          <thead>
-            <tr>
-              <th className="px-4 py-2 bg-gray-200/20 dark:bg-gray-700/20 backdrop-blur-sm text-left border border-gray-400/30 dark:border-gray-600/30 w-40">
+      <div className="w-full max-w-full overflow-x-auto">
+        <Table className="w-full min-w-max max-w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="">
                 Name
-              </th>
+              </TableHead>
               {dates.map((date) => (
-                <th
+                <TableHead
                   key={date}
-                  className={`px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 cursor-pointer transition-all duration-200 ${
+                  className={` text-center cursor-pointer transition-all duration-200 ${
                     selectedDate === date 
-                      ? 'bg-purple-600/90 text-white backdrop-blur-sm' 
+                      ? 'bg-primary text-white backdrop-blur-sm' 
                       : 'bg-gray-200/20 dark:bg-gray-700/20 text-gray-700 dark:text-gray-200 backdrop-blur-sm hover:bg-gray-300/30 dark:hover:bg-gray-600/30'
                   }`}
                   onClick={() => onDateSelect?.(date)}
@@ -166,22 +174,22 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
                     <span className="font-semibold">{formatShortDay(date)}</span>
                     <span className="text-xs">{formatShortDate(date)}</span>
                   </div>
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {technicianProfiles.map(profile => (
-              <tr key={profile.id} className="border-t border-gray-400 dark:border-gray-600">
-                <td className="px-4 py-2 font-medium whitespace-nowrap border border-gray-400/30 dark:border-gray-600/30 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm">
+              <TableRow key={profile.id}>
+                <TableCell className="w-32 min-w-32 font-medium">
                   {profile.name || profile.id}
-                </td>
+                </TableCell>
                 {dates.map((date) => {
                   const shift = getShift(profile.id, date);
                   return (
-                    <td
+                    <TableCell
                       key={date}
-                      className={`px-2 py-2 text-center border border-gray-400/30 dark:border-gray-600/30 cursor-pointer hover:bg-purple-100/30 dark:hover:bg-purple-900/15 transition-all duration-200 backdrop-blur-sm ${
+                      className={`w-20 min-w-20 text-center cursor-pointer hover:bg-purple-100/30 dark:hover:bg-purple-900/15 transition-all duration-200 backdrop-blur-sm ${
                         selectedDate === date 
                           ? 'bg-purple-100/30 dark:bg-purple-900/15' 
                           : 'bg-white/5 dark:bg-gray-800/5'
@@ -189,25 +197,25 @@ const SessionAssignmentSchedule: React.FC<SessionAssignmentScheduleProps> = ({
                       onClick={() => openCellModal(profile.id, date)}
                     >
                       {shift && shift.start_time && shift.end_time ? (
-                        <span className="text-xs flex flex-col items-center justify-center">
+                        <span className="text-xs flex flex-col items-center justify-center leading-tight">
                           <span>{formatTimeLabel(shift.start_time)}</span>
                           <span>{formatTimeLabel(shift.end_time)}</span>
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">—</span>
                       )}
-                    </td>
+                    </TableCell>
                   );
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Time Range Picker Modal */}
       {editingCell && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[10000]" onClick={closeCellModal}>
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10000" onClick={closeCellModal}>
           <div className={`bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-300/50 dark:border-gray-700/50 rounded-xl shadow-2xl p-8 w-full max-w-xs mx-4`} onClick={e => e.stopPropagation()}>
             <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
               Set Time Range

@@ -377,31 +377,31 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   }, [handleWheel]);
 
   return (
-    <div className="relative h-full">
+    <div className="relative ">
       {/* Edge highlighting overlays - temporarily commented out 
       {edgeHighlight.top && (
-        <div className="absolute -top-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
+        <div className="absolute -top-20 -left-20 -right-20 h-20 z-100 pointer-events-none edge-highlight"
              style={{
                boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
                background: 'rgba(255, 255, 255, 0.1)'
              }} />
       )}
       {edgeHighlight.bottom && (
-        <div className="absolute -bottom-20 -left-20 -right-20 h-20 z-[100] pointer-events-none edge-highlight"
+        <div className="absolute -bottom-20 -left-20 -right-20 h-20 z-100 pointer-events-none edge-highlight"
              style={{
                boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
                background: 'rgba(255, 255, 255, 0.1)'
              }} />
       )}
       {edgeHighlight.left && (
-        <div className="absolute -top-4 -left-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
+        <div className="absolute -top-4 -left-20 -bottom-4 w-20 z-100 pointer-events-none edge-highlight"
              style={{
                boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
                background: 'rgba(255, 255, 255, 0.1)'
              }} />
       )}
       {edgeHighlight.right && (
-        <div className="absolute -top-4 -right-20 -bottom-4 w-20 z-[100] pointer-events-none edge-highlight"
+        <div className="absolute -top-4 -right-20 -bottom-4 w-20 z-100 pointer-events-none edge-highlight"
              style={{
                boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
                background: 'rgba(255, 255, 255, 0.1)'

@@ -28,7 +28,7 @@ export default function RoomRow({
   isEvenRow = false, 
 
 }: RoomRowProps) {
-  const { currentTheme } = useTheme();
+  const { currentTheme, isDarkMode } = useTheme();
   const [isHoveringRow, setIsHoveringRow] = useState(false);
   const roomText = room.replace(/^GH\s+/, '');
   // const roomSpelling = useRoom(room); // Commented out since we're not using spelling anymore
@@ -54,7 +54,9 @@ export default function RoomRow({
     <div 
       className={`flex ${rowHeight} overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
       style={{ 
-        backgroundColor: isEvenRow ? 'rgba(200, 200, 200, 0.5)' : 'rgba(220, 220, 220, 0.55)' // more transparent
+        backgroundColor: isDarkMode
+          ? (isEvenRow ? 'rgba(28, 28, 28, 0.7)' : 'rgba(18, 18, 18, 0.75)')
+          : (isEvenRow ? 'rgba(200, 200, 200, 0.5)' : 'rgba(220, 220, 220, 0.55)') // more transparent
       }}
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}
@@ -72,10 +74,7 @@ export default function RoomRow({
           className={`font-light ${fontSize}`} 
           style={{ 
             fontFamily: fontFamily,
-            color: 'white',
-            mixBlendMode: 'overlay', 
-            textShadow: '0 0 40px rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.4)',
-            filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))',
+           
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',

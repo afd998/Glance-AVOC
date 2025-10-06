@@ -14,15 +14,15 @@ export default function BYODDevicesCard({ facultyId, themeHexColors }: Props) {
   const [showByodForm, setShowByodForm] = useState(false)
 
   return (
-    <Card className="p-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
+    <Card className="p-0 overflow-hidden" >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-base sm:text-lg text-black">BYOD Devices</CardTitle>
-            <CardDescription className="text-black/70">Manage personal devices for this instructor</CardDescription>
+            <CardTitle className="text-base sm:text-lg">BYOD Devices</CardTitle>
+            <CardDescription className="">Manage personal devices for this instructor</CardDescription>
           </div>
           <CardAction>
-            <Button size="icon" variant="outline" title="Add BYOD Device" onClick={() => setShowByodForm(!showByodForm)}>
+            <Button size="icon" variant="default" title="Add BYOD Device" onClick={() => setShowByodForm(!showByodForm)}>
               <Plus className="w-4 h-4" />
             </Button>
           </CardAction>

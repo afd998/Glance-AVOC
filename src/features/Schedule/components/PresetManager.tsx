@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { useProfile } from '../../../core/User/useProfile';
 import { useFilters, Filter } from '../hooks/useFilters';
-import { useTheme } from '../../../contexts/ThemeContext';
+import {
+  Item,
+  ItemGroup,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemMedia,
+  ItemActions,
+  ItemSeparator,
+} from '../../../components/ui/item';
+import { Switch } from '../../../components/ui/switch';
+import { Label } from '../../../components/ui/label';
+import { Check, Loader2 } from 'lucide-react';
 
 const PresetManager: React.FC = () => {
   const { 
@@ -20,8 +32,6 @@ const PresetManager: React.FC = () => {
 
     isLoadingFilter
   } = useFilters();
-  
-  const { isDarkMode } = useTheme();
   
   // Track which filter is being loaded
   const [loadingFilterName, setLoadingFilterName] = useState<string | null>(null);
@@ -80,151 +90,142 @@ const PresetManager: React.FC = () => {
   console.log('PresetManager render - loadingFilterName:', loadingFilterName, 'currentFilter:', currentFilter);
 
   return (
-    <div className="space-y-3 overflow-hidden">
-        {/* Filters List */}
-        <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden px-1">
-          {/* My Events - Special built-in filter */}
-          <div
+    <div className="space-y-4">
+      <ItemGroup className="max-h-80 overflow-y-auto">
+        {/* My Events - Special built-in filter */}
+        <Item 
+          asChild
+          className={`cursor-pointer transition-all duration-200 ${
+            (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
+              ? 'bg-primary/10 border-primary/20'
+              : 'hover:bg-accent/50'
+          } ${loadingFilterName ? 'opacity-75' : ''}`}
+        >
+          <button
             onClick={() => !loadingFilterName && handleLoadMyEvents()}
-            className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
-              (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
-                ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
-                : isDarkMode
-                ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
-                : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
-            } ${loadingFilterName ? 'opacity-75' : ''}`}
+            disabled={!!loadingFilterName}
+            className="w-full text-left"
           >
-            <div className="flex items-center flex-1">
-              {(loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events') && (
-                <div className="mr-2">
-                  {loadingFilterName === 'My Events' ? (
-                    <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              )}
-              <div>
-                <h4 className={`text-sm font-medium ${
-                  (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
-                    ? 'text-green-800 dark:text-green-200' 
-                    : 'text-gray-900 dark:text-white'
-                }`}>
-                  My Events
-                </h4>
-                <p className={`text-xs ${
-                  (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
-                    ? 'text-green-600 dark:text-green-300' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  Show only events assigned to me
-                </p>
-              </div>
-            </div>
-          </div>
+            <ItemMedia>
+              {(loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events') ? (
+                loadingFilterName === 'My Events' ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <Check className="h-4 w-4 text-primary" />
+                )
+              ) : null}
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle className={
+                (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
+                  ? 'text-primary' 
+                  : ''
+              }>
+                My Events
+              </ItemTitle>
+              <ItemDescription className={
+                (loadingFilterName === 'My Events') || (!loadingFilterName && currentFilter === 'My Events')
+                  ? 'text-primary/70' 
+                  : ''
+              }>
+                Show only events assigned to me
+              </ItemDescription>
+            </ItemContent>
+          </button>
+        </Item>
 
-            {loading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading filters...</p>
+        {loading ? (
+          <Item className="justify-center">
+            <ItemContent>
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">Loading filters...</span>
               </div>
-          ) : filters.length === 0 ? (
-              <div className="text-center py-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No filters saved yet</p>
-              </div>
-            ) : (
-            filters.map((filter) => {
-              const isCurrentFilter = currentFilter === filter.name;
-              const isLoadingThisFilter = loadingFilterName === filter.name;
-              const isSelected = isLoadingThisFilter || (!loadingFilterName && isCurrentFilter);
-              
-              return (
-                <div
-                  key={filter.id}
-                  className={`grid grid-cols-2 gap-4 p-3 border rounded-xl transition-all duration-200 hover:scale-[1.02] backdrop-blur-sm ${
+            </ItemContent>
+          </Item>
+        ) : filters.length === 0 ? (
+          <Item className="justify-center">
+            <ItemContent>
+              <span className="text-sm text-muted-foreground">No filters saved yet</span>
+            </ItemContent>
+          </Item>
+        ) : (
+          filters.map((filter, index) => {
+            const isCurrentFilter = currentFilter === filter.name;
+            const isLoadingThisFilter = loadingFilterName === filter.name;
+            const isSelected = isLoadingThisFilter || (!loadingFilterName && isCurrentFilter);
+            
+            return (
+              <React.Fragment key={filter.id}>
+                {index > 0 && <ItemSeparator />}
+                <Item 
+                  asChild
+                  className={`cursor-pointer transition-all duration-200 ${
                     isSelected
-                      ? 'border-green-400/50 bg-green-500/20 hover:bg-green-500/30 shadow-lg shadow-green-500/20'
-                      : isDarkMode
-                      ? 'border-white/10 hover:border-white/20 bg-gray-700/30 hover:bg-gray-600/40'
-                      : 'border-gray-200/30 hover:border-gray-300/50 bg-white/30 hover:bg-white/50'
+                      ? 'bg-primary/10 border-primary/20'
+                      : 'hover:bg-accent/50'
                   } ${loadingFilterName ? 'opacity-75' : ''}`}
                 >
-                  {/* Left Column - Preset Info */}
-                  <div 
-                    className="flex items-center cursor-pointer"
+                  <button
                     onClick={() => !loadingFilterName && handleLoadFilter(filter)}
+                    disabled={!!loadingFilterName}
+                    className="w-full text-left"
                   >
-                    {isSelected && (
-                      <div className="mr-2">
-                        {isLoadingThisFilter ? (
-                          <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                    <ItemMedia>
+                      {isSelected ? (
+                        isLoadingThisFilter ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
                         ) : (
-                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    )}
-                    <div>
-                      <h4 className={`text-sm font-medium ${
-                        isSelected
-                          ? 'text-green-800 dark:text-green-200' 
-                          : 'text-gray-900 dark:text-white'
-                      }`}>
+                          <Check className="h-4 w-4 text-primary" />
+                        )
+                      ) : null}
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle className={isSelected ? 'text-primary' : ''}>
                         {filter.name}
                         {filter.isDefault && (
-                          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(Default)</span>
+                          <span className="ml-2 text-xs text-muted-foreground">(Default)</span>
                         )}
-                    </h4>
-                      <p className={`text-xs ${
-                        isSelected
-                          ? 'text-green-600 dark:text-green-300' 
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
+                      </ItemTitle>
+                      <ItemDescription className={isSelected ? 'text-primary/70' : ''}>
                         {filter.display.length} rooms
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Right Column - Toggle (only for All Rooms) */}
-                  {filter.name?.toLowerCase() === 'all rooms' && (
-                    <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs ${isSelected ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
-                          Hide empty rooms
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => isSelected && updateAutoHide(!autoHide)}
-                          disabled={!isSelected}
-                          aria-pressed={autoHide}
-                          aria-label="Hide empty rooms"
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full p-[2px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                            !isSelected
-                              ? 'bg-gray-200 dark:bg-gray-700 cursor-not-allowed opacity-50'
-                              : autoHide
-                              ? 'bg-blue-600 focus-visible:ring-blue-500'
-                              : 'bg-gray-300 dark:bg-gray-600 focus-visible:ring-gray-400'
-                          }`}
-                        >
-                          <span
-                            className={`h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
-                              autoHide ? 'translate-x-4' : 'translate-x-0'
-                            }`}
+                      </ItemDescription>
+                    </ItemContent>
+                    
+                    {/* Auto-hide toggle for All Rooms */}
+                    {filter.name?.toLowerCase() === 'all rooms' && (
+                      <ItemActions>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`auto-hide-${filter.id}`} className="text-xs">
+                            Hide empty
+                          </Label>
+                          <Switch
+                            id={`auto-hide-${filter.id}`}
+                            checked={autoHide}
+                            onCheckedChange={updateAutoHide}
+                            disabled={!isSelected}
+                            size="sm"
                           />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-            )}
-          </div>
+                        </div>
+                      </ItemActions>
+                    )}
+                  </button>
+                </Item>
+              </React.Fragment>
+            );
+          })
+        )}
+      </ItemGroup>
 
-        
+      {/* Loading indicator */}
+      {loadingFilterName && (
+        <div className="flex items-center justify-center py-2">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <span className="text-sm text-muted-foreground">
+            Loading {loadingFilterName}...
+          </span>
+        </div>
+      )}
     </div>
   );
 };

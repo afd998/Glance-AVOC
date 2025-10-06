@@ -97,7 +97,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
          <div className={`flex flex-row ${containerHeight} w-full rounded absolute inset-0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
       {instructorNames.length > 0 && (
                  <div
-           className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative flex-shrink-0 -mt-1`}
+           className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative shrink-0 -mt-1`}
            style={{ transform: `rotate(${avatarTilt}deg)` }}
          >
                     {instructorNames.length === 1 && firstFacultyMember?.kelloggdirectory_image_url ? (
@@ -268,7 +268,7 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
         
         {/* Animated underline */}
         <div 
-          className="bg-gradient-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out"
+          className="bg-linear-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out"
           style={{
             height: '1px',
             width: isHovering ? '90%' : '70%',
@@ -311,7 +311,7 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   };
 
   return (
-    <div className={`${event.event_type === 'Lecture' ? 'bg-black bg-opacity-30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${getEventHeight()} ${
+    <div className={`${event.event_type === 'Lecture' ? 'bg-black/30' : ''} rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative ${getEventHeight()} ${
       event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : ''
     } ${isMergedRoomEvent ? 'flex items-center justify-center' : ''}`}>
       <div className={`flex items-start justify-start transition-all duration-200 ease-in-out pl-1 pr-1 ${

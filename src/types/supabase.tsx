@@ -293,6 +293,7 @@ export type Database = {
           id: string
           name: string | null
           roles: Json
+          theme: string | null
         }
         Insert: {
           auto_hide?: boolean
@@ -301,6 +302,7 @@ export type Database = {
           id: string
           name?: string | null
           roles?: Json
+          theme?: string | null
         }
         Update: {
           auto_hide?: boolean
@@ -309,6 +311,7 @@ export type Database = {
           id?: string
           name?: string | null
           roles?: Json
+          theme?: string | null
         }
         Relationships: []
       }

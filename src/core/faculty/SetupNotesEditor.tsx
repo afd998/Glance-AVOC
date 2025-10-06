@@ -3,7 +3,7 @@ import { Database } from '../../types/supabase';
 import { useFacultyUpdates, useCreateFacultyUpdate, useUpdateFacultyUpdate, useDeleteFacultyUpdate } from './hooks/useFacultyUpdates';
 import { useAuth } from '../../contexts/AuthContext';
 import { getEventThemeColors } from '../../utils/eventUtils';
-import Avatar from '../../components/ui/Avatar';
+import UserAvatar from '../../components/UserAvatar';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -169,7 +169,7 @@ export default function SetupNotesEditor({ event, facultyMember }: SetupNotesEdi
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
                   {update.author ? (
-                    <Avatar userId={update.author} size="sm" />
+                    <UserAvatar userId={update.author} size="sm" />
                   ) : (
                     <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
                       ?

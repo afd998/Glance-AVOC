@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import DatePickerComponent from './DatePickerComponent';
 import AcademicCalendarInfo from './AcademicCalendarInfo';
-import CurrentFilterLink from './CurrentFilterLink';
 import MenuPanel from './MenuPanel';
 import { NotificationBell } from '../features/notifications/NotificationBell';
 import QuarterCount from '../features/QuarterCount/QuarterCount';
@@ -28,8 +28,20 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { date } = useParams<{ date: string }>();
   // Make the entire header invisible when not hovering (except when modal is open)
   const showHeader = isHovered || isModalOpen;
+
+  // Format the current date for display
+  const formatCurrentDate = (): string => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    };
+    return now.toLocaleDateString('en-US', options);
+  };
 
   // Notify parent component when hover state changes
   useEffect(() => {
@@ -40,18 +52,18 @@ export default function AppHeader({
 
   return (
     <div
-      className="fixed top-0 left-4 right-4 z-[9999]"
+      className="fixed top-0 left-4 right-4 z-9999"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Desktop Layout - md and up */}
       <div className="hidden md:block">
-        {/* CSS Grid Layout - 1 row, 10 columns for spacing */}
+        {/* CSS Grid Layout - 1 row, 11 columns for spacing */}
         <div className="grid gap-2 p-4" style={{
-          gridTemplateColumns: 'auto auto auto auto auto auto auto 1fr auto auto',
+          gridTemplateColumns: 'auto auto auto auto auto auto 1fr auto auto auto',
           gridTemplateRows: 'auto'
         }}>
-          {/* Row 1: Today | Prev | DatePicker | Next | Academic | Quarter | CurrentFilterLink | big space | Bell | Menu */}
+          {/* Row 1: Today | Prev | DatePicker | Next | Academic | Quarter | big space | Bell | CurrentDate | Menu */}
           <div className="flex items-center justify-center">
             <button
               onClick={() => {
@@ -69,7 +81,7 @@ export default function AppHeader({
               aria-label="Go to today"
             >
               {/* Glassmorphic shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
               <div className="relative z-10 font-medium opacity-75">
                 Today
               </div>
@@ -145,12 +157,6 @@ export default function AppHeader({
             </div>
           </div>
 
-          <div className="flex items-center justify-center">
-            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
-            </div>
-          </div>
-
           {/* Big space */}
           <div className="flex items-center justify-center">
             {/* Big space column */}
@@ -161,6 +167,18 @@ export default function AppHeader({
               <NotificationBell />
             </div>
           </div>
+
+          {/* Current Date Display - only show when date param exists */}
+          {date && (
+            <div className="flex items-center justify-center">
+              <div 
+                className="text-xs font-medium text-white px-3 py-1.5 bg-black/20 rounded-full backdrop-blur-md border border-white/10 shadow-lg"
+                style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }}
+              >
+                {formatCurrentDate()}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-center">
             <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
@@ -195,7 +213,7 @@ export default function AppHeader({
               aria-label="Go to today"
             >
               {/* Glassmorphic shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
               <div className="relative z-10 font-medium opacity-75">
                 Today
               </div>
@@ -272,11 +290,6 @@ export default function AppHeader({
             </div>
           </div>
           
-          <div className="flex items-center justify-center">
-            <div style={{ opacity: showHeader ? 1 : 0, pointerEvents: showHeader ? 'auto' : 'none' }} className="flex items-center justify-center h-full">
-              <CurrentFilterLink onModalOpen={() => setIsModalOpen(true)} />
-            </div>
-          </div>
         </div>
       </div>
     </div>

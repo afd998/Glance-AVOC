@@ -7,10 +7,13 @@ import { formatTime, formatDate } from '../../utils/timeUtils';
 import {
   getAVResourceIcon,
   getResourceDisplayName,
-  getEventThemeHexColors,
+
 } from '../../utils/eventUtils';
 import { useEventResources } from '../Schedule/hooks/useEvents';
 import { useOccurrences } from '../../hooks/useOccurrences';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
+import { ItemGroup, Item, ItemMedia, ItemContent, ItemActions, ItemTitle, ItemDescription } from '@/components/ui/item';
+import { Badge } from '@/components/ui/badge';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -26,31 +29,7 @@ const timeToFloatHours = (timeString: string | null): number => {
   }
 };
 
-// Convert palette hex values into rgba strings for soft backgrounds and overlays
-const hexToRgba = (hex: string | undefined, alpha: number): string => {
-  if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) {
-    return `rgba(79, 70, 229, ${alpha})`;
-  }
 
-  let normalized = hex.trim();
-  if (normalized.length === 4) {
-    normalized = `#${normalized[1]}${normalized[1]}${normalized[2]}${normalized[2]}${normalized[3]}${normalized[3]}`;
-  }
-
-  if (normalized.length !== 7) {
-    return `rgba(79, 70, 229, ${alpha})`;
-  }
-
-  const r = parseInt(normalized.slice(1, 3), 16);
-  const g = parseInt(normalized.slice(3, 5), 16);
-  const b = parseInt(normalized.slice(5, 7), 16);
-
-  if ([r, g, b].some(Number.isNaN)) {
-    return `rgba(79, 70, 229, ${alpha})`;
-  }
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 const formatInstructorNames = (instructors: Event['instructor_names']): string => {
   if (!instructors) {
@@ -88,10 +67,6 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
   const { data: resourcesData } = useEventResources(event.id);
   const resources = resourcesData?.resources || [];
 
-  const paletteHex = React.useMemo(() => getEventThemeHexColors(event), [event]);
-  const accentColor = paletteHex?.[6] ?? '#4b5563';
-  const midAccent = paletteHex?.[4] ?? '#9ca3af';
-  const softAccent = paletteHex?.[2] ?? '#e5e7eb';
 
   const resourcesWithNotes = React.useMemo(
     () => resources.filter((resource: any) => Boolean(resource.instruction)),
@@ -112,200 +87,81 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
 
   return (
     <div className="group relative" role="listitem">
-      <span
-        aria-hidden="true"
-        className="absolute inset-y-4 left-0 w-[3px] rounded-full transition-transform duration-300 group-hover:scale-y-105"
-        style={{ backgroundColor: accentColor }}
-      />
-      <div
+      <Card
         role="button"
         tabIndex={0}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
-        className="relative flex flex-col gap-4 rounded-2xl border px-5 py-4 text-left text-gray-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 focus-visible:ring-offset-2 dark:text-gray-100"
-        style={{
-          background: `linear-gradient(155deg, ${hexToRgba(softAccent, 0.96)} 0%, ${hexToRgba(midAccent, 0.42)} 55%, ${hexToRgba(accentColor, isCurrentEvent ? 0.5 : 0.34)} 100%)`,
-          borderColor: hexToRgba(accentColor, isCurrentEvent ? 0.85 : 0.35),
-          boxShadow: isCurrentEvent
-            ? `0 24px 46px -24px ${hexToRgba(accentColor, 0.72)}`
-            : `0 18px 42px -28px ${hexToRgba(accentColor, 0.38)}`,
-        }}
+        className="cursor-pointer  transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Occurrence
-            </p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {formatDate(event.date || '')}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {formatTime(timeToFloatHours(event.start_time))} - {formatTime(timeToFloatHours(event.end_time))}
-            </p>
-          </div>
+        <CardHeader className="px-5 py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">  {formatDate(event.date || '')} · {formatTime(timeToFloatHours(event.start_time))} - {formatTime(timeToFloatHours(event.end_time))}</CardTitle>
+              <CardDescription>
+            
+             
+              <p className=""> Room: {event.room_name || 'Unknown Room'}</p>
+              <p className="">Instructors: {formatInstructorNames(event.instructor_names)}</p>
+           
+          
+             
+              {Boolean((event as any).section) && (
+                <p className="text-sm text-gray-600 dark:text-gray-300">Section {(event as any).section}</p>
+              )}
+         
+     
 
-          <div className="flex flex-col items-end gap-2 text-right">
-            {isCurrentEvent && (
-              <span
-                className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                style={{
-                  backgroundColor: hexToRgba(softAccent, 0.45),
-                  borderColor: accentColor,
-                  color: accentColor,
-                }}
-              >
-                Current
-              </span>
-            )}
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {index + 1} of {totalCards}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Room</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {event.room_name || 'Unknown Room'}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {formatInstructorNames(event.instructor_names)}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Event Type</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {event.event_type || 'Uncategorized'}
-            </p>
-            {event.section && (
-              <p className="text-sm text-gray-600 dark:text-gray-300">Section {event.section}</p>
-            )}
-          </div>
-        </div>
-
-        {resources.length > 0 && (
-          <div>
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Resources</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {resources.map((item: any, resourceIndex: number) => (
-                <div
-                  key={`${event.id}-resource-${resourceIndex}`}
-                  className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors backdrop-blur-sm"
-                  style={{
-                    backgroundColor: hexToRgba(softAccent, 0.4),
-                    borderColor: hexToRgba(accentColor, isCurrentEvent ? 0.55 : 0.35),
-                    color: accentColor,
-                  }}
-                >
-                  <span className="text-sm" aria-hidden="true">
-                    {getAVResourceIcon(item.itemName)}
-                  </span>
-                  <span>{getResourceDisplayName(item.itemName)}</span>
-                  {item.quantity && item.quantity > 1 && (
-                    <span className="text-[10px] font-semibold uppercase" style={{ color: hexToRgba(accentColor, 0.7) }}>
-                      x{item.quantity}
-                    </span>
-                  )}
-                </div>
-              ))}
+              </CardDescription>
             </div>
-            {resourcesWithNotes.length > 0 && (
-              <div className="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-300">
-                {resourcesWithNotes.map((resource: any, resourceIndex: number) => (
-                  <div key={`${event.id}-instruction-${resourceIndex}`} className="flex items-start gap-2">
-                    <span
-                      className="mt-[3px] inline-block h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: hexToRgba(accentColor, 0.6) }}
-                    />
-                    <span className="flex-1 leading-relaxed" title={resource.instruction}>
-                      {resource.instruction}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <CardAction>
+              {isCurrentEvent && (
+                <Badge variant="affirmative">Current</Badge>
+              )}
+              <span className="">{index + 1} of {totalCards}</span>
+            </CardAction>
           </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent >
+         
+            {resources.length > 0 && (
+            <div className="">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Resources</p>
+              <div className="mt-2">
+                <ItemGroup>
+                  {resources.map((resItem: any, resourceIndex: number) => (
+                    <Item key={`${event.id}-resource-${resourceIndex}`} size="sm">
+                      <ItemMedia variant="icon">
+                        {getAVResourceIcon(resItem.itemName)}
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle>{getResourceDisplayName(resItem.itemName)}</ItemTitle>
+                        {resItem.instruction && (
+                          <ItemDescription title={resItem.instruction}>{resItem.instruction}</ItemDescription>
+                        )}
+                      </ItemContent>
+                      {resItem.quantity && resItem.quantity > 1 && (
+                        <ItemActions>
+                          <span className="text-[10px] font-semibold uppercase">x{resItem.quantity}</span>
+                        </ItemActions>
+                      )}
+                    </Item>
+                  ))}
+                </ItemGroup>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default function OccurrencesPage() {
-  const { eventId } = useParams<{ eventId: string }>();
-  const navigate = useNavigate();
 
-  const { data: currentEvent } = useQuery({
-    queryKey: ['event', eventId],
-    queryFn: async (): Promise<Event | null> => {
-      if (!eventId) return null;
-
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', parseInt(eventId, 10))
-        .single();
-
-      if (error) {
-        console.error('Error fetching current event:', error);
-        throw error;
-      }
-
-      return data;
-    },
-    enabled: !!eventId,
-  });
-
-  const {
-    data: occurrencesData,
-    isLoading,
-    error,
-  } = useOccurrences(currentEvent);
-  
+// Dialog-friendly content that doesn't rely on router params
+export function OccurrencesDialogContent({ currentEvent }: { currentEvent: Event }) {
+  const { data: occurrencesData, isLoading, error } = useOccurrences(currentEvent ?? null);
   const occurrences = occurrencesData?.occurrences || [];
-
-  // Filter out the current event to show only "other" occurrences
-  const otherOccurrences = React.useMemo(() => {
-    if (!occurrences || !Array.isArray(occurrences) || !eventId) return [];
-    return occurrences.filter(event => event.id !== parseInt(eventId, 10));
-  }, [occurrences, eventId]);
-
-  const paletteHex = React.useMemo(() => {
-    if (!currentEvent) {
-      return null;
-    }
-    return getEventThemeHexColors(currentEvent);
-  }, [currentEvent]);
-
-  const accentColor = paletteHex?.[6] ?? '#4b5563';
-
-  const headerGradient = React.useMemo(() => {
-    if (!paletteHex) {
-      return 'linear-gradient(135deg, rgba(248, 250, 252, 0.98) 0%, rgba(226, 232, 240, 0.92) 55%, rgba(203, 213, 225, 0.88) 100%)';
-    }
-
-    return `linear-gradient(135deg, ${hexToRgba(paletteHex[1], 0.98)} 0%, ${hexToRgba(paletteHex[3], 0.9)} 55%, ${hexToRgba(paletteHex[5], 0.85)} 100%)`;
-  }, [paletteHex]);
-
-  const occurrencePosition = React.useMemo(() => {
-    if (!occurrences || !Array.isArray(occurrences) || !currentEvent) {
-      return null;
-    }
-    const index = occurrences.findIndex((occurrence) => occurrence.id === currentEvent.id);
-    if (index === -1) {
-      return null;
-    }
-    return {
-      index: index + 1,
-      total: occurrences.length,
-    };
-  }, [occurrences, currentEvent]);
-
-  const handleClose = () => {
-    navigate(-1);
-  };
 
   if (!currentEvent) {
     return (
@@ -316,90 +172,29 @@ export default function OccurrencesPage() {
   }
 
   return (
-    <div className="relative w-full max-w-3xl">
+   
       <div
-        className="overflow-hidden rounded-3xl border bg-white shadow-2xl ring-1 ring-black/5 dark:border-gray-800/70 dark:bg-gray-950 dark:ring-white/10"
-        style={{ borderColor: hexToRgba(paletteHex?.[4], 0.45) }}
+       
       >
-        <div className="relative" style={{ background: headerGradient }}>
-          <div
-            className="pointer-events-none absolute inset-0 opacity-40"
-            style={{
-              background: `radial-gradient(circle at top right, ${hexToRgba(paletteHex?.[6] ?? accentColor, 0.45)}, transparent 65%)`,
-            }}
-          />
+        <div className="relative" >
+          <div className="pointer-events-none absolute inset-0 opacity-40"  />
           <div className="relative px-8 py-6 text-gray-900 dark:text-gray-100">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-600/90 dark:text-gray-300/90">
-                  Occurrences
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-600/90 dark:text-gray-300/90">Occurrences</p>
                 <h2 className="text-2xl font-semibold leading-snug sm:text-3xl">{currentEvent.event_name}</h2>
-                <p className="text-sm text-gray-700/90 dark:text-gray-300/90">
-                  {formatInstructorNames(currentEvent.instructor_names)}
-                </p>
               </div>
-
-              <div className="flex flex-col items-end gap-3">
-                <span
-                  className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                  style={{
-                    borderColor: accentColor,
-                    color: accentColor,
-                    backgroundColor: hexToRgba(paletteHex?.[1] ?? '#e5e7eb', 0.6),
-                  }}
-                >
-                  {currentEvent.event_type || 'Uncategorized'}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-gray-600 transition-colors duration-200 hover:border-black/20 hover:text-gray-900 dark:border-white/10 dark:bg-gray-950/70 dark:text-gray-400 dark:hover:text-gray-100"
-                  aria-label="Close occurrences modal"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-6 text-sm text-gray-700 dark:text-gray-200 sm:grid-cols-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-600/90 dark:text-gray-400">Current Date</p>
-                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                  {formatDate(currentEvent.date || '')}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {formatTime(timeToFloatHours(currentEvent.start_time))} - {formatTime(timeToFloatHours(currentEvent.end_time))}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-600/90 dark:text-gray-400">Room</p>
-                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                  {currentEvent.room_name || 'Unknown Room'}
-                </p>
-                {currentEvent.section && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300">Section {currentEvent.section}</p>
-                )}
-              </div>
-
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-600/90 dark:text-gray-400">Occurrences</p>
-                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                  {occurrencePosition ? `${occurrencePosition.index} of ${occurrencePosition.total}` : occurrences?.length || 0}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Event ID #{currentEvent.id}</p>
-              </div>
+              <span
+                className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+              
+              >
+                {currentEvent.event_type || 'Uncategorized'}
+              </span>
             </div>
           </div>
         </div>
 
-        <div
-          className="bg-gray-50 px-8 py-6 dark:bg-gray-900"
-          style={{ borderTop: `1px solid ${hexToRgba(paletteHex?.[3] ?? '#d1d5db', 0.5)}` }}
-        >
+        <div className="bg-gray-50 px-8 py-6 dark:bg-gray-900" >
           {isLoading ? (
             <div className="flex items-center justify-center py-12 text-gray-500 dark:text-gray-400">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-transparent dark:border-gray-600" />
@@ -408,25 +203,25 @@ export default function OccurrencesPage() {
             <div className="rounded-2xl border border-red-200/70 bg-white px-6 py-8 text-center text-red-600 dark:border-red-500/40 dark:bg-gray-950/90 dark:text-red-300">
               Error loading occurrences
             </div>
-          ) : otherOccurrences && otherOccurrences.length > 0 ? (
+          ) : occurrences && occurrences.length > 0 ? (
             <div className="max-h-[55vh] space-y-4 overflow-y-auto pr-1" role="list">
-              {otherOccurrences.map((event, index) => (
+              {occurrences.map((event, index) => (
                 <OccurrenceCard
                   key={event.id}
                   event={event}
                   index={index}
-                  isCurrentEvent={false}
-                  totalCards={otherOccurrences.length}
+                  isCurrentEvent={event.id === currentEvent.id}
+                  totalCards={occurrences.length}
                 />
               ))}
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-gray-300/80 bg-white px-6 py-10 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-300">
-              No other occurrences found
+              No occurrences found
             </div>
           )}
         </div>
       </div>
-    </div>
+ 
   );
 }

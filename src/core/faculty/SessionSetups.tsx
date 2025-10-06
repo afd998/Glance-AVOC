@@ -18,6 +18,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFacultyByods } from './hooks/useFacultyByods';
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Item, ItemHeader, ItemContent, ItemTitle, ItemMedia, ItemActions } from "@/components/ui/item";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupText,
+  InputGroupControl,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
+import { Switch } from "@/components/ui/switch";
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -198,16 +208,16 @@ export default function SessionSetups({
   }
 
   return (
-    <Card className="p-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}BB, ${themeHexColors[2]}99)` }}>
+    <Card className="p-0 overflow-hidden" >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-base sm:text-lg text-black">Setups</CardTitle>
-            <CardDescription className="text-black/70">Configure panels and options for this instructor</CardDescription>
+            <CardTitle className="text-base sm:text-lg ">Setups</CardTitle>
+            <CardDescription className="/70">Configure panels and options for this instructor</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {!isCreating ? (
-              <Button size="icon" variant="outline" onClick={() => setIsCreating(true)} title="Create setup">
+              <Button size="icon" variant="default" onClick={() => setIsCreating(true)} title="Create setup">
                 <Plus className="w-4 h-4" />
               </Button>
             ) : (
@@ -265,17 +275,21 @@ export default function SessionSetups({
           {/* Tab Content */}
           {setups.map((setup) => (
             <TabsContent key={setup.id} value={setup.id} className="mt-0">
-              <div ref={contentRef} className="space-y-4  overflow-y-auto">
+              <div ref={contentRef} className="space-y-4 px-1 py-1 overflow-y-auto">
         {/* Panels */}
-        <div className="mt-6">
-          <h4 className="text-base sm:text-lg font-medium text-black mb-3">Panel</h4>
-          <div className="flex gap-3 sm:gap-4">
+        <Item variant="outline" className="mt-6">
+          <ItemHeader>
+            <ItemTitle className="">Panels</ItemTitle>
+          </ItemHeader>
+          <ItemContent className="pt-2">
+            <div className="flex gap-3 sm:gap-4">
             <div className="flex-1">
-              <p className="text-xs sm:text-sm text-black mb-2">Left Panel</p>
-              <button
+              <p className="text-xs sm:text-sm  mb-2">Left Panel</p>
+              <Button
                 onClick={() => openLocalPanelModal('left')}
-                className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
+                className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" 
                 title="Click to change panel setup"
+                variant="outline"
               >
                 {setup?.left_source ? (
                   <img 
@@ -285,26 +299,26 @@ export default function SessionSetups({
                     onError={(e) => {
                       console.error('Error loading left panel image:', setup.left_source, 'Full path:', `/panel-images/${setup.left_source}.png`);
                       (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class=\"text-black\">Failed to load: ${setup.left_source}.png</span>`;
+                      (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class=\"\">Failed to load: ${setup.left_source}.png</span>`;
                     }}
                   />
                 ) : (
-                  <span className="text-black">No source</span>
+                  <span className="">No source</span>
                 )}
-              </button>
+              </Button>
               {setup?.left_source && setup.left_source !== 'DOC_CAM' ? (
                 <>
-                  <p className="text-xs text-black text-center mt-2 font-medium">
+                  <p className="text-xs  text-center mt-2 font-medium">
                     {setup.left_source.replace(/_/g, ' ')}
                   </p>
                   <div className="w-full relative mt-2 h-12">
                     <div className="absolute left-1/2 -translate-x-1/2 -top-2">
-                      <ChevronUp className="w-4 h-4 text-black" />
+                      <ChevronUp className="w-4 h-4 " />
                     </div>
                     <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed border-black/50"></div>
                     {setup?.left_device && (setup.left_source === 'ROOM_PC' || setup.left_source === 'PC_EXT') && (
                       <div className="absolute right-1/2 pr-2 top-1/2 -translate-y-1/2">
-                        <span className="text-xs text-black">Mirroring 360</span>
+                        <span className="text-xs ">Mirroring 360</span>
                       </div>
                     )}
                   </div>
@@ -313,9 +327,11 @@ export default function SessionSetups({
                       <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}>
                         {renderByodIcon(byods.find(b => b.id === setup.left_device)?.os)}
                         <span>{byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}</span>
-                        <button
+                        <Button
                           type="button"
-                          className="ml-1 rounded hover:bg-black/10 p-0.5"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-1 h-5 w-5 p-0 rounded hover:bg-black/10"
                           title="Remove device"
                           onClick={() => {
                             if (!setup?.id) return;
@@ -323,33 +339,36 @@ export default function SessionSetups({
                           }}
                         >
                           <X className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </Badge>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         aria-label="Select BYOD for left panel"
                         onClick={() => { setByodTarget('left'); setIsByodDialogOpen(true); }}
-                        className="w-8 h-8 rounded-full border-2 border-dashed border-black/50 flex items-center justify-center text-black/70 hover:bg-black/5 transition-colors"
+                        variant="outline"
+                        size="icon"
+                        className="w-8 h-8 rounded-full border-2 border-dashed border-black/50 /70 hover:bg-black/5 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-black text-center mt-2 font-medium">
+                <p className="text-xs  text-center mt-2 font-medium">
                   {setup?.left_source ? setup.left_source.replace(/_/g, ' ') : 'No source'}
                 </p>
               )}
             </div>
 
             <div className="flex-1">
-              <p className="text-xs sm:text-sm text-black mb-2">Right Panel</p>
-              <button
+              <p className="text-xs sm:text-sm  mb-2">Right Panel</p>
+              <Button
                 onClick={() => openLocalPanelModal('right')}
-                className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl" style={{ background: `linear-gradient(135deg, ${themeHexColors[1]}AA, ${themeHexColors[2]}88)` }}
+                className="w-full h-24 sm:h-32 rounded-lg border border-white/10 dark:border-white/5 flex items-center justify-center transition-colors cursor-pointer backdrop-blur-sm shadow-lg hover:shadow-xl"
                 title="Click to change panel setup"
+                variant="outline"
               >
                 {setup?.right_source ? (
                   <img 
@@ -359,26 +378,26 @@ export default function SessionSetups({
                     onError={(e) => {
                       console.error('Error loading right panel image:', setup.right_source, 'Full path:', `/panel-images/${setup.right_source}.png`);
                       (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class=\"text-black\">Failed to load: ${setup.right_source}.png</span>`;
+                      (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class=\"\">Failed to load: ${setup.right_source}.png</span>`;
                     }}
                   />
                 ) : (
-                  <span className="text-black">No source</span>
+                  <span className="">No source</span>
                 )}
-              </button>
+              </Button>
               {setup?.right_source && setup.right_source !== 'DOC_CAM' ? (
                 <>
-                  <p className="text-xs text-black text-center mt-2 font-medium">
+                  <p className="text-xs  text-center mt-2 font-medium">
                     {setup.right_source.replace(/_/g, ' ')}
                   </p>
                   <div className="w-full relative mt-2 h-12">
                     <div className="absolute left-1/2 -translate-x-1/2 -top-2">
-                      <ChevronUp className="w-4 h-4 text-black" />
+                      <ChevronUp className="w-4 h-4 " />
                     </div>
                     <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed border-black/50"></div>
                     {setup?.right_device && (setup.right_source === 'ROOM_PC' || setup.right_source === 'PC_EXT') && (
                       <div className="absolute right-1/2 pr-2 top-1/2 -translate-y-1/2">
-                        <span className="text-xs text-black">Mirroring 360</span>
+                        <span className="text-xs ">Mirroring 360</span>
                       </div>
                     )}
                   </div>
@@ -387,9 +406,11 @@ export default function SessionSetups({
                       <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}>
                         {renderByodIcon(byods.find(b => b.id === setup.right_device)?.os)}
                         <span>{byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}</span>
-                        <button
+                        <Button
                           type="button"
-                          className="ml-1 rounded hover:bg-black/10 p-0.5"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-1 h-5 w-5 p-0 rounded hover:bg-black/10"
                           title="Remove device"
                           onClick={() => {
                             if (!setup?.id) return;
@@ -397,109 +418,116 @@ export default function SessionSetups({
                           }}
                         >
                           <X className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </Badge>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         aria-label="Select BYOD for right panel"
                         onClick={() => { setByodTarget('right'); setIsByodDialogOpen(true); }}
-                        className="w-8 h-8 rounded-full border-2 border-dashed border-black/50 flex items-center justify-center text-black/70 hover:bg-black/5 transition-colors"
+                        variant="outline"
+                        size="icon"
+                        className="w-8 h-8 rounded-full border-2 border-dashed border-black/50 /70 hover:bg-black/5 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-black text-center mt-2 font-medium">
+                <p className="text-xs  text-center mt-2 font-medium">
                   {setup?.right_source ? setup.right_source.replace(/_/g, ' ') : 'No source'}
                 </p>
               )}
             </div>
-          </div>
-        </div>
-        
-        {/* Uses Microphone (moved below panels) */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative m-0 p-0">
-              <div className="absolute top-0 left-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-200 rounded-full"></div>
-              <img 
-                src="/lapel.png" 
-                alt="Lapel microphone" 
-                className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 object-cover m-0 p-0 scale-150 -top-3 sm:-top-4"
-              />
             </div>
-            <span className="text-sm sm:text-base text-black font-medium">Uses Microphone</span>
-          </div>
-          <label className="inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              className="hidden peer"
-              checked={setup?.uses_mic || false}
-              onChange={() => {
-                if (!updateFacultySetupAttributes.isPending && setup) {
-                  updateFacultySetupAttributes.mutate({
-                    setupId: setup.id,
-                    attributes: {
-                      uses_mic: !setup.uses_mic,
-                      left_source: setup.left_source ?? '',
-                      right_source: setup.right_source ?? ''
-                    },
-                    facultyId: facultyMember.id
-                  });
-                }
+          </ItemContent>
+        </Item>
+        
+        {/* Uses Microphone */}
+        <Item variant="outline" className="items-center">
+          <ItemMedia variant="image">
+            <img src="/lapel.png" alt="Lapel microphone" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle className="">Uses Microphone</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <Switch
+              checked={Boolean(setup?.uses_mic)}
+              onCheckedChange={(checked) => {
+                if (updateFacultySetupAttributes.isPending || !setup) return;
+                updateFacultySetupAttributes.mutate({
+                  setupId: setup.id,
+                  attributes: {
+                    uses_mic: Boolean(checked),
+                    left_source: setup.left_source ?? '',
+                    right_source: setup.right_source ?? ''
+                  },
+                  facultyId: facultyMember.id,
+                });
               }}
               disabled={updateFacultySetupAttributes.isPending || isLoadingSetup}
+              aria-label="Toggle microphone usage"
             />
-            <span className={
-              `w-6 h-6 flex items-center justify-center border-2 rounded transition-colors duration-150
-              ${setup?.uses_mic ? 'border-green-600 bg-green-100' : `border-gray-400 ${themeColors[3]}`}
-              ${updateFacultySetupAttributes.isPending ? 'opacity-60' : ''}`
-            }>
-              {updateFacultySetupAttributes.isPending ? (
-                <span className="animate-spin w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full"></span>
-              ) : setup?.uses_mic ? (
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              ) : null}
-            </span>
-          </label>
-        </div>
+          </ItemActions>
+        </Item>
 
         {/* Notes */}
         <div className="mt-6">
-          <h4 className="text-base sm:text-lg font-medium text-black mb-3">Notes</h4>
+          <h4 className="text-base sm:text-lg font-medium  mb-3">Notes</h4>
           {!isEditingNotes ? (
-            <div className="space-y-2">
-              <div className="text-sm text-black whitespace-pre-wrap min-h-[2rem] border border-white/20 dark:border-white/10 rounded-md p-3 bg-white/20 dark:bg-black/10">
-                {setup?.notes ? String(setup.notes) : <span className="text-black/60">No notes</span>}
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setIsEditingNotes(true)}>Edit</Button>
-              </div>
-            </div>
+            <InputGroup>
+              <InputGroupControl multiline className="text-sm  whitespace-pre-wrap min-h-8 bg-white/20 dark:bg-black/10">
+                {setup?.notes ? String(setup.notes) : <span className="/60">No notes</span>}
+              </InputGroupControl>
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton size="xs" variant="outline" onClick={() => setIsEditingNotes(true)}>
+                  Edit
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           ) : (
-            <div className="space-y-2">
-              <div className="rounded-md border border-black/30 dark:border-white/20 bg-white/20 dark:bg-black/10 p-1">
-                <Textarea
-                  className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                  value={notesDraft}
-                  onChange={(e) => setNotesDraft(e.target.value)}
-                  placeholder="Enter notes for this setup"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => {
-                  if (!setup?.id) return;
-                  updateNotes.mutate({ setupId: setup.id, notes: notesDraft, facultyId: facultyMember?.id }, {
-                    onSuccess: () => setIsEditingNotes(false),
-                    onError: () => setIsEditingNotes(false),
-                  });
-                }} disabled={updateNotes.isPending}>Save</Button>
-                <Button size="sm" variant="ghost" onClick={() => { setIsEditingNotes(false); setNotesDraft(String(setup?.notes ?? '')); }}>Cancel</Button>
-              </div>
-            </div>
+            <InputGroup className=''>
+              <InputGroupAddon align="block-start" >
+                <InputGroupText className="">Editing notes</InputGroupText>
+              </InputGroupAddon>
+              <InputGroupTextarea
+                className="min-h-[120px]"
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+                placeholder="Enter notes for this setup"
+              />
+              <InputGroupAddon align="block-end" className="">
+                <InputGroupButton
+                 variant="default"
+                  size="sm"
+                  onClick={() => {
+                    if (!setup?.id) return;
+                    updateNotes.mutate(
+                      { setupId: setup.id, notes: notesDraft, facultyId: facultyMember?.id },
+                      {
+                        onSuccess: () => setIsEditingNotes(false),
+                        onError: () => setIsEditingNotes(false),
+                      }
+                    );
+                  }}
+                  disabled={updateNotes.isPending}
+                >
+                  Save
+                </InputGroupButton>
+                <InputGroupButton
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsEditingNotes(false);
+                    setNotesDraft(String(setup?.notes ?? ''));
+                  }}
+                >
+                  Cancel
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           )}
         </div>
 
@@ -510,7 +538,7 @@ export default function SessionSetups({
       </CardContent>
 
       <CardFooter className="justify-between pt-0">
-        <div className="text-xs text-black/70">
+        <div className="text-xs /70">
           {setup?.updated_at ? `Last updated: ${new Date(setup.updated_at).toLocaleString()}` : 'Never updated'}
         </div>
       </CardFooter>

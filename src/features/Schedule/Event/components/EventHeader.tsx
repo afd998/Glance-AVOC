@@ -8,7 +8,7 @@ import { useEventOwnership } from '../../../../core/event/hooks/useCalculateOwne
 import { useEventChecksComplete } from '../hooks/useEventChecksComplete';
 import { useEvent } from '../../../../core/event/hooks/useEvent';
 import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
-import Avatar from '../../../../components/ui/Avatar';
+import UserAvatar from '../../../../components/UserAvatar';
 import { Monitor } from 'lucide-react';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -139,7 +139,7 @@ export default function EventHeader({
   
 
   return (
-    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-1 right-0 z-[100]`}>
+    <div className={`flex justify-between items-center h-5 py-0.5 transition-all duration-200 ease-in-out absolute top-0 left-1 right-0 z-100`}>
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <span 
           className={`text-xs font-medium opacity-90 truncate transition-all duration-200 ease-in-out ${
@@ -160,10 +160,10 @@ export default function EventHeader({
       </div>
       {/* Only show the container if there are resources or assignees */}
       {((isFirstSession || hasVideoRecording || hasStaffAssistance || hasHandheldMic || hasWebConference || hasClickers || hasAVNotes || hasNeatBoard) || timeline.length > 0) && (
-        <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black bg-opacity-20  rounded-md px-2 py-1 mt-2`}>
+        <div className={`flex items-center gap-1 shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black/25  rounded-md px-2 py-1 mt-2`}>
         {isFirstSession && (
           <span
-            className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+            className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-250 ease-in-out cursor-pointer relative"
             title="First Session"
             style={{
               transform: `scale(${getFisheyeScale('firstSession') * 0.8})`,
@@ -174,7 +174,7 @@ export default function EventHeader({
           >
             !
             {hoveredIcon === 'firstSession' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none" style={{ fontSize: '12px' }}>
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none" style={{ fontSize: '12px' }}>
                 First Session
               </span>
             )}
@@ -182,7 +182,7 @@ export default function EventHeader({
         )}
         {hasVideoRecording && (
           <div
-            className="relative rounded-full bg-red-500 transition-all duration-[250ms] ease-in-out cursor-pointer"
+            className="relative rounded-full bg-red-500 transition-all duration-250 ease-in-out cursor-pointer"
             title={allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
             style={{
               // DISABLED FOR GPU TESTING - fisheye scaling causes continuous GPU calculations
@@ -215,7 +215,7 @@ export default function EventHeader({
               </div>
             )}
             {hoveredIcon === 'videoRecording' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 {allChecksComplete ? "Video Recording - All Checks Complete" : "Video Recording"}
               </span>
             )}
@@ -223,7 +223,7 @@ export default function EventHeader({
         )}
         {hasStaffAssistance && (
           <div
-            className="flex items-center justify-center rounded-full bg-green-500 bg-opacity-90 transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+            className="flex items-center justify-center rounded-full bg-green-500/90 transition-all duration-250 ease-in-out cursor-pointer relative"
             title="Staff Assistance"
             style={{
               width: `${13 * getFisheyeScale('staffAssistance')}px`,
@@ -233,7 +233,7 @@ export default function EventHeader({
             onMouseLeave={handleIconLeave}
           >
             <span
-              className="text-white transition-all duration-[250ms] ease-in-out"
+              className="text-white transition-all duration-250 ease-in-out"
               style={{
                 fontSize: `${10 * getFisheyeScale('staffAssistance')}px`
               }}
@@ -241,7 +241,7 @@ export default function EventHeader({
               🚶
             </span>
             {hoveredIcon === 'staffAssistance' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 Staff Assistance
               </span>
             )}
@@ -249,7 +249,7 @@ export default function EventHeader({
         )}
         {hasHandheldMic && (
           <span
-            className="transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+            className="transition-all duration-250 ease-in-out cursor-pointer relative"
             title="Handheld Microphone"
             style={{
               fontSize: `${getFisheyeScale('handheldMic') * 0.8}em`
@@ -259,7 +259,7 @@ export default function EventHeader({
           >
             🎤
             {hoveredIcon === 'handheldMic' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 Handheld Microphone
               </span>
             )}
@@ -270,7 +270,7 @@ export default function EventHeader({
             <img
               src="/zoomicon.png"
               alt="Web Conference"
-              className="object-contain dark:invert transition-all duration-[250ms] ease-in-out cursor-pointer"
+              className="object-contain dark:invert transition-all duration-250 ease-in-out cursor-pointer"
               title="Web Conference"
               style={{
                 width: `${12 * getFisheyeScale('webConference')}px`,
@@ -280,7 +280,7 @@ export default function EventHeader({
               onMouseLeave={handleIconLeave}
             />
             {hoveredIcon === 'webConference' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 Web Conference
               </span>
             )}
@@ -289,7 +289,7 @@ export default function EventHeader({
         {hasClickers && (
           <div className="relative overflow-visible">
             <div
-              className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+              className="bg-pink-400 rounded-full flex items-center justify-center transition-all duration-250 ease-in-out cursor-pointer relative"
               style={{
                 width: `${16 * getFisheyeScale('clickers')}px`,
                 height: `${16 * getFisheyeScale('clickers')}px`
@@ -300,7 +300,7 @@ export default function EventHeader({
               <img
                 src="/tp.png"
                 alt="Clickers"
-                className="object-contain dark:invert transition-all duration-[250ms] ease-in-out"
+                className="object-contain dark:invert transition-all duration-250 ease-in-out"
                 style={{
                   width: `${14 * getFisheyeScale('clickers')}px`,
                   height: `${14 * getFisheyeScale('clickers')}px`
@@ -308,7 +308,7 @@ export default function EventHeader({
                 title="Clickers (Polling)"
               />
               {hoveredIcon === 'clickers' && (
-                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                   Clickers (Polling)
                 </span>
               )}
@@ -317,7 +317,7 @@ export default function EventHeader({
         )}
         {hasAVNotes && (
           <span
-            className="text-xs transition-all duration-[250ms] ease-in-out cursor-pointer relative"
+            className="text-xs transition-all duration-250 ease-in-out cursor-pointer relative"
             title="AV Setup Notes"
             style={{
               fontSize: `${getFisheyeScale('avNotes') * 0.8}em`
@@ -327,7 +327,7 @@ export default function EventHeader({
           >
             📝
             {hoveredIcon === 'avNotes' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 AV Setup Notes
               </span>
             )}
@@ -341,7 +341,7 @@ export default function EventHeader({
             onMouseLeave={handleIconLeave}
           >
             <div 
-              className="bg-white rounded-full flex items-center justify-center transition-all duration-[250ms] ease-in-out cursor-pointer"
+              className="bg-white rounded-full flex items-center justify-center transition-all duration-250 ease-in-out cursor-pointer"
               style={{
                 width: `${16 * getFisheyeScale('neatBoard')}px`,
                 height: `${16 * getFisheyeScale('neatBoard')}px`
@@ -357,7 +357,7 @@ export default function EventHeader({
               />
             </div>
             {hoveredIcon === 'neatBoard' && (
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-[200] pointer-events-none">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-200 pointer-events-none">
                 Neat Board
               </span>
             )}
@@ -382,7 +382,7 @@ export default function EventHeader({
                     transform: isHovering ? 'scale(1.2)' : 'scale(1)'
                   }}
                 >
-                  <Avatar userId={entry.ownerId} size="xs" />
+                  <UserAvatar userId={entry.ownerId} size="xs" />
                 </div>
                 
                 {/* Arrow (if not the last owner) */}

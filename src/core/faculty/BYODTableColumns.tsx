@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { IoLogoApple } from "react-icons/io5"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Save, X } from "lucide-react"
 
 type ByodRow = Database['public']['Tables']['faculty_byods']['Row']
 
@@ -31,8 +31,13 @@ export const columns = (
       if (params.editingRowId === r.id) {
         return (
           <Input
-            value={params.draft.name}
+            autoFocus
+            defaultValue={params.draft.name}
             onChange={(e) => params.onDraftChange({ name: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') params.onSave()
+              if (e.key === 'Escape') params.onCancel()
+            }}
           />
         )
       }
@@ -88,10 +93,14 @@ export const columns = (
       return (
         <div className="flex gap-2">
           {isEditing ? (
-            <>
-              <button className="text-green-700 underline" onClick={params.onSave}>Save</button>
-              <button className="text-gray-600 underline" onClick={params.onCancel}>Cancel</button>
-            </>
+            <ButtonGroup>
+              <Button variant="outline" size="icon" title="Save" onClick={params.onSave}>
+                <Save className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" title="Cancel" onClick={params.onCancel}>
+                <X className="w-4 h-4" />
+              </Button>
+            </ButtonGroup>
           ) : (
             <ButtonGroup>
               <Button variant="outline" size="icon" title="Edit BYOD" onClick={() => params.onEdit(r)}>

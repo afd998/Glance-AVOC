@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import DatePickerComponent from '../features/Schedule/components/DatePickerComponent';
 import DatePickerVertical from '../features/Schedule/components/DatePickerVertical';
 import AcademicCalendarInfo from '../features/Schedule/components/AcademicCalendarInfo';
-import CurrentFilterLinkVertical from '../features/Schedule/components/CurrentFilterLinkVertical';
 import FilterRoomsModal from '../features/Schedule/components/FilterRoomsModal';
 import QuarterCountVertical from '../features/QuarterCount/QuarterCountVertical';
 import useModalStore from '../stores/modalStore';
@@ -136,12 +135,6 @@ export default function AppHeaderVertical({
           </div>
         </div>
 
-        {/* Current Filter Link */}
-        <div className="flex items-center justify-center">
-          <div className="flex items-center justify-center h-full">
-            <CurrentFilterLinkVertical onModalOpen={() => setIsModalOpen(true)} />
-          </div>
-        </div>
 
       </div>
       

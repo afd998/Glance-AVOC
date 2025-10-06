@@ -20,7 +20,7 @@ const UserProfileButton: React.FC = () => {
       }`}
       style={{ cursor: 'pointer' }}
     >
-      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
         {user.email?.charAt(0).toUpperCase() || 'U'}
       </div>
       <div className="flex flex-col items-start min-w-0 flex-1">

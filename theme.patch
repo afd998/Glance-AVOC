@@ -102,7 +102,7 @@ index 05a04c9..2b7f087 100644
 -                      className="flex flex-col gap-1 p-2 rounded-lg text-xs transition-colors bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-600 shadow-sm hover:shadow-md"
 -                    >
 -                      <div className="flex items-center gap-2">
--                        <span className="flex-shrink-0 text-sm text-gray-600 dark:text-gray-300">
+-                        <span className="shrink-0 text-sm text-gray-600 dark:text-gray-300">
 -                          {getResourceIcon(item.itemName)}
 -                        </span>
 -                        <span className="font-medium text-gray-800 dark:text-gray-200">{getResourceDisplayName(item.itemName)}</span>
@@ -248,7 +248,7 @@ index 05a04c9..2b7f087 100644
 +                      style={resourceItemStyle}
 +                    >
 +                      <div className="flex items-center gap-2">
-+                        <span className={`flex-shrink-0 text-sm ${textMutedClass}`}>
++                        <span className={`shrink-0 text-sm ${textMutedClass}`}>
 +                          {getResourceIcon(item.itemName)}
 +                        </span>
 +                        <span className={`font-semibold ${textSecondaryClass}`}>
@@ -382,12 +382,12 @@ index 05a04c9..2b7f087 100644
        </div>
  
        {/* Content */}
--      <div className="bg-gradient-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible border-t border-gray-200 dark:border-gray-700">
+-      <div className="bg-linear-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 backdrop-blur-sm rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible border-t border-gray-200 dark:border-gray-700">
 +      <div
 +        className={`rounded-b-xl shadow-lg p-6 overflow-y-auto max-h-[calc(80vh-120px)] overflow-x-visible border backdrop-blur-sm ${
 +          themeHexColors
 +            ? ''
-+            : 'bg-gradient-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 border-gray-200 dark:border-gray-700'
++            : 'bg-linear-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/95 dark:to-gray-900/95 border-gray-200 dark:border-gray-700'
 +        }`}
 +        style={contentStyle}
 +      >

@@ -32,7 +32,7 @@ export default function EventHoverCard({ event, facultyMembers, instructorNames,
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{event.event_name}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(event.start_time || '')}</p>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {/* Remove 25Live link for now since we don't have eventUrl in the new schema */}
           </div>
         </div>
@@ -55,7 +55,7 @@ export default function EventHoverCard({ event, facultyMembers, instructorNames,
             <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
               {resources.map((item, index) => (
                 <li key={index} className="flex items-center gap-1">
-                  <span className="flex-shrink-0">
+                  <span className="shrink-0">
                     {getAVResourceIcon(item.itemName)}
                   </span>
                   <span className="truncate">{getResourceDisplayName(item.itemName)}</span>
@@ -80,7 +80,7 @@ export default function EventHoverCard({ event, facultyMembers, instructorNames,
                         href={facultyMember?.kelloggdirectory_bio_url || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-shrink-0"
+                        className="shrink-0"
                         title={`View ${instructorName}'s bio`}
                       >
                         <img

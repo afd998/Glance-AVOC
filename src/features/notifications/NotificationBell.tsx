@@ -7,6 +7,7 @@ import { createTestNotification } from '../../utils/notificationUtils';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Plus, Clock, FileText, X, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Button } from '../../components/ui/button';
 
 export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -103,26 +104,22 @@ export const NotificationBell: React.FC = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-xl transition-all duration-200 bg-white/40 dark:bg-white/10 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-          isDarkMode 
-            ? 'text-gray-300 hover:text-white hover:bg-white/20' 
-            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
-        }`}
+        variant="ghost"
+       
         title="Notifications"
       >
         <Bell className="w-6 h-6" />
-        
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {Math.min(unreadCount, 99) > 99 ? '99+' : unreadCount}
           </span>
         )}
-      </button>
+      </Button>
 
       {isOpen && (
-        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-xl border z-[9999] backdrop-blur-md ${
+        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-xl border z-9999 backdrop-blur-md ${
           isDarkMode 
             ? 'bg-gray-800/40 border-gray-600/30 text-white' 
             : 'bg-white/40 border-gray-200/30 text-gray-900'

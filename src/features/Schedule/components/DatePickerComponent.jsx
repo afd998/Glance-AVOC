@@ -230,8 +230,8 @@ const DatePickerComponent = ({ selectedDate, setSelectedDate, isLoading, onCalen
 
   // Custom CSS classes for glassmorphism
   const customPopperClassName = isDarkMode 
-    ? "z-[9999] react-datepicker-dark react-datepicker-glassmorphism" 
-    : "z-[9999] react-datepicker-glassmorphism";
+    ? "z-9999 react-datepicker-dark react-datepicker-glassmorphism" 
+    : "z-9999 react-datepicker-glassmorphism";
 
   return (
     <>

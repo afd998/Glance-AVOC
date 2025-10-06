@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script>
+      // Prevent system theme inheritance - ensure we control the theme
+      (function() {
+        // Remove any existing dark class and set our theme control flag
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme-controlled', 'true');
+        
+        // Set color scheme to light by default (will be overridden by our theme system)
+        document.documentElement.style.colorScheme = 'light';
+      })();
+    </script>
     <script type="module">
       // Only load React Scan in development
       if (import.meta.env.DEV) {
@@ -12,8 +23,7 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/wildcat2.png" sizes="64x64" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#e5e7eb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e5e7eb" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AVOC HOME" />

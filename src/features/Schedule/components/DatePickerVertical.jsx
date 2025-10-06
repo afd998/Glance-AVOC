@@ -183,8 +183,8 @@ const DatePickerVertical = ({ selectedDate, setSelectedDate, isLoading, onCalend
 
   // Custom popper class for glassmorphism effect
   const customPopperClassName = isDarkMode 
-    ? "z-[9999] react-datepicker-glassmorphism-dark" 
-    : "z-[9999] react-datepicker-glassmorphism";
+    ? "z-9999 react-datepicker-glassmorphism-dark" 
+    : "z-9999 react-datepicker-glassmorphism";
 
   return (
     <>
