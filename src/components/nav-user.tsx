@@ -9,7 +9,7 @@ import {
   Settings,
 } from "lucide-react"
 
-import Avatar, { AvatarImage, AvatarFallback } from "./ui/Avatar"
+import Avatar, { AvatarImage, AvatarFallback } from "./ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,

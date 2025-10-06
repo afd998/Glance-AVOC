@@ -4,7 +4,7 @@ import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
 import { getResourceDisplayName, getEventThemeColors, getEventThemeHexColors, getAVResourceIcon, truncateEventName, getEventTypeInfo } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
-import Avatar from '../../components/ui/Avatar';
+import Avatar from '../../components/ui/avatar';
 import { useUserProfile } from '../../core/User/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';

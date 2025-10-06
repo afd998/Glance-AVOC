@@ -8,7 +8,7 @@ import { useEventOwnership } from '../../../../core/event/hooks/useCalculateOwne
 import { useEventChecksComplete } from '../hooks/useEventChecksComplete';
 import { useEvent } from '../../../../core/event/hooks/useEvent';
 import { useEventResources, useEventDurationHours } from '../../hooks/useEvents';
-import UserAvatar from '../../../../components/UserAvatar';
+import { UserAvatar } from '../../../../components/ui/avatar';
 import { Monitor } from 'lucide-react';
 
 type Event = Database['public']['Tables']['events']['Row'];

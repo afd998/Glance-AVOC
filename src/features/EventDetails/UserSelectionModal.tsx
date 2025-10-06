@@ -1,6 +1,6 @@
 import React from 'react';
 import { useUserProfiles } from '../../core/User/useUserProfiles';
-import UserAvatar from '../../components/UserAvatar';
+import { UserAvatar } from '../../components/ui/avatar';
 import {
   Dialog,
   DialogContent,

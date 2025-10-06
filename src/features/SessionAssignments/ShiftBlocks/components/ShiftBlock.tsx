@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import UserAvatar from '../../../../components/UserAvatar';
+import { UserAvatar } from '../../../../components/ui/avatar';
 import { useUserProfile } from '../../../../core/User/useUserProfile';
 import { useRooms } from '../../../../core/Rooms/useRooms';
 import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
