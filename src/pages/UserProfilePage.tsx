@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { UserAvatar } from '../components/ui/avatar';
+import { UserAvatar } from '../components/ui/avatar'; // Fixed import for Vercel build
 import { Separator } from '../components/ui/separator';
 
 const AccountPage: React.FC = () => {
