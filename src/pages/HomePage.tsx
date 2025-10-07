@@ -236,17 +236,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full gpu-optimized">
-      {/* Event Assignments Component - shown when toggle is active and zoom is 100% */}
 
 
-      {/* Vertical Header - positioned to the left - HIDDEN */}
-      {/* <AppHeaderVertical
-        selectedDate={selectedDate}
-        setSelectedDate={handleDateChange}
-        isLoading={isLoading}
-        events={filteredEvents || []}
-
-      /> */}
 
       {/* Kellogg Logo - shown on all screens - HIDDEN */}
       {/* <div className="z-50 pointer-events-none relative h-auto 2xl:pt-10 lg:pt-0 pt-2" >
@@ -273,7 +264,7 @@ export default function HomePage() {
         </div> */}
 
       {/* Menu Panel and Notification Bell - moved to Layout */}
-      {showEventAssignments && pageZoom === 1 && (
+      {showEventAssignments && (
         <div className="w-full mb-4">
           <EventAssignments
             dates={[selectedDate.toISOString().split('T')[0]]}
@@ -336,48 +327,7 @@ export default function HomePage() {
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
       </div> */}
 
-        {/* Navigation Arrows - Only show on xl and larger screens */}
-        {/* Previous Day Button - Left Side - Commented out since we have vertical header */}
-        {/* <button
-        onClick={() => {
-          const newDate = new Date(selectedDate);
-          newDate.setDate(newDate.getDate() - 1);
-          newDate.setHours(0, 0, 0, 0);
-          handleDateChange(newDate);
-        }}
-        disabled={isLoading}
-        className={`!hidden xl:flex! fixed left-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
-          isLoading
-            ? 'opacity-20 cursor-not-allowed'
-            : 'hover:opacity-60  hover:scale-150 active:scale-95'
-        }`}
-        aria-label="Previous day"
-      >
-        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button> */}
-
-        {/* Next Day Button - Right Side - HIDDEN */}
-        {/* <button
-        onClick={() => {
-          const newDate = new Date(selectedDate);
-          newDate.setDate(newDate.getDate() + 1);
-          newDate.setHours(0, 0, 0, 0);
-          handleDateChange(newDate);
-        }}
-        disabled={isLoading}
-        className={`!hidden xl:flex! fixed right-2 top-1/2 transform -translate-y-1/2 h-16 w-16 p-3 rounded-lg transition-all duration-200 items-center justify-center z-50 opacity-40 ${
-          isLoading
-            ? 'opacity-20 cursor-not-allowed'
-            : 'hover:opacity-60 h hover:scale-150 active:scale-95'
-        }`}
-        aria-label="Next day"
-      >
-        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button> */}
+       
 
         {/* Grid Container */}
         <DraggableGridContainer

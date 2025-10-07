@@ -57,8 +57,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   
   // Check if we're on the home page (/{date} route) with 100% zoom
   const isHomePage = location.pathname.match(/^\/\d{4}-\d{2}-\d{2}$/) !== null;
-  const isAt100PercentZoom = pageZoom === 1;
-  const shouldShowEventAssignmentsButton = isHomePage && isAt100PercentZoom;
+  const shouldShowEventAssignmentsButton = isHomePage;
 
   // Check if we're on a faculty profile page and get faculty data
   const facultyId = location.pathname.match(/^\/faculty\/(\d+)$/)?.[1];

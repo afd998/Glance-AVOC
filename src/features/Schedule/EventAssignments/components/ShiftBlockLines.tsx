@@ -85,14 +85,13 @@ const ShiftBlockLines: React.FC<ShiftBlockLinesProps> = ({ date, className = '',
           <React.Fragment key={shiftBlock.id}>
             <TabsTrigger 
               value={shiftBlock.id.toString()}
-              className="bg-background data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none "
-              style={{ width: `${(shiftBlock.start_time && shiftBlock.end_time ? 
-                (new Date(`2000-01-01T${shiftBlock.end_time}`).getTime() - new Date(`2000-01-01T${shiftBlock.start_time}`).getTime()) / (1000 * 60) * pixelsPerMinute 
-                : 100) + 'px'}` }}
+              className=" w-auto px-0 mx-0 bg-background data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none "
+             
             >
               <ShiftBlockLine 
                 shiftBlock={shiftBlock}
                 pixelsPerMinute={pixelsPerMinute}
+                pageZoom={pageZoom}
               />
             </TabsTrigger>
             {index < shiftBlocks.length - 1 && (

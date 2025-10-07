@@ -7,9 +7,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../
 interface ShiftBlockLineProps {
   shiftBlock: ShiftBlock;
   pixelsPerMinute: number;
+  pageZoom: number;
 }
 
-const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMinute }) => {
+const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMinute, pageZoom }) => {
   // Helper function to format time labels
   const formatTimeLabel = (time: string | null): string => {
     if (!time) return '';
@@ -26,8 +27,7 @@ const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMi
     const startTime = new Date(`2000-01-01T${shiftBlock.start_time}`);
     const endTime = new Date(`2000-01-01T${shiftBlock.end_time}`);
     const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    
-    return durationMinutes * pixelsPerMinute;
+     return durationMinutes * pixelsPerMinute * pageZoom;
   };
 
   const blockWidth = calculateWidth();
@@ -64,10 +64,10 @@ const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMi
   return (
     <Item 
       variant="default"
-      className=" transition-shadow duration-200 flex-row"
-      style={{ width: `${blockWidth}px` }}
+      className=" mx-0   transition-shadow duration-200 flex-row"
+      style={{ width: `${Math.floor(blockWidth)}px` }}
     >
-      <ItemContent className="flex flex-row items-center w-full">
+      <ItemContent className="flex flex-row  justify-center items-center w-full">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
