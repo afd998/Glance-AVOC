@@ -58,7 +58,11 @@ export default function HomePage() {
     return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   })();
 
-  const { pageZoom } = useZoom();
+  const { pageZoom, setPageZoom } = useZoom();
+  const { basePixelsPerMinute, setBasePixelsPerMinute } = usePixelMetrics();
+  const { updateZoom, updatePixelsPerMin } = useProfile();
+  const zoomPersistTimer = React.useRef<number | null>(null);
+  const ppmPersistTimer = React.useRef<number | null>(null);
   const { pixelsPerMinute, rowHeightPx } = usePixelMetrics();
   const { currentTheme, isDarkMode } = useTheme();
   const [selectedOverlayRange, setSelectedOverlayRange] = useState<{ leftPx: number; widthPx: number } | null>(null);
@@ -221,6 +225,55 @@ export default function HomePage() {
     }
   }, [date, selectedDate, navigate]);
 
+  // Shift + Wheel to zoom anywhere; Ctrl + Wheel adjusts pixels/min
+  React.useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const step = 0.3;
+        const direction = e.deltaY < 0 ? 1 : -1; // up: increase, down: decrease
+        let next = basePixelsPerMinute + direction * step;
+        next = Math.max(0.5, Math.min(8, parseFloat(next.toFixed(2))));
+        if (next === basePixelsPerMinute) return;
+        setBasePixelsPerMinute(next);
+        if (ppmPersistTimer.current) window.clearTimeout(ppmPersistTimer.current);
+        ppmPersistTimer.current = window.setTimeout(() => {
+          updatePixelsPerMin(next);
+        }, 200);
+        return;
+      }
+      if (e.altKey) {
+        // Intercept to avoid page scroll while zooming
+        e.preventDefault();
+        const step = 0.1;
+        const direction = e.deltaY < 0 ? 1 : -1; // up: zoom in, down: zoom out
+        let next = pageZoom + direction * step;
+        next = Math.max(0.5, Math.min(2, parseFloat(next.toFixed(2))));
+        if (next === pageZoom) return;
+        setPageZoom(next);
+        // Debounce persistence to profile
+        if (zoomPersistTimer.current) window.clearTimeout(zoomPersistTimer.current);
+        zoomPersistTimer.current = window.setTimeout(() => {
+          updateZoom(next);
+        }, 200);
+        return;
+      }
+    };
+    // Capture early so grid's wheel handler won't consume it
+    window.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => {
+      window.removeEventListener('wheel', onWheel as EventListener);
+      if (zoomPersistTimer.current) {
+        window.clearTimeout(zoomPersistTimer.current);
+        zoomPersistTimer.current = null;
+      }
+      if (ppmPersistTimer.current) {
+        window.clearTimeout(ppmPersistTimer.current);
+        ppmPersistTimer.current = null;
+      }
+    };
+  }, [pageZoom, setPageZoom, updateZoom, basePixelsPerMinute, setBasePixelsPerMinute, updatePixelsPerMin]);
+
 
   const handleEventClick = (event: Database['public']['Tables']['events']['Row']) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
@@ -283,9 +336,9 @@ export default function HomePage() {
           style={{
             position: 'absolute',
             top: `${headerHeightPx * pageZoom}px`,
-            left: `${(selectedOverlayRange.leftPx - scrollLeft) * pageZoom}px`,
+            left: `${(selectedOverlayRange.leftPx  * pageZoom ) - scrollLeft}px`,
             width: `${selectedOverlayRange.widthPx * pageZoom}px`,
-            height: `${contentHeight * pageZoom}px`,
+            height: `calc(100vh - 6rem)`,
             pointerEvents: 'none',
             backgroundColor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(59, 131, 246, 0.23)',
             borderRadius: '8px',
@@ -328,82 +381,61 @@ export default function HomePage() {
       </div> */}
 
 
-<div className="h-full">
-        {/* Grid Container */}
-        <DraggableGridContainer
-          className={`grid-container ${showEventAssignments ? "h-[calc(100vh-12rem)]": "h-[calc(100vh-6rem)]"}  rounded-b-lg relative overflow-hidden`}
-          startHour={startHour}
-          endHour={endHour}
-          pixelsPerMinute={pixelsPerMinute}
-          actualRowCount={actualRowCount}
-          rowHeightPx={rowHeightPx}
-          isDragEnabled={isDragEnabled}
-          pageZoom={pageZoom}
-          onScrollPositionChange={(pos) => {
-            setScrollLeft(pos.left);
-            setScrollTop(pos.top);
-          }}
-        >
-          {/* Date Display positioned relative to grid */}
-          {/* <div className="absolute top-2 left-2 z-50">
+        <div className="h-full">
+          {/* Grid Container */}
+          <DraggableGridContainer
+            className={`grid-container ${showEventAssignments ? "h-[calc(100vh-12rem)]" : "h-[calc(100vh-6rem)]"}  rounded-b-lg relative overflow-hidden`}
+            startHour={startHour}
+            endHour={endHour}
+            pixelsPerMinute={pixelsPerMinute}
+            actualRowCount={actualRowCount}
+            rowHeightPx={rowHeightPx}
+            isDragEnabled={isDragEnabled}
+            pageZoom={pageZoom}
+            onScrollPositionChange={(pos) => {
+              setScrollLeft(pos.left);
+              setScrollTop(pos.top);
+            }}
+          >
+            {/* Date Display positioned relative to grid */}
+            {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
-          {/* Zoom wrapper: layout-sized outer, transformed inner for scroll + visuals */}
-          <div style={{ width: `${contentWidth * pageZoom}px`, minHeight: `${contentHeight * pageZoom}px` }}>
-            <div className="h-full" style={{ transform: `scale(${pageZoom})`, transformOrigin: 'top left' }}>
-              <div className="min-w-max rounded-lg h-full relative shadow-2xl " style={{
-                width: `${contentWidth}px`,
-                transition: 'width 200ms ease-in-out',
-                minHeight: '100%'
-              }}>
-                {/* Left labels overlay track placeholder */}
-                <div className="absolute inset-y-0 left-0 z-40 pointer-events-none" style={{ width: '96px' }} />
+            {/* Zoom wrapper: layout-sized outer, transformed inner for scroll + visuals */}
+            <div style={{ width: `${contentWidth * pageZoom}px`, minHeight: `${contentHeight * pageZoom}px` }}>
+              <div className="h-full" style={{ transform: `scale(${pageZoom})`, transformOrigin: 'top left' }}>
+                <div className="min-w-max rounded-lg h-full relative shadow-2xl " style={{
+                  width: `${contentWidth}px`,
+                  transition: 'width 200ms ease-in-out',
+                  minHeight: '100%'
+                }}>
+                  {/* Left labels overlay track placeholder */}
+                  <div className="absolute inset-y-0 left-0 z-40 pointer-events-none" style={{ width: '96px' }} />
 
-                <VerticalLines
-                  startHour={startHour}
-                  endHour={endHour}
-                  pixelsPerMinute={pixelsPerMinute}
-                  actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
-                  rowHeightPx={rowHeightPx}
-                />
-
-
-                <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
-                  <CurrentTimeIndicator
+                  <VerticalLines
                     startHour={startHour}
                     endHour={endHour}
                     pixelsPerMinute={pixelsPerMinute}
+                    actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
+                    rowHeightPx={rowHeightPx}
                   />
-                </div>
 
-                {roomRows.map((room: any, index: number) => {
-                  const roomEvents = getFilteredEventsForRoomCallback(room.name);
 
-                  return (
-                    <RoomRow
-                      key={`${room.name}`}
-                      room={room.name}
-                      roomEvents={roomEvents}
+                  <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
+                    <CurrentTimeIndicator
                       startHour={startHour}
+                      endHour={endHour}
                       pixelsPerMinute={pixelsPerMinute}
-
-                      onEventClick={handleEventClick}
-                      isEvenRow={index % 2 === 0}
-                      isLastRow={index === roomRows.length - 1}
-                      isFloorBreak={false}
-                      rowHeightPx={rowHeightPx}
-                      hideLabel={true}
                     />
-                  );
-                })}
-                <div className="my-2 border-t border-white-300 ">
-                  {filteredLCEvents?.map((roomData: any, index: number) => {
-                    const roomEvents = roomData.events;
-                    console.log("roomData", roomData);
+                  </div>
+
+                  {roomRows.map((room: any, index: number) => {
+                    const roomEvents = getFilteredEventsForRoomCallback(room.name);
+
                     return (
                       <RoomRow
-                        key={`${roomData.room_name}`}
-                        room={roomData.room_name}
+                        key={`${room.name}`}
+                        room={room.name}
                         roomEvents={roomEvents}
                         startHour={startHour}
                         pixelsPerMinute={pixelsPerMinute}
@@ -417,15 +449,38 @@ export default function HomePage() {
                       />
                     );
                   })}
+                  <div className="my-2 border-t border-white-300 ">
+                    {filteredLCEvents?.map((roomData: any, index: number) => {
+                      const roomEvents = roomData.events;
+                      console.log("roomData", roomData);
+                      return (
+                        <RoomRow
+                          key={`${roomData.room_name}`}
+                          room={roomData.room_name}
+                          roomEvents={roomEvents}
+                          startHour={startHour}
+                          pixelsPerMinute={pixelsPerMinute}
+
+                          onEventClick={handleEventClick}
+                          isEvenRow={index % 2 === 0}
+                          isLastRow={index === roomRows.length - 1}
+                          isFloorBreak={false}
+                          rowHeightPx={rowHeightPx}
+                          hideLabel={true}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+              {/* left labels overlay removed from inside; moved outside below */}
             </div>
-            {/* left labels overlay removed from inside; moved outside below */}
-          </div>
-        </DraggableGridContainer>
+          </DraggableGridContainer>
         </div>
         {/* Sticky left labels overlay (outside grid); translate Y with scroll and scale */}
-        <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
+        <div
+          className="z-50 overflow-hidden"
+          style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
           <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
             <div style={{ position: 'relative' }}>
               {roomRows.map((room: any) => {
@@ -438,17 +493,21 @@ export default function HomePage() {
                 return (
                   <ContextMenu key={`label-${room.name}`}>
                     <ContextMenuTrigger asChild>
-                      <div style={{ height: `${rowHeightPx}px` }} className="flex flex-col items-center justify-center">
-                        <div className="pointer-events-auto flex flex-col items-center">
+                      <div
+                        data-room-label
+                        style={{ height: `${rowHeightPx}px` }}
+                        className="flex flex-col bg-primary/10 items-center justify-center pointer-events-auto cursor-pointer"
+                        onClick={(e) => selectRoomLabel(room.name, e)}
+                      >
+                        <div className="flex flex-col items-center">
                           <Badge
-                            className={`${isRoomSelected(room.name) ? 'ring-2 ring-blue-500' : ''}`}
+                            className={`${isRoomSelected(room.name) ? 'ring-10 ring-blue-500' : ''}`}
                             style={{
                               userSelect: 'none',
                               WebkitUserSelect: 'none',
                               MozUserSelect: 'none',
                               msUserSelect: 'none'
                             }}
-                            onClick={(e) => selectRoomLabel(room.name, e)}
                           >
                             {room.name.replace(/^GH\s+/, '')}
                           </Badge>
@@ -469,7 +528,7 @@ export default function HomePage() {
                             </ContextMenuItem>
                             {Array.isArray((selectedShiftBlock as any).assignments) && (selectedShiftBlock as any).assignments.map((a: any) => (
                               <ContextMenuItem key={a.user} onClick={() => moveSelectedRooms(a.user)}>
-                                Move {selectedRoomsSet.size} selected to <UserNameDisplay userId={a.user} />
+                                Move {selectedRoomsSet.size} selected to  {" "} <UserAvatar userId={a.user} size="sm" variant="solid" />
                               </ContextMenuItem>
                             ))}
                           </>
@@ -482,17 +541,21 @@ export default function HomePage() {
               {filteredLCEvents?.map((roomData: any) => (
                 <ContextMenu key={`label-${roomData.room_name}`}>
                   <ContextMenuTrigger asChild>
-                    <div style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
-                      <div className="pointer-events-auto">
+                    <div
+                      data-room-label
+                      style={{ height: `${rowHeightPx}px` }}
+                      className="flex items-center justify-center pointer-events-auto cursor-pointer"
+                      onClick={(e) => selectRoomLabel(roomData.room_name, e)}
+                    >
+                      <div>
                         <Badge
-                          className={`${isRoomSelected(roomData.room_name) ? 'ring-2 ring-blue-500' : ''}`}
+                          className={`${isRoomSelected(roomData.room_name) ? 'ring-5 bg-green-500 ring-blue-500' : ''}`}
                           style={{
                             userSelect: 'none',
                             WebkitUserSelect: 'none',
                             MozUserSelect: 'none',
                             msUserSelect: 'none'
                           }}
-                          onClick={(e) => selectRoomLabel(roomData.room_name, e)}
                         >
                           {roomData.room_name}
                         </Badge>

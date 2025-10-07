@@ -71,10 +71,10 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth + iosBuffer);
     const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + iosBuffer + scrollBuffer);
     
-    // Clamp the values with more lenient boundaries for iOS
+    // Clamp the values; avoid negative overscroll for stable overlays
     return {
-      scrollLeft: Math.max(-iosBuffer, Math.min(scrollLeft, maxScrollLeft)),
-      scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop)) 
+      scrollLeft: Math.max(0, Math.min(scrollLeft, maxScrollLeft)),
+      scrollTop: Math.max(0, Math.min(scrollTop, maxScrollTop)) 
     };
   }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, pageZoom]);
 
@@ -171,6 +171,10 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   // Handle wheel events for normal scrolling
   const handleWheel = useCallback((e: WheelEvent) => {
     if (!containerRef.current) return;
+    // If holding Shift or Ctrl, allow higher-level handlers (zoom/ppm) to take over
+    if ((e as WheelEvent).shiftKey || (e as WheelEvent).ctrlKey) {
+      return;
+    }
     
     // Allow normal wheel scrolling
     e.preventDefault();

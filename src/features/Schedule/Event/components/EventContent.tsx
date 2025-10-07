@@ -10,7 +10,7 @@ import { Card, CardContent } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../../components/ui/avatar';
 import { cn } from '../../../../lib/utils';
-
+import { useProfile } from '../../../../core/User/useProfile';
 
 // Helper function to parse instructor names from JSON
 const parseInstructorNames = (instructorNamesJson: any): string[] => {
@@ -53,7 +53,7 @@ interface EventContentProps {
 function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading, organization }: EventContentProps) {
   // Parse instructor names from JSON field
   const instructorNames = parseInstructorNames(event.instructor_names);
-  
+  const { profile, rowHeightPx  } = useProfile();
   // Get faculty members data
   const { data: facultyMembers, isLoading: isFacultyLoading } = useMultipleFacultyMembers(instructorNames);
   // Get theme colors and truncated event name for this event
@@ -102,7 +102,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
 
   return (
          <div className={`flex flex-row ${containerHeight} w-full rounded absolute inset-0 p-1 transition-all duration-200 ease-in-out ${isMergedRoomEvent ? 'items-center' : ''} relative`}>
-      {instructorNames.length > 0 && (
+      {instructorNames.length > 0 && rowHeightPx > 96 && (
                  <div
            className={`flex flex-col items-center justify-center gap-0.5 ${event.event_type === 'Lecture' ? themeColors[6] : ''} rounded ${avatarContainerHeight} ${getAvatarContainerWidth()} z-10 transition-all duration-200 ease-in-out relative shrink-0 -mt-1`}
            style={{ transform: `otate(${avatarTilt}deg)` }}
@@ -188,7 +188,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
         </div>
       )}
 
-
+{rowHeightPx > 90 && (
       <div className={`flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden mt-1 ${isMergedRoomEvent ? 'justify-center' : ''}`}>
         <span
           className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-2xl leading-none"
@@ -216,7 +216,18 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
           </span>
         )}
       </div>
-      
+    )}
+    {rowHeightPx <= 90 && (
+      <div className="flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden mt-1 ${isMergedRoomEvent ? 'justify-center' : ''}">
+        <span className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-md leading-none">
+          {event.event_name}
+        </span>
+        
+      </div>
+    
+    )}
+   
+   
     </div>
   );
 }
@@ -241,63 +252,29 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
       )}
     >
       <CardContent className={cn(
-        "relative z-10 flex flex-col items-center justify-center h-full px-4 gap-1 p-0",
+        "relative z-10 flex flex-col items-start justify-center h-full px-4 gap-1 p-0",
         isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'
       )}>
-        {/* Main title with luxury gradient */}
+        {/* Main title */}
         <div
-          className={cn(
-            "font-bold transition-all duration-400 ease-out block text-center",
-            isHovering ? 'scale-105 -translate-y-px' : 'scale-100'
-          )}
+          className="font-bold text-left"
           style={{
-            transformOrigin: 'center',
-            fontFamily: "'Morrison', sans-serif",
             fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
-            fontWeight: 700,
-            lineHeight: '1.1',
-            letterSpacing: '0.4rem',
-            textTransform: 'uppercase',
-            background: 'linear-gradient(rgb(255, 224, 166), rgb(200, 150, 100))',
-            color: 'transparent',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            textShadow: '0 0 20px rgba(255, 224, 166, 0.3)'
+            color: '#B8860B'
           }}
           title={eventName}
         >
           {eventName}
         </div>
         
-        {/* Luxury subtitle */}
+        {/* Subtitle */}
         <Badge 
           variant="secondary"
-          className={cn(
-            "transition-all duration-300 ease-out text-center bg-transparent border-0 p-0 h-auto",
-            isHovering ? 'scale-102' : 'scale-100'
-          )}
-          style={{
-            color: '#ffe0a6',
-            fontSize: '0.6rem',
-            letterSpacing: '0.1rem',
-            opacity: 0.8,
-          }}
+          className="text-left bg-transparent border-0 p-0 h-auto text-xs"
+          style={{ color: '#DAA520' }}
         >
           EXECUTIVE EDUCATION
         </Badge>
-        
-        {/* Animated underline */}
-        <div 
-          className={cn(
-            "bg-gradient-to-r from-transparent via-yellow-300/80 to-transparent transition-all duration-400 ease-out",
-            isHovering ? 'w-[90%]' : 'w-[70%]'
-          )}
-          style={{
-            height: '1px',
-            filter: 'drop-shadow(0 0 4px rgba(255, 224, 166, 0.6))',
-            animation: isHovering ? 'gentle-glow 1.5s ease-in-out infinite alternate' : 'none'
-          }}
-        />
       </CardContent>
     </Card>
   );

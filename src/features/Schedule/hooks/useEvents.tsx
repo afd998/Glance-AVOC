@@ -160,7 +160,7 @@ const filteredQ = useQuery({
   },
   // keep it in memory so toggling days back/forward reuses it
   staleTime: Infinity,
-  gcTime: 1000 * 60 * 60, // 1h (tune as you like)
+  
   enabled: events !== undefined && allShiftBlocks !== undefined  && currentFilter !== undefined && events !== null && currentFilter !== null,
 });
 

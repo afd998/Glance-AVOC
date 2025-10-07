@@ -367,7 +367,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </div>
                   <Slider
                     value={[baseRowHeightPx]}
-                    min={80}
+                    min={60}
                     max={160}
                     step={2}
                     onValueChange={(v) => setBaseRowHeightPx(v[0])}
