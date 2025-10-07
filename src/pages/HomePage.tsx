@@ -8,8 +8,8 @@ import AppHeader from "../components/AppHeader";
 import AppHeaderVertical from "../components/AppHeaderVertical";
 import DraggableGridContainer from "../features/Schedule/DraggableGridContainer";
 import DateDisplay from "../features/Schedule/components/DateDisplay";
-import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows} from "../features/Schedule/hooks/useEvents";
-import { useLCRooms   } from "../core/Rooms/useRooms";
+import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows } from "../features/Schedule/hooks/useEvents";
+import { useLCRooms } from "../core/Rooms/useRooms";
 import { useNotifications } from "../features/notifications/useNotifications";
 import { useProfile } from "../core/User/useProfile";
 import { useRooms } from "../core/Rooms/useRooms";
@@ -17,7 +17,7 @@ import { usePanoptoNotifications } from "../hooks/usePanoptoNotifications";
 import EventDetail from "./EventDetail";
 import { Dialog, DialogContent } from "../components/ui/dialog";
 import NoEventsMessage from "../features/Schedule/components/NoEventsMessage";
-  import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
+import { useFilteredLCEvents } from "../features/Schedule/hooks/useFilteredLCEvents";
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -33,19 +33,19 @@ import { useUserProfile } from "../core/User/useUserProfile";
 
 
 export default function HomePage() {
-  
+
   // Event Assignments state
   const { showEventAssignments, selectedShiftBlock } = useEventAssignments();
-  
+
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(true);
-  
+
 
   // Header hover state to control DateDisplay visibility
   const navigate = useNavigate();
   const location = useLocation();
   const { date, eventId } = useParams();
-  
+
 
 
   const selectedDate = (() => {
@@ -70,7 +70,7 @@ export default function HomePage() {
   const { data: filteredEvents, isLoading, error } = useFilteredEvents(selectedDate);
   const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
   const { data: filteredLCEvents, isLoading: filteredLCEventsLoading } = useFilteredLCEvents(selectedDate);
- 
+
   const actualRowCount = (roomRows?.length || 0) + (filteredLCEvents?.length || 0);
   const contentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
   const headerHeightPx = 24;
@@ -192,7 +192,7 @@ export default function HomePage() {
 
   const isEventDetailRoute = location.pathname.match(/\/\d{4}-\d{2}-\d{2}\/\d+(\/.*)?$/);
 
- 
+
 
   // React.useEffect(() => {
   //   if (events && events.length > 0) {
@@ -205,7 +205,7 @@ export default function HomePage() {
   const handleDateChange = (newDate: Date) => {
     // Save current scroll position before navigating
     // Note: Scroll position is now managed by DraggableGridContainer
-    
+
     const localDate = new Date(newDate);
     localDate.setHours(0, 0, 0, 0);
     const formattedDate = localDate.toISOString().split('T')[0];
@@ -234,11 +234,11 @@ export default function HomePage() {
     return <div className="flex items-center justify-centertext-red-500">Error: {error.message}</div>;
   }
 
-    return (
+  return (
     <div className="flex flex-col items-center justify-center w-full h-full gpu-optimized">
       {/* Event Assignments Component - shown when toggle is active and zoom is 100% */}
-    
-      
+
+
       {/* Vertical Header - positioned to the left - HIDDEN */}
       {/* <AppHeaderVertical
         selectedDate={selectedDate}
@@ -247,12 +247,12 @@ export default function HomePage() {
         events={filteredEvents || []}
 
       /> */}
-           
+
       {/* Kellogg Logo - shown on all screens - HIDDEN */}
       {/* <div className="z-50 pointer-events-none relative h-auto 2xl:pt-10 lg:pt-0 pt-2" >
        
           {/* Light effect behind logo */}
-          {/* <div 
+      {/* <div 
             className="absolute rounded-full blur-2xl opacity-100"
             style={{
               background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 15%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0.2) 85%, transparent 100%)',
@@ -271,11 +271,11 @@ export default function HomePage() {
             object-contain opacity-90 relative z-10"
           />
         </div> */}
-      
+
       {/* Menu Panel and Notification Bell - moved to Layout */}
       {showEventAssignments && pageZoom === 1 && (
         <div className="w-full mb-4">
-          <EventAssignments 
+          <EventAssignments
             dates={[selectedDate.toISOString().split('T')[0]]}
             selectedDate={selectedDate.toISOString().split('T')[0]}
             pixelsPerMinute={pixelsPerMinute}
@@ -286,7 +286,7 @@ export default function HomePage() {
             onSelectRange={(range) => setSelectedOverlayRange(range)}
           />
         </div>
-      )}    
+      )}
       {showEventAssignments && selectedOverlayRange && (
         <div
           style={{
@@ -304,20 +304,21 @@ export default function HomePage() {
       )}
       {/* Main content area */}
       <div className="flex-1 rounded-lg w-full overflow-hidden" style={{ zIndex: 3, position: 'relative' }}>
-     
-      {/* Sticky time header overlay (outside grid), full content width */}
-      <div className="sticky top-0 z-50 overflow-hidden" style={{ height: `${headerHeightPx * pageZoom}px` }}>
-        <div style={{ width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx * pageZoom}px`, transform: `translateX(-${scrollLeft}px)` }}>
-          <div style={{ 
-            transform: `scaleY(${pageZoom})`, 
-            transformOrigin: 'top left', width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx}px` }}>
-            <TimeGrid pageZoom={pageZoom} startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute * pageZoom} sticky={false} />
+
+        {/* Sticky time header overlay (outside grid), full content width */}
+        <div className="sticky top-0 z-50 overflow-hidden" style={{ height: `${headerHeightPx * pageZoom}px` }}>
+          <div style={{ width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx * pageZoom}px`, transform: `translateX(-${scrollLeft}px)` }}>
+            <div style={{
+              transform: `scaleY(${pageZoom})`,
+              transformOrigin: 'top left', width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx}px`
+            }}>
+              <TimeGrid pageZoom={pageZoom} startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute * pageZoom} sticky={false} />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* AVOC HOME text in bottom right corner */}
-      {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
+        {/* AVOC HOME text in bottom right corner */}
+        {/* <div className="fixed bottom-[-5px] right-[-40px] pointer-events-none z-50">
         <svg width="400" height="400" viewBox="-0 -100 250 120" style={{ transform: 'rotate(-65deg)' }}>
           <defs>
             <path id="avoc-curve" d="M 20 15 Q 105 100 230 20" />
@@ -329,15 +330,15 @@ export default function HomePage() {
           </text>
         </svg>
       </div> */}
-      
-      {/* <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50">
+
+        {/* <div className="fixed bottom-4 right-8 text-right pointer-events-none z-50">
         <div className="text-4xl font-bold text-white/80 leading-none">AVOC</div>
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
       </div> */}
-      
-      {/* Navigation Arrows - Only show on xl and larger screens */}
-      {/* Previous Day Button - Left Side - Commented out since we have vertical header */}
-      {/* <button
+
+        {/* Navigation Arrows - Only show on xl and larger screens */}
+        {/* Previous Day Button - Left Side - Commented out since we have vertical header */}
+        {/* <button
         onClick={() => {
           const newDate = new Date(selectedDate);
           newDate.setDate(newDate.getDate() - 1);
@@ -357,8 +358,8 @@ export default function HomePage() {
         </svg>
       </button> */}
 
-      {/* Next Day Button - Right Side - HIDDEN */}
-      {/* <button
+        {/* Next Day Button - Right Side - HIDDEN */}
+        {/* <button
         onClick={() => {
           const newDate = new Date(selectedDate);
           newDate.setDate(newDate.getDate() + 1);
@@ -378,137 +379,176 @@ export default function HomePage() {
         </svg>
       </button> */}
 
-      {/* Grid Container */}
+        {/* Grid Container */}
         <DraggableGridContainer
           className="grid-container  h-[calc(100vh-6rem)] rounded-b-lg relative overflow-hidden"
-          style={{ 
+          style={{
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
-        startHour={startHour}
-        endHour={endHour}
-        pixelsPerMinute={pixelsPerMinute}
-         actualRowCount={actualRowCount}
-        rowHeightPx={rowHeightPx}
-        isDragEnabled={isDragEnabled}
-        scale={pageZoom}
-        onScrollPositionChange={(pos) => {
-          setScrollLeft(pos.left);
-          setScrollTop(pos.top);
-        }}
-      >
-        {/* Date Display positioned relative to grid */}
-        {/* <div className="absolute top-2 left-2 z-50">
+          startHour={startHour}
+          endHour={endHour}
+          pixelsPerMinute={pixelsPerMinute}
+          actualRowCount={actualRowCount}
+          rowHeightPx={rowHeightPx}
+          isDragEnabled={isDragEnabled}
+          scale={pageZoom}
+          onScrollPositionChange={(pos) => {
+            setScrollLeft(pos.left);
+            setScrollTop(pos.top);
+          }}
+        >
+          {/* Date Display positioned relative to grid */}
+          {/* <div className="absolute top-2 left-2 z-50">
           <DateDisplay isHeaderHovered={isHeaderHovered} />
         </div> */}
-        {/* Zoom wrapper: layout-sized outer, transformed inner for scroll + visuals */}
-        <div style={{ width: `${contentWidth * pageZoom}px`, minHeight: `${contentHeight * pageZoom}px` }}>
-        <div style={{ transform: `scale(${pageZoom})`, transformOrigin: 'top left' }}>
-        <div className="min-w-max rounded-lg  h-content relative shadow-2xl " style={{ 
-          width: `${contentWidth}px`,
-          transition: 'width 200ms ease-in-out',
-          minHeight: '100%'
-        }}>
-          {/* Left labels overlay track placeholder */}
-          <div className="absolute inset-y-0 left-0 z-40 pointer-events-none" style={{ width: '96px' }} />
-          
-            <VerticalLines 
-              startHour={startHour} 
-              endHour={endHour} 
-              pixelsPerMinute={pixelsPerMinute} 
-            actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length|| 0)}
-              rowHeightPx={rowHeightPx}
-            />
-        
-         
-            <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
-              <CurrentTimeIndicator
-                startHour={startHour}
-                endHour={endHour}
-                pixelsPerMinute={pixelsPerMinute}
-              />
-            </div>
-         
-          {roomRows.map((room: any, index: number) => {
-            const roomEvents = getFilteredEventsForRoomCallback(room.name);
-        
-            return (
-              <RoomRow
-                key={`${room.name}`}
-                room={room.name}
-                roomEvents={roomEvents}
-                startHour={startHour}
-                pixelsPerMinute={pixelsPerMinute}
-              
-                onEventClick={handleEventClick}
-                isEvenRow={index % 2 === 0}
-                isLastRow={index === roomRows.length - 1}
-                isFloorBreak={false}
-                rowHeightPx={rowHeightPx}
-                hideLabel={true}
-              />
-            );
-          })}
-<div className="my-2 border-t border-white-300 ">
-          {filteredLCEvents?.map((roomData: any, index: number) => {
-            const roomEvents = roomData.events;
-            console.log("roomData", roomData);
-            return (
-              <RoomRow
-                key={`${roomData.room_name}`}
-                room={roomData.room_name}
-                roomEvents={roomEvents}
-                startHour={startHour}
-                pixelsPerMinute={pixelsPerMinute}
-              
-                onEventClick={handleEventClick}
-                isEvenRow={index % 2 === 0}
-                isLastRow={index === roomRows.length - 1}
-                isFloorBreak={false}
-                rowHeightPx={rowHeightPx}
-                hideLabel={true}
-              />
-            );
-          })}
-           </div>
-        </div>
-        </div>
-        {/* left labels overlay removed from inside; moved outside below */}
-        </div>
-      </DraggableGridContainer>
+          {/* Zoom wrapper: layout-sized outer, transformed inner for scroll + visuals */}
+          <div style={{ width: `${contentWidth * pageZoom}px`, minHeight: `${contentHeight * pageZoom}px` }}>
+            <div className="h-full" style={{ transform: `scale(${pageZoom})`, transformOrigin: 'top left' }}>
+              <div className="min-w-max rounded-lg h-full relative shadow-2xl " style={{
+                width: `${contentWidth}px`,
+                transition: 'width 200ms ease-in-out',
+                minHeight: '100%'
+              }}>
+                {/* Left labels overlay track placeholder */}
+                <div className="absolute inset-y-0 left-0 z-40 pointer-events-none" style={{ width: '96px' }} />
 
-      {/* Sticky left labels overlay (outside grid); translate Y with scroll and scale */}
-      <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
-        <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
-          <div style={{ position: 'relative' }}>
-            {roomRows.map((room: any) => {
-              const assignedUserId: string | null = (() => {
-                if (!showEventAssignments || !selectedShiftBlock || !Array.isArray((selectedShiftBlock as any).assignments)) return null;
-                const assignments: any[] = (selectedShiftBlock as any).assignments || [];
-                const match = assignments.find((a: any) => Array.isArray(a?.rooms) && a.rooms.includes(room.name));
-                return match?.user || null;
-              })();
-              return (
-                <ContextMenu key={`label-${room.name}`}>
+                <VerticalLines
+                  startHour={startHour}
+                  endHour={endHour}
+                  pixelsPerMinute={pixelsPerMinute}
+                  actualRowCount={(roomRows?.length || 0) + (filteredLCEvents?.length || 0)}
+                  rowHeightPx={rowHeightPx}
+                />
+
+
+                <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
+                  <CurrentTimeIndicator
+                    startHour={startHour}
+                    endHour={endHour}
+                    pixelsPerMinute={pixelsPerMinute}
+                  />
+                </div>
+
+                {roomRows.map((room: any, index: number) => {
+                  const roomEvents = getFilteredEventsForRoomCallback(room.name);
+
+                  return (
+                    <RoomRow
+                      key={`${room.name}`}
+                      room={room.name}
+                      roomEvents={roomEvents}
+                      startHour={startHour}
+                      pixelsPerMinute={pixelsPerMinute}
+
+                      onEventClick={handleEventClick}
+                      isEvenRow={index % 2 === 0}
+                      isLastRow={index === roomRows.length - 1}
+                      isFloorBreak={false}
+                      rowHeightPx={rowHeightPx}
+                      hideLabel={true}
+                    />
+                  );
+                })}
+                <div className="my-2 border-t border-white-300 ">
+                  {filteredLCEvents?.map((roomData: any, index: number) => {
+                    const roomEvents = roomData.events;
+                    console.log("roomData", roomData);
+                    return (
+                      <RoomRow
+                        key={`${roomData.room_name}`}
+                        room={roomData.room_name}
+                        roomEvents={roomEvents}
+                        startHour={startHour}
+                        pixelsPerMinute={pixelsPerMinute}
+
+                        onEventClick={handleEventClick}
+                        isEvenRow={index % 2 === 0}
+                        isLastRow={index === roomRows.length - 1}
+                        isFloorBreak={false}
+                        rowHeightPx={rowHeightPx}
+                        hideLabel={true}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            {/* left labels overlay removed from inside; moved outside below */}
+          </div>
+        </DraggableGridContainer>
+
+        {/* Sticky left labels overlay (outside grid); translate Y with scroll and scale */}
+        <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
+          <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
+            <div style={{ position: 'relative' }}>
+              {roomRows.map((room: any) => {
+                const assignedUserId: string | null = (() => {
+                  if (!showEventAssignments || !selectedShiftBlock || !Array.isArray((selectedShiftBlock as any).assignments)) return null;
+                  const assignments: any[] = (selectedShiftBlock as any).assignments || [];
+                  const match = assignments.find((a: any) => Array.isArray(a?.rooms) && a.rooms.includes(room.name));
+                  return match?.user || null;
+                })();
+                return (
+                  <ContextMenu key={`label-${room.name}`}>
+                    <ContextMenuTrigger asChild>
+                      <div style={{ height: `${rowHeightPx}px` }} className="flex flex-col items-center justify-center">
+                        <div className="pointer-events-auto flex flex-col items-center">
+                          <Badge
+                            className={`${isRoomSelected(room.name) ? 'ring-2 ring-blue-500' : ''}`}
+                            style={{
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none',
+                              MozUserSelect: 'none',
+                              msUserSelect: 'none'
+                            }}
+                            onClick={(e) => selectRoomLabel(room.name, e)}
+                          >
+                            {room.name.replace(/^GH\s+/, '')}
+                          </Badge>
+                          {assignedUserId && (
+                            <div className="mt-1">
+                              <UserAvatar userId={assignedUserId} size="sm" variant="solid" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </ContextMenuTrigger>
+                    {showEventAssignments && selectedShiftBlock && (
+                      <ContextMenuContent>
+                        {selectedRoomsSet.size > 0 && (
+                          <>
+                            <ContextMenuItem onClick={() => moveSelectedRooms(null)}>
+                              Move {selectedRoomsSet.size} selected to Unassigned
+                            </ContextMenuItem>
+                            {Array.isArray((selectedShiftBlock as any).assignments) && (selectedShiftBlock as any).assignments.map((a: any) => (
+                              <ContextMenuItem key={a.user} onClick={() => moveSelectedRooms(a.user)}>
+                                Move {selectedRoomsSet.size} selected to <UserNameDisplay userId={a.user} />
+                              </ContextMenuItem>
+                            ))}
+                          </>
+                        )}
+                      </ContextMenuContent>
+                    )}
+                  </ContextMenu>
+                );
+              })}
+              {filteredLCEvents?.map((roomData: any) => (
+                <ContextMenu key={`label-${roomData.room_name}`}>
                   <ContextMenuTrigger asChild>
-                    <div style={{ height: `${rowHeightPx}px` }} className="flex flex-col items-center justify-center">
-                      <div className="pointer-events-auto flex flex-col items-center">
-                        <Badge 
-                          className={`${isRoomSelected(room.name) ? 'ring-2 ring-blue-500' : ''}`}
-                          style={{ 
+                    <div style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
+                      <div className="pointer-events-auto">
+                        <Badge
+                          className={`${isRoomSelected(roomData.room_name) ? 'ring-2 ring-blue-500' : ''}`}
+                          style={{
                             userSelect: 'none',
                             WebkitUserSelect: 'none',
                             MozUserSelect: 'none',
                             msUserSelect: 'none'
                           }}
-                          onClick={(e) => selectRoomLabel(room.name, e)}
+                          onClick={(e) => selectRoomLabel(roomData.room_name, e)}
                         >
-                          {room.name.replace(/^GH\s+/, '')}
+                          {roomData.room_name}
                         </Badge>
-                        {assignedUserId && (
-                          <div className="mt-1">
-                            <UserAvatar userId={assignedUserId} size="sm" variant="solid" />
-                          </div>
-                        )}
                       </div>
                     </div>
                   </ContextMenuTrigger>
@@ -529,60 +569,21 @@ export default function HomePage() {
                     </ContextMenuContent>
                   )}
                 </ContextMenu>
-              );
-            })}
-            {filteredLCEvents?.map((roomData: any) => (
-              <ContextMenu key={`label-${roomData.room_name}`}>
-                <ContextMenuTrigger asChild>
-                  <div style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
-                    <div className="pointer-events-auto">
-                      <Badge 
-                        className={`${isRoomSelected(roomData.room_name) ? 'ring-2 ring-blue-500' : ''}`}
-                        style={{ 
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                          MozUserSelect: 'none',
-                          msUserSelect: 'none'
-                        }}
-                        onClick={(e) => selectRoomLabel(roomData.room_name, e)}
-                      >
-                        {roomData.room_name}
-                      </Badge>
-                    </div>
-                  </div>
-                </ContextMenuTrigger>
-                {showEventAssignments && selectedShiftBlock && (
-                  <ContextMenuContent>
-                    {selectedRoomsSet.size > 0 && (
-                      <>
-                        <ContextMenuItem onClick={() => moveSelectedRooms(null)}>
-                          Move {selectedRoomsSet.size} selected to Unassigned
-                        </ContextMenuItem>
-                        {Array.isArray((selectedShiftBlock as any).assignments) && (selectedShiftBlock as any).assignments.map((a: any) => (
-                          <ContextMenuItem key={a.user} onClick={() => moveSelectedRooms(a.user)}>
-                            Move {selectedRoomsSet.size} selected to <UserNameDisplay userId={a.user} />
-                          </ContextMenuItem>
-                        ))}
-                      </>
-                    )}
-                  </ContextMenuContent>
-                )}
-              </ContextMenu>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Absolutely positioned no-events message */}
-      {(!filteredEvents || filteredEvents.length === 0) && !isLoading && (
-        <NoEventsMessage />
-      )}
-      {/* Event Detail Modal as shadcn Dialog */}
-      <Dialog open={Boolean(isEventDetailRoute && eventId)} onOpenChange={(open) => { if (!open) navigate(`/${date}`) }}>
-        <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg bg-transparent border-0 shadow-none p-0">
-          <EventDetail />
-        </DialogContent>
-      </Dialog>
+        {/* Absolutely positioned no-events message */}
+        {(!filteredEvents || filteredEvents.length === 0) && !isLoading && (
+          <NoEventsMessage />
+        )}
+        {/* Event Detail Modal as shadcn Dialog */}
+        <Dialog open={Boolean(isEventDetailRoute && eventId)} onOpenChange={(open) => { if (!open) navigate(`/${date}`) }}>
+          <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg bg-transparent border-0 shadow-none p-0">
+            <EventDetail />
+          </DialogContent>
+        </Dialog>
       </div> {/* Close main content area div */}
 
     </div>

@@ -89,6 +89,56 @@ export default function EventDetailHeader({
  
 
 
+  // Reusable section renderer for resources
+  const ResourceSection: React.FC<{ title: string; items: ResourceItem[]; keyPrefix: string }> = ({ title, items, keyPrefix }) => (
+    <>
+      <div className="flex items-center justify-between px-1 pb-1">
+        <div className="text-xs font-medium">{title}</div>
+        <Badge variant="default" className="text-[10px] px-2 py-0.5">
+          {items.length}
+        </Badge>
+      </div>
+      <ItemGroup>
+        {items.map((item, index) => (
+          <Item key={`${keyPrefix}-${index}`} size="sm" className="flex-nowrap">
+            <ItemMedia>
+              {item.icon}
+            </ItemMedia>
+            <ItemContent className="min-w-0">
+              <ItemTitle>{item.displayName}</ItemTitle>
+              {item.instruction && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ItemDescription className="truncate line-clamp-1" title={item.instruction}>
+                      {item.instruction}
+                    </ItemDescription>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="start" className="max-w-xs">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                        {item.itemName}
+                      </Badge>
+                    </div>
+                    <div className="whitespace-pre-wrap">
+                      {item.instruction}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </ItemContent>
+            {item.quantity && item.quantity > 1 && (
+              <ItemActions>
+                <Badge variant="default" className="text-[10px] px-2 py-0.5">
+                  x{item.quantity}
+                </Badge>
+              </ItemActions>
+            )}
+          </Item>
+        ))}
+      </ItemGroup>
+    </>
+  );
+
   return (
     <div className="  bg-background rounded-xl  p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between"  >
     
@@ -324,84 +374,12 @@ export default function EventDetailHeader({
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                       <div>
                         {(avResources.length > 0 || otherResources.length === 0) && (
-                          <>
-                            <div className="flex items-center justify-between px-1 pb-1">
-                              <div className="text-xs font-medium">AV Resources</div>
-                              <Badge variant="default" className="text-[10px] px-2 py-0.5">
-                                {avResources.length}
-                              </Badge>
-                            </div>
-                            <ItemGroup>
-                              {avResources.map((item, index) => (
-                                <Item key={`av-${index}`} size="sm">
-                                  <ItemMedia>
-                                    {item.icon}
-                                  </ItemMedia>
-                                  <ItemContent>
-                                    <ItemTitle>{item.displayName}</ItemTitle>
-                                    {item.instruction && (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <ItemDescription title={item.instruction}>{item.instruction}</ItemDescription>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" align="start" className="max-w-xs whitespace-pre-wrap">
-                                          {item.instruction}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    )}
-                                  </ItemContent>
-                                  {item.quantity && item.quantity > 1 && (
-                                    <ItemActions>
-                                      <Badge variant="default" className="text-[10px] px-2 py-0.5">
-                                        x{item.quantity}
-                                      </Badge>
-                                    </ItemActions>
-                                  )}
-                                </Item>
-                              ))}
-                            </ItemGroup>
-                          </>
+                          <ResourceSection title="AV Resources" items={avResources} keyPrefix="av" />
                         )}
                       </div>
                       <div>
                         {otherResources.length > 0 && (
-                          <>
-                            <div className="flex items-center justify-between px-1 pb-1">
-                              <div className="text-xs font-medium">General Resources</div>
-                              <Badge variant="default" className="text-[10px] px-2 py-0.5">
-                                {otherResources.length}
-                              </Badge>
-                            </div>
-                            <ItemGroup>
-                              {otherResources.map((item, index) => (
-                                <Item key={`other-${index}`} size="sm">
-                                  <ItemMedia>
-                                    {item.icon}
-                                  </ItemMedia>
-                                  <ItemContent>
-                                    <ItemTitle>{item.displayName}</ItemTitle>
-                                    {item.instruction && (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <ItemDescription title={item.instruction}>{item.instruction}</ItemDescription>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" align="start" className="max-w-xs whitespace-pre-wrap">
-                                          {item.instruction}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    )}
-                                  </ItemContent>
-                                  {item.quantity && item.quantity > 1 && (
-                                    <ItemActions>
-                                      <Badge variant="outline" className="text-[10px] px-2 py-0.5">
-                                        x{item.quantity}
-                                      </Badge>
-                                    </ItemActions>
-                                  )}
-                                </Item>
-                              ))}
-                            </ItemGroup>
-                          </>
+                          <ResourceSection title="General Resources" items={otherResources} keyPrefix="other" />
                         )}
                       </div>
                     </div>
