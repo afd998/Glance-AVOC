@@ -1,9 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { User } from '@supabase/supabase-js';
+
+// Helper function to create a profile if it doesn't exist
+const createProfile = async (user: User) => {
+  console.log('[createProfile] Creating profile for user:', user.id);
+  
+  const profileData = {
+    id: user.id,
+    name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    auto_hide: false,
+    theme: 'light',
+    roles: [],
+    // Set default values for other fields
+    bg: null,
+    color: null,
+    current_filter: null,
+    pixels_per_min: 2,
+    row_height: 96,
+    zoom: 1.0
+  };
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert(profileData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[createProfile] Error creating profile:', error);
+    throw error;
+  }
+
+  console.log('[createProfile] Profile created successfully:', data);
+  return data;
+};
 
 export const useProfile = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
   // Query key for profile data
@@ -13,18 +48,46 @@ export const useProfile = () => {
   const { data: profile, isLoading, error, refetch } = useQuery({
     queryKey: profileQueryKey,
     queryFn: async () => {
-      if (!user) throw new Error('No user');
+      if (!user) {
+        throw new Error('No user');
+      }
       
+      console.log('[useProfile] Fetching profile for user:', {
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.user_metadata?.name || user.user_metadata?.full_name
+      });
+      
+      // Try explicit column selection first
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, name, auto_hide, bg, color, current_filter, pixels_per_min, roles, row_height, theme, zoom')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useProfile] Query error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        // If profile doesn't exist, try to create it
+        if (error.code === 'PGRST116') {
+          console.log('[useProfile] Profile not found, attempting to create...');
+          return await createProfile(user);
+        }
+        
+        throw error;
+      }
+      
+      console.log('[useProfile] Raw profile data:', data);
+      console.log('[useProfile] Profile keys:', data ? Object.keys(data) : 'No data');
+      
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -194,9 +257,11 @@ export const useProfile = () => {
     return raw;
   })();
 
+
   return {
     // Data
     profile,
+   
     autoHide: profile?.auto_hide || false,
     currentFilter: profile?.current_filter,
     theme: profile?.theme || 'light', // Default to light theme

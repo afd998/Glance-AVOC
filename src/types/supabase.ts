@@ -480,7 +480,6 @@ export type Database = {
       room_filters: {
         Row: {
           created_at: string
-          default: boolean | null
           display: Json | null
           id: number
           name: string | null
@@ -488,7 +487,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          default?: boolean | null
           display?: Json | null
           id?: number
           name?: string | null
@@ -496,7 +494,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          default?: boolean | null
           display?: Json | null
           id?: number
           name?: string | null

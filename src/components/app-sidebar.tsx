@@ -45,13 +45,11 @@ import { useTheme } from "../contexts/ThemeContext"
 import { useBackground } from "../features/ThemeModal/useBackground"
 import NotificationsModal from "../features/notifications/NotificationsModal"
 import BackgroundSelectorModal from "../features/ThemeModal/BackgroundSelectorModal"
-import { useAuth } from "../contexts/AuthContext"
 import useModalStore from "../stores/modalStore"
 import FilterRoomsModal from "../features/Schedule/components/FilterRoomsModal"
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useProfile } from "../core/User/useProfile";
-import * as ReactQuery from '@tanstack/react-query'
 
 // Navigation data for the sidebar
 const data = {
@@ -117,12 +115,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isDarkMode } = useTheme();
   const { currentBackground } = useBackground();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
-  const { user } = useAuth();
   const { pageZoom, setPageZoom } = useZoom();
   const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx, pixelsPerMinute, rowHeightPx } = usePixelMetrics();
-  const { updateZoom, updatePixelsPerMin, updateRowHeight, currentFilter } = useProfile();
-  const queryClient = ReactQuery.useQueryClient();
-  const profileKey = React.useMemo(() => ['profile', user?.id], [user?.id]);
+  const { profile, updateZoom, updatePixelsPerMin, updateRowHeight, currentFilter } = useProfile();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   
   // Check if we're on the home page (/{date} route) with 100% zoom
@@ -171,13 +166,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ...data,
     user: {
       ...data.user,
-      id: user?.id,
-      name: user?.user_metadata?.full_name || user?.email || "User",
-      email: user?.email || "user@example.com",
+      id: profile?.id,
+      name: profile?.name || "User",
+      email: profile?.id || "user@example.com", // Using ID as fallback since we don't store email in profile
     },
     navMain: [],
     projects: [],
-  }), [date, user]);
+  }), [date, profile]);
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
   const urlDayNumericClass = React.useMemo(() => {
@@ -324,8 +319,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueCommit={(v) => {
                       const val = v[0];
                       console.log('[Sidebar] onValueCommit zoom ->', val);
-                      // optimistic update: update cache's zoom
-                      queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, zoom: val } : old);
+                      // Use the proper mutation from useProfile instead of direct cache manipulation
                       updateZoom(val);
                     }}
                     className="w-full"
@@ -353,7 +347,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueCommit={(v) => {
                       const val = v[0];
                       console.log('[Sidebar] onValueCommit pixels_per_min ->', val);
-                      queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, pixels_per_min: val } : old);
+                      // Use the proper mutation from useProfile instead of direct cache manipulation
                       updatePixelsPerMin(val);
                     }}
                     className="w-full"
@@ -380,7 +374,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueCommit={(v) => {
                       const val = v[0];
                       console.log('[Sidebar] onValueCommit row_height ->', val);
-                      queryClient.setQueryData(profileKey, (old: any) => old ? { ...old, row_height: val } : old);
+                      // Use the proper mutation from useProfile instead of direct cache manipulation
                       updateRowHeight(val);
                     }}
                     className="w-full"

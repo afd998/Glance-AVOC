@@ -1,29 +1,12 @@
 import React from 'react';
 import { useProfile } from '../../../core/User/useProfile';
-import { useFilters } from '../../Schedule/hooks/useFilters';
+import { useClearFilter } from '../hooks/useClearFilter';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 
 const NoEventsMessage: React.FC = () => {
   const { currentFilter } = useProfile();
-  const { loadFilter, getFilterByName } = useFilters();
-
-  // Handler to clear the current filter (load "All Rooms" filter)
-  const handleClearFilter = async () => {
-    try {
-      // Check if there's already an "All Rooms" filter
-      const allRoomsFilter = getFilterByName('All Rooms');
-      
-      if (allRoomsFilter) {
-        await loadFilter(allRoomsFilter);
-      } else {
-       
-      }
-    } catch (error) {
-      console.error('Error handling clear filter:', error);
-    
-    }
-  };
+  const { handleClearFilter } = useClearFilter();
 
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

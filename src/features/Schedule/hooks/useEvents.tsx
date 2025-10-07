@@ -5,7 +5,6 @@ import { Database } from '../../../types/supabase';
 import { isUserEventOwner } from '../../../utils/eventUtils';
 import { useProfile } from '../../../core/User/useProfile';
 import { useFilters } from './useFilters';
-import { useAuth } from '../../../contexts/AuthContext';
 import { useShiftBlocks, ShiftBlock } from '../../SessionAssignments/hooks/useShiftBlocks';
 import { useEvent } from '../../../core/event/hooks/useEvent';
 import { useRooms } from '../../../core/Rooms/useRooms';
@@ -51,6 +50,7 @@ export const updateEventInCache = (
 };
 
 export function useEvents(date: Date) {
+  const queryClient = useQueryClient();
 
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
@@ -68,6 +68,15 @@ export function useEvents(date: Date) {
     refetchOnReconnect: false, // Don't refetch when reconnecting
     placeholderData: undefined, // Don't show any placeholder data
   });
+
+  // Invalidate filtered events queries when events data changes
+  useEffect(() => {
+    if (filteredEvents !== undefined) {
+      // Force refetch derived queries that depend on base events
+      queryClient.refetchQueries({ queryKey: ['events:filtered'] });
+      queryClient.refetchQueries({ queryKey: ['events:filteredLC', dateString] });
+    }
+  }, [filteredEvents, dateString, queryClient]);
 
   return { data: filteredEvents, isLoading, error, isFetching };
 }
@@ -133,11 +142,9 @@ export function useRoomRows(filteredEvents: Event[]) {
 
 export  function useFilteredEvents(date: Date) {
 const { data: events, isLoading, error, isFetching } = useEvents(date);
-const  { currentFilter } = useProfile();
+const  { profile, currentFilter } = useProfile();
+
 const { filters } = useFilters();
-const { user } = useAuth();
-console.log("useFilteredEvents", currentFilter);
-console.log("useFilteredEvents events", events);
   // Convert date to string for consistent query key
   const dateString = date.toISOString().split('T')[0];
   const { data: allShiftBlocks = [] } = useShiftBlocks(dateString);
@@ -148,13 +155,13 @@ const filteredQ = useQuery({
   // no network: read cached base data and compute
   queryFn: () => {
     
-    const userId = user?.id ?? null;
+    const userId = profile?.id ?? null;
     return filterEvents(events, currentFilter?? null, filters, userId, allShiftBlocks);
   },
   // keep it in memory so toggling days back/forward reuses it
   staleTime: Infinity,
   gcTime: 1000 * 60 * 60, // 1h (tune as you like)
-  enabled: events !== undefined &&  events !== null && ((currentFilter === "My Events") ? (allShiftBlocks !== undefined) : true) && currentFilter !== undefined,
+  enabled: events !== undefined && allShiftBlocks !== undefined  && currentFilter !== undefined && events !== null && currentFilter !== null,
 });
 
 return {

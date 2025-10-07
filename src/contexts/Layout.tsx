@@ -1,15 +1,12 @@
 import React, { ReactNode, useEffect } from 'react';
-import { useBackground } from './ThemeModal/useBackground';
-import { useRain } from '../contexts/RainContext';
-import { useSnow } from '../contexts/SnowContext';
+import { useBackground } from '../features/ThemeModal/useBackground';
+
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useHeader, BreadcrumbItem } from '../contexts/HeaderContext';
-import RainOverlay from './ThemeModal/components/RainOverlay';
-import LeavesOverlay from './ThemeModal/components/LeavesOverlay';
-import SnowOverlay from './ThemeModal/components/SnowOverlay';
+import { useHeader, BreadcrumbItem } from './HeaderContext';
+
 import { AppSidebar } from '../components/app-sidebar';
 import { SidebarInset, SidebarTrigger } from '../components/ui/sidebar';
-import { NotificationBell } from './notifications/NotificationBell';
+import { NotificationBell } from '../features/notifications/NotificationBell';
 import { Home, ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import {
   Breadcrumb,
@@ -22,10 +19,10 @@ import {
 import { Button } from '../components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { ZoomProvider, useZoom } from '../contexts/ZoomContext';
-import { PixelMetricsProvider, usePixelMetrics } from '../contexts/PixelMetricsContext';
+import { ZoomProvider, useZoom } from './ZoomContext';
+import { PixelMetricsProvider, usePixelMetrics } from './PixelMetricsContext';
 import { useProfile } from '../core/User/useProfile';
-import { useEventAssignments } from '../contexts/EventAssignmentsContext';
+import { useEventAssignments } from './EventAssignmentsContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -44,8 +41,7 @@ const fetchFacultyById = async (facultyId: string) => {
 
 const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
-  const { isRainEnabled } = useRain();
-  const { isSnowEnabled } = useSnow();
+
   const { pageZoom, setPageZoom } = useZoom();
   const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx } = usePixelMetrics();
   const { zoom, pixelsPerMin, rowHeightPx } = useProfile();
@@ -254,14 +250,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
       
-      {/* Rain Overlay */}
-      {ENABLE_ALL_WEATHER_EFFECTS && <RainOverlay isEnabled={isRainEnabled} />}
-
-      {/* Leaves Overlay */}
-      {ENABLE_ALL_WEATHER_EFFECTS && <LeavesOverlay />}
-      
-      {/* Snow Overlay */}
-      {ENABLE_ALL_WEATHER_EFFECTS && <SnowOverlay isEnabled={isSnowEnabled} />}
+     
       
       {/* AVOC HOME Text Overlay */}
       {showAvocHomeText && (

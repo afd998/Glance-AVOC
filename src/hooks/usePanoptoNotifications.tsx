@@ -177,7 +177,6 @@ export const usePanoptoNotifications = (date: Date) => {
       if (!user) return;
   
       const checkId = `${event.id}-check-${checkNumber}`;
-      console.log(`🎯 Starting to send Panopto check:`, { checkId, eventName: event.event_name });
       
       try {
         // Create system notification only (no in-app notifications for Panopto checks)
@@ -234,21 +233,15 @@ export const usePanoptoNotifications = (date: Date) => {
           // Skip if user is not assigned
           const isAssigned = memoizedIsUserEventOwner(event, user.id, memoizedAllShiftBlocks);
           if (!isAssigned) {
-            console.log(`⏭️ Skipping ${event.event_name} - user not assigned:`, {
-              userId: user.id,
-              eventName: event.event_name,
-              shiftBlocksCount: memoizedAllShiftBlocks.length
-            });
+
             continue;
           }
   
           // Skip if event is not currently active
           if (!isEventCurrentlyActive(event)) {
-            console.log(`⏭️ Skipping ${event.event_name} - not currently active`);
             continue;
           }
   
-          console.log(`✅ Found active recording event: ${event.event_name}`);
   
           // Calculate which check number should be due
           const eventStart = new Date(`${event.date}T${event.start_time}`);
@@ -257,7 +250,6 @@ export const usePanoptoNotifications = (date: Date) => {
   
           // Skip if no checks are due yet
           if (checkNumber < 1) {
-            console.log(`⏭️ Skipping ${event.event_name} - no checks due yet (check #${checkNumber})`);
             continue;
           }
   
@@ -265,24 +257,15 @@ export const usePanoptoNotifications = (date: Date) => {
           const checkDueTime = eventStart.getTime() + (checkNumber - 1) * PANOPTO_CHECK_INTERVAL;
           const timeUntilCheck = checkDueTime - now.getTime();
   
-          console.log(`📊 Check analysis for ${event.event_name}:`, {
-            checkNumber,
-            timeSinceStart: Math.floor(timeSinceStart / 60000), // minutes
-            timeUntilCheck: Math.floor(timeUntilCheck / 60000), // minutes
-            isDue: timeUntilCheck <= 0 && timeUntilCheck > -60000
-          });
+          
   
           // Check is due if it's within the last minute and hasn't been sent
           if (timeUntilCheck <= 0 && timeUntilCheck > -60000) { // Within last minute
             const alreadySent = await isCheckSent(event.id, checkNumber);
             
-            console.log(`🔍 Check #${checkNumber} for ${event.event_name}:`, {
-              alreadySent,
-              willSend: !alreadySent
-            });
+        
             
             if (!alreadySent) {
-              console.log(`🚀 Sending Panopto check #${checkNumber} for ${event.event_name}`);
               await sendPanoptoCheck(event, checkNumber);
             }
           }

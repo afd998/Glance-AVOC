@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./features/Layout";
+import Layout from "./contexts/Layout";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -8,9 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./index.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
-import { RainProvider } from './contexts/RainContext';
-import { LeavesProvider } from './contexts/LeavesContext';
-import { SnowProvider } from './contexts/SnowContext';
+
 import performanceMonitor from './utils/performanceMonitor';
 import { TooltipProvider } from './components/ui/tooltip';
 import { SidebarProvider } from './components/ui/sidebar';
@@ -44,9 +42,7 @@ export default function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <RainProvider>
-            <LeavesProvider>
-              <SnowProvider>
+        
                 <TooltipProvider>
                   <SidebarProvider defaultOpen={false}>
                     <HeaderProvider>
@@ -73,9 +69,7 @@ export default function App() {
                   </SidebarProvider>
                 </TooltipProvider>
                 <ReactQueryDevtools initialIsOpen={false} />
-              </SnowProvider>
-            </LeavesProvider>
-          </RainProvider>
+          
         </ThemeProvider>
       </QueryClientProvider>
     </AuthProvider>
