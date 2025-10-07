@@ -308,8 +308,10 @@ export default function HomePage() {
       {/* Sticky time header overlay (outside grid), full content width */}
       <div className="sticky top-0 z-50 overflow-hidden" style={{ height: `${headerHeightPx * pageZoom}px` }}>
         <div style={{ width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx * pageZoom}px`, transform: `translateX(-${scrollLeft}px)` }}>
-          <div style={{ transform: `scaleY(${pageZoom})`, transformOrigin: 'top left', width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx}px` }}>
-            <TimeGrid startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute * pageZoom} sticky={false} />
+          <div style={{ 
+            transform: `scaleY(${pageZoom})`, 
+            transformOrigin: 'top left', width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx}px` }}>
+            <TimeGrid pageZoom={pageZoom} startHour={startHour} endHour={endHour} pixelsPerMinute={pixelsPerMinute * pageZoom} sticky={false} />
           </div>
         </div>
       </div>

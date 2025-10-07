@@ -341,7 +341,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Slider
                     value={[basePixelsPerMinute]}
                     min={0.5}
-                    max={4}
+                    max={8}
                     step={0.1}
                     onValueChange={(v) => setBasePixelsPerMinute(v[0])}
                     onValueCommit={(v) => {

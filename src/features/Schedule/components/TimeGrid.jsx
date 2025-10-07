@@ -1,7 +1,7 @@
 import React from 'react';
 import { Separator } from '../../../components/ui/separator';
 
-export default function TimeGrid({ startHour, endHour, pixelsPerMinute, sticky = true }) {
+export default function TimeGrid({pageZoom, startHour, endHour, pixelsPerMinute, sticky = true }) {
   
   const hours = Array.from(
     { length: endHour - startHour + 1 },
@@ -25,14 +25,18 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute, sticky =
     return (
              <div
          key={hour}
-         className="absolute text-foreground text-center text-xs  font-bold px-2 py-1 transition-all duration-200 ease-in-out"
+         className="absolute text-foreground text-center text-xs font-bold px-2 transition-all duration-200 ease-in-out"
          style={{ 
            left: `${left}px`,
-           top: '0px',
-           zIndex: 53
+           top: '-12px', // Adjust top position to center the scaled text
+           zIndex: 53,
+           height: '48px', // Give enough height for the scaled text
+           display: 'flex',
+           alignItems: 'center',
+           justifyContent: 'center'
          }}
        >
-        {formatHour(hour)}
+        <span style={{ transform: `scaleY(${1/pageZoom})` }}> {formatHour(hour)}</span>
       </div>
     );
   }).filter(Boolean);
