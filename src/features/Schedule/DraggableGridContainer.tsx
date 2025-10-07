@@ -11,15 +11,9 @@ interface DraggableGridContainerProps {
   isDragEnabled: boolean;
   onScrollPositionChange?: (position: { left: number; top: number }) => void;
   rowHeightPx?: number;
-  scale?: number;
+  pageZoom?: number;
 }
 
-interface EdgeHighlight {
-  top: boolean;
-  bottom: boolean;
-  left: boolean;
-  right: boolean;
-}
 
 interface DragStart {
   x: number;
@@ -29,7 +23,6 @@ interface DragStart {
 };
 
 const THROTTLE_INTERVAL = 16; // ~60fps
-const EDGE_HIGHLIGHT_THROTTLE = 50; // Update edge highlights less frequently
 
 const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainerProps>(({
   children,
@@ -42,7 +35,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   isDragEnabled,
   onScrollPositionChange,
   rowHeightPx = 96,
-  scale = 1
+  pageZoom
 }, ref) => {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   
@@ -54,16 +47,9 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
   // Drag-to-scroll functionality
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<DragStart>({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
-  const [edgeHighlight, setEdgeHighlight] = useState<EdgeHighlight>({ 
-    top: false, 
-    bottom: false, 
-    left: false, 
-    right: false 
-  });
   
   // Throttling for performance
   const lastThrottledMove = useRef(0);
-  const lastEdgeHighlightUpdate = useRef(0);
 
   // Helper function to clamp scroll values within boundaries
   const clampScrollPosition = useCallback((scrollLeft: number, scrollTop: number) => {
@@ -73,9 +59,9 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     const { clientWidth, clientHeight } = container;
     
     // Calculate the actual content dimensions (header is rendered outside scaled content)
-    const scaleFactor = scale || 1;
+    const scaleFactor = pageZoom || 1;
     const actualContentWidth = ((endHour - startHour) * 60 * pixelsPerMinute) * scaleFactor;
-    const actualContentHeight = ((actualRowCount * rowHeightPx)) * scaleFactor;
+    const actualContentHeight = ((actualRowCount * rowHeightPx)) * scaleFactor +0;
     
     
     // Calculate maximum scroll positions with iOS-specific adjustments
@@ -88,54 +74,10 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     // Clamp the values with more lenient boundaries for iOS
     return {
       scrollLeft: Math.max(-iosBuffer, Math.min(scrollLeft, maxScrollLeft)),
-      scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop))
+      scrollTop: Math.max(-iosBuffer, Math.min(scrollTop, maxScrollTop)) 
     };
-  }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, scale]);
+  }, [endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, pageZoom]);
 
-  // Function to check and update edge highlighting
-  const updateEdgeHighlight = useCallback(() => {
-    if (!containerRef.current || !isDragging) return;
-    
-    const currentTime = Date.now();
-    
-    // Throttle edge highlight updates for better performance
-    if (currentTime - lastEdgeHighlightUpdate.current < EDGE_HIGHLIGHT_THROTTLE) {
-      return;
-    }
-    lastEdgeHighlightUpdate.current = currentTime;
-    
-    const container = containerRef.current;
-    const { scrollLeft, scrollTop, clientWidth, clientHeight } = container;
-    
-    // Calculate the actual content dimensions (header is rendered outside scaled content)
-    const scaleFactor = scale || 1;
-    const actualContentWidth = ((endHour - startHour) * 60 * pixelsPerMinute) * scaleFactor;
-    const actualContentHeight = ((actualRowCount * rowHeightPx)) * scaleFactor;
-    
-    // Add tolerance for edge detection
-    const tolerance = 20;
-    const scrollBuffer = 8; // Additional buffer to ensure all content is accessible
-    const maxScrollLeft = Math.max(0, actualContentWidth - clientWidth);
-    const maxScrollTop = Math.max(0, actualContentHeight - clientHeight + scrollBuffer);
-    
-    // Edge detection
-    const newEdgeHighlight = {
-      top: scrollTop <= tolerance,
-      bottom: scrollTop >= maxScrollTop - tolerance,
-      left: scrollLeft <= tolerance,
-      right: scrollLeft >= maxScrollLeft - tolerance
-    };
-    
-    // Check if we hit any edge
-    const hitAnyEdge = newEdgeHighlight.top || newEdgeHighlight.bottom || newEdgeHighlight.left || newEdgeHighlight.right;
-    
-    if (hitAnyEdge) {
-      setEdgeHighlight(newEdgeHighlight);
-    } else {
-      // Clear highlights immediately when not hitting any edge
-      setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
-    }
-  }, [isDragging, endHour, startHour, pixelsPerMinute, actualRowCount, rowHeightPx, scale]);
 
   // Drag-to-scroll handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -194,8 +136,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     containerRef.current.scrollLeft = clampedPosition.scrollLeft;
     containerRef.current.scrollTop = clampedPosition.scrollTop;
     
-    // Update edge highlighting after scroll (throttled)
-    updateEdgeHighlight();
     
     // Notify parent of scroll position change
     if (onScrollPositionChange) {
@@ -204,7 +144,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
         top: clampedPosition.scrollTop
       });
     }
-  }, [isDragging, dragStart, clampScrollPosition, updateEdgeHighlight, onScrollPositionChange]);
+  }, [isDragging, dragStart, clampScrollPosition, onScrollPositionChange]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -215,8 +155,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     }
     // Restore text selection on document body
     document.body.style.userSelect = '';
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, [isDragEnabled]);
 
   const handleMouseLeave = useCallback(() => {
@@ -228,8 +166,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     }
     // Restore text selection on document body
     document.body.style.userSelect = '';
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, [isDragEnabled]);
 
   // Handle wheel events for normal scrolling
@@ -322,8 +258,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
     containerRef.current.scrollLeft = clampedPosition.scrollLeft;
     containerRef.current.scrollTop = clampedPosition.scrollTop;
     
-    // Update edge highlighting after scroll (throttled)
-    updateEdgeHighlight();
     
     // Notify parent of scroll position change
     if (onScrollPositionChange) {
@@ -332,7 +266,7 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
         top: clampedPosition.scrollTop
       });
     }
-  }, [isDragging, dragStart, clampScrollPosition, updateEdgeHighlight, onScrollPositionChange]);
+  }, [isDragging, dragStart, clampScrollPosition, onScrollPositionChange]);
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -346,8 +280,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       }, 100);
     }
     
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, []);
 
   const handleTouchCancel = useCallback(() => {
@@ -358,8 +290,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
       containerRef.current.classList.remove('momentum-scrolling');
     }
     
-    // Clear edge highlights immediately when dragging stops
-    setEdgeHighlight({ top: false, bottom: false, left: false, right: false });
   }, []);
 
   // Cleanup effect to restore text selection if component unmounts while dragging
@@ -384,36 +314,6 @@ const DraggableGridContainer = forwardRef<HTMLDivElement, DraggableGridContainer
 
   return (
     <div className="relative ">
-      {/* Edge highlighting overlays - temporarily commented out 
-      {edgeHighlight.top && (
-        <div className="absolute -top-20 -left-20 -right-20 h-20 z-100 pointer-events-none edge-highlight"
-             style={{
-               boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-               background: 'rgba(255, 255, 255, 0.1)'
-             }} />
-      )}
-      {edgeHighlight.bottom && (
-        <div className="absolute -bottom-20 -left-20 -right-20 h-20 z-100 pointer-events-none edge-highlight"
-             style={{
-               boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-               background: 'rgba(255, 255, 255, 0.1)'
-             }} />
-      )}
-      {edgeHighlight.left && (
-        <div className="absolute -top-4 -left-20 -bottom-4 w-20 z-100 pointer-events-none edge-highlight"
-             style={{
-               boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-               background: 'rgba(255, 255, 255, 0.1)'
-             }} />
-      )}
-      {edgeHighlight.right && (
-        <div className="absolute -top-4 -right-20 -bottom-4 w-20 z-100 pointer-events-none edge-highlight"
-             style={{
-               boxShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)',
-               background: 'rgba(255, 255, 255, 0.1)'
-             }} />
-      )}
-      */}
       
       {/* The actual scrollable container */}
       <div 

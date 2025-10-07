@@ -327,21 +327,18 @@ export default function HomePage() {
         <div className="text-2xl font-semibold text-white/70 leading-none mt-1">HOME</div>
       </div> */}
 
-       
 
+<div className="h-full">
         {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container  h-[calc(100vh-6rem)] rounded-b-lg relative overflow-hidden"
-          style={{
-            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
-          }}
+          className={`grid-container ${showEventAssignments ? "h-[calc(100vh-12rem)]": "h-[calc(100vh-6rem)]"}  rounded-b-lg relative overflow-hidden`}
           startHour={startHour}
           endHour={endHour}
           pixelsPerMinute={pixelsPerMinute}
           actualRowCount={actualRowCount}
           rowHeightPx={rowHeightPx}
           isDragEnabled={isDragEnabled}
-          scale={pageZoom}
+          pageZoom={pageZoom}
           onScrollPositionChange={(pos) => {
             setScrollLeft(pos.left);
             setScrollTop(pos.top);
@@ -426,7 +423,7 @@ export default function HomePage() {
             {/* left labels overlay removed from inside; moved outside below */}
           </div>
         </DraggableGridContainer>
-
+        </div>
         {/* Sticky left labels overlay (outside grid); translate Y with scroll and scale */}
         <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
           <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
