@@ -21,7 +21,7 @@ import {
   ZoomIn,
   ClipboardList,
 } from "lucide-react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
 
 import { NavUser } from "./nav-user"
 import {
@@ -113,6 +113,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { date } = useParams();
+  const location = useLocation();
   const { isDarkMode } = useTheme();
   const { currentBackground } = useBackground();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
@@ -123,6 +124,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const queryClient = ReactQuery.useQueryClient();
   const profileKey = React.useMemo(() => ['profile', user?.id], [user?.id]);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  
+  // Check if we're on the home page (/{date} route) with 100% zoom
+  const isHomePage = React.useMemo(() => {
+    const match = location.pathname.match(/^\/\d{4}-\d{2}-\d{2}$/) !== null;
+    console.log('[Sidebar] isHomePage check:', { pathname: location.pathname, match });
+    return match;
+  }, [location.pathname]);
+  
+  const isAt100PercentZoom = pageZoom === 1;
+  
+  const shouldShowEventAssignmentsButton = isHomePage && isAt100PercentZoom;
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Sidebar] Event Assignments Button Debug:', {
+      pathname: location.pathname,
+      isHomePage,
+      pageZoom,
+      isAt100PercentZoom,
+      shouldShowEventAssignmentsButton
+    });
+  }, [location.pathname, isHomePage, pageZoom, isAt100PercentZoom, shouldShowEventAssignmentsButton]);
   
   // Selected date is driven by the URL param when present
   const selectedDate = React.useMemo(() => {
@@ -146,9 +169,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Create navigation data with proper URLs
   const navigationData = React.useMemo(() => ({
     ...data,
+    user: {
+      ...data.user,
+      id: user?.id,
+      name: user?.user_metadata?.full_name || user?.email || "User",
+      email: user?.email || "user@example.com",
+    },
     navMain: [],
     projects: [],
-  }), [date]);
+  }), [date, user]);
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
   const urlDayNumericClass = React.useMemo(() => {
@@ -215,6 +244,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <ClipboardList className="h-4 w-4" />
             </button>
+            
           </div>
         </SidebarHeader>
         <SidebarContent>

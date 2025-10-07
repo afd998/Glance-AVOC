@@ -6,9 +6,15 @@ interface UserProfile {
   name: string | null;
 }
 
+// Function to validate UUID format
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 // Function to fetch user profile by ID
 const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
-  if (!userId) {
+  if (!userId || userId === 'unknown' || !isValidUUID(userId)) {
     return null;
   }
 
@@ -36,7 +42,7 @@ export const useUserProfile = (userId: string) => {
   return useQuery({
     queryKey: ['profile', userId],
     queryFn: () => fetchUserProfile(userId),
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'unknown' && isValidUUID(userId),
   });
 };
 

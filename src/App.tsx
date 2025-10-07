@@ -15,6 +15,7 @@ import performanceMonitor from './utils/performanceMonitor';
 import { TooltipProvider } from './components/ui/tooltip';
 import { SidebarProvider } from './components/ui/sidebar';
 import { HeaderProvider } from './contexts/HeaderContext';
+import { EventAssignmentsProvider } from './contexts/EventAssignmentsContext';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
@@ -49,6 +50,7 @@ export default function App() {
                 <TooltipProvider>
                   <SidebarProvider defaultOpen={false}>
                     <HeaderProvider>
+                    <EventAssignmentsProvider>
                     <Router>
                     <Layout>
                     <Toaster richColors position="top-right" />
@@ -66,6 +68,7 @@ export default function App() {
                     </Routes>
                     </Layout>
                     </Router>
+                    </EventAssignmentsProvider>
                     </HeaderProvider>
                   </SidebarProvider>
                 </TooltipProvider>

@@ -10,7 +10,7 @@ import SnowOverlay from './ThemeModal/components/SnowOverlay';
 import { AppSidebar } from '../components/app-sidebar';
 import { SidebarInset, SidebarTrigger } from '../components/ui/sidebar';
 import { NotificationBell } from './notifications/NotificationBell';
-import { Home, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem as BreadcrumbItemComponent,
@@ -25,6 +25,7 @@ import { supabase } from '../lib/supabase';
 import { ZoomProvider, useZoom } from '../contexts/ZoomContext';
 import { PixelMetricsProvider, usePixelMetrics } from '../contexts/PixelMetricsContext';
 import { useProfile } from '../core/User/useProfile';
+import { useEventAssignments } from '../contexts/EventAssignmentsContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -51,9 +52,17 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { breadcrumbs, setBreadcrumbs } = useHeader();
+  
+  // Event Assignments state from context
+  const { showEventAssignments, setShowEventAssignments } = useEventAssignments();
   // Extract date from pathname (format: /YYYY-MM-DD)
   const dateMatch = location.pathname.match(/^\/(\d{4}-\d{2}-\d{2})/);
   const date = dateMatch ? dateMatch[1] : null;
+  
+  // Check if we're on the home page (/{date} route) with 100% zoom
+  const isHomePage = location.pathname.match(/^\/\d{4}-\d{2}-\d{2}$/) !== null;
+  const isAt100PercentZoom = pageZoom === 1;
+  const shouldShowEventAssignmentsButton = isHomePage && isAt100PercentZoom;
 
   // Check if we're on a faculty profile page and get faculty data
   const facultyId = location.pathname.match(/^\/faculty\/(\d+)$/)?.[1];
@@ -338,6 +347,17 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-2 px-4">
+            {shouldShowEventAssignmentsButton && (
+              <Button
+                onClick={() => setShowEventAssignments(!showEventAssignments)}
+                variant={showEventAssignments ? "destructive" : "secondary"}
+                size="sm"
+                className="h-8 px-3"
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                {showEventAssignments ? "Close Event Assignments" : "Event Assignments"}
+              </Button>
+            )}
             <NotificationBell />
           </div>
         </header>

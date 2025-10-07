@@ -38,6 +38,7 @@ interface UserAvatarProps {
   userId: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
+  variant?: 'default' | 'solid';
 }
 
 const sizeClasses = {
@@ -47,7 +48,7 @@ const sizeClasses = {
   lg: 'h-12 w-12'
 };
 
-export default function UserAvatar({ userId, size = 'md', className = '' }: UserAvatarProps) {
+export default function UserAvatar({ userId, size = 'md', className = '', variant = 'default' }: UserAvatarProps) {
   const { data: profile, isLoading } = useUserProfile(userId);
 
   if (isLoading) {
@@ -73,6 +74,19 @@ export default function UserAvatar({ userId, size = 'md', className = '' }: User
   // Debug: log the color being used
   console.log(`User ${userId} getting color: ${userColor}`);
 
+  // Style based on variant
+  const avatarStyle = variant === 'solid' 
+    ? {
+        backgroundColor: userColor,
+        color: 'white',
+        fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px'
+      }
+    : {
+        backgroundColor: `${userColor}40`,
+        color: userColor,
+        fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px'
+      };
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -80,11 +94,7 @@ export default function UserAvatar({ userId, size = 'md', className = '' }: User
           <Avatar className={`${sizeClasses[size]} ${className}`}>
             <AvatarFallback 
               className="font-medium flex items-center justify-center" 
-              style={{ 
-                backgroundColor: `${userColor}30`,
-                color: userColor,
-                fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px' 
-              }}
+              style={avatarStyle}
             >
               {initials}
             </AvatarFallback>

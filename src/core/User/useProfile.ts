@@ -92,26 +92,13 @@ export const useProfile = () => {
     mutationFn: async (zoom: number) => {
       if (!user) throw new Error('No user');
 
-      // First try to store as decimal. If the column is bigint, retry with scaled int.
+      // Store zoom as decimal (1.0 for 100%, 1.2 for 120%, etc.)
       const { error } = await supabase
         .from('profiles')
         .update({ zoom })
         .eq('id', user.id);
 
-      if (error) {
-        // 22P02: invalid input syntax (likely bigint column)
-        // Fallback: store as integer scaled by 100
-        if ((error as any).code === '22P02') {
-          const scaled = Math.round(zoom * 100);
-          const { error: retryError } = await supabase
-            .from('profiles')
-            .update({ zoom: scaled })
-            .eq('id', user.id);
-          if (retryError) throw retryError;
-          return { zoom: scaled } as any;
-        }
-        throw error;
-      }
+      if (error) throw error;
       return { zoom };
     },
     onSuccess: () => {
@@ -192,12 +179,19 @@ export const useProfile = () => {
     updateRowHeightMutation.mutate(rowHeightPx);
   };
 
-  // Normalize zoom to 0.5-2 range if DB stores scaled bigint (50-200)
+  // Normalize zoom to decimal format (1.0 = 100%, 1.2 = 120%, etc.)
   const normalizedZoom = (() => {
     const raw = profile?.zoom;
     if (typeof raw !== 'number') return 1;
-    if (raw > 2 && raw <= 400) return raw / 100; // treat as scaled int
-    return raw; // decimal already
+    
+    // If the value is > 2, it's likely stored as percentage (100, 120, etc.)
+    // Convert to decimal format (100 -> 1.0, 120 -> 1.2)
+    if (raw > 2) {
+      return raw / 100;
+    }
+    
+    // If the value is <= 2, it's already in decimal format
+    return raw;
   })();
 
   return {

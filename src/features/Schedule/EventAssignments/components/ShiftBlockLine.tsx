@@ -1,0 +1,113 @@
+import React from 'react';
+import { ShiftBlock } from '../../../SessionAssignments/hooks/useShiftBlocks';
+import UserAvatar from '../../../../core/User/UserAvatar';
+import { Item, ItemContent, ItemMedia, ItemTitle } from '../../../../components/ui/item';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../../components/ui/tooltip';
+
+interface ShiftBlockLineProps {
+  shiftBlock: ShiftBlock;
+  pixelsPerMinute: number;
+}
+
+const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMinute }) => {
+  // Helper function to format time labels
+  const formatTimeLabel = (time: string | null): string => {
+    if (!time) return '';
+    const [h, m] = time.split(':');
+    const date = new Date();
+    date.setHours(Number(h), Number(m), 0, 0);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
+
+  // Calculate width based on time duration
+  const calculateWidth = () => {
+    if (!shiftBlock.start_time || !shiftBlock.end_time) return 0;
+    
+    const startTime = new Date(`2000-01-01T${shiftBlock.start_time}`);
+    const endTime = new Date(`2000-01-01T${shiftBlock.end_time}`);
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    
+    return durationMinutes * pixelsPerMinute;
+  };
+
+  const blockWidth = calculateWidth();
+  
+  // Calculate duration in hours to determine if we should truncate avatars
+  const calculateDurationHours = () => {
+    if (!shiftBlock.start_time || !shiftBlock.end_time) return 0;
+    
+    const startTime = new Date(`2000-01-01T${shiftBlock.start_time}`);
+    const endTime = new Date(`2000-01-01T${shiftBlock.end_time}`);
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    
+    return durationMinutes / 60;
+  };
+
+  const durationHours = calculateDurationHours();
+  const shouldTruncateAvatars = durationHours < 3;
+  const maxVisibleAvatars = shouldTruncateAvatars ? 2 : 10; // Show max 2 avatars if < 3 hours
+  
+  // Truncate time display for very narrow shift blocks
+  // Calculate approximate text width needed for time display
+  const timeText = `${formatTimeLabel(shiftBlock.start_time)} - ${formatTimeLabel(shiftBlock.end_time)}`;
+  const estimatedTextWidth = timeText.length * 8; // Rough estimate: 8px per character
+  const shouldTruncateTime = blockWidth < (estimatedTextWidth + 100); // Add buffer for avatars
+  const displayTime = shouldTruncateTime ? "..." : timeText;
+  
+  // Debug logging
+  console.log(`Shift block ${shiftBlock.id}: width=${blockWidth}px, text="${timeText}", estimatedTextWidth=${estimatedTextWidth}px, shouldTruncate=${shouldTruncateTime}`);
+
+  const assignments = shiftBlock.assignments && Array.isArray(shiftBlock.assignments) ? shiftBlock.assignments : [];
+  const visibleAssignments = assignments.slice(0, maxVisibleAvatars);
+  const hiddenCount = assignments.length - maxVisibleAvatars;
+
+  return (
+    <Item 
+      variant="default"
+      className=" transition-shadow duration-200 flex-row"
+      style={{ width: `${blockWidth}px` }}
+    >
+      <ItemContent className="flex flex-row items-center w-full">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ItemTitle className="text-sm font-medium mr-2 cursor-help">
+                {displayTime}
+              </ItemTitle>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{formatTimeLabel(shiftBlock.start_time)} - {formatTimeLabel(shiftBlock.end_time)}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <div className="bg-background flex items-center rounded-full border p-1 shadow-sm">
+          <div className="flex -space-x-2">
+            {visibleAssignments.length > 0 ? (
+              visibleAssignments.map((assignment: any, index: number) => (
+                <UserAvatar 
+                  key={`${assignment.user}-${index}`}
+                  userId={assignment.user}
+                  size="sm"
+                  className="h-6 w-6 ring-background ring-2"
+                  variant="solid"
+                />
+              ))
+            ) : (
+              <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">—</span>
+              </div>
+            )}
+          </div>
+          {hiddenCount > 0 && (
+            <span className="text-muted-foreground hover:text-foreground flex items-center justify-center rounded-full bg-transparent px-2 text-xs shadow-none hover:bg-transparent">
+              +{hiddenCount}
+            </span>
+          )}
+        </div>
+      </ItemContent>
+    </Item>
+  );
+};
+
+export default ShiftBlockLine;

@@ -23,10 +23,19 @@ import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { Badge } from "../components/ui/badge";
 import { Database } from "../types/supabase";
+import { useEventAssignments } from "../contexts/EventAssignmentsContext";
+import UserAvatar from "../core/User/UserAvatar";
+import EventAssignments from "../features/Schedule/EventAssignments/EventAssignments";
+import { useShiftBlocks, useUpdateShiftBlocks } from "../features/Schedule/EventAssignments/hooks/useShiftBlocks";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../components/ui/context-menu";
+import { useUserProfile } from "../core/User/useUserProfile";
 
 
 
 export default function HomePage() {
+  
+  // Event Assignments state
+  const { showEventAssignments, selectedShiftBlock } = useEventAssignments();
   
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(true);
@@ -52,6 +61,7 @@ export default function HomePage() {
   const { pageZoom } = useZoom();
   const { pixelsPerMinute, rowHeightPx } = usePixelMetrics();
   const { currentTheme, isDarkMode } = useTheme();
+  const [selectedOverlayRange, setSelectedOverlayRange] = useState<{ leftPx: number; widthPx: number } | null>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
   const startHour = 7;
@@ -66,6 +76,89 @@ export default function HomePage() {
   const headerHeightPx = 24;
   const leftLabelBaseWidth = 96;
   const contentHeight = (actualRowCount * rowHeightPx);
+
+  // Shift block data and updater for current date
+  const dateString = selectedDate.toISOString().split('T')[0];
+  const { data: shiftBlocks = [] } = useShiftBlocks(dateString);
+  const updateShiftBlocks = useUpdateShiftBlocks();
+
+  // Selection state for room label badges
+  const [selectedRoomsSet, setSelectedRoomsSet] = useState<Set<string>>(new Set());
+  const [lastSelectedRoom, setLastSelectedRoom] = useState<string | null>(null);
+
+  const labelRoomOrder: string[] = [
+    ...(roomRows?.map((r: any) => r.name) || []),
+    ...(filteredLCEvents?.map((r: any) => r.room_name) || []),
+  ];
+
+  const isRoomSelected = (roomName: string) => selectedRoomsSet.has(roomName);
+
+  const selectRoomLabel = (roomName: string, event: React.MouseEvent) => {
+    if (!showEventAssignments) return;
+    if (event.shiftKey && lastSelectedRoom) {
+      const lastIndex = labelRoomOrder.indexOf(lastSelectedRoom);
+      const currentIndex = labelRoomOrder.indexOf(roomName);
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeRooms = labelRoomOrder.slice(start, end + 1);
+        const next = new Set(selectedRoomsSet);
+        rangeRooms.forEach(r => next.add(r));
+        setSelectedRoomsSet(next);
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      const next = new Set(selectedRoomsSet);
+      if (next.has(roomName)) next.delete(roomName); else next.add(roomName);
+      setSelectedRoomsSet(next);
+    } else {
+      setSelectedRoomsSet(new Set([roomName]));
+    }
+    setLastSelectedRoom(roomName);
+  };
+
+  const UserNameDisplay = ({ userId }: { userId: string }) => {
+    const { data: profile } = useUserProfile(userId);
+    return <span className="select-none">{profile?.name || userId}</span>;
+  };
+
+  const moveSelectedRooms = (targetUserId: string | null) => {
+    if (!showEventAssignments || !selectedShiftBlock || selectedRoomsSet.size === 0) return;
+    const assignments: any[] = Array.isArray((selectedShiftBlock as any).assignments) ? (selectedShiftBlock as any).assignments : [];
+
+    let newAssignments = assignments.map((a: any) => ({ user: a.user, rooms: Array.isArray(a.rooms) ? [...a.rooms] : [] }));
+    if (targetUserId === null) {
+      newAssignments = newAssignments.map((a: any) => ({
+        ...a,
+        rooms: a.rooms.filter((r: string) => !selectedRoomsSet.has(r))
+      }));
+    } else {
+      newAssignments = newAssignments.map((a: any) => ({
+        ...a,
+        rooms: a.rooms.filter((r: string) => !selectedRoomsSet.has(r))
+      }));
+      const target = newAssignments.find((a: any) => a.user === targetUserId);
+      if (target) {
+        const merged = new Set<string>([...target.rooms, ...Array.from(selectedRoomsSet)]);
+        target.rooms = Array.from(merged);
+      }
+    }
+
+    const updatedBlocks = shiftBlocks.map((b: any) =>
+      b.id === (selectedShiftBlock as any).id ? { ...b, assignments: newAssignments } : b
+    );
+    const blocksToInsert = updatedBlocks.map((b: any) => ({
+      date: b.date,
+      start_time: b.start_time,
+      end_time: b.end_time,
+      assignments: b.assignments,
+    }));
+
+    updateShiftBlocks.mutate({ date: dateString, newBlocks: blocksToInsert }, {
+      onSuccess: () => {
+        setSelectedRoomsSet(new Set());
+      }
+    });
+  };
 
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
@@ -143,6 +236,9 @@ export default function HomePage() {
 
     return (
     <div className="flex flex-col items-center justify-center w-full h-full gpu-optimized">
+      {/* Event Assignments Component - shown when toggle is active and zoom is 100% */}
+    
+      
       {/* Vertical Header - positioned to the left - HIDDEN */}
       {/* <AppHeaderVertical
         selectedDate={selectedDate}
@@ -177,10 +273,38 @@ export default function HomePage() {
         </div> */}
       
       {/* Menu Panel and Notification Bell - moved to Layout */}
-
+      {showEventAssignments && pageZoom === 1 && (
+        <div className="w-full mb-4">
+          <EventAssignments 
+            dates={[selectedDate.toISOString().split('T')[0]]}
+            selectedDate={selectedDate.toISOString().split('T')[0]}
+            pixelsPerMinute={pixelsPerMinute}
+            contentWidth={contentWidth}
+            pageZoom={pageZoom}
+            scrollLeft={scrollLeft}
+            startHour={startHour}
+            onSelectRange={(range) => setSelectedOverlayRange(range)}
+          />
+        </div>
+      )}    
+      {showEventAssignments && selectedOverlayRange && (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${headerHeightPx * pageZoom}px`,
+            left: `${(selectedOverlayRange.leftPx - scrollLeft) * pageZoom}px`,
+            width: `${selectedOverlayRange.widthPx * pageZoom}px`,
+            height: `${contentHeight * pageZoom}px`,
+            pointerEvents: 'none',
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(59, 131, 246, 0.23)',
+            borderRadius: '8px',
+            zIndex: 4,
+          }}
+        />
+      )}
       {/* Main content area */}
-      <div className="flex-1 w-full overflow-hidden" style={{ zIndex: 3, position: 'relative' }}>
-             
+      <div className="flex-1 rounded-lg w-full overflow-hidden" style={{ zIndex: 3, position: 'relative' }}>
+     
       {/* Sticky time header overlay (outside grid), full content width */}
       <div className="sticky top-0 z-50 overflow-hidden" style={{ height: `${headerHeightPx * pageZoom}px` }}>
         <div style={{ width: `${contentWidth * pageZoom}px`, height: `${headerHeightPx * pageZoom}px`, transform: `translateX(-${scrollLeft}px)` }}>
@@ -354,39 +478,94 @@ export default function HomePage() {
       <div className="z-50 overflow-hidden" style={{ position: 'absolute', top: `${headerHeightPx * pageZoom}px`, left: 0, width: `${leftLabelBaseWidth * pageZoom}px`, pointerEvents: 'none' }}>
         <div style={{ transform: `translateY(-${scrollTop}px) scale(${pageZoom})`, transformOrigin: 'top left', width: `${leftLabelBaseWidth}px` }}>
           <div style={{ position: 'relative' }}>
-            {roomRows.map((room: any) => (
-              <div key={`label-${room.name}`} style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
-                <div className="pointer-events-auto">
-                  <Badge 
-                    className=""
-                    style={{ 
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none'
-                    }}
-                  >
-                    {room.name.replace(/^GH\s+/, '')}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+            {roomRows.map((room: any) => {
+              const assignedUserId: string | null = (() => {
+                if (!showEventAssignments || !selectedShiftBlock || !Array.isArray((selectedShiftBlock as any).assignments)) return null;
+                const assignments: any[] = (selectedShiftBlock as any).assignments || [];
+                const match = assignments.find((a: any) => Array.isArray(a?.rooms) && a.rooms.includes(room.name));
+                return match?.user || null;
+              })();
+              return (
+                <ContextMenu key={`label-${room.name}`}>
+                  <ContextMenuTrigger asChild>
+                    <div style={{ height: `${rowHeightPx}px` }} className="flex flex-col items-center justify-center">
+                      <div className="pointer-events-auto flex flex-col items-center">
+                        <Badge 
+                          className={`${isRoomSelected(room.name) ? 'ring-2 ring-blue-500' : ''}`}
+                          style={{ 
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none',
+                            MozUserSelect: 'none',
+                            msUserSelect: 'none'
+                          }}
+                          onClick={(e) => selectRoomLabel(room.name, e)}
+                        >
+                          {room.name.replace(/^GH\s+/, '')}
+                        </Badge>
+                        {assignedUserId && (
+                          <div className="mt-1">
+                            <UserAvatar userId={assignedUserId} size="sm" variant="solid" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </ContextMenuTrigger>
+                  {showEventAssignments && selectedShiftBlock && (
+                    <ContextMenuContent>
+                      {selectedRoomsSet.size > 0 && (
+                        <>
+                          <ContextMenuItem onClick={() => moveSelectedRooms(null)}>
+                            Move {selectedRoomsSet.size} selected to Unassigned
+                          </ContextMenuItem>
+                          {Array.isArray((selectedShiftBlock as any).assignments) && (selectedShiftBlock as any).assignments.map((a: any) => (
+                            <ContextMenuItem key={a.user} onClick={() => moveSelectedRooms(a.user)}>
+                              Move {selectedRoomsSet.size} selected to <UserNameDisplay userId={a.user} />
+                            </ContextMenuItem>
+                          ))}
+                        </>
+                      )}
+                    </ContextMenuContent>
+                  )}
+                </ContextMenu>
+              );
+            })}
             {filteredLCEvents?.map((roomData: any) => (
-              <div key={`label-${roomData.room_name}`} style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
-                <div className="pointer-events-auto">
-                  <Badge 
-                    className=""
-                    style={{ 
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none'
-                    }}
-                  >
-                    {roomData.room_name}
-                  </Badge>
-                </div>
-              </div>
+              <ContextMenu key={`label-${roomData.room_name}`}>
+                <ContextMenuTrigger asChild>
+                  <div style={{ height: `${rowHeightPx}px` }} className="flex items-center justify-center">
+                    <div className="pointer-events-auto">
+                      <Badge 
+                        className={`${isRoomSelected(roomData.room_name) ? 'ring-2 ring-blue-500' : ''}`}
+                        style={{ 
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none'
+                        }}
+                        onClick={(e) => selectRoomLabel(roomData.room_name, e)}
+                      >
+                        {roomData.room_name}
+                      </Badge>
+                    </div>
+                  </div>
+                </ContextMenuTrigger>
+                {showEventAssignments && selectedShiftBlock && (
+                  <ContextMenuContent>
+                    {selectedRoomsSet.size > 0 && (
+                      <>
+                        <ContextMenuItem onClick={() => moveSelectedRooms(null)}>
+                          Move {selectedRoomsSet.size} selected to Unassigned
+                        </ContextMenuItem>
+                        {Array.isArray((selectedShiftBlock as any).assignments) && (selectedShiftBlock as any).assignments.map((a: any) => (
+                          <ContextMenuItem key={a.user} onClick={() => moveSelectedRooms(a.user)}>
+                            Move {selectedRoomsSet.size} selected to <UserNameDisplay userId={a.user} />
+                          </ContextMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </ContextMenuContent>
+                )}
+              </ContextMenu>
             ))}
           </div>
         </div>
