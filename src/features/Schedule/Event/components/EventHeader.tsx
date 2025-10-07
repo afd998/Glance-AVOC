@@ -9,7 +9,7 @@ import { useEventChecksComplete } from '../hooks/useEventChecksComplete';
 import { useEvent } from '../../../../core/event/hooks/useEvent';
 import { useEventResources } from '../../../../core/event/hooks/useEvent';
 import { useEventDurationHours } from '../../hooks/useEvents';
-import { UserAvatar } from '../../../../components/ui/avatar';
+import UserAvatar from '../../../../core/User/UserAvatar';
 import { Monitor } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/ui/tooltip';
 

@@ -4,8 +4,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { UserAvatar } from '../components/ui/avatar'; // Fixed import for Vercel build
 import { Separator } from '../components/ui/separator';
+import UserAvatar from '../core/User/UserAvatar';
 
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();

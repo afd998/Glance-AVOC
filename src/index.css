@@ -563,9 +563,8 @@ code {
     rgba(255, 224, 166, 0.7) 50%, 
     rgba(255, 224, 166, 0.9) 100%) !important;
   box-shadow: 
-    0 0 4px rgba(255, 224, 166, 0.8),
-    0 0 8px rgba(255, 224, 166, 0.4) !important;
-  position: relative !important;
+    0 0 2px rgba(255, 224, 166, 0.8),
+    0 0 4px rgba(255, 224, 166, 0.4) !important;
 }
 
 /* Red blinking vignette animation */

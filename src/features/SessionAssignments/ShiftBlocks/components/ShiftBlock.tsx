@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UserAvatar } from '../../../../components/ui/avatar';
+
 import { useUserProfile } from '../../../../core/User/useUserProfile';
 import { useRooms } from '../../../../core/Rooms/useRooms';
 import { useUpdateShiftBlocks } from '../../hooks/useShiftBlocks';
@@ -9,7 +9,8 @@ import { Badge } from '../../../../components/ui/badge';
 import { Button } from '../../../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '../../../../components/ui/context-menu';
-
+import UserAvatar from '../../../../core/User/UserAvatar';
+  
 
 function formatTimeLabel(time: string | null): string {
   if (!time) return '';
@@ -190,10 +191,10 @@ function ShiftBlockAssignment({
 
   if (!userId) {
     console.warn('ShiftBlockAssignment: userId is undefined or null');
-    return null;
-  }
+          return null;
+        }
 
-  return (
+        return (
     <Item
       variant={hasAllRooms ? "muted" : "outline"}
       size="sm"

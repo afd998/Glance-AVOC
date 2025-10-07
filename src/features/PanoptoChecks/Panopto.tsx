@@ -518,8 +518,8 @@ export default function Panopto({ event }: PanoptoProps) {
                   {/* Check details card */}
                   <Card className={`check-card mt-4 w-40 text-center bg-background ${getStatusColor(check.status)}`}>
                     <CardHeader className=" flex flex-col items-center p-3 pb-1">
-                      <div className="font-semibold text-xs sm:text-sm">Check #{check.checkNumber}</div>
-                      <div className="text-xs font-medium">{formatTime(check.scheduledTime)}</div>
+                      <div className="font-semibold text-xs  text-foreground sm:text-sm">Check #{check.checkNumber}</div>
+                      <div className="text-xs font-medium text-foreground">{formatTime(check.scheduledTime)}</div>
                       {(() => {
                         const label =
                           check.status === 'current' ? 'DUE' :
@@ -544,11 +544,11 @@ export default function Panopto({ event }: PanoptoProps) {
                       })()}
                     </CardHeader>
                     <CardContent className="px-3 pt-0 pb-3">
-                      <div className="text-xs opacity-75 mb-3 leading-tight">
+                      <div className="text-xs  opacity-75 mb-3 leading-tight">
                         {check.status === 'upcoming' && (
                           <>In {formatTimeDistance(check.scheduledTime).replace(' ago', '').replace('in ', '')}</>
                         )}
-                        {check.status === 'current' && <>Due now</>}
+                        {check.status === 'current' && <div className="text-red-600">Due now</div>}
                         {check.status === 'overdue' && (
                           <>Late by {formatTimeDistance(check.dueTime).replace(' ago', '')}</>
                         )}

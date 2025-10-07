@@ -58,7 +58,7 @@ export default function TimeGrid({ startHour, endHour, pixelsPerMinute, sticky =
   }).filter(Boolean);
 
   const baseProps = {
-    className: `${sticky ? 'sticky top-0' : ''} w-full h-6 bg-white/90 dark:bg-gray-900/90 z-50 flex items-center relative overflow-hidden`,
+    className: `${sticky ? 'sticky top-0' : ''} w-full h-6 bg-background border-b z-50 flex items-center relative overflow-hidden`,
     style: { zIndex: 60, opacity: 1.0 }
   };
 

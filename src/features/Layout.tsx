@@ -278,7 +278,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Main content area - no transform scaling to preserve layout/sticky/absolute behavior */}
       <SidebarInset 
-        className="flex-1 min-h-screen w-full z-3 overflow-x-hidden"
+        className="flex-1 h-screen w-full z-3 overflow-x-hidden flex flex-col"
       >
         <header className="flex h-12 shrink-0 items-center transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-sidebar-border bg-background">
           <div className="flex items-center gap-2 px-4">
@@ -341,7 +341,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
             <NotificationBell />
           </div>
         </header>
-        <main className="flex-1 w-full p-2 ">
+        <main className="flex-1 w-full p-2 overflow-y-auto min-h-0">
           {children}
         </main>
       </SidebarInset>

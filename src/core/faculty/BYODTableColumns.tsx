@@ -90,6 +90,12 @@ export const columns = (
     cell: ({ row }) => {
       const r = row.original as ByodRow
       const isEditing = params.editingRowId === r.id
+      
+      // Don't show action buttons for KIS provided laptops (when faculty is null)
+      if (r.faculty === null) {
+        return <span className="text-muted-foreground text-sm">KIS Provided</span>
+      }
+      
       return (
         <div className="flex gap-2">
           {isEditing ? (

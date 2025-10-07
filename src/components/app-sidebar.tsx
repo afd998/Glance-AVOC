@@ -19,11 +19,10 @@ import {
   Filter,
   Calendar,
   ZoomIn,
+  ClipboardList,
 } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 
-import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import {
   Sidebar,
@@ -40,6 +39,7 @@ import {
   SidebarSeparator,
 } from "./ui/sidebar"
 import { Slider } from "./ui/slider"
+import { Badge } from "./ui/badge"
 import DatePicker from "react-datepicker"
 import { useTheme } from "../contexts/ThemeContext"
 import { useBackground } from "../features/ThemeModal/useBackground"
@@ -111,7 +111,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  
+  const navigate = useNavigate();
   const { date } = useParams();
   const { isDarkMode } = useTheme();
   const { currentBackground } = useBackground();
@@ -119,7 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const { pageZoom, setPageZoom } = useZoom();
   const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx, pixelsPerMinute, rowHeightPx } = usePixelMetrics();
-  const { updateZoom, updatePixelsPerMin, updateRowHeight } = useProfile();
+  const { updateZoom, updatePixelsPerMin, updateRowHeight, currentFilter } = useProfile();
   const queryClient = ReactQuery.useQueryClient();
   const profileKey = React.useMemo(() => ['profile', user?.id], [user?.id]);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -146,20 +146,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Create navigation data with proper URLs
   const navigationData = React.useMemo(() => ({
     ...data,
-    navMain: [
-      {
-        title: "Faculty",
-        url: "#",
-        icon: Users,
-        isActive: true,
-        items: [
-          {
-            title: "Faculty List",
-            url: `/faculty`,
-          },
-        ],
-      },
-    ],
+    navMain: [],
+    projects: [],
   }), [date]);
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
@@ -208,6 +196,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               aria-label="Open calendar"
             >
               <Calendar className="h-4 w-4" />
+            </button>
+            
+            {/* Faculty icon - only visible when collapsed */}
+            <button
+              onClick={() => navigate('/faculty')}
+              className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
+              aria-label="Faculty List"
+            >
+              <Users className="h-4 w-4" />
+            </button>
+            
+            {/* Session Assignments icon - only visible when collapsed */}
+            <button
+              onClick={() => navigate('/sessionassignments')}
+              className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
+              aria-label="Session Assignments"
+            >
+              <ClipboardList className="h-4 w-4" />
             </button>
           </div>
         </SidebarHeader>
@@ -266,6 +272,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   >
                     <Filter className="h-4 w-4" />
                     <span>Filter Rooms</span>
+                    {currentFilter && (
+                      <Badge variant="outline" className="ml-auto text-xs">
+                        {currentFilter}
+                      </Badge>
+                    )}
                   </SidebarMenuButton>
                 </div>
                 {/* Page Zoom */}
@@ -332,7 +343,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </div>
                   <Slider
                     value={[baseRowHeightPx]}
-                    min={90}
+                    min={80}
                     max={160}
                     step={2}
                     onValueChange={(v) => setBaseRowHeightPx(v[0])}
@@ -356,13 +367,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
-          {/* Navigation */}
-          <NavMain items={navigationData.navMain} />
-          
-          <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
-          
-          {/* Projects */}
-          <NavProjects projects={navigationData.projects} />
+          {/* Platform */}
+          <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Platform
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-3">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => navigate('/faculty')}
+                    className="w-full justify-start"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Faculty List</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => navigate('/sessionassignments')}
+                    className="w-full justify-start"
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    <span>Session Assignments</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
           
           <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
           

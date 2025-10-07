@@ -1,6 +1,7 @@
 import React from 'react';
-import { useUserProfile } from '../core/User/useUserProfile';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { useUserProfile } from './useUserProfile';
+import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip';
 
 // Generate a consistent color based on user ID
 const generateUserColor = (userId: string): string => {
@@ -73,17 +74,26 @@ export default function UserAvatar({ userId, size = 'md', className = '' }: User
   console.log(`User ${userId} getting color: ${userColor}`);
 
   return (
-    <Avatar className={`${sizeClasses[size]} ${className}`}>
-      <AvatarFallback 
-        className="font-medium flex items-center justify-center" 
-        style={{ 
-          backgroundColor: `${userColor}10`,
-          color: userColor,
-          fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px' 
-        }}
-      >
-        {initials}
-      </AvatarFallback>
-    </Avatar>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Avatar className={`${sizeClasses[size]} ${className}`}>
+            <AvatarFallback 
+              className="font-medium flex items-center justify-center" 
+              style={{ 
+                backgroundColor: `${userColor}30`,
+                color: userColor,
+                fontSize: size === 'xs' ? '8px' : size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px' 
+              }}
+            >
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{displayName}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

@@ -4,7 +4,7 @@ import { formatTime, formatDate } from '../../utils/timeUtils';
 import { getDepartmentName } from '../../utils/departmentCodes';
 import {truncateEventName } from '../../utils/eventUtils';
 import { Database } from '../../types/supabase';
-import { UserAvatar } from '../../components/ui/avatar';
+
 import { useUserProfile } from '../../core/User/useUserProfile';
 import OwnerDisplay from './OwnerDisplay';
 import { FacultyAvatar } from '../../core/faculty/FacultyAvatar';
@@ -310,7 +310,7 @@ export default function EventDetailHeader({
               <CardHeader className="">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Resources</CardTitle>
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                  <Badge variant="default" className="text-xs px-2 py-0.5">
                     {resources.length} total
                   </Badge>
                 </div>
@@ -327,7 +327,7 @@ export default function EventDetailHeader({
                           <>
                             <div className="flex items-center justify-between px-1 pb-1">
                               <div className="text-xs font-medium">AV Resources</div>
-                              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                              <Badge variant="default" className="text-[10px] px-2 py-0.5">
                                 {avResources.length}
                               </Badge>
                             </div>
@@ -352,7 +352,7 @@ export default function EventDetailHeader({
                                   </ItemContent>
                                   {item.quantity && item.quantity > 1 && (
                                     <ItemActions>
-                                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                                      <Badge variant="default" className="text-[10px] px-2 py-0.5">
                                         x{item.quantity}
                                       </Badge>
                                     </ItemActions>
@@ -368,7 +368,7 @@ export default function EventDetailHeader({
                           <>
                             <div className="flex items-center justify-between px-1 pb-1">
                               <div className="text-xs font-medium">General Resources</div>
-                              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                              <Badge variant="default" className="text-[10px] px-2 py-0.5">
                                 {otherResources.length}
                               </Badge>
                             </div>
@@ -393,7 +393,7 @@ export default function EventDetailHeader({
                                   </ItemContent>
                                   {item.quantity && item.quantity > 1 && (
                                     <ItemActions>
-                                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                                      <Badge variant="outline" className="text-[10px] px-2 py-0.5">
                                         x{item.quantity}
                                       </Badge>
                                     </ItemActions>

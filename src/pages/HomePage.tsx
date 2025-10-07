@@ -254,7 +254,7 @@ export default function HomePage() {
 
       {/* Grid Container */}
         <DraggableGridContainer
-          className="grid-container  h-[calc(100vh-5rem)] rounded-lg relative overflow-hidden"
+          className="grid-container  h-[calc(100vh-6rem)] rounded-b-lg relative overflow-hidden"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 100px), calc(100% - 100px) 100%, 0 100%)'
           }}
