@@ -57,12 +57,13 @@ export default function RoomRow({
 
   return (
     <div 
-      className={`pl-24 flex overflow-visible ${isLastRow ? 'rounded-b-md' : ''}`}
+      className={`pl-24 flex overflow-visible ${isLastRow ? 'rounded-b-md' : ''} ${
+        isEvenRow 
+          ? 'bg-muted/20 dark:bg-muted/30' 
+          : 'bg-muted/5 dark:bg-muted/45'
+      }`}
       style={{ 
-        ...rowHeightStyle,
-        backgroundColor: isDarkMode
-          ? (isEvenRow ? 'rgba(55, 55, 55, 0.7)' : 'rgba(45, 45, 45, 0.75)')
-          : (isEvenRow ? 'rgba(250, 250, 250, 0.9)' : 'rgba(255, 255, 255, 0.8)') // lighter colors
+        ...rowHeightStyle
       }}
       onMouseEnter={() => setIsHoveringRow(true)}
       onMouseLeave={() => setIsHoveringRow(false)}
