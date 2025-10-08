@@ -838,3 +838,52 @@ code {
 .react-datepicker__day--outside-month {
   color: gray !important;
 }
+
+.sidebar-datepicker {
+  margin: 0 auto !important;
+  width: auto !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.sidebar-datepicker .react-datepicker__month-container {
+  width: 100%;
+}
+
+.sidebar-datepicker .react-datepicker__header {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.sidebar-datepicker .react-datepicker__day-names,
+.sidebar-datepicker .react-datepicker__week {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.sidebar-datepicker .react-datepicker__day-name {
+  margin: 0 !important;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+
+.sidebar-datepicker .react-datepicker__day {
+  margin: 0 !important;
+  width: 100%;
+  min-height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+}

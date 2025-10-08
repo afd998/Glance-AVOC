@@ -20,6 +20,8 @@ import {
   Calendar,
   ZoomIn,
   ClipboardList,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 
@@ -201,6 +203,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return `url-day-${dd}`;
   }, [selectedDate]);
 
+  const monthYearFormatter = React.useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        year: "numeric",
+      }),
+    []
+  );
+
   return (
     <>
       <Sidebar collapsible="icon" {...props}>
@@ -266,7 +277,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               Calendar
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-3">
-              <div className="w-full">
+              <div className="w-full flex justify-center">
                 <DatePicker
                   selected={selectedDate}
                   onChange={(date) => {
@@ -276,7 +287,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     }
                   }}
                   inline
-                  calendarClassName="!w-full !border-0 !shadow-none bg-transparent"
+                  calendarClassName={`sidebar-datepicker !border-0 !shadow-none !bg-transparent !p-0 ${calendarScopeClass}`}
+                  renderCustomHeader={({
+                    date,
+                    decreaseMonth,
+                    increaseMonth,
+                    prevMonthButtonDisabled,
+                    nextMonthButtonDisabled,
+                  }) => (
+                    <div className="flex w-full items-center justify-between gap-2 px-2 pt-2 pb-3">
+                      <button
+                        type="button"
+                        onClick={decreaseMonth}
+                        disabled={prevMonthButtonDisabled}
+                        aria-label="Previous month"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <span className="flex-1 text-center text-sm font-semibold">
+                        {monthYearFormatter.format(date)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={increaseMonth}
+                        disabled={nextMonthButtonDisabled}
+                        aria-label="Next month"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                   dayClassName={(date) => {
                     const dayNum = String(date.getDate()).padStart(3, "0");
                     const baseClasses = "react-datepicker__day";
