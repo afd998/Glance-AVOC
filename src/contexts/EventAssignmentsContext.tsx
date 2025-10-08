@@ -15,6 +15,8 @@ interface EventAssignmentsContextType {
   setSelectedShiftBlockId: (id: string | null) => void;
   selectedShiftBlock: ShiftBlockLike | null;
   setSelectedShiftBlock: (block: ShiftBlockLike | null) => void;
+  selectedShiftBlockIndex: number | null;
+  setSelectedShiftBlockIndex: (index: number | null) => void;
 }
 
 const EventAssignmentsContext = createContext<EventAssignmentsContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export const EventAssignmentsProvider: React.FC<EventAssignmentsProviderProps> =
   const [showEventAssignments, setShowEventAssignments] = React.useState(false);
   const [selectedShiftBlockId, setSelectedShiftBlockId] = React.useState<string | null>(null);
   const [selectedShiftBlock, setSelectedShiftBlock] = React.useState<ShiftBlockLike | null>(null);
+  const [selectedShiftBlockIndex, setSelectedShiftBlockIndex] = React.useState<number | null>(null);
 
   return (
     <EventAssignmentsContext.Provider value={{ 
@@ -43,7 +46,9 @@ export const EventAssignmentsProvider: React.FC<EventAssignmentsProviderProps> =
       selectedShiftBlockId,
       setSelectedShiftBlockId,
       selectedShiftBlock,
-      setSelectedShiftBlock
+      setSelectedShiftBlock,
+      selectedShiftBlockIndex,
+      setSelectedShiftBlockIndex
     }}>
       {children}
     </EventAssignmentsContext.Provider>

@@ -19,7 +19,9 @@ const createProfile = async (user: User) => {
     current_filter: null,
     pixels_per_min: 2,
     row_height: 96,
-    zoom: 1.0
+    zoom: 1.0,
+    start_hour: 7,
+    end_hour: 23,
   };
 
   const { data, error } = await supabase
@@ -61,7 +63,7 @@ export const useProfile = () => {
       // Try explicit column selection first
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, auto_hide, bg, color, current_filter, pixels_per_min, roles, row_height, theme, zoom')
+        .select('id, name, auto_hide, bg, color, current_filter, pixels_per_min, roles, row_height, theme, zoom, start_hour, end_hour')
         .eq('id', user.id)
         .single();
 
@@ -93,6 +95,31 @@ export const useProfile = () => {
     refetchOnReconnect: false,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+
+  // Update schedule hours mutation
+  const updateScheduleHoursMutation = useMutation({
+    mutationFn: async ({ startHour, endHour }: { startHour: number; endHour: number }) => {
+      if (!user) throw new Error('No user');
+
+      const clampedStart = Math.max(0, Math.min(22, Math.floor(startHour)));
+      const clampedEnd = Math.max(clampedStart + 1, Math.min(23, Math.ceil(endHour)));
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ start_hour: clampedStart, end_hour: clampedEnd })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { start_hour: clampedStart, end_hour: clampedEnd };
+    },
+    onSuccess: () => {
+      console.log('[useProfile] schedule hours updated successfully');
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+    },
+    onError: (err) => {
+      console.error('[useProfile] schedule hours update failed', err);
+    }
   });
 
   // Update auto-hide mutation
@@ -269,6 +296,8 @@ export const useProfile = () => {
     zoom: normalizedZoom,
     pixelsPerMin: typeof profile?.pixels_per_min === 'number' ? profile.pixels_per_min : 2,
     rowHeightPx: typeof profile?.row_height === 'number' ? profile.row_height : 96,
+    startHour: typeof profile?.start_hour === 'number' ? profile.start_hour : 7,
+    endHour: typeof profile?.end_hour === 'number' ? profile.end_hour : 23,
     
     // Loading states
     isLoading,
@@ -278,6 +307,7 @@ export const useProfile = () => {
     isUpdatingZoom: updateZoomMutation.isPending,
     isUpdatingPixelsPerMin: updatePixelsPerMinMutation.isPending,
     isUpdatingRowHeight: updateRowHeightMutation.isPending,
+    isUpdatingScheduleHours: updateScheduleHoursMutation.isPending,
     
     // Errors
     error,
@@ -287,6 +317,7 @@ export const useProfile = () => {
     zoomError: updateZoomMutation.error,
     pixelsPerMinError: updatePixelsPerMinMutation.error,
     rowHeightError: updateRowHeightMutation.error,
+    scheduleHoursError: updateScheduleHoursMutation.error,
     
     // Actions
     updateAutoHide,
@@ -295,6 +326,8 @@ export const useProfile = () => {
     updateZoom,
     updatePixelsPerMin,
     updateRowHeight,
+    updateScheduleHours: (startHour: number, endHour: number) =>
+      updateScheduleHoursMutation.mutate({ startHour, endHour }),
     refetch,
   };
 }; 

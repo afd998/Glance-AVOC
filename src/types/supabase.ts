@@ -441,11 +441,13 @@ export type Database = {
           bg: string | null
           color: string | null
           current_filter: string | null
+          end_hour: number | null
           id: string
           name: string | null
           pixels_per_min: number | null
           roles: Json
           row_height: number | null
+          start_hour: number | null
           theme: string
           zoom: number | null
         }
@@ -454,11 +456,13 @@ export type Database = {
           bg?: string | null
           color?: string | null
           current_filter?: string | null
+          end_hour?: number | null
           id: string
           name?: string | null
           pixels_per_min?: number | null
           roles?: Json
           row_height?: number | null
+          start_hour?: number | null
           theme?: string
           zoom?: number | null
         }
@@ -467,11 +471,13 @@ export type Database = {
           bg?: string | null
           color?: string | null
           current_filter?: string | null
+          end_hour?: number | null
           id?: string
           name?: string | null
           pixels_per_min?: number | null
           roles?: Json
           row_height?: number | null
+          start_hour?: number | null
           theme?: string
           zoom?: number | null
         }

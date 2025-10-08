@@ -1,16 +1,19 @@
 import React from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { ShiftBlock } from '../../../SessionAssignments/hooks/useShiftBlocks';
 import UserAvatar from '../../../../core/User/UserAvatar';
-import { Item, ItemContent, ItemMedia, ItemTitle } from '../../../../components/ui/item';
+import { Item, ItemContent, ItemTitle } from '../../../../components/ui/item';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../../components/ui/tooltip';
+import { Badge } from '../../../../components/ui/badge';
 
 interface ShiftBlockLineProps {
   shiftBlock: ShiftBlock;
   pixelsPerMinute: number;
   pageZoom: number;
+  allRoomsAssigned?: boolean;
 }
 
-const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMinute, pageZoom }) => {
+const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMinute, pageZoom, allRoomsAssigned }) => {
   // Helper function to format time labels
   const formatTimeLabel = (time: string | null): string => {
     if (!time) return '';
@@ -67,18 +70,36 @@ const ShiftBlockLine: React.FC<ShiftBlockLineProps> = ({ shiftBlock, pixelsPerMi
       className=" mx-0   transition-shadow duration-200 flex-row"
       style={{ width: `${Math.floor(blockWidth)}px` }}
     >
-      <ItemContent className="flex flex-row  justify-center items-center w-full">
+      <ItemContent className="flex flex-row  justify-center items-center w-full gap-3">
         <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <ItemTitle className="text-sm font-medium mr-2 cursor-help">
-                {displayTime}
-              </ItemTitle>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{formatTimeLabel(shiftBlock.start_time)} - {formatTimeLabel(shiftBlock.end_time)}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ItemTitle className="text-sm font-medium cursor-help">
+                  {displayTime}
+                </ItemTitle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{formatTimeLabel(shiftBlock.start_time)} - {formatTimeLabel(shiftBlock.end_time)}</p>
+              </TooltipContent>
+            </Tooltip>
+            {allRoomsAssigned && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="flex h-6 w-6 items-center justify-center rounded-full border-emerald-500/40 bg-emerald-500/15 p-0 text-emerald-600 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200"
+                    aria-label="All rooms assigned"
+                  >
+                    <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>all rooms assigned</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </TooltipProvider>
         
         <div className="bg-background flex items-center rounded-full border p-1 shadow-sm">

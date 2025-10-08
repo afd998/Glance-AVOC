@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
 import { useBackground } from '../features/ThemeModal/useBackground';
 
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -43,8 +43,14 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const { currentBackground } = useBackground();
 
   const { pageZoom, setPageZoom } = useZoom();
-  const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx } = usePixelMetrics();
-  const { zoom, pixelsPerMin, rowHeightPx } = useProfile();
+  const {
+    basePixelsPerMinute,
+    setBasePixelsPerMinute,
+    baseRowHeightPx,
+    setBaseRowHeightPx,
+    setScheduleHours,
+  } = usePixelMetrics();
+  const { zoom, pixelsPerMin, rowHeightPx, startHour: profileStartHour, endHour: profileEndHour } = useProfile();
   const location = useLocation();
   const navigate = useNavigate();
   const { breadcrumbs, setBreadcrumbs } = useHeader();
@@ -197,7 +203,26 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
     if (typeof rowHeightPx === 'number' && rowHeightPx > 0 && rowHeightPx !== baseRowHeightPx) {
       setBaseRowHeightPx(rowHeightPx);
     }
-  }, [zoom, pixelsPerMin, rowHeightPx]);
+  }, [
+    zoom,
+    pixelsPerMin,
+    rowHeightPx,
+    setPageZoom,
+    setBasePixelsPerMinute,
+    setBaseRowHeightPx,
+  ]);
+
+  const previousProfileHoursRef = useRef<{ start: number; end: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof profileStartHour !== 'number' || typeof profileEndHour !== 'number') return;
+    const prev = previousProfileHoursRef.current;
+    if (prev && prev.start === profileStartHour && prev.end === profileEndHour) {
+      return;
+    }
+    previousProfileHoursRef.current = { start: profileStartHour, end: profileEndHour };
+    setScheduleHours(profileStartHour, profileEndHour);
+  }, [profileStartHour, profileEndHour, setScheduleHours]);
   
   // MASTER KILL SWITCH - Set to false to completely disable ALL weather effects for GPU testing
   const ENABLE_ALL_WEATHER_EFFECTS = false;

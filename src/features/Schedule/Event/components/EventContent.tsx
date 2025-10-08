@@ -218,7 +218,7 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
       </div>
     )}
     {rowHeightPx <= 90 && (
-      <div className="flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden mt-1 ${isMergedRoomEvent ? 'justify-center' : ''}">
+      <div className="flex flex-col min-w-0 pl-1 -gap-2 transition-all duration-200 ease-in-out overflow-hidden  ${isMergedRoomEvent ? 'justify-center' : ''}">
         <span className="font-medium text-black transition-all duration-200 ease-in-out whitespace-nowrap text-md leading-none">
           {event.event_name}
         </span>
@@ -237,27 +237,27 @@ function LectureEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
 function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoChecks, isOverdueChecksLoading, organization }: EventContentProps) {
   const { truncatedEventName: eventName } = getEventTypeInfo(event);
   const themeColors = getEventThemeColors(event);
-
+  const { profile, rowHeightPx  } = useProfile();
   const getEventHeight = () => {
     if (isMergedRoomEvent) return 'h-full';
     return 'h-16';
   };
 
   return (
-    <Card 
+    <Item 
       className={cn(
-        "relative border-0 shadow-none bg-transparent",
+        "relative border-0 shadow-none bg-transparent py-0 my-0",
         getEventHeight(),
         isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'
       )}
     >
-      <CardContent className={cn(
-        "relative z-10 flex flex-col items-start justify-center h-full px-4 gap-1 p-0",
+      <ItemContent className={cn(
+        "relative z-10 flex flex-col items-start justify-center h-full px-4 gap-1  my-0 py-0",
         isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'
       )}>
         {/* Main title */}
         <div
-          className="font-bold text-left"
+          className={`py-0 ${rowHeightPx <90 ? "-mt-7": ""} font-bold text-left`}
           style={{
             fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
             color: '#B8860B'
@@ -270,13 +270,13 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
         {/* Subtitle */}
         <Badge 
           variant="secondary"
-          className="text-left bg-transparent border-0 p-0 h-auto text-xs"
+          className="text-left bg-transparent border-0 py-0 h-auto text-xs"
           style={{ color: '#DAA520' }}
         >
           EXECUTIVE EDUCATION
         </Badge>
-      </CardContent>
-    </Card>
+      </ItemContent>
+    </Item>
   );
 }
 
@@ -310,16 +310,16 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
   };
 
   return (
-    <Card 
+    <Item 
       className={cn(
         "border-0 shadow-none bg-transparent text-foreground rounded transition-all duration-200 ease-in-out min-w-0 overflow-hidden relative p-0",
         getEventHeight(),
-        event.event_type === 'Lecture' ? 'bg-black/30' : '',
+       
         event.event_type === 'Ad Hoc Class Meeting' ? 'flex items-center' : '',
         isMergedRoomEvent ? 'flex items-center justify-center' : ''
       )}
     >
-      <CardContent className="flex items-center gap-2 p-2 h-full">
+      <ItemContent className="flex items-center gap-2 px-2 h-full">
         {organization?.logo && (
           <Avatar className="w-6 h-6 flex-shrink-0">
             <AvatarImage 
@@ -355,8 +355,8 @@ function DefaultEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoC
             {eventName}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        </ItemContent>
+    </Item>
   );
 }
 

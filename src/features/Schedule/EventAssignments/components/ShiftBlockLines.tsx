@@ -1,7 +1,7 @@
 import React from 'react';
-import { useShiftBlocks, ShiftBlock } from '../../../SessionAssignments/hooks/useShiftBlocks';
+import { useShiftBlocks, ShiftBlock, useAllRoomsAssigned } from '../../../SessionAssignments/hooks/useShiftBlocks';
 import ShiftBlockLine from './ShiftBlockLine';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 import { Separator } from '../../../../components/ui/separator';
 import { useEventAssignments } from '../../../../contexts/EventAssignmentsContext';
 
@@ -18,15 +18,69 @@ interface ShiftBlockLinesProps {
 
 const ShiftBlockLines: React.FC<ShiftBlockLinesProps> = ({ date, className = '', pixelsPerMinute, contentWidth, pageZoom, scrollLeft, startHour, onSelectRange }) => {
   const { data: shiftBlocks, isLoading, error } = useShiftBlocks(date);
-  const { selectedShiftBlockId, setSelectedShiftBlockId, setSelectedShiftBlock } = useEventAssignments();
+  const { data: allRoomsAssigned } = useAllRoomsAssigned(date);
+  const {
+    selectedShiftBlockId,
+    setSelectedShiftBlockId,
+    selectedShiftBlock,
+    setSelectedShiftBlock,
+    selectedShiftBlockIndex,
+    setSelectedShiftBlockIndex
+  } = useEventAssignments();
 
   React.useEffect(() => {
     if (!shiftBlocks || shiftBlocks.length === 0) return;
-    if (selectedShiftBlockId && shiftBlocks.find(b => b.id.toString() === selectedShiftBlockId)) return;
+
+    if (selectedShiftBlockIndex != null) {
+      if (selectedShiftBlockIndex >= 0 && selectedShiftBlockIndex < shiftBlocks.length) {
+        const blockAtIndex = shiftBlocks[selectedShiftBlockIndex];
+        const blockId = blockAtIndex.id.toString();
+        if (selectedShiftBlockId !== blockId) {
+          setSelectedShiftBlockId(blockId);
+        }
+        if (!selectedShiftBlock || selectedShiftBlock.id !== blockAtIndex.id) {
+          setSelectedShiftBlock(blockAtIndex);
+        }
+        return;
+      }
+    }
+
+    if (selectedShiftBlockId) {
+      const matchById = shiftBlocks.find(b => b.id.toString() === selectedShiftBlockId);
+      if (matchById) {
+        setSelectedShiftBlockIndex(shiftBlocks.indexOf(matchById));
+        if (!selectedShiftBlock || selectedShiftBlock.id !== matchById.id) {
+          setSelectedShiftBlock(matchById);
+        }
+        return;
+      }
+      if (selectedShiftBlock) {
+        const matchByTime = shiftBlocks.find(b =>
+          b.start_time === selectedShiftBlock.start_time &&
+          b.end_time === selectedShiftBlock.end_time
+        );
+        if (matchByTime) {
+          setSelectedShiftBlockId(matchByTime.id.toString());
+          setSelectedShiftBlock(matchByTime);
+          setSelectedShiftBlockIndex(shiftBlocks.indexOf(matchByTime));
+          return;
+        }
+      }
+    }
+
     const first = shiftBlocks[0];
     setSelectedShiftBlockId(first.id.toString());
     setSelectedShiftBlock(first);
-  }, [shiftBlocks, selectedShiftBlockId, setSelectedShiftBlockId, setSelectedShiftBlock]);
+    setSelectedShiftBlockIndex(0);
+  }, [
+    shiftBlocks,
+    selectedShiftBlockId,
+    selectedShiftBlock,
+    selectedShiftBlockIndex,
+    setSelectedShiftBlockId,
+    setSelectedShiftBlock,
+    setSelectedShiftBlockIndex
+  ]);
 
   if (isLoading) {
     return (
@@ -52,17 +106,22 @@ const ShiftBlockLines: React.FC<ShiftBlockLinesProps> = ({ date, className = '',
     );
   }
 
-  const initialValue = (selectedShiftBlockId && shiftBlocks.find(b => b.id.toString() === selectedShiftBlockId))
-    ? selectedShiftBlockId
-    : (shiftBlocks.length > 0 ? shiftBlocks[0].id.toString() : undefined);
+  const selectedExists = !!selectedShiftBlockId && shiftBlocks.some(b => b.id.toString() === selectedShiftBlockId);
+  const currentValue = selectedExists
+    ? selectedShiftBlockId as string
+    : (selectedShiftBlockIndex != null && selectedShiftBlockIndex >= 0 && selectedShiftBlockIndex < shiftBlocks.length)
+        ? shiftBlocks[selectedShiftBlockIndex].id.toString()
+        : (shiftBlocks.length > 0 ? shiftBlocks[0].id.toString() : undefined);
 
   return (
     <Tabs 
-      defaultValue={initialValue}
+      value={currentValue}
       onValueChange={(val) => {
-        const sb = shiftBlocks.find(b => b.id.toString() === val) || null;
+        const sbIndex = shiftBlocks.findIndex(b => b.id.toString() === val);
+        const sb = sbIndex >= 0 ? shiftBlocks[sbIndex] : null;
         setSelectedShiftBlockId(val);
         setSelectedShiftBlock(sb);
+        setSelectedShiftBlockIndex(sbIndex >= 0 ? sbIndex : null);
         if (!onSelectRange) return;
         if (!sb || !sb.start_time || !sb.end_time) { onSelectRange(null); return; }
         const toMinutes = (t: string) => { const [h,m] = t.split(":"); return parseInt(h,10)*60 + parseInt(m,10); };
@@ -92,6 +151,7 @@ const ShiftBlockLines: React.FC<ShiftBlockLinesProps> = ({ date, className = '',
                 shiftBlock={shiftBlock}
                 pixelsPerMinute={pixelsPerMinute}
                 pageZoom={pageZoom}
+                allRoomsAssigned={!!allRoomsAssigned}
               />
             </TabsTrigger>
             {index < shiftBlocks.length - 1 && (

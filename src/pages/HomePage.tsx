@@ -4,8 +4,6 @@ import TimeGrid from "../features/Schedule/components/TimeGrid";
 import CurrentTimeIndicator from "../features/Schedule/components/CurrentTimeIndicator";
 import RoomRow from "../features/Schedule/components/RoomRow";
 import VerticalLines from "../features/Schedule/components/VerticalLines";
-import AppHeader from "../components/AppHeader";
-import AppHeaderVertical from "../components/AppHeaderVertical";
 import DraggableGridContainer from "../features/Schedule/DraggableGridContainer";
 import DateDisplay from "../features/Schedule/components/DateDisplay";
 import { useEvents, useFilteredEvents, useEventsPrefetch, useRoomRows } from "../features/Schedule/hooks/useEvents";
@@ -35,7 +33,13 @@ import { useUserProfile } from "../core/User/useUserProfile";
 export default function HomePage() {
 
   // Event Assignments state
-  const { showEventAssignments, selectedShiftBlock } = useEventAssignments();
+  const {
+    showEventAssignments,
+    selectedShiftBlock,
+    setSelectedShiftBlock,
+    setSelectedShiftBlockId,
+    setSelectedShiftBlockIndex
+  } = useEventAssignments();
 
   // Drag functionality
   const [isDragEnabled, setIsDragEnabled] = useState(true);
@@ -59,24 +63,29 @@ export default function HomePage() {
   })();
 
   const { pageZoom, setPageZoom } = useZoom();
-  const { basePixelsPerMinute, setBasePixelsPerMinute } = usePixelMetrics();
+  const {
+    basePixelsPerMinute,
+    setBasePixelsPerMinute,
+    pixelsPerMinute,
+    rowHeightPx,
+    scheduleStartHour: startHour,
+    scheduleEndHour: endHour,
+  } = usePixelMetrics();
   const { updateZoom, updatePixelsPerMin } = useProfile();
   const zoomPersistTimer = React.useRef<number | null>(null);
   const ppmPersistTimer = React.useRef<number | null>(null);
-  const { pixelsPerMinute, rowHeightPx } = usePixelMetrics();
   const { currentTheme, isDarkMode } = useTheme();
   const [selectedOverlayRange, setSelectedOverlayRange] = useState<{ leftPx: number; widthPx: number } | null>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
-  const startHour = 7;
-  const endHour = 23;
   // ✅ Clean: Get filtered events directly from React Query with select
   const { data: filteredEvents, isLoading, error } = useFilteredEvents(selectedDate);
   const { data: roomRows, isLoading: roomRowsLoading } = useRoomRows(filteredEvents || []);
   const { data: filteredLCEvents, isLoading: filteredLCEventsLoading } = useFilteredLCEvents(selectedDate);
 
   const actualRowCount = (roomRows?.length || 0) + (filteredLCEvents?.length || 0);
-  const contentWidth = (endHour - startHour) * 60 * pixelsPerMinute;
+  const hourSpan = Math.max(1, endHour - startHour);
+  const contentWidth = hourSpan * 60 * pixelsPerMinute;
   const headerHeightPx = 24;
   const leftLabelBaseWidth = 96;
   const contentHeight = (actualRowCount * rowHeightPx);
@@ -96,6 +105,27 @@ export default function HomePage() {
   ];
 
   const isRoomSelected = (roomName: string) => selectedRoomsSet.has(roomName);
+
+  const getBadgeColorClass = (roomName: string) => {
+    const firstChar = roomName.replace(/^GH\s+/, '').charAt(0).toUpperCase();
+    
+    switch (firstChar) {
+      case 'L':
+        return '!bg-primary-100 text-primary-foreground';
+      case '1':
+        return '!bg-primary-200 text-primary-foreground';
+      case '2':
+        return '!bg-primary-300 text-primary-foreground';
+      case '3':
+        return '!bg-primary-400 text-primary-foreground';
+      case '4':
+        return '!bg-primary-500 text-primary-foreground';
+      case '5':
+        return '!bg-primary-600 text-primary-foreground';
+      default:
+        return '!bg-primary-100 text-primary-foreground'; // fallback for other characters
+    }
+  };
 
   const selectRoomLabel = (roomName: string, event: React.MouseEvent) => {
     if (!showEventAssignments) return;
@@ -148,7 +178,7 @@ export default function HomePage() {
     }
 
     const updatedBlocks = shiftBlocks.map((b: any) =>
-      b.id === (selectedShiftBlock as any).id ? { ...b, assignments: newAssignments } : b
+      selectedShiftBlock && b.id === selectedShiftBlock.id ? { ...b, assignments: newAssignments } : b
     );
     const blocksToInsert = updatedBlocks.map((b: any) => ({
       date: b.date,
@@ -158,8 +188,27 @@ export default function HomePage() {
     }));
 
     updateShiftBlocks.mutate({ date: dateString, newBlocks: blocksToInsert }, {
-      onSuccess: () => {
+      onSuccess: (insertedBlocks) => {
         setSelectedRoomsSet(new Set());
+        if (Array.isArray(insertedBlocks) && selectedShiftBlock) {
+          const prevStart = selectedShiftBlock.start_time;
+          const prevEnd = selectedShiftBlock.end_time;
+          if (prevStart && prevEnd) {
+            const matchIndex = blocksToInsert.findIndex(block =>
+              block.start_time === prevStart &&
+              block.end_time === prevEnd
+            );
+            const match = insertedBlocks.find(block =>
+              block.start_time === prevStart &&
+              block.end_time === prevEnd
+            );
+            if (match) {
+              setSelectedShiftBlockId(match.id.toString());
+              setSelectedShiftBlock(match);
+              setSelectedShiftBlockIndex(matchIndex >= 0 ? matchIndex : null);
+            }
+          }
+        }
       }
     });
   };
@@ -205,16 +254,6 @@ export default function HomePage() {
   // }, [events, scheduleNotificationsForEvents]);
 
 
-
-  const handleDateChange = (newDate: Date) => {
-    // Save current scroll position before navigating
-    // Note: Scroll position is now managed by DraggableGridContainer
-
-    const localDate = new Date(newDate);
-    localDate.setHours(0, 0, 0, 0);
-    const formattedDate = localDate.toISOString().split('T')[0];
-    navigate(`/${formattedDate}`);
-  };
 
   React.useEffect(() => {
     if (!date && selectedDate) {
@@ -273,7 +312,6 @@ export default function HomePage() {
       }
     };
   }, [pageZoom, setPageZoom, updateZoom, basePixelsPerMinute, setBasePixelsPerMinute, updatePixelsPerMin]);
-
 
   const handleEventClick = (event: Database['public']['Tables']['events']['Row']) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
@@ -501,7 +539,8 @@ export default function HomePage() {
                       >
                         <div className="flex flex-col items-center">
                           <Badge
-                            className={`${isRoomSelected(room.name) ? 'ring-10 ring-blue-500' : ''}`}
+                            className={` ${isRoomSelected(room.name) ? 'ring-10 ring-blue-500' : ''} ${getBadgeColorClass(room.name)}`}
+                            variant={'outline'}
                             style={{
                               userSelect: 'none',
                               WebkitUserSelect: 'none',
@@ -550,6 +589,7 @@ export default function HomePage() {
                       <div>
                         <Badge
                           className={`${isRoomSelected(roomData.room_name) ? 'ring-5 bg-green-500 ring-blue-500' : ''}`}
+                          variant={'outline'}
                           style={{
                             userSelect: 'none',
                             WebkitUserSelect: 'none',

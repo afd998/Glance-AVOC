@@ -116,8 +116,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { currentBackground } = useBackground();
   const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
   const { pageZoom, setPageZoom } = useZoom();
-  const { basePixelsPerMinute, setBasePixelsPerMinute, baseRowHeightPx, setBaseRowHeightPx, pixelsPerMinute, rowHeightPx } = usePixelMetrics();
-  const { profile, updateZoom, updatePixelsPerMin, updateRowHeight, currentFilter } = useProfile();
+  const {
+    basePixelsPerMinute,
+    setBasePixelsPerMinute,
+    baseRowHeightPx,
+    setBaseRowHeightPx,
+    pixelsPerMinute,
+    rowHeightPx,
+    scheduleStartHour,
+    scheduleEndHour,
+    setScheduleHours,
+  } = usePixelMetrics();
+  const { profile, updateZoom, updatePixelsPerMin, updateRowHeight, updateScheduleHours, currentFilter } = useProfile();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   
   // Check if we're on the home page (/{date} route) with 100% zoom
@@ -128,9 +138,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [location.pathname]);
   
   const isAt100PercentZoom = pageZoom === 1;
-  
+
   const shouldShowEventAssignmentsButton = isHomePage && isAt100PercentZoom;
-  
+
+  const formatHourLabel = React.useCallback((hour: number) => {
+    const normalized = ((hour % 24) + 24) % 24;
+    const hour12 = normalized % 12 || 12;
+    const suffix = normalized >= 12 ? 'PM' : 'AM';
+    return `${hour12} ${suffix}`;
+  }, []);
+
   // Debug logging
   React.useEffect(() => {
     console.log('[Sidebar] Event Assignments Button Debug:', {
@@ -383,6 +400,44 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>90px</span>
                     <span>160px</span>
+                  </div>
+                </div>
+
+                {/* Schedule Hours */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Schedule Hours</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {formatHourLabel(scheduleStartHour)} – {formatHourLabel(scheduleEndHour)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[scheduleStartHour, scheduleEndHour]}
+                    min={0}
+                    max={23}
+                    step={1}
+                    onValueChange={(values) => {
+                      if (!Array.isArray(values) || values.length < 2) return;
+                      setScheduleHours(values[0], values[1]);
+                    }}
+                    onValueCommit={(values) => {
+                      if (!Array.isArray(values) || values.length < 2) return;
+                      let [start, end] = values;
+                      start = Math.max(0, Math.min(22, Math.round(start)));
+                      end = Math.max(start + 1, Math.min(23, Math.round(end)));
+                      setScheduleHours(start, end);
+                      if (profile?.start_hour === start && profile?.end_hour === end) {
+                        return;
+                      }
+                      console.log('[Sidebar] onValueCommit schedule_hours ->', { start, end });
+                      updateScheduleHours(start, end);
+                    }}
+                    className="w-full"
+                    aria-label="Visible hour range"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>12 AM</span>
+                    <span>11 PM</span>
                   </div>
                 </div>
               </div>
