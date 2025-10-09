@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useQuarterStartDates } from '../../hooks/useQuarterStartDates';
+import { useQuarterStartDates } from './hooks/useQuarterStartDates';
+import { Badge } from '../../components/ui/badge';
 
 const QuarterCount: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -95,21 +96,12 @@ const QuarterCount: React.FC = () => {
   const quarterName = getQuarterName(closestQuarterStart);
 
   return (
-    <div className="group relative inline-block">
-      <div
-        className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
-          isDarkMode
-            ? 'bg-white/10 border-white/20 text-gray-200 hover:bg-white/15'
-            : 'bg-white/30 border-white/40 text-gray-800 hover:bg-white/40'
-        }`}
-      >
-        {/* Glassmorphic shine effect */}
-        <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-full"></div>
-        <div className="relative z-10 font-medium opacity-75">
-          Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
-        </div>
-      </div>
-    </div>
+    <Badge 
+      variant="outline" 
+      className="text-xs font-medium hover:scale-105 transition-all duration-300"
+    >
+      Week {weeksSinceQuarterStart + 1} • {quarterName} Quarter
+    </Badge>
   );
 };
 

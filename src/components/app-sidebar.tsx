@@ -53,6 +53,8 @@ import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useProfile } from "../core/User/useProfile";
 import { getTodayPath } from "../utils/datePaths";
+import QuarterCount from "../features/QuarterCount/QuarterCount";
+import AcademicCalendarInfo from "../features/Schedule/components/AcademicCalendarInfo";
 
 // Navigation data for the sidebar
 const data = {
@@ -336,6 +338,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     return classes;
                   }}
                 />
+              </div>
+              
+              {/* Quarter Count and Academic Calendar Info */}
+              <div className="mt-2 flex justify-center gap-2">
+                <QuarterCount />
+                <AcademicCalendarInfo />
               </div>
             </SidebarGroupContent>
           </SidebarGroup>

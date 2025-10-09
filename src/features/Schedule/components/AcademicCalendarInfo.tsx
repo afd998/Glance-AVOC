@@ -3,6 +3,12 @@ import { useParams } from 'react-router-dom';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useAcademicCalendar } from '../hooks/useAcademicCalendar';
 import { GraduationCap } from 'lucide-react';
+import { Badge } from '../../../components/ui/badge';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../../components/ui/popover';
 
 const AcademicCalendarInfo: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -25,13 +31,9 @@ const AcademicCalendarInfo: React.FC = () => {
 
   if (error) {
     return (
-      <div className={`ml-4 p-2 rounded-lg border ${
-        isDarkMode 
-          ? 'bg-red-900 border-red-600 text-red-200' 
-          : 'bg-red-100 border-red-300 text-red-700'
-      }`}>
-        <span className="text-sm">Error: {error.message || 'Failed to fetch academic calendar'}</span>
-      </div>
+      <Badge variant="destructive" className="text-xs">
+        Error: {error.message || 'Failed to fetch academic calendar'}
+      </Badge>
     );
   }
 
@@ -40,48 +42,29 @@ const AcademicCalendarInfo: React.FC = () => {
   }
 
   return (
-    <div className="group relative inline-block">
-      {/* Container with info icon - matching QuarterCount style */}
-      <div
-        className={`text-xs px-2 py-1.5 rounded-lg backdrop-blur-md border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-help relative overflow-hidden ${
-          isDarkMode
-            ? 'bg-white/10 border-white/20 text-purple-300 hover:bg-white/15'
-            : 'bg-white/30 border-white/40 text-purple-600 hover:bg-white/40'
-        }`}
-      >
-        {/* Glassmorphic shine effect */}
-        <div className="absolute inset-0 bg-linear-to-r from-white/20 via-white/5 to-transparent rounded-lg"></div>
-        <div className="relative z-10 flex flex-col items-center gap-1">
-        {/* Graduation cap icon */}
-        <GraduationCap className="w-4 h-4 shrink-0" />
-
-        {/* Hover indicator */}
-        <span className="font-medium opacity-75 text-center">
+    <Popover>
+      <PopoverTrigger asChild>
+        <Badge 
+          variant="default" 
+          className="text-xs font-medium cursor-pointer hover:scale-105 transition-all duration-300 flex items-center gap-1"
+        >
+          <GraduationCap className="w-3 h-3" />
           {calendarItems.length} item{calendarItems.length !== 1 ? 's' : ''}
-        </span>
-        </div>
-      </div>
-
-      {/* Expanded content on hover - slides out to the right */}
-      <div className="absolute left-full top-0 ml-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out transform translate-x-0 group-hover:translate-x-0 z-100">
-        <div className={`flex items-center gap-2 p-3 rounded-lg border backdrop-blur-sm shadow-xl ${
-          isDarkMode
-            ? 'bg-gray-800/95 border-gray-600/50 text-gray-200'
-            : 'bg-white/95 border-gray-300/50 text-gray-800'
-        }`}>
-          <div className="flex flex-wrap items-center gap-2">
-            {calendarItems.map((item, index) => (
-              <React.Fragment key={item.id}>
-                {index > 0 && <span className="text-current opacity-50">•</span>}
-                <span className="text-sm font-medium whitespace-nowrap">
-                  {item.label || 'No label'}
-                </span>
-              </React.Fragment>
+        </Badge>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="center">
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm">Academic Calendar</h4>
+          <div className="space-y-1">
+            {calendarItems.map((item) => (
+              <div key={item.id} className="text-sm">
+                {item.label || 'No label'}
+              </div>
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
