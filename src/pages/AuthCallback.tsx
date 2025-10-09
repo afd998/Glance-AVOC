@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
+import { getTodayPath } from '../utils/datePaths';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -46,8 +47,8 @@ const AuthCallback: React.FC = () => {
         }
 
         if (data.session) {
-          console.log('AuthCallback: Session found, navigating to /');
-          navigate('/');
+          console.log('AuthCallback: Session found, navigating to home schedule');
+          navigate(getTodayPath());
         } else {
           console.log('AuthCallback: No session found');
           setError('Authentication failed. Please try again.');
@@ -69,7 +70,7 @@ const AuthCallback: React.FC = () => {
         }`}>
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-2xl">⚠️</span>
+              <span className="text-2xl">!</span>
             </div>
             <h1 className="text-2xl font-bold mb-4">Authentication Error</h1>
             <p className="text-red-600 dark:text-red-400 mb-6">{error}</p>

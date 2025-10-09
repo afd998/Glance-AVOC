@@ -26,6 +26,13 @@ import RoomLabelColumn from "../features/Schedule/components/RoomLabelColumn";
 
 
 
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function HomePage() {
 
   // Event Assignments state
@@ -81,7 +88,9 @@ export default function HomePage() {
   const contentHeight = (actualRowCount * rowHeightPx);
 
   // Shift block data and updater for current date
-  const dateString = selectedDate.toISOString().split('T')[0];
+  const dateString = getLocalDateString(selectedDate);
+  const todayString = getLocalDateString(new Date());
+  const isToday = dateString === todayString;
 
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
@@ -326,13 +335,15 @@ export default function HomePage() {
                   />
 
 
-                  <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
-                    <CurrentTimeIndicator
-                      startHour={startHour}
-                      endHour={endHour}
-                      pixelsPerMinute={pixelsPerMinute}
-                    />
-                  </div>
+                  {isToday && (
+                    <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none h-full">
+                      <CurrentTimeIndicator
+                        startHour={startHour}
+                        endHour={endHour}
+                        pixelsPerMinute={pixelsPerMinute}
+                      />
+                    </div>
+                  )}
 
                   {roomRows.map((room: any, index: number) => {
                     const roomEvents = getFilteredEventsForRoomCallback(room.name);

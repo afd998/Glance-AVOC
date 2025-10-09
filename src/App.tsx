@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import Layout from "./contexts/Layout";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,6 +17,7 @@ import { EventAssignmentsProvider } from './contexts/EventAssignmentsContext';
 
 import LandingPage from './pages/LandingPage';
 import AuthCallback from './pages/AuthCallback';
+import AuthPage from './pages/AuthPage';
 import ProtectedRoute from './features/ProtectedRoute';
 import UserProfilePage from './pages/UserProfilePage';
 import AboutPage from './pages/AboutPage';
@@ -37,6 +38,12 @@ const queryClient = new QueryClient({
 
 // AppContent has been extracted to pages/HomePage.tsx as HomePage
 
+const LayoutWrapper: React.FC = () => (
+  <Layout>
+    <Outlet />
+  </Layout>
+);
+
 export default function App() {
   return (
     <AuthProvider>
@@ -48,12 +55,12 @@ export default function App() {
                     <HeaderProvider>
                     <EventAssignmentsProvider>
                     <Router>
-                    <Layout>
                     <Toaster richColors position="top-right" />
                     <Routes>
-                    <Route path="/auth" element={<LandingPage />} />
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/auth" element={<AuthPage />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
-                    <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route element={<LayoutWrapper />}>
                     <Route path="/faculty" element={<ProtectedRoute><FacultyListPage /></ProtectedRoute>} />
                     <Route path="/faculty/:facultyId" element={<ProtectedRoute><FacultyProfilePage /></ProtectedRoute>} />
                     <Route path="/sessionassignments" element={<ProtectedRoute><SessionAssignmentsPage /></ProtectedRoute>} />
@@ -61,8 +68,8 @@ export default function App() {
                     <Route path=":date/:eventId/*" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path="/account" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
                     <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+                    </Route>
                     </Routes>
-                    </Layout>
                     </Router>
                     </EventAssignmentsProvider>
                     </HeaderProvider>

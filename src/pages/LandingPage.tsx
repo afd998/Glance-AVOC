@@ -1,270 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import HeroSectionOne from '../components/hero-section-demo-1';
 import { useAuth } from '../contexts/AuthContext';
+import { getTodayPath } from '../utils/datePaths';
+import LandingPageNavBar from '../components/LandingPageNavBar';
 import { useTheme } from '../contexts/ThemeContext';
 
 const LandingPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const { signInWithOtp, verifyOtp, user } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isDarkMode } = useTheme();
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('📧 handleSendOtp: Starting with email:', email);
-    setIsLoading(true);
-    setMessage('');
-
-    if (!email) {
-      console.log('📧 handleSendOtp: No email provided');
-      setMessage('Please enter your email address');
-      setMessageType('error');
-      setIsLoading(false);
-      return;
+  useEffect(() => {
+    if (user) {
+      navigate(getTodayPath(), { replace: true });
     }
+  }, [user, navigate]);
 
-    try {
-      console.log('📧 handleSendOtp: Sending OTP to existing user...');
-      const { error } = await signInWithOtp(email);
-      
-      console.log('📧 handleSendOtp: OTP result:', {
-        hasError: !!error,
-        errorMessage: error?.message
-      });
-      
-      if (error) {
-        console.error('📧 handleSendOtp: OTP error:', error);
-        setMessage(error.message);
-        setMessageType('error');
-      } else {
-        console.log('📧 handleSendOtp: OTP sent successfully');
-        setMessage('Check your email for the verification code!');
-        setMessageType('success');
-        setOtpSent(true);
-      }
-    } catch (error) {
-      console.error('📧 handleSendOtp: Unexpected error:', error);
-      setMessage('An unexpected error occurred. Please try again.');
-      setMessageType('error');
-    } finally {
-      setIsLoading(false);
-    }
+
+
+  const handleLogin = () => {
+    navigate('/auth');
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('🔑 handleVerifyOtp: Starting with email:', email, 'code length:', otpCode.length);
-    setIsLoading(true);
-    setMessage('');
-
-    if (!otpCode || otpCode.length !== 6) {
-      console.log('🔑 handleVerifyOtp: Invalid OTP code length:', otpCode.length);
-      setMessage('Please enter the 6-digit verification code');
-      setMessageType('error');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      console.log('🔑 handleVerifyOtp: Verifying OTP...');
-      const { error, session } = await verifyOtp(email, otpCode);
-      
-      console.log('🔑 handleVerifyOtp: Verification result:', {
-        hasError: !!error,
-        hasSession: !!session,
-        errorMessage: error?.message,
-        userId: session?.user?.id
-      });
-      
-      if (error) {
-        console.error('🔑 handleVerifyOtp: Verification error:', error);
-        setMessage(error.message);
-        setMessageType('error');
-      } else if (session) {
-        console.log('🔑 handleVerifyOtp: Authentication complete, redirecting...');
-        setMessage('Verification successful! Redirecting...');
-        setMessageType('success');
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
-      } else {
-        console.log('🔑 handleVerifyOtp: No session returned from verification');
-        setMessage('Verification failed. Please try again.');
-        setMessageType('error');
-      }
-    } catch (error) {
-      console.error('🔑 handleVerifyOtp: Unexpected error:', error);
-      setMessage('An unexpected error occurred. Please try again.');
-      setMessageType('error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    if (otpSent) {
-      await handleVerifyOtp(e);
-    } else {
-      await handleSendOtp(e);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setIsLoading(true);
-    setMessage('');
-    
-    try {
-      const { error } = await signInWithOtp(email);
-      
-      if (error) {
-        setMessage(error.message);
-        setMessageType('error');
-      } else {
-        setMessage('New verification code sent!');
-        setMessageType('success');
-        setOtpCode('');
-      }
-    } catch (error) {
-      setMessage('An unexpected error occurred. Please try again.');
-      setMessageType('error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBackToEmail = () => {
-    setOtpSent(false);
-    setOtpCode('');
-    setMessage('');
+  const handleReadProposal = () => {
+    window.open("https://avoc-proposal.vercel.app", "_blank");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative">
-      {/* Blurred background image */}
-      <div 
-        className="absolute inset-0 -z-10"
-        style={{
-          backgroundImage: 'url(/image.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          filter: 'blur(2px)'
-        }}
-      />
-      
-      <div className="max-w-md w-full mx-4">
-        <div className="p-8 rounded-2xl shadow-2xl backdrop-blur-md bg-white/20 border border-white/30 text-white">
-          {/* Logo/Header */}
-          <div className="text-center mb-8 relative">
-            <h1 className="text-3xl font-bold mb-2">AVOC</h1>
-            <div className="w-48 h-48 mx-auto mb-4 flex items-center justify-center relative">
-              <img src="/curtain.png" alt="AVOC Logo" className="w-full h-full object-contain" />
-              <h1 
-                className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-white drop-shadow-lg" 
-                style={{ fontFamily: 'Smooth Circulars, sans-serif' }}
-              >
-                HOME
-              </h1>
-            </div>
-          </div>
+    <div className="relative min-h-screen w-full  flex flex-col">
+      <LandingPageNavBar onLogin={handleLogin} />
+      <div className="w-full mt-24">
+        <HeroSectionOne
+          isDarkMode={isDarkMode}
+          onLogin={handleLogin}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!otpSent ? (
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-2 text-white">
-                  Northwestern Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@northwestern.edu"
-                  className="w-full px-4 py-3 rounded-lg border border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/10 text-white placeholder-white/60 backdrop-blur-sm"
-                  disabled={isLoading}
-                />
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="otp" className="block text-sm font-medium mb-2 text-white">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  id="otp"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  className="w-full px-4 py-3 rounded-lg border border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 text-center text-2xl tracking-widest bg-white/10 text-white placeholder-white/60 backdrop-blur-sm"
-                  disabled={isLoading}
-                  maxLength={6}
-                />
-                <p className="text-xs mt-2 text-white/70">
-                  Enter the 6-digit code sent to {email}
-                </p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                isLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-purple-500 hover:bg-purple-600 text-white'
-              }`}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  {otpSent ? 'Verifying...' : 'Sending code...'}
-                </div>
-              ) : (
-                otpSent ? 'Verify Code' : 'Send Verification Code'
-              )}
-            </button>
-
-            {otpSent && (
-              <div className="flex justify-between items-center">
-                <button
-                  type="button"
-                  onClick={handleBackToEmail}
-                  className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  ← Back to email
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={isLoading}
-                  className={`text-sm ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
-                >
-                  Resend code
-                </button>
-              </div>
-            )}
-          </form>
-
-          {/* Message */}
-          {message && (
-            <div className={`mt-4 p-3 rounded-lg text-sm ${
-              messageType === 'success'
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-            }`}>
-              {message}
-            </div>
-          )}
-        </div>
-      </div>
+        /></div>
     </div>
   );
 };
 
-export default LandingPage; 
+export default LandingPage;

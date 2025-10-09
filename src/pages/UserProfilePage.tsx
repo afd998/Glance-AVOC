@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Separator } from '../components/ui/separator';
 import UserAvatar from '../core/User/UserAvatar';
+import { getTodayPath } from '../utils/datePaths';
 
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -54,8 +55,8 @@ const AccountPage: React.FC = () => {
               Manage your account preferences and settings
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate('/')}>
-            ← Back to Schedule
+          <Button variant="outline" onClick={() => navigate(getTodayPath())}>
+            Back to Schedule
           </Button>
         </div>
 

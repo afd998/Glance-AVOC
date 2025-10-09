@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useBackground } from '../features/ThemeModal/useBackground';
 import { useProfile } from '../core/User/useProfile';
+import { useAuth } from './AuthContext';
 
 const ThemeContext = createContext();
 
@@ -19,50 +20,64 @@ const THEMES = {
 
 export function ThemeProvider({ children }) {
   const { currentBackground } = useBackground();
-  const { theme: profileTheme, updateTheme, isLoading: isProfileLoading } = useProfile();
+  const { user } = useAuth();
+  const { theme: profileTheme, updateTheme } = useProfile();
 
-  // Convert profile theme to boolean for dark mode
-  const isDarkMode = profileTheme === 'dark';
-  
-  // Function to update theme in profile
-  const setIsDarkMode = (darkMode) => {
-    const newTheme = darkMode ? 'dark' : 'light';
-    updateTheme(newTheme);
-  };
+  const [localTheme, setLocalTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    return window.localStorage.getItem('avoc-guest-theme') || 'light';
+  });
 
-  // Apply theme immediately when profile theme changes
-  useEffect(() => {
-    if (!isProfileLoading && profileTheme) {
-      // Remove any system theme classes first
-      document.documentElement.classList.remove('dark');
-
-      // Apply our custom theme based on profile
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-
-      // Set a data attribute to indicate we're controlling the theme
-      document.documentElement.setAttribute('data-theme-controlled', 'true');
+  const effectiveTheme = useMemo(() => {
+    if (user && profileTheme) {
+      return profileTheme;
     }
-  }, [profileTheme, isDarkMode, isProfileLoading]);
+    return localTheme;
+  }, [user, profileTheme, localTheme]);
 
-  // Apply initial theme state immediately (before any other effects)
+  const isDarkMode = effectiveTheme === 'dark';
+
+  const setIsDarkMode = useCallback(
+    (darkMode) => {
+      const newTheme = darkMode ? 'dark' : 'light';
+
+      if (user) {
+        if (profileTheme !== newTheme) {
+          updateTheme(newTheme);
+        }
+      } else {
+        setLocalTheme(newTheme);
+      }
+    },
+    [user, updateTheme, profileTheme]
+  );
+
+  // Persist guest theme preference
   useEffect(() => {
-    // Force remove dark class on initial load to prevent system inheritance
-    document.documentElement.classList.remove('dark');
+    if (!user && typeof window !== 'undefined') {
+      window.localStorage.setItem('avoc-guest-theme', localTheme);
+    }
+  }, [localTheme, user]);
+
+  // When a profile theme is available (signed-in user), sync local theme so it
+  // matches once they sign out and return to the landing page.
+  useEffect(() => {
+    if (user && profileTheme) {
+      setLocalTheme(profileTheme);
+    }
+  }, [user, profileTheme]);
+
+  // Apply theme classes to the document root based on the effective theme.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
     document.documentElement.setAttribute('data-theme-controlled', 'true');
-    
-    // If we have a profile theme, apply it immediately
-    if (profileTheme) {
-      if (profileTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, [profileTheme]);
+  }, [isDarkMode]);
 
   const currentTheme = THEMES[currentBackground] || THEMES['Vista.avif'];
 
@@ -81,7 +96,7 @@ export function ThemeProvider({ children }) {
       toggleDarkMode: () => setIsDarkMode(!isDarkMode),
       currentTheme: getTheme(),
       getTheme,
-      profileTheme,
+      profileTheme: effectiveTheme,
       updateTheme
     }}>
       {children}

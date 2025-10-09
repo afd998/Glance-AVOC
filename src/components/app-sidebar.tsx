@@ -52,6 +52,7 @@ import FilterRoomsModal from "../features/Schedule/components/FilterRoomsModal"
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useProfile } from "../core/User/useProfile";
+import { getTodayPath } from "../utils/datePaths";
 
 // Navigation data for the sidebar
 const data = {
@@ -218,7 +219,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarHeader>
           <div className="flex flex-col items-center justify-center p-2 gap-2">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(getTodayPath())}
               className="h-12 w-12 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 p-4 group-data-[collapsible=icon]:p-2 rounded-full transition-all duration-200 flex flex-col items-center justify-center backdrop-blur-sm border border-purple-400/50 shadow-lg hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] hover:scale-105 active:scale-95 bg-primary"
               aria-label="Go to home"
             >
