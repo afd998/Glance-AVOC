@@ -162,7 +162,7 @@ const FacultyListPage: React.FC = () => {
                           if (nameParts.length >= 2) {
                             const firstName = nameParts[0];
                             const lastName = nameParts.slice(1).join(' ');
-                            return `${firstName} - ${lastName}`;
+                            return `${firstName} ${lastName}`;
                           }
                           return fullName;
                         })()}
