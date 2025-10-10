@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardAction } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import BYODTable from './BYODTable'
@@ -21,11 +21,11 @@ export default function BYODDevicesCard({ facultyId, themeHexColors }: Props) {
             <CardTitle className="text-base sm:text-lg">BYOD Devices</CardTitle>
             <CardDescription className="">Manage personal devices for this instructor</CardDescription>
           </div>
-          <CardAction>
+          <div className="flex items-center">
             <Button size="icon" variant="default" title="Add BYOD Device" onClick={() => setShowByodForm(!showByodForm)}>
               <Plus className="w-4 h-4" />
             </Button>
-          </CardAction>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-2">

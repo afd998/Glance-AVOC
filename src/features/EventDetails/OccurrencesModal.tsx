@@ -7,7 +7,7 @@ import { formatTime, formatDate } from '../../utils/timeUtils';
 
 import { useEventResources } from '../../core/event/hooks/useEvent';
 import { useOccurrences } from '../../hooks/useOccurrences';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { ItemGroup, Item, ItemMedia, ItemContent, ItemActions, ItemTitle, ItemDescription } from '@/components/ui/item';
 import { Badge } from '@/components/ui/badge';
 
@@ -110,12 +110,12 @@ const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
 
               </CardDescription>
             </div>
-            <CardAction>
+            <div className="flex flex-col items-end gap-2">
               {isCurrentEvent && (
                 <Badge variant="affirmative">Current</Badge>
               )}
               <span className="">{index + 1} of {totalCards}</span>
-            </CardAction>
+            </div>
           </div>
         </CardHeader>
         <CardContent >

@@ -174,7 +174,6 @@ export default function EventDetail() {
                     {!isCollapsed && (
                       <SessionSetup
                         event={event}
-                        resources={resources}
                         facultyMembers={facultyMember ? [facultyMember] : []}
                         instructorNames={[instructorName]}
                         isFacultyLoading={isFacultyLoading}
