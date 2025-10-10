@@ -5,7 +5,7 @@ import { useUpdateFacultySetupAttributes, useFacultySetup } from '../core/facult
 import { useEvents } from '../features/Schedule/hooks/useEvents';
 import { useEventOwnership } from '../core/event/hooks/useCalculateOwners';
 import { getEventThemeColors, getEventThemeHexColors } from '../utils/eventUtils';
-import { useEventResources } from '../features/Schedule/hooks/useEvents';
+import { useEventResources } from '../core/event/hooks/useEvent';
 import EventDetailHeader from '../features/EventDetails/EventDetailHeader';
 import SessionSetup from '../core/faculty/FacultyProfile';
 import Panopto from '../features/PanoptoChecks/Panopto';

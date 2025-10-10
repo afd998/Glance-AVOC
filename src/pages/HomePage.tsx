@@ -94,7 +94,7 @@ export default function HomePage() {
 
   // Prefetch events for previous and next day in the background
   // This ensures instant navigation when using next/previous day buttons
-  // useEventsPrefetch(selectedDate);
+  useEventsPrefetch(selectedDate);
 
   // // Handle Panopto check notifications
   // usePanoptoNotifications(selectedDate);
@@ -411,7 +411,7 @@ export default function HomePage() {
         )}
         {/* Event Detail Modal as shadcn Dialog */}
         <Dialog open={Boolean(isEventDetailRoute && eventId)} onOpenChange={(open) => { if (!open) navigate(`/${date}`) }}>
-          <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg bg-transparent border-0 shadow-none p-0">
+          <DialogContent className=" w-7xl max-h-[90vh] overflow-y-auto rounded-lg bg-transparent border-0 shadow-none p-0">
             <EventDetail />
           </DialogContent>
         </Dialog>

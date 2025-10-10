@@ -76,12 +76,10 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   // Generate breadcrumbs based on current route
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
-    const breadcrumbItems: BreadcrumbItem[] = [
-      { label: 'Home', href: '/' }
-    ];
+    const breadcrumbItems: BreadcrumbItem[] = [];
 
     if (pathSegments.length === 0) {
-      return [{ label: 'Home', isCurrentPage: true }];
+      return [];
     }
 
     let currentPath = '';
@@ -306,20 +304,13 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1 h-8 w-8" />
             <Breadcrumb>
-              <BreadcrumbList className="h-8 gap-2 rounded-md border px-3 text-sm">
+              <BreadcrumbList className="h-8 gap-2 rounded-md  px-3 text-sm">
                 {breadcrumbs.map((item, index) => (
                   <React.Fragment key={index}>
                     {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItemComponent>
-                      {index === 0 && item.label === 'Home' ? (
-                        <BreadcrumbLink 
-                          onClick={() => navigate(item.href || '/')}
-                          className="cursor-pointer"
-                        >
-                          <Home className="size-4" />
-                          <span className="sr-only">Home</span>
-                        </BreadcrumbLink>
-                      ) : item.isCurrentPage && /^\d{4}-\d{2}-\d{2}$/.test(location.pathname.split('/').pop() || '') ? (
+                     
+                     {item.isCurrentPage && /^\d{4}-\d{2}-\d{2}$/.test(location.pathname.split('/').pop() || '') ? (
                         // Date breadcrumb with navigation buttons
                         <div className="flex items-center gap-2">
                           <Button
@@ -363,7 +354,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
             {shouldShowEventAssignmentsButton && (
               <Button
                 onClick={() => setShowEventAssignments(!showEventAssignments)}
-                variant={showEventAssignments ? "destructive" : "secondary"}
+                variant={showEventAssignments ? "destructive" : "outline"}
                 size="sm"
                 className="h-8 px-3"
               >
