@@ -17,7 +17,7 @@ import {
   Bell,
   Palette,
   Filter,
-  Calendar,
+  Calendar as CalendarIcon,
   ZoomIn,
   ClipboardList,
   ChevronLeft,
@@ -52,10 +52,10 @@ import FilterRoomsModal from "../features/Schedule/components/FilterRoomsModal"
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useProfile } from "../core/User/useProfile";
-import { getTodayPath } from "../utils/datePaths";
+import { getTodayPath, getDatePath } from "../utils/datePaths";
 import QuarterCount from "../features/QuarterCount/QuarterCount";
 import AcademicCalendarInfo from "../features/Schedule/components/AcademicCalendarInfo";
-
+import { Calendar } from "./ui/calendar"
 // Navigation data for the sidebar
 const data = {
   user: {
@@ -134,14 +134,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   } = usePixelMetrics();
   const { profile, updateZoom, updatePixelsPerMin, updateRowHeight, updateScheduleHours, currentFilter } = useProfile();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  
+
   // Check if we're on the home page (/{date} route) with 100% zoom
   const isHomePage = React.useMemo(() => {
     const match = location.pathname.match(/^\/\d{4}-\d{2}-\d{2}$/) !== null;
     console.log('[Sidebar] isHomePage check:', { pathname: location.pathname, match });
     return match;
   }, [location.pathname]);
-  
+
   const isAt100PercentZoom = pageZoom === 1;
 
   const shouldShowEventAssignmentsButton = isHomePage && isAt100PercentZoom;
@@ -163,7 +163,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       shouldShowEventAssignmentsButton
     });
   }, [location.pathname, isHomePage, pageZoom, isAt100PercentZoom, shouldShowEventAssignmentsButton]);
-  
+
   // Selected date is driven by the URL param when present
   const selectedDate = React.useMemo(() => {
     if (!date) return new Date();
@@ -171,18 +171,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (!y || !m || !d) return new Date();
     return new Date(y, m - 1, d);
   }, [date]);
-  
+
   const formatDateForPath = React.useCallback((d: Date) => {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
   }, []);
-  
+
   // Modal state management
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
   const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] = React.useState(false);
-  
+
   // Create navigation data with proper URLs
   const navigationData = React.useMemo(() => ({
     ...data,
@@ -205,6 +205,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const dd = String(selectedDate.getDate()).padStart(3, "0");
     return `url-day-${dd}`;
   }, [selectedDate]);
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const scopeSelector = `.sidebar-datepicker.${calendarScopeClass}`;
+    const daySelector = `.${urlDayNumericClass}`;
+    const styleElement = document.createElement("style");
+
+    styleElement.setAttribute("data-sidebar-datepicker-style", "selected-day");
+    styleElement.textContent = `
+      ${scopeSelector} ${daySelector} {
+        background: hsl(var(--primary)) !important;
+        color: hsl(var(--primary-foreground)) !important;
+      }
+
+      ${scopeSelector} ${daySelector}:hover {
+        background: hsl(var(--primary)) !important;
+        color: hsl(var(--primary-foreground)) !important;
+      }
+    `;
+
+    document.head.appendChild(styleElement);
+
+    return () => {
+      if (styleElement.parentNode) {
+        styleElement.parentNode.removeChild(styleElement);
+      }
+    };
+  }, [calendarScopeClass, urlDayNumericClass]);
 
   const monthYearFormatter = React.useMemo(
     () =>
@@ -232,7 +263,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 HOME
               </span>
             </button>
-            
+
             {/* Calendar icon - only visible when collapsed */}
             <button
               onClick={() => {
@@ -250,9 +281,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
               aria-label="Open calendar"
             >
-              <Calendar className="h-4 w-4" />
+              <CalendarIcon className="h-4 w-4" />
             </button>
-            
+
             {/* Faculty icon - only visible when collapsed */}
             <button
               onClick={() => navigate('/faculty')}
@@ -261,7 +292,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Users className="h-4 w-4" />
             </button>
-            
+
             {/* Session Assignments icon - only visible when collapsed */}
             <button
               onClick={() => navigate('/sessionassignments')}
@@ -270,76 +301,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <ClipboardList className="h-4 w-4" />
             </button>
-            
+
           </div>
         </SidebarHeader>
         <SidebarContent>
           {/* Date Picker */}
-          <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden py-4">
-            <SidebarGroupLabel className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Calendar
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3">
+          <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden py-0">
+       
+            <SidebarGroupContent className="">
               <div className="w-full flex justify-center">
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => {
-                    if (date) {
-                      const formattedDate = formatDateForPath(date);
-                      navigate(`/${formattedDate}`);
-                    }
-                  }}
-                  inline
-                  calendarClassName={`sidebar-datepicker !border-0 !shadow-none !bg-transparent !p-0 ${calendarScopeClass}`}
-                  renderCustomHeader={({
-                    date,
-                    decreaseMonth,
-                    increaseMonth,
-                    prevMonthButtonDisabled,
-                    nextMonthButtonDisabled,
-                  }) => (
-                    <div className="flex w-full items-center justify-between gap-2 px-2 pt-2 pb-3">
-                      <button
-                        type="button"
-                        onClick={decreaseMonth}
-                        disabled={prevMonthButtonDisabled}
-                        aria-label="Previous month"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <span className="flex-1 text-center text-sm font-semibold">
-                        {monthYearFormatter.format(date)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={increaseMonth}
-                        disabled={nextMonthButtonDisabled}
-                        aria-label="Next month"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                  dayClassName={(date) => {
-                    const dayNum = String(date.getDate()).padStart(3, "0");
-                    const baseClasses = "react-datepicker__day";
-                    const isSelected = date.toDateString() === selectedDate.toDateString();
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    
-                    let classes = baseClasses;
-                    if (isSelected) classes += " react-datepicker__day--selected";
-                    if (isToday) classes += " react-datepicker__day--today";
-                    if (urlDayNumericClass === `react-datepicker__day--${dayNum}`) {
-                      classes += " bg-blue-500 text-white";
-                    }
-                    
-                    return classes;
-                  }}
+                <Calendar
+                  mode="single"
+                  selected={selectedDate ? new Date(selectedDate) : undefined}
+                  onSelect={(date) => navigate(getDatePath(date ?? new Date()))}
+                  className="rounded-lg  ![--cell-size:--spacing(8)] md:![--cell-size:--spacing(8)]"
+                  buttonVariant="ghost"
                 />
+
               </div>
-              
+
               {/* Quarter Count and Academic Calendar Info */}
               <div className="mt-2 flex justify-center gap-2">
                 <QuarterCount />
@@ -359,7 +339,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="space-y-4">
                 {/* Filter Rooms Button */}
                 <div className="space-y-2">
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={openFilterRoomsModal}
                     className="w-full justify-start"
                   >
@@ -505,7 +485,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupContent className="px-3">
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={() => navigate('/faculty')}
                     className="w-full justify-start"
                   >
@@ -514,7 +494,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={() => navigate('/sessionassignments')}
                     className="w-full justify-start"
                   >
@@ -525,9 +505,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          
+
           <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
-          
+
           {/* Quick Actions */}
           <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -536,7 +516,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupContent className="px-3">
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={() => setIsNotificationsOpen(true)}
                     className="w-full justify-start"
                   >
@@ -545,7 +525,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={() => setIsBackgroundSelectorOpen(true)}
                     className="w-full justify-start"
                   >
@@ -564,19 +544,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </Sidebar>
 
       {/* Modals */}
-      <NotificationsModal 
-        isOpen={isNotificationsOpen} 
-        onClose={() => setIsNotificationsOpen(false)} 
+      <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
       />
-      
-      <BackgroundSelectorModal 
-        isOpen={isBackgroundSelectorOpen} 
-        onClose={() => setIsBackgroundSelectorOpen(false)} 
+
+      <BackgroundSelectorModal
+        isOpen={isBackgroundSelectorOpen}
+        onClose={() => setIsBackgroundSelectorOpen(false)}
       />
-      
-      <FilterRoomsModal 
-        isOpen={isFilterRoomsModalOpen} 
-        onClose={closeFilterRoomsModal} 
+
+      <FilterRoomsModal
+        isOpen={isFilterRoomsModalOpen}
+        onClose={closeFilterRoomsModal}
       />
     </>
   );

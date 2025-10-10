@@ -9,6 +9,7 @@ import "./index.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 
+
 import performanceMonitor from './utils/performanceMonitor';
 import { TooltipProvider } from './components/ui/tooltip';
 import { SidebarProvider } from './components/ui/sidebar';
