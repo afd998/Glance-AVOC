@@ -93,14 +93,8 @@ export function NavUser({
                 <User />
                 Profile Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/faculty')}>
-                <BadgeCheck />
-                Faculty Management
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/sessionassignments')}>
-                <Settings />
-                Session Assignments
-              </DropdownMenuItem>
+            
+            
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

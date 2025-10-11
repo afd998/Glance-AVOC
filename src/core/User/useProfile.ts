@@ -288,7 +288,7 @@ export const useProfile = () => {
   return {
     // Data
     profile,
-   
+    email: user?.email || 'user@example.com',
     autoHide: profile?.auto_hide || false,
     currentFilter: profile?.current_filter,
     theme: profile?.theme || 'light', // Default to light theme

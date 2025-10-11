@@ -68,61 +68,6 @@ import { Label } from "./ui/label";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { set } from "date-fns";
 // Navigation data for the sidebar
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Faculty",
-      url: "#",
-      icon: Users,
-      isActive: true,
-      items: [
-        {
-          title: "Faculty List",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
@@ -154,6 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     updateRowHeight,
     updateScheduleHours,
     currentFilter,
+    email,  
   } = useProfile();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
@@ -216,20 +162,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     React.useState(false);
 
   // Create navigation data with proper URLs
-  const navigationData = React.useMemo(
-    () => ({
-      ...data,
-      user: {
-        ...data.user,
-        id: profile?.id,
-        name: profile?.name || "User",
-        email: profile?.id || "user@example.com", // Using ID as fallback since we don't store email in profile
-      },
-      navMain: [],
-      projects: [],
-    }),
-    [date, profile]
-  );
+ 
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
   const urlDayNumericClass = React.useMemo(() => {
@@ -333,13 +266,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </button>
 
             {/* Session Assignments icon - only visible when collapsed */}
-            <button
-              onClick={() => navigate("/sessionassignments")}
-              className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
-              aria-label="Session Assignments"
-            >
-              <ClipboardList className="h-4 w-4" />
-            </button>
+            
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -545,15 +472,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span>Faculty List</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => navigate("/sessionassignments")}
-                    className="w-full justify-start"
-                  >
-                    <ClipboardList className="h-4 w-4" />
-                    <span>Session Assignments</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+               
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -604,7 +523,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={navigationData.user} />
+          <NavUser user={{
+            id: profile?.id || "",
+            name: profile?.name || "User",
+            email: email || "user@example.com",
+            avatar: ""
+          }} />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
