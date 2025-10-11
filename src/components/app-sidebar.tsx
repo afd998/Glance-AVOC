@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -22,10 +22,10 @@ import {
   ClipboardList,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import { useNavigate, useParams, useLocation } from "react-router-dom"
+} from "lucide-react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
-import { NavUser } from "./nav-user"
+import { NavUser } from "./nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -39,23 +39,34 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "./ui/sidebar"
-import { Slider } from "./ui/slider"
-import { Badge } from "./ui/badge"
-import DatePicker from "react-datepicker"
-import { useTheme } from "../contexts/ThemeContext"
-import { useBackground } from "../features/ThemeModal/useBackground"
-import NotificationsModal from "../features/notifications/NotificationsModal"
-import BackgroundSelectorModal from "../features/ThemeModal/BackgroundSelectorModal"
-import useModalStore from "../stores/modalStore"
-import FilterRoomsModal from "../features/Schedule/components/FilterRoomsModal"
+} from "./ui/sidebar";
+import { Slider } from "./ui/slider";
+import { Badge } from "./ui/badge";
+import {
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemTitle,
+  ItemActions,
+} from "./ui/item";
+import { Switch } from "./ui/switch";
+import DatePicker from "react-datepicker";
+import { useTheme } from "../contexts/ThemeContext";
+import { useBackground } from "../features/ThemeModal/useBackground";
+import NotificationsModal from "../features/notifications/NotificationsModal";
+import BackgroundSelectorModal from "../features/ThemeModal/BackgroundSelectorModal";
+import useModalStore from "../stores/modalStore";
+import FilterRoomsModal from "../features/Schedule/components/FilterRoomsModal";
 import { useZoom } from "../contexts/ZoomContext";
 import { usePixelMetrics } from "../contexts/PixelMetricsContext";
 import { useProfile } from "../core/User/useProfile";
 import { getTodayPath, getDatePath } from "../utils/datePaths";
 import QuarterCount from "../features/QuarterCount/QuarterCount";
 import AcademicCalendarInfo from "../features/Schedule/components/AcademicCalendarInfo";
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "./ui/calendar";
+import { Label } from "./ui/label";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { set } from "date-fns";
 // Navigation data for the sidebar
 const data = {
   user: {
@@ -111,15 +122,19 @@ const data = {
       icon: Map,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { date } = useParams();
   const location = useLocation();
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const { currentBackground } = useBackground();
-  const { openFilterRoomsModal, isFilterRoomsModalOpen, closeFilterRoomsModal } = useModalStore();
+  const {
+    openFilterRoomsModal,
+    isFilterRoomsModalOpen,
+    closeFilterRoomsModal,
+  } = useModalStore();
   const { pageZoom, setPageZoom } = useZoom();
   const {
     basePixelsPerMinute,
@@ -132,13 +147,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     scheduleEndHour,
     setScheduleHours,
   } = usePixelMetrics();
-  const { profile, updateZoom, updatePixelsPerMin, updateRowHeight, updateScheduleHours, currentFilter } = useProfile();
+  const {
+    profile,
+    updateZoom,
+    updatePixelsPerMin,
+    updateRowHeight,
+    updateScheduleHours,
+    currentFilter,
+  } = useProfile();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   // Check if we're on the home page (/{date} route) with 100% zoom
   const isHomePage = React.useMemo(() => {
     const match = location.pathname.match(/^\/\d{4}-\d{2}-\d{2}$/) !== null;
-    console.log('[Sidebar] isHomePage check:', { pathname: location.pathname, match });
+    console.log("[Sidebar] isHomePage check:", {
+      pathname: location.pathname,
+      match,
+    });
     return match;
   }, [location.pathname]);
 
@@ -149,20 +174,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const formatHourLabel = React.useCallback((hour: number) => {
     const normalized = ((hour % 24) + 24) % 24;
     const hour12 = normalized % 12 || 12;
-    const suffix = normalized >= 12 ? 'PM' : 'AM';
+    const suffix = normalized >= 12 ? "PM" : "AM";
     return `${hour12} ${suffix}`;
   }, []);
 
   // Debug logging
   React.useEffect(() => {
-    console.log('[Sidebar] Event Assignments Button Debug:', {
+    console.log("[Sidebar] Event Assignments Button Debug:", {
       pathname: location.pathname,
       isHomePage,
       pageZoom,
       isAt100PercentZoom,
-      shouldShowEventAssignmentsButton
+      shouldShowEventAssignmentsButton,
     });
-  }, [location.pathname, isHomePage, pageZoom, isAt100PercentZoom, shouldShowEventAssignmentsButton]);
+  }, [
+    location.pathname,
+    isHomePage,
+    pageZoom,
+    isAt100PercentZoom,
+    shouldShowEventAssignmentsButton,
+  ]);
 
   // Selected date is driven by the URL param when present
   const selectedDate = React.useMemo(() => {
@@ -181,20 +212,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Modal state management
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
-  const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] = React.useState(false);
+  const [isBackgroundSelectorOpen, setIsBackgroundSelectorOpen] =
+    React.useState(false);
 
   // Create navigation data with proper URLs
-  const navigationData = React.useMemo(() => ({
-    ...data,
-    user: {
-      ...data.user,
-      id: profile?.id,
-      name: profile?.name || "User",
-      email: profile?.id || "user@example.com", // Using ID as fallback since we don't store email in profile
-    },
-    navMain: [],
-    projects: [],
-  }), [date, profile]);
+  const navigationData = React.useMemo(
+    () => ({
+      ...data,
+      user: {
+        ...data.user,
+        id: profile?.id,
+        name: profile?.name || "User",
+        email: profile?.id || "user@example.com", // Using ID as fallback since we don't store email in profile
+      },
+      navMain: [],
+      projects: [],
+    }),
+    [date, profile]
+  );
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
   const urlDayNumericClass = React.useMemo(() => {
@@ -268,11 +303,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <button
               onClick={() => {
                 // Trigger sidebar expansion by removing the collapsed state
-                const sidebarElement = document.querySelector('[data-sidebar="sidebar"]');
+                const sidebarElement = document.querySelector(
+                  '[data-sidebar="sidebar"]'
+                );
                 if (sidebarElement) {
-                  sidebarElement.removeAttribute('data-state');
+                  sidebarElement.removeAttribute("data-state");
                   // Also trigger the sidebar toggle if there's a toggle button
-                  const toggleButton = document.querySelector('[data-sidebar="trigger"]');
+                  const toggleButton = document.querySelector(
+                    '[data-sidebar="trigger"]'
+                  );
                   if (toggleButton) {
                     (toggleButton as HTMLElement).click();
                   }
@@ -286,7 +325,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
             {/* Faculty icon - only visible when collapsed */}
             <button
-              onClick={() => navigate('/faculty')}
+              onClick={() => navigate("/faculty")}
               className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
               aria-label="Faculty List"
             >
@@ -295,19 +334,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
             {/* Session Assignments icon - only visible when collapsed */}
             <button
-              onClick={() => navigate('/sessionassignments')}
+              onClick={() => navigate("/sessionassignments")}
               className="group-data-[collapsible=icon]:flex hidden w-full h-8 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground flex items-center justify-center"
               aria-label="Session Assignments"
             >
               <ClipboardList className="h-4 w-4" />
             </button>
-
           </div>
         </SidebarHeader>
         <SidebarContent>
           {/* Date Picker */}
           <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden py-0">
-       
             <SidebarGroupContent className="">
               <div className="w-full flex justify-center">
                 <Calendar
@@ -317,7 +354,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   className="rounded-lg  ![--cell-size:--spacing(8)] md:![--cell-size:--spacing(8)]"
                   buttonVariant="ghost"
                 />
-
               </div>
 
               {/* Quarter Count and Academic Calendar Info */}
@@ -366,7 +402,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setPageZoom(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
-                      console.log('[Sidebar] onValueCommit zoom ->', val);
+                      console.log("[Sidebar] onValueCommit zoom ->", val);
                       // Use the proper mutation from useProfile instead of direct cache manipulation
                       updateZoom(val);
                     }}
@@ -375,7 +411,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>50%</span>
-                    <span className="font-medium">{Math.round(pageZoom * 100)}%</span>
+                    <span className="font-medium">
+                      {Math.round(pageZoom * 100)}%
+                    </span>
                     <span>200%</span>
                   </div>
                 </div>
@@ -384,7 +422,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Pixels/min</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{pixelsPerMinute.toFixed(2)}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {pixelsPerMinute.toFixed(2)}
+                    </span>
                   </div>
                   <Slider
                     value={[basePixelsPerMinute]}
@@ -394,7 +434,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setBasePixelsPerMinute(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
-                      console.log('[Sidebar] onValueCommit pixels_per_min ->', val);
+                      console.log(
+                        "[Sidebar] onValueCommit pixels_per_min ->",
+                        val
+                      );
                       // Use the proper mutation from useProfile instead of direct cache manipulation
                       updatePixelsPerMin(val);
                     }}
@@ -411,7 +454,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Row Height</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{Math.round(rowHeightPx * pageZoom)}px</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {Math.round(rowHeightPx * pageZoom)}px
+                    </span>
                   </div>
                   <Slider
                     value={[baseRowHeightPx]}
@@ -421,7 +466,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onValueChange={(v) => setBaseRowHeightPx(v[0])}
                     onValueCommit={(v) => {
                       const val = v[0];
-                      console.log('[Sidebar] onValueCommit row_height ->', val);
+                      console.log("[Sidebar] onValueCommit row_height ->", val);
                       // Use the proper mutation from useProfile instead of direct cache manipulation
                       updateRowHeight(val);
                     }}
@@ -439,7 +484,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Schedule Hours</span>
                     <span className="text-xs tabular-nums text-muted-foreground">
-                      {formatHourLabel(scheduleStartHour)} – {formatHourLabel(scheduleEndHour)}
+                      {formatHourLabel(scheduleStartHour)} –{" "}
+                      {formatHourLabel(scheduleEndHour)}
                     </span>
                   </div>
                   <Slider
@@ -457,10 +503,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       start = Math.max(0, Math.min(22, Math.round(start)));
                       end = Math.max(start + 1, Math.min(23, Math.round(end)));
                       setScheduleHours(start, end);
-                      if (profile?.start_hour === start && profile?.end_hour === end) {
+                      if (
+                        profile?.start_hour === start &&
+                        profile?.end_hour === end
+                      ) {
                         return;
                       }
-                      console.log('[Sidebar] onValueCommit schedule_hours ->', { start, end });
+                      console.log("[Sidebar] onValueCommit schedule_hours ->", {
+                        start,
+                        end,
+                      });
                       updateScheduleHours(start, end);
                     }}
                     className="w-full"
@@ -486,7 +538,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    onClick={() => navigate('/faculty')}
+                    onClick={() => navigate("/faculty")}
                     className="w-full justify-start"
                   >
                     <Users className="h-4 w-4" />
@@ -495,7 +547,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    onClick={() => navigate('/sessionassignments')}
+                    onClick={() => navigate("/sessionassignments")}
                     className="w-full justify-start"
                   >
                     <ClipboardList className="h-4 w-4" />
@@ -525,13 +577,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setIsBackgroundSelectorOpen(true)}
-                    className="w-full justify-start"
-                  >
-                    <Palette className="h-4 w-4" />
-                    <span>Backgrounds</span>
-                  </SidebarMenuButton>
+                  <Item>
+                    <ItemContent>
+                      <ItemTitle>Theme</ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      <Switch
+                        id="icon-label"
+                        checked={isDarkMode}
+                        onCheckedChange={() => toggleDarkMode()}
+                        aria-label="Toggle switch"
+                      />
+                      <Label htmlFor="icon-label">
+                        <span className="sr-only">Toggle switch</span>
+                        {isDarkMode ? (
+                          <MoonIcon className="size-4" aria-hidden="true" />
+                        ) : (
+                          <SunIcon className="size-4" aria-hidden="true" />
+                        )}
+                      </Label>
+                    </ItemActions>
+                  </Item>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>

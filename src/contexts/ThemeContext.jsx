@@ -92,7 +92,7 @@ export function ThemeProvider({ children }) {
   return (
     <ThemeContext.Provider value={{ 
       isDarkMode,
-      setDarkMode: setIsDarkMode,
+      setIsDarkMode,
       toggleDarkMode: () => setIsDarkMode(!isDarkMode),
       currentTheme: getTheme(),
       getTheme,

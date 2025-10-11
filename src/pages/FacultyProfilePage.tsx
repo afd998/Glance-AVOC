@@ -43,7 +43,7 @@ const FacultyProfilePage: React.FC = () => {
     <div className="min-h-screen bg-background">
       
       {/* Content */}
-      <div className="p-6">
+      <div className="md:py-3 lg:px-6 px-0 xl:px-20">
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
@@ -56,7 +56,7 @@ const FacultyProfilePage: React.FC = () => {
         ) : facultyMember && mockEvent ? (
           <SessionSetup
             event={mockEvent}
-            resources={[]}
+          
             facultyMembers={[facultyMember]}
             instructorNames={Array.isArray(mockEvent.instructor_names)
               ? mockEvent.instructor_names.filter((name): name is string => typeof name === 'string' && name.trim() !== '')

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/input-group";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -289,7 +290,7 @@ export default function SessionSetups({
 
           {!isEditingNotes ? (
            < InputGroup>
-              <InputGroupControl multiline className="text-lg  whitespace-pre-wrap min-h-8 bg-white/20 dark:bg-black/10">
+              <InputGroupControl multiline className="text-lg w-full whitespace-pre-wrap min-h-8 ">
                 {setup?.notes ? (
                   <Alert className='border-none bg-amber-600/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400'>
                     <CircleAlertIcon className='w-4 h-4 text-amber-600 dark:text-amber-400' />
@@ -299,7 +300,7 @@ export default function SessionSetups({
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <span className="/60">No notes</span>
+                  <span className="text-muted-foreground">No notes</span>
                 )}
               </InputGroupControl>
               <InputGroupAddon align="block-end"  className="justify-end" >
@@ -399,7 +400,7 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.left_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={setup.left_device || 'BYOD'}>
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="outline" title={setup.left_device || 'BYOD'}>
                         {renderByodIcon(setup.left_device)}
                         <span>{setup.left_device || 'BYOD'}</span>
                         <Button
@@ -478,7 +479,7 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.right_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={setup.right_device || 'BYOD'}>
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="outline" title={setup.right_device || 'BYOD'}>
                         {renderByodIcon(setup.right_device)}
                         <span>{setup.right_device || 'BYOD'}</span>
                         <Button
