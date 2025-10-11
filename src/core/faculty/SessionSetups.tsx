@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useCreateFacultySetup, useDeleteFacultySetup } from './hooks/useFacultySetup';
 import { useUpdateFacultySetupDevicesBySetupId } from './hooks/useFacultySetup';
 import { useUpdateFacultySetupNotesBySetupId } from './hooks/useFacultySetup';
-import { Plus, Trash2, Laptop, Tablet, X, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Laptop, Tablet, X, ChevronUp, CircleAlertIcon } from 'lucide-react';
 import BYODOSSelector from './BYODOSSelector';
 import PanelModal from './PanelModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,6 +28,7 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type Event = Database['public']['Tables']['events']['Row'];
 type FacultyMember = Database['public']['Tables']['faculty']['Row'];
@@ -61,20 +62,28 @@ export default function SessionSetups({
   // BYOD selection dialog state
   const [isByodDialogOpen, setIsByodDialogOpen] = useState(false);
   const [byodTarget, setByodTarget] = useState<'left' | 'right' | null>(null);
-  const { data: byods = [] } = useFacultyByods(facultyMember?.id || 0);
-
+  //const { data: byods = [] } = useFacultyByods(facultyMember?.id || 0);
+  const byods = [
+    "MacBook",
+    "PC",
+    "iPad",
+    "Android Tablet",
+    "Surface",
+    "Linux Laptop",
+    "KIS Provided Laptop"
+  ];
   const handleSelectByod = (value: string) => {
     if (!setup?.id || !byodTarget) return;
-    const byodId = Number(value);
-    if (Number.isNaN(byodId)) {
+    const byodName = byods[parseInt(value)];
+    if (!byodName) {
       setIsByodDialogOpen(false);
       setByodTarget(null);
       return;
     }
     updateDevices.mutate({
       setupId: setup.id,
-      leftDeviceId: byodTarget === 'left' ? byodId : undefined,
-      rightDeviceId: byodTarget === 'right' ? byodId : undefined,
+      leftDevice: byodTarget === 'left' ? byodName : undefined,
+      rightDevice: byodTarget === 'right' ? byodName : undefined,
       facultyId: facultyMember?.id,
     }, {
       onSettled: () => {
@@ -84,11 +93,11 @@ export default function SessionSetups({
     });
   };
 
-  const renderByodIcon = (os?: string | null) => {
-    const v = (os || '').toUpperCase();
-    if (v === 'MAC' || v === 'PC') return <Laptop className="w-3.5 h-3.5" />;
-    if (v === 'IPAD') return <Tablet className="w-3.5 h-3.5" />;
-    return null;
+  const renderByodIcon = (deviceName?: string | null) => {
+    const name = (deviceName || '').toUpperCase();
+    if (name.includes('MAC') || name.includes('PC') || name.includes('LAPTOP') || name.includes('SURFACE')) return <Laptop className="w-3.5 h-3.5" />;
+    if (name.includes('IPAD') || name.includes('TABLET')) return <Tablet className="w-3.5 h-3.5" />;
+    return <Laptop className="w-3.5 h-3.5" />;
   };
 
   // Notes editing state
@@ -276,6 +285,72 @@ export default function SessionSetups({
           {setups.map((setup) => (
             <TabsContent key={setup.id} value={setup.id} className="mt-0">
               <div ref={contentRef} className="space-y-4 px-1 py-1 overflow-y-auto">
+              <div className="">
+
+          {!isEditingNotes ? (
+           < InputGroup>
+              <InputGroupControl multiline className="text-lg  whitespace-pre-wrap min-h-8 bg-white/20 dark:bg-black/10">
+                {setup?.notes ? (
+                  <Alert className='border-none bg-amber-600/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400'>
+                    <CircleAlertIcon className='w-4 h-4 text-amber-600 dark:text-amber-400' />
+                   
+                    <AlertDescription className=' text-lg text-amber-600/80 dark:text-amber-400/80'>
+                      {String(setup.notes)}
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <span className="/60">No notes</span>
+                )}
+              </InputGroupControl>
+              <InputGroupAddon align="block-end"  className="justify-end" >
+                <InputGroupButton size="xs" variant="outline" onClick={() => setIsEditingNotes(true)}>
+                  Edit
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          ) : (
+            <InputGroup className=''>
+              <InputGroupAddon align="block-start" >
+                <InputGroupText className="">Editing notes</InputGroupText>
+              </InputGroupAddon>
+              <InputGroupTextarea
+                className="min-h-[120px] !text-lg"
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+                placeholder="Enter notes for this setup"
+              />
+              <InputGroupAddon align="block-end" className="">
+                <InputGroupButton
+                 variant="default"
+                  size="sm"
+                  onClick={() => {
+                    if (!setup?.id) return;
+                    updateNotes.mutate(
+                      { setupId: setup.id, notes: notesDraft, facultyId: facultyMember?.id },
+                      {
+                        onSuccess: () => setIsEditingNotes(false),
+                        onError: () => setIsEditingNotes(false),
+                      }
+                    );
+                  }}
+                  disabled={updateNotes.isPending}
+                >
+                  Save
+                </InputGroupButton>
+                <InputGroupButton
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsEditingNotes(false);
+                    setNotesDraft(String(setup?.notes ?? ''));
+                  }}
+                >
+                  Cancel
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          )}
+        </div>
         {/* Panels */}
         <Item variant="outline" className="mt-6">
           <ItemHeader>
@@ -313,9 +388,9 @@ export default function SessionSetups({
                   </p>
                   <div className="w-full relative mt-2 h-12">
                     <div className="absolute left-1/2 -translate-x-1/2 -top-2">
-                      <ChevronUp className="w-4 h-4 " />
+                      <ChevronUp className="w-4 h-4 dark:text-white light:text-black " />
                     </div>
-                    <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed border-black/50"></div>
+                    <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed dark:border-white light:border-black"></div>
                     {setup?.left_device && (setup.left_source === 'ROOM_PC' || setup.left_source === 'PC_EXT') && (
                       <div className="absolute right-1/2 pr-2 top-1/2 -translate-y-1/2">
                         <span className="text-xs ">Mirroring 360</span>
@@ -324,9 +399,9 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.left_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}>
-                        {renderByodIcon(byods.find(b => b.id === setup.left_device)?.os)}
-                        <span>{byods.find(b => b.id === setup.left_device)?.name || 'BYOD'}</span>
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={setup.left_device || 'BYOD'}>
+                        {renderByodIcon(setup.left_device)}
+                        <span>{setup.left_device || 'BYOD'}</span>
                         <Button
                           type="button"
                           variant="ghost"
@@ -335,7 +410,7 @@ export default function SessionSetups({
                           title="Remove device"
                           onClick={() => {
                             if (!setup?.id) return;
-                            updateDevices.mutate({ setupId: setup.id, leftDeviceId: null, facultyId: facultyMember?.id });
+                            updateDevices.mutate({ setupId: setup.id, leftDevice: null, facultyId: facultyMember?.id });
                           }}
                         >
                           <X className="w-3.5 h-3.5" />
@@ -392,9 +467,9 @@ export default function SessionSetups({
                   </p>
                   <div className="w-full relative mt-2 h-12">
                     <div className="absolute left-1/2 -translate-x-1/2 -top-2">
-                      <ChevronUp className="w-4 h-4 " />
+                      <ChevronUp className="w-4 h-4 dark:text-white light:text-black " />
                     </div>
-                    <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed border-black/50"></div>
+                    <div className="absolute left-1/2 -translate-x-1/2 h-12 border-l-2 border-dashed light:border-black dark:border-white"></div>
                     {setup?.right_device && (setup.right_source === 'ROOM_PC' || setup.right_source === 'PC_EXT') && (
                       <div className="absolute right-1/2 pr-2 top-1/2 -translate-y-1/2">
                         <span className="text-xs ">Mirroring 360</span>
@@ -403,9 +478,9 @@ export default function SessionSetups({
                   </div>
                   <div className="w-full flex justify-center mt-2">
                     {setup?.right_device ? (
-                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}>
-                        {renderByodIcon(byods.find(b => b.id === setup.right_device)?.os)}
-                        <span>{byods.find(b => b.id === setup.right_device)?.name || 'BYOD'}</span>
+                      <Badge className="cursor-default flex items-center gap-1 pr-1" variant="secondary" title={setup.right_device || 'BYOD'}>
+                        {renderByodIcon(setup.right_device)}
+                        <span>{setup.right_device || 'BYOD'}</span>
                         <Button
                           type="button"
                           variant="ghost"
@@ -414,7 +489,7 @@ export default function SessionSetups({
                           title="Remove device"
                           onClick={() => {
                             if (!setup?.id) return;
-                            updateDevices.mutate({ setupId: setup.id, rightDeviceId: null, facultyId: facultyMember?.id });
+                            updateDevices.mutate({ setupId: setup.id, rightDevice: null, facultyId: facultyMember?.id });
                           }}
                         >
                           <X className="w-3.5 h-3.5" />
@@ -474,62 +549,7 @@ export default function SessionSetups({
         </Item>
 
         {/* Notes */}
-        <div className="mt-6">
-          <h4 className="text-base sm:text-lg font-medium  mb-3">Notes</h4>
-          {!isEditingNotes ? (
-            <InputGroup>
-              <InputGroupControl multiline className="text-sm  whitespace-pre-wrap min-h-8 bg-white/20 dark:bg-black/10">
-                {setup?.notes ? String(setup.notes) : <span className="/60">No notes</span>}
-              </InputGroupControl>
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton size="xs" variant="outline" onClick={() => setIsEditingNotes(true)}>
-                  Edit
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          ) : (
-            <InputGroup className=''>
-              <InputGroupAddon align="block-start" >
-                <InputGroupText className="">Editing notes</InputGroupText>
-              </InputGroupAddon>
-              <InputGroupTextarea
-                className="min-h-[120px]"
-                value={notesDraft}
-                onChange={(e) => setNotesDraft(e.target.value)}
-                placeholder="Enter notes for this setup"
-              />
-              <InputGroupAddon align="block-end" className="">
-                <InputGroupButton
-                 variant="default"
-                  size="sm"
-                  onClick={() => {
-                    if (!setup?.id) return;
-                    updateNotes.mutate(
-                      { setupId: setup.id, notes: notesDraft, facultyId: facultyMember?.id },
-                      {
-                        onSuccess: () => setIsEditingNotes(false),
-                        onError: () => setIsEditingNotes(false),
-                      }
-                    );
-                  }}
-                  disabled={updateNotes.isPending}
-                >
-                  Save
-                </InputGroupButton>
-                <InputGroupButton
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditingNotes(false);
-                    setNotesDraft(String(setup?.notes ?? ''));
-                  }}
-                >
-                  Cancel
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          )}
-        </div>
+      
 
             </div>
           </TabsContent>
@@ -565,9 +585,9 @@ export default function SessionSetups({
               </SelectTrigger>
               {(
                 <SelectContent>
-                  {byods.map((d) => (
-                    <SelectItem key={d.id} value={String(d.id)}>
-                      {(d.name || 'Unnamed Device') + (d.os ? ` (${d.os})` : '')}
+                  {byods.map((deviceName, index) => (
+                    <SelectItem key={index} value={String(index)}>
+                      {deviceName}
                     </SelectItem>
                   ))}
                 </SelectContent>

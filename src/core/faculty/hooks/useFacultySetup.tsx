@@ -256,10 +256,10 @@ export const useUpdateFacultySetupAttributesBySetupId = () => {
 export const useUpdateFacultySetupDevicesBySetupId = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ setupId, leftDeviceId, rightDeviceId }: { setupId: string; leftDeviceId?: number | null; rightDeviceId?: number | null; facultyId?: number }) => {
+    mutationFn: async ({ setupId, leftDevice, rightDevice }: { setupId: string; leftDevice?: string | null; rightDevice?: string | null; facultyId?: number }) => {
       const update: any = { updated_at: new Date().toISOString() };
-      if (leftDeviceId !== undefined) update.left_device = leftDeviceId; // allow null
-      if (rightDeviceId !== undefined) update.right_device = rightDeviceId; // allow null
+      if (leftDevice !== undefined) update.left_device = leftDevice; // allow null
+      if (rightDevice !== undefined) update.right_device = rightDevice; // allow null
       const { data, error } = await supabase
         .from('faculty_setup')
         .update(update)
@@ -270,7 +270,7 @@ export const useUpdateFacultySetupDevicesBySetupId = () => {
       return data as FacultySetupWithOptionalName;
     },
     onMutate: async (variables) => {
-      const { setupId, leftDeviceId, rightDeviceId, facultyId } = variables as { setupId: string; leftDeviceId?: number | null; rightDeviceId?: number | null; facultyId?: number };
+      const { setupId, leftDevice, rightDevice, facultyId } = variables as { setupId: string; leftDevice?: string | null; rightDevice?: string | null; facultyId?: number };
       if (facultyId) {
         await queryClient.cancelQueries({ queryKey: ['facultySetups', facultyId] });
         await queryClient.cancelQueries({ queryKey: ['facultySetup', facultyId] });
@@ -287,8 +287,8 @@ export const useUpdateFacultySetupDevicesBySetupId = () => {
       const optimisticUpdate = (s: FacultySetupWithOptionalName) => {
         if (s.id !== setupId) return s;
         const next = { ...s } as any;
-        if (leftDeviceId !== undefined) next.left_device = leftDeviceId; // null or number
-        if (rightDeviceId !== undefined) next.right_device = rightDeviceId; // null or number
+        if (leftDevice !== undefined) next.left_device = leftDevice; // null or string
+        if (rightDevice !== undefined) next.right_device = rightDevice; // null or string
         next.updated_at = new Date().toISOString() as any;
         return next as FacultySetupWithOptionalName;
       };

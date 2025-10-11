@@ -121,9 +121,9 @@ export default function SessionSetup({
               </Item>
        
           )}
-          {instructorNames.length > 0 && facultyMember && (
+          {/* {instructorNames.length > 0 && facultyMember && (
             <BYODDevicesCard facultyId={facultyMember.id} themeHexColors={themeHexColors as any} />
-          )}
+          )} */}
         </div>
 
         {/* Right Column - Setups */}

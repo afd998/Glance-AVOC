@@ -227,12 +227,12 @@ export type Database = {
           created_at: string
           faculty: number
           id: string
-          left_device: number | null
+          left_device: string | null
           left_source: string | null
           mirroring360: boolean | null
           name: string | null
           notes: string | null
-          right_device: number | null
+          right_device: string | null
           right_source: string | null
           updated_at: string | null
           uses_mic: boolean | null
@@ -241,12 +241,12 @@ export type Database = {
           created_at?: string
           faculty?: number
           id?: string
-          left_device?: number | null
+          left_device?: string | null
           left_source?: string | null
           mirroring360?: boolean | null
           name?: string | null
           notes?: string | null
-          right_device?: number | null
+          right_device?: string | null
           right_source?: string | null
           updated_at?: string | null
           uses_mic?: boolean | null
@@ -255,12 +255,12 @@ export type Database = {
           created_at?: string
           faculty?: number
           id?: string
-          left_device?: number | null
+          left_device?: string | null
           left_source?: string | null
           mirroring360?: boolean | null
           name?: string | null
           notes?: string | null
-          right_device?: number | null
+          right_device?: string | null
           right_source?: string | null
           updated_at?: string | null
           uses_mic?: boolean | null
@@ -271,20 +271,6 @@ export type Database = {
             columns: ["faculty"]
             isOneToOne: false
             referencedRelation: "faculty"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "faculty_setup_left_device_fkey"
-            columns: ["left_device"]
-            isOneToOne: false
-            referencedRelation: "faculty_byods"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "faculty_setup_right_device_fkey"
-            columns: ["right_device"]
-            isOneToOne: false
-            referencedRelation: "faculty_byods"
             referencedColumns: ["id"]
           },
         ]
