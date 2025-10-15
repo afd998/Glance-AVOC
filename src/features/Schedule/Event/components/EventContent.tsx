@@ -246,34 +246,33 @@ function KECEvent({ event, isHovering, isMergedRoomEvent, hasOverduePanoptoCheck
   return (
     <Item 
       className={cn(
-        "relative border-0 shadow-none bg-transparent py-0 my-0",
+        "relative border-0 shadow-none bg-transparent py-0 my-0 px-0",
         getEventHeight(),
         isMergedRoomEvent ? 'flex items-center justify-center' : 'flex items-center justify-center'
       )}
     >
       <ItemContent className={cn(
-        "relative z-10 flex flex-col items-start justify-center h-full px-4 gap-1  my-0 py-0",
-        isMergedRoomEvent ? 'py-4' : 'pt-0 pb-3'
+        "relative z-10 flex flex-row items-center justify-between px-0 h-full pl-4 my-0 py-0",
+        isMergedRoomEvent ? 'py-2' : 'pt-0 pb-3'
       )}>
         {/* Main title */}
         <div
-          className={`py-0 ${rowHeightPx <90 ? "-mt-7": ""} font-bold text-left`}
+          className="font-bold text-foreground text-left flex-1 mt-4"
           style={{
-            fontSize: isMergedRoomEvent ? '1.2rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
-            color: '#B8860B'
+            fontSize: isMergedRoomEvent ? '0.8rem' : (eventName && eventName.length > 15 ? '0.7rem' : '0.8rem'),
+            
           }}
           title={eventName}
         >
           {eventName}
         </div>
         
-        {/* Subtitle */}
+        {/* Badge */}
         <Badge 
-          variant="secondary"
-          className="text-left bg-transparent border-0 py-0 h-auto text-xs"
-          style={{ color: '#DAA520' }}
+          variant="outline"
+          className="text-[10px] border-amber-500 text-amber-700"
         >
-          EXECUTIVE EDUCATION
+          EXEC ED
         </Badge>
       </ItemContent>
     </Item>

@@ -165,45 +165,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
  
 
   // Dynamic class to target the specific numeric day class (e.g., react-datepicker__day--024)
-  const urlDayNumericClass = React.useMemo(() => {
-    const dd = String(selectedDate.getDate()).padStart(3, "0");
-    return `react-datepicker__day--${dd}`;
-  }, [selectedDate]);
-  const calendarScopeClass = React.useMemo(() => {
-    const dd = String(selectedDate.getDate()).padStart(3, "0");
-    return `url-day-${dd}`;
-  }, [selectedDate]);
-
-  React.useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const scopeSelector = `.sidebar-datepicker.${calendarScopeClass}`;
-    const daySelector = `.${urlDayNumericClass}`;
-    const styleElement = document.createElement("style");
-
-    styleElement.setAttribute("data-sidebar-datepicker-style", "selected-day");
-    styleElement.textContent = `
-      ${scopeSelector} ${daySelector} {
-        background: hsl(var(--primary)) !important;
-        color: hsl(var(--primary-foreground)) !important;
-      }
-
-      ${scopeSelector} ${daySelector}:hover {
-        background: hsl(var(--primary)) !important;
-        color: hsl(var(--primary-foreground)) !important;
-      }
-    `;
-
-    document.head.appendChild(styleElement);
-
-    return () => {
-      if (styleElement.parentNode) {
-        styleElement.parentNode.removeChild(styleElement);
-      }
-    };
-  }, [calendarScopeClass, urlDayNumericClass]);
 
   const monthYearFormatter = React.useMemo(
     () =>
