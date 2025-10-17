@@ -11,7 +11,7 @@ interface OccurrencesResult {
 
 export const useOccurrences = (currentEvent: Event | null) => {
   return useQuery({
-    queryKey: ["occurrences", currentEvent?.event_name],
+    queryKey: ["occurrences", currentEvent?.id],
     queryFn: async (): Promise<OccurrencesResult> => {
       if (!currentEvent?.event_name) {
         return { occurrences: [], isFirstSession: false };
