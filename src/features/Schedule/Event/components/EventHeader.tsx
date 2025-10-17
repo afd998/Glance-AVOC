@@ -44,18 +44,6 @@ export default function EventHeader({
     return null;
   }
 
-  // Get all occurrences of this event and isFirstSession flag
-  const { data: occurrencesData } = useOccurrences(currentEvent);
-  if (eventId === 264405247151647) {
-    
-    console.log("matsa", occurrencesData);
-  }else{
-    console.log("not matsa", occurrencesData);
-  }
-
-  const occurrences = occurrencesData?.occurrences || [];
-  const isFirstSession = occurrencesData?.isFirstSession || false;
-
   // Get ownership data including timeline
   const { data: ownershipData } = useEventOwnership(currentEvent.id);
 
@@ -162,112 +150,125 @@ export default function EventHeader({
         </span>
       </div>
       {/* Only show the container if there are resources or assignees */}
-      {(isFirstSession || resources.length > 0 || timeline.length > 0) && (
-        <div
-          className={`flex items-center gap-1 shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black/25  rounded-md px-2 py-1 mt-2`}
-        >
-          {isFirstSession && (
+
+      <div
+        className={`flex items-center gap-1 shrink-0 transition-all duration-200 ease-in-out overflow-visible bg-black/25 rounded-md px-2 py-1 mt-2 empty:hidden`}
+      >
+        {currentEvent.event_type === "Lecture" && (
+          <FS currentEvent={currentEvent}>
             <span
               className="text-yellow-500 dark:text-yellow-400 text-xs font-bold transition-all duration-250 ease-in-out cursor-pointer relative"
               title="First Session"
             >
               !
             </span>
-          )}
-          {resources
-            .filter((resource) => resource.isAVResource)
-            .filter(
-              (resource) =>
-                resource.itemName !== "KSM-KGH-AV-Lapel Microphone" &&
-                resource.itemName !== "KSM-KGH-AV-Display Adapter" &&
-                resource.itemName !== "KSM-KGH-AV-Presentation Clicker"
-            )
-            .map((resource, index) => (
-              <Tooltip key={`resource-${index}`}>
-                <TooltipTrigger asChild>
-                  <div className="transition-all duration-250 ease-in-out cursor-pointer relative">
-                    <div className="relative">
-                      {resource.icon}
-                      {resource.displayName === "Video Recording" &&
-                        allChecksComplete && (
-                          <div className="absolute top-0 right-0">
-                            <svg
-                              className="text-green-400"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              viewBox="0 0 20 20"
-                              style={{
-                                width: "8px",
-                                height: "8px",
-                              }}
-                            >
-                              <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                            </svg>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
+          </FS>
+        )}
+        {resources
+          .filter((resource) => resource.isAVResource)
+          .filter(
+            (resource) =>
+              resource.itemName !== "KSM-KGH-AV-Lapel Microphone" &&
+              resource.itemName !== "KSM-KGH-AV-Display Adapter" &&
+              resource.itemName !== "KSM-KGH-AV-Presentation Clicker"
+          )
+          .map((resource, index) => (
+            <Tooltip key={`resource-${index}`}>
+              <TooltipTrigger asChild>
+                <div className="transition-all duration-250 ease-in-out cursor-pointer relative">
+                  <div className="relative">
+                    {resource.icon}
                     {resource.displayName === "Video Recording" &&
-                    allChecksComplete
-                      ? "Video Recording - All Checks Complete"
-                      : resource.displayName}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            ))}
+                      allChecksComplete && (
+                        <div className="absolute top-0 right-0">
+                          <svg
+                            className="text-green-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 20 20"
+                            style={{
+                              width: "8px",
+                              height: "8px",
+                            }}
+                          >
+                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {resource.displayName === "Video Recording" &&
+                  allChecksComplete
+                    ? "Video Recording - All Checks Complete"
+                    : resource.displayName}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
 
-          {/* Separator bar between resource icons and owner icons */}
-          {(isFirstSession || resources.length > 0) && timeline.length > 0 && (
+        {/* Separator bar between resource icons and owner icons */}
+        {resources.filter((resource) => resource.isAVResource).length > 0 &&
+          timeline.length > 0 && (
             <div className="w-0.5 h-4 bg-white dark:bg-gray-800 mx-0.5 opacity-20"></div>
           )}
 
-          {/* Owner Avatars */}
-          {timeline.length > 0 && (
-            <div className="flex items-center gap-0.5">
-              {timeline.map((entry, index) => (
-                <React.Fragment key={entry.ownerId}>
-                  {/* Owner Avatar */}
-                  <div
-                    className="transition-all duration-200 ease-in-out"
-                    title={`Assigned to: ${entry.ownerId}`}
+        {/* Owner Avatars */}
+        {timeline.length > 0 && (
+          <div className="flex items-center gap-0.5">
+            {timeline.map((entry, index) => (
+              <React.Fragment key={entry.ownerId}>
+                {/* Owner Avatar */}
+                <div
+                  className="transition-all duration-200 ease-in-out"
+                  title={`Assigned to: ${entry.ownerId}`}
+                  style={{
+                    transform: isHovering ? "scale(1.2)" : "scale(1)",
+                  }}
+                >
+                  <UserAvatar userId={entry.ownerId} size="xs" />
+                </div>
+
+                {/* Arrow (if not the last owner) */}
+                {index < timeline.length - 1 && (
+                  <svg
+                    className="w-3 h-3 text-white transition-all duration-200 ease-in-out"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                     style={{
                       transform: isHovering ? "scale(1.2)" : "scale(1)",
                     }}
                   >
-                    <UserAvatar userId={entry.ownerId} size="xs" />
-                  </div>
-
-                  {/* Arrow (if not the last owner) */}
-                  {index < timeline.length - 1 && (
-                    <svg
-                      className="w-3 h-3 text-white transition-all duration-200 ease-in-out"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      style={{
-                        transform: isHovering ? "scale(1.2)" : "scale(1)",
-                      }}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+const FS = ({
+  children,
+  currentEvent,
+}: {
+  children: React.ReactNode;
+  currentEvent: Event;
+}) => {
+  const occurrencesData = useOccurrences(currentEvent);
+  return <>{occurrencesData?.data?.isFirstSession ? children : <></>}</>;
+};

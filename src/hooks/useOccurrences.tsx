@@ -40,3 +40,4 @@ export const useOccurrences = (currentEvent: Event | null) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
